@@ -1,0 +1,42 @@
+[
+ {
+  "name": "Straight",
+  "values": {
+   "Sense": 0.5,
+   "Gate": 1.0,
+   "Shuffle": 0
+  }
+ },
+ {
+  "name": "Rechop",
+  "values": {
+   "Sense": 0.65,
+   "Gate": 0.95,
+   "Shuffle": 27
+  }
+ },
+ {
+  "name": "Gated",
+  "values": {
+   "Sense": 0.5,
+   "Gate": 0.35,
+   "Shuffle": 0
+  }
+ },
+ {
+  "name": "Stutter",
+  "values": {
+   "Sense": 1.0,
+   "Gate": 0.18,
+   "Shuffle": 111
+  }
+ },
+ {
+  "name": "Coarse Cuts",
+  "values": {
+   "Sense": 0.15,
+   "Gate": 1.0,
+   "Shuffle": 4
+  }
+ }
+]

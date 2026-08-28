@@ -1,0 +1,13 @@
+{
+  "width": 293,
+  "height": 150,
+  "controls": [
+    { "type": "combo", "param": "Device", "label": "Device", "source": "serial-ports", "x": 8, "y": 8, "w": 277, "h": 22 },
+    { "type": "combo", "param": "BaudRate", "label": "Baud", "x": 8, "y": 38, "w": 136, "h": 22,
+      "options": ["300", "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400"] },
+    { "type": "double-spinner", "param": "Smooth", "label": "Smooth (ms)", "x": 152, "y": 38, "w": 133, "h": 22, "decimals": 0 },
+    { "type": "toggle", "param": "ASCII", "label": "ASCII lines", "x": 8, "y": 68, "w": 136, "h": 24 },
+    { "type": "label", "label": "Outlets: 1 A - 2 B, from \"a b\" per line", "x": 8, "y": 100, "w": 277, "h": 16 },
+    { "type": "label", "label": "Also a Modulate-with source: a, b", "x": 8, "y": 118, "w": 277, "h": 16 }
+  ]
+}

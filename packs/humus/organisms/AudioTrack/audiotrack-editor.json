@@ -1,0 +1,17 @@
+{
+  "width": 293,
+  "height": 116,
+  "controls": [
+    { "type": "label", "label": "Monitor", "x": 12, "y": 12, "w": 200, "h": 14 },
+    {
+      "type": "enum-buttons",
+      "param": "Monitor",
+      "label": "",
+      "options": ["In", "Auto", "Off"],
+      "x": 12, "y": 28, "w": 200, "h": 24
+    },
+    { "type": "label", "label": "Output", "x": 12, "y": 62, "w": 200, "h": 14 },
+    { "type": "level-meter", "x": 12, "y": 78, "w": 200, "h": 22 },
+    { "type": "knob", "param": "Gain", "label": "Gain", "x": 221, "y": 26, "w": 64, "h": 74 }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "classes": [
+    {
+      "class": "Invert",
+      "category": "Mixers",
+      "params": [],
+      "editor": "layout:invert-editor.json"
+    }
+  ]
+}

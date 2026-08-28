@@ -1,0 +1,21 @@
+{
+  "width": 600,
+  "height": 268,
+  "controls": [
+    {
+      "type": "formula",
+      "param": "Expression",
+      "label": "",
+      "x": 8,
+      "y": 6,
+      "w": 584,
+      "h": 168
+    },
+    { "type": "knob", "param": "X", "label": "x", "x": 168, "y": 178, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Y", "label": "y", "x": 236, "y": 178, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Z", "label": "z", "x": 304, "y": 178, "w": 60, "h": 84 },
+    { "type": "knob", "param": "W", "label": "w", "x": 372, "y": 178, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Freq", "label": "Freq", "x": 460, "y": 178, "w": 60, "h": 84, "log": true, "dim-when": "!Auto" },
+    { "type": "minitoggle", "param": "Auto", "label": "Auto", "x": 528, "y": 208, "w": 56, "h": 22 }
+  ]
+}

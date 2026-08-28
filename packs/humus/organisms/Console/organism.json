@@ -1,0 +1,1463 @@
+{
+  "strips": true,
+ "classes": [
+    {
+      "class": "Console",
+      "category": "Mixers",
+      "canonical": "S6Console",
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S2Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S3Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S4Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S5Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S6Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S7Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    },
+    {
+      "class": "S8Console",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Output",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Direct",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "Crosstalk",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Sag",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Flavor",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Gain_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Mute_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:console"
+    }
+  ]
+}

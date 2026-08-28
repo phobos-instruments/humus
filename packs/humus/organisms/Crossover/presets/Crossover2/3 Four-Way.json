@@ -1,0 +1,22 @@
+[
+ {
+  "name": "Festival Rig",
+  "values": {
+   "Bands": 4.0,
+   "Freq1": 90.0,
+   "Freq2": 400.0,
+   "Freq3": 3500.0,
+   "Slope": 2.0
+  }
+ },
+ {
+  "name": "Mastering Four",
+  "values": {
+   "Bands": 4.0,
+   "Freq1": 120.0,
+   "Freq2": 1200.0,
+   "Freq3": 7000.0,
+   "Slope": 1.0
+  }
+ }
+]

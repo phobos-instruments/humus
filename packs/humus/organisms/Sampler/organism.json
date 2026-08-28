@@ -1,0 +1,242 @@
+{
+  "classes": [
+    {
+      "class": "Sampler",
+      "category": "Instruments",
+      "params": [
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Gain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "Attack",
+          "min": 0.5,
+          "max": 2000.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "Decay",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 120.0,
+          "random": true
+        },
+        {
+          "name": "Sustain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Release",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 150.0,
+          "random": true
+        },
+        {
+          "name": "Polyphony",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 8.0,
+          "int": true
+        },
+        {
+          "name": "Loop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "File1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root1",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root2",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root3",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root4",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root5",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root6",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root7",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "File8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Root8",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0,
+          "int": true
+        },
+        {
+          "name": "FileBank",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true
+        },
+        {
+          "name": "Preset",
+          "min": 1.0,
+          "max": 1024.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "RecSlot",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 30000.0,
+          "def": 0.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Bits",
+          "min": 8.0,
+          "max": 24.0,
+          "def": 12.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Rate",
+          "min": 4.0,
+          "max": 48.0,
+          "def": 32.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Monitor",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.01
+        }
+      ],
+      "editor": "layout:sampler-editor.json"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "width": 293,
+  "height": 200,
+  "controls": [
+    {
+      "type": "int-spinner",
+      "param": "Channel",
+      "label": "MIDI Ch",
+      "x": 8,
+      "y": 10,
+      "w": 140,
+      "h": 22
+    },
+    {
+      "type": "pitch-readout",
+      "x": 8,
+      "y": 40,
+      "w": 277,
+      "h": 76
+    },
+    {
+      "type": "knob",
+      "param": "Sensitivity",
+      "label": "Sensitivity",
+      "x": 8,
+      "y": 124,
+      "w": 60,
+      "h": 68
+    },
+    {
+      "type": "combo",
+      "param": "Response",
+      "label": "",
+      "x": 74,
+      "y": 126,
+      "w": 211,
+      "h": 22,
+      "options": [
+        "Fast",
+        "Balanced",
+        "Accurate"
+      ]
+    },
+    {
+      "type": "note-field",
+      "param": "LowNote",
+      "label": "Low",
+      "x": 74,
+      "y": 154,
+      "w": 103,
+      "h": 22
+    },
+    {
+      "type": "note-field",
+      "param": "HighNote",
+      "label": "High",
+      "x": 182,
+      "y": 154,
+      "w": 103,
+      "h": 22
+    }
+  ]
+}

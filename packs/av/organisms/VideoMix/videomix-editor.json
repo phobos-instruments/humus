@@ -1,0 +1,15 @@
+{
+  "width": 293,
+  "height": 44,
+  "controls": [
+    {
+      "type": "hslider",
+      "param": "Fade",
+      "label": "A \u00b7 Fade \u00b7 B",
+      "x": 12,
+      "y": 6,
+      "w": 269,
+      "h": 30
+    }
+  ]
+}

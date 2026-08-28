@@ -1,0 +1,10 @@
+{
+  "classes": [
+    {
+      "class": "VuMeter",
+      "category": "Meters",
+      "params": [],
+      "editor": "layout:vumeter-editor.json"
+    }
+  ]
+}

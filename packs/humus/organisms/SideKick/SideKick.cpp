@@ -1,0 +1,48 @@
+#include "SideKick/SideKick.h"
+
+#include <algorithm>
+#include <cmath>
+
+#include "hum/dsp/DspMath.h"
+
+namespace hum {
+
+void SideKick::process(const float* const* in, int numIn, float* const* out, int numOut,
+                       int numSamples, const Transport& transport) {
+    auto tap = [&](int c, int n) -> float {
+        return (c < numIn && in[c]) ? in[c][n] : 0.0f;
+    };
+    if (!transport.playing()) {
+        for (int n = 0; n < numSamples; ++n)
+            for (int c = 0; c < numOut; ++c) out[c][n] = tap(c, n);
+        g_ = 1.0;
+        return;
+    }
+
+    if (const auto* sp = params.byName("Shape"); sp != nullptr && sp->text != cachedText_) {
+        decodeGainShape(sp->text.c_str(), shape_);
+        cachedText_ = sp->text;
+    }
+
+    const double mix = std::clamp(params.get("Mix", 1.0), 0.0, 1.0);
+    static const double kBars[] = {1.0, 1.0 / 2, 1.0 / 4, 1.0 / 8, 1.0 / 16};
+    const int si = std::clamp((int) params.get("Sync", 2.0), 0, 4);
+    const double cycleBeats = kBars[si] * transport.beatsPerBar();
+    const double beatsPerSample = transport.tempo() / 60.0 / sampleRate_;
+    const double smoothMs = std::clamp(params.get("Smooth", 3.0), 0.0, 20.0);
+    const double sc = smoothMs > 0.01 ? smoothCoeff(smoothMs, sampleRate_) : 0.0;
+
+    double beats = transport.beats();
+    for (int n = 0; n < numSamples; ++n) {
+        const double phase = std::fmod(beats, cycleBeats) / cycleBeats;
+        beats += beatsPerSample;
+        const double target = shape_.eval(phase);
+        g_ = sc * g_ + (1.0 - sc) * target;
+        for (int c = 0; c < numOut; ++c) {
+            const double dry = tap(c, n);
+            out[c][n] = (float) (dry * (1.0 - mix) + dry * g_ * mix);
+        }
+    }
+}
+
+}

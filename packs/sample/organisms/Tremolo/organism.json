@@ -1,0 +1,15 @@
+{
+ "classes": [
+  {
+   "class": "Tremolo",
+   "category": "Effects",
+   "editor": "layout:editor.json",
+   "params": [
+    {"name": "Rate", "min": 0.1, "max": 20.0, "def": 4.0},
+    {"name": "Depth", "min": 0.0, "max": 1.0, "def": 0.8},
+    {"name": "Waveform", "min": 0, "max": 2, "def": 0, "enum": true},
+    {"name": "Sync", "min": 0, "max": 1, "def": 0, "bool": true}
+   ]
+  }
+ ]
+}

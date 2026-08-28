@@ -1,0 +1,125 @@
+{
+  "width": 600,
+  "height": 128,
+  "controls": [
+    {
+      "type": "momentary",
+      "param": "Closed",
+      "label": "Cl",
+      "x": 78,
+      "y": 6,
+      "w": 40,
+      "h": 20
+    },
+    {
+      "type": "momentary",
+      "param": "Open",
+      "label": "Op",
+      "x": 122,
+      "y": 6,
+      "w": 40,
+      "h": 20
+    },
+    {
+      "type": "momentary",
+      "param": "Crash",
+      "label": "Cr",
+      "x": 166,
+      "y": 6,
+      "w": 40,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "OffBeat",
+      "label": "Off 8",
+      "x": 214,
+      "y": 6,
+      "w": 56,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Tune",
+      "label": "Tune",
+      "x": 78,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Metal",
+      "label": "Metal",
+      "x": 142,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Tone",
+      "label": "Tone",
+      "x": 206,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "ClosedDecay",
+      "label": "C.Dec",
+      "x": 270,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "OpenDecay",
+      "label": "O.Dec",
+      "x": 334,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Drive",
+      "label": "Drive",
+      "x": 398,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 526,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 462,
+      "y": 6,
+      "w": 60,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 462,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "dim-when": "SwingFollow"
+    }
+  ]
+}

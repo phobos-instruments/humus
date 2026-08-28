@@ -1,0 +1,12 @@
+{
+  "width": 293,
+  "height": 184,
+  "controls": [
+    { "type": "combo", "param": "Channel", "label": "Input", "source": "audio-in-pairs", "x": 6, "y": 10, "w": 281, "h": 22 },
+    { "type": "toggle", "param": "UseADC", "label": "Live input", "x": 6, "y": 42, "w": 128, "h": 24 },
+    { "type": "toggle", "param": "Loop", "label": "Loop file", "x": 138, "y": 42, "w": 112, "h": 24 },
+    { "type": "soundfile", "param": "File", "label": "", "x": 6, "y": 74, "w": 281, "h": 26 },
+    { "type": "level-meter", "x": 12, "y": 130, "w": 200, "h": 22 },
+    { "type": "knob", "param": "Gain", "label": "Gain", "x": 221, "y": 108, "w": 64, "h": 74 }
+  ]
+}

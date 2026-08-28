@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Stepped Random",
+  "values": {
+   "Expression": "mix(prev, noise(), step(fract(beat*(1+floor(x*7))), 0.02))",
+   "X": 0.14,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Drift",
+  "values": {
+   "Expression": "mix(prev, noise(), 0.002 + x*0.02)",
+   "X": 0.2,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Pump",
+  "values": {
+   "Expression": "pow(fract(beat), 0.3 + x*1.5)",
+   "X": 0.4,
+   "Auto": 1.0
+  }
+ }
+]

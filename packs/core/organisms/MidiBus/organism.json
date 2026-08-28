@@ -1,0 +1,46 @@
+{
+  "classes": [
+    {
+      "class": "MidiBus",
+      "category": "Buses",
+      "canonical": "Midi4Bus",
+      "params": [],
+      "editor": "gen:midibus"
+    },
+    {
+      "class": "Midi2Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:midibus"
+    },
+    {
+      "class": "Midi3Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:midibus"
+    },
+    {
+      "class": "Midi4Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:midibus"
+    },
+    {
+      "class": "Midi6Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:midibus"
+    },
+    {
+      "class": "Midi8Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:midibus"
+    }
+  ]
+}

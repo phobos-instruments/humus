@@ -1,0 +1,41 @@
+[
+ {
+  "name": "Octaves",
+  "values": {
+   "Interval": 12.0
+  }
+ },
+ {
+  "name": "Fifths",
+  "values": {
+   "Interval": 7.0
+  }
+ },
+ {
+  "name": "Thirds",
+  "values": {
+   "Interval": 4.0
+  }
+ },
+ {
+  "name": "Cathedral",
+  "values": {
+   "Interval": 12.0,
+   "Attack": 2500.0,
+   "Release": 4000.0,
+   "Cutoff": 900.0,
+   "Motion": 0.3,
+   "Layers": 12.0
+  }
+ },
+ {
+  "name": "Swarm",
+  "values": {
+   "Interval": 1.0,
+   "Layers": 24.0,
+   "Motion": 0.8,
+   "Spread": 18.0,
+   "Cutoff": 2000.0
+  }
+ }
+]

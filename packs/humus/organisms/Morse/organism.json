@@ -1,0 +1,53 @@
+{
+  "classes": [
+    {
+      "class": "Morse",
+      "category": "Instruments",
+      "params": [
+        {
+          "name": "Text",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "WPM",
+          "min": 5.0,
+          "max": 40.0,
+          "def": 15.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Note",
+          "min": 48.0,
+          "max": 96.0,
+          "def": 74.0,
+          "int": true
+        },
+        {
+          "name": "Loop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.5,
+          "def": 0.9
+        }
+      ],
+      "editor": "layout:morse-editor.json"
+    }
+  ]
+}

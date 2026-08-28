@@ -1,0 +1,112 @@
+{
+  "width": 600,
+  "height": 128,
+  "controls": [
+    {
+      "type": "minitoggle",
+      "param": "Drone",
+      "label": "Drone",
+      "x": 79,
+      "y": 6,
+      "w": 56,
+      "h": 20
+    },
+    {
+      "type": "note-field",
+      "param": "Note",
+      "label": "Note",
+      "x": 155,
+      "y": 6,
+      "w": 88,
+      "h": 20
+    },
+    {
+      "type": "combo",
+      "param": "Mode",
+      "label": "Mode",
+      "x": 263,
+      "y": 6,
+      "w": 112,
+      "h": 20,
+      "options": [
+        "Mono",
+        "Para",
+        "Poly"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Layers",
+      "label": "Layers",
+      "x": 527,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Spread",
+      "label": "Spread",
+      "x": 79,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Motion",
+      "label": "Motion",
+      "x": 143,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Cutoff",
+      "label": "Cutoff",
+      "x": 207,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Attack",
+      "x": 271,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Release",
+      "label": "Release",
+      "x": 335,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 399,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Interval",
+      "label": "Interval",
+      "x": 463,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "decimals": 1
+    }
+  ]
+}

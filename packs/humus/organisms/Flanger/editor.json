@@ -1,0 +1,10 @@
+{
+  "width": 293,
+  "height": 108,
+  "controls": [
+    { "type": "hslider", "param": "Rate", "label": "Rate", "x": 6, "y": 14, "w": 222, "h": 22, "decimals": 2, "log": true },
+    { "type": "hslider", "param": "Feedback", "label": "Feedback", "x": 6, "y": 44, "w": 222, "h": 22, "decimals": 2 },
+    { "type": "hslider", "param": "WetDryMix", "label": "Wet/Dry", "x": 6, "y": 74, "w": 222, "h": 22, "decimals": 2 },
+    { "type": "range-vslider", "param": "FrequencyRange", "label": "Sweep", "x": 236, "y": 14, "w": 50, "h": 82, "decimals": 0, "log": true }
+  ]
+}

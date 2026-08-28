@@ -1,0 +1,143 @@
+{
+  "classes": [
+    {
+      "class": "Acid",
+      "category": "Instruments",
+      "editor": "layout:acid-editor.json",
+      "params": [
+        {
+          "name": "Wave",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Cutoff",
+          "min": 80.0,
+          "max": 8000.0,
+          "def": 900.0,
+          "random": true
+        },
+        {
+          "name": "Resonance",
+          "min": 0.5,
+          "max": 12.0,
+          "def": 6.0,
+          "random": true
+        },
+        {
+          "name": "EnvMod",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.6,
+          "random": true
+        },
+        {
+          "name": "Decay",
+          "min": 30.0,
+          "max": 3000.0,
+          "def": 300.0,
+          "random": true
+        },
+        {
+          "name": "Accent",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Glide",
+          "min": 0.0,
+          "max": 1500.0,
+          "def": 60.0,
+          "random": true
+        },
+        {
+          "name": "Attack",
+          "min": 0.3,
+          "max": 30.0,
+          "def": 3.0
+        },
+        {
+          "name": "AmpDecay",
+          "min": 16.0,
+          "max": 3000.0,
+          "def": 1230.0,
+          "random": true
+        },
+        {
+          "name": "AccentDecay",
+          "min": 30.0,
+          "max": 1000.0,
+          "def": 200.0,
+          "random": true
+        },
+        {
+          "name": "FilterFM",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Track",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.3,
+          "random": true
+        },
+        {
+          "name": "LfoWave",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "LfoRate",
+          "min": 0.05,
+          "max": 30.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "LfoDepth",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "LfoSync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "LfoBeats",
+          "min": 0.0625,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.5,
+          "def": 0.8
+        }
+      ]
+    }
+  ]
+}

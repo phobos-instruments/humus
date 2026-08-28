@@ -1,0 +1,64 @@
+{
+  "width": 293,
+  "height": 156,
+  "controls": [
+    {
+      "type": "combo",
+      "label": "Mode",
+      "x": 8,
+      "y": 4,
+      "w": 130,
+      "h": 20,
+      "options": [
+        "Stereo",
+        "Mono"
+      ],
+      "reclass": "mode"
+    },
+    {
+      "type": "knob",
+      "param": "Smear",
+      "label": "Smear",
+      "x": 8,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Diffusion",
+      "label": "Diffusion",
+      "x": 72,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Shimmer",
+      "label": "Shimmer",
+      "x": 136,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 200,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "toggle",
+      "param": "Freeze",
+      "label": "Freeze",
+      "x": 8,
+      "y": 124,
+      "w": 66,
+      "h": 24
+    }
+  ]
+}

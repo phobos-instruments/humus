@@ -1,0 +1,105 @@
+{
+ "classes": [
+  {
+   "class": "Bloom",
+   "category": "Effects",
+   "editor": "layout:bloom-editor.json",
+   "params": [
+    {
+     "name": "Mix",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5
+    },
+    {
+     "name": "Shift",
+     "min": -24.0,
+     "max": 24.0,
+     "def": 12.0,
+     "int": true,
+     "random": true
+    },
+    {
+     "name": "Shimmer",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.6,
+     "random": true
+    },
+    {
+     "name": "Feedback",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "Size",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "Diffusion",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.7,
+     "random": true
+    },
+    {
+     "name": "LowCut",
+     "min": 20.0,
+     "max": 2000.0,
+     "def": 100.0,
+     "random": true
+    },
+    {
+     "name": "HighCut",
+     "min": 500.0,
+     "max": 20000.0,
+     "def": 8000.0,
+     "random": true
+    },
+    {
+     "name": "ModRate",
+     "min": 0.05,
+     "max": 5.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "ModDepth",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.25,
+     "random": true
+    },
+    {
+     "name": "Mode",
+     "min": 0.0,
+     "max": 3.0,
+     "def": 1.0,
+     "int": true,
+     "random": true
+    },
+    {
+     "name": "Voice",
+     "min": 0.0,
+     "max": 3.0,
+     "def": 0.0,
+     "int": true,
+     "random": true
+    },
+    {
+     "name": "Color",
+     "min": 0.0,
+     "max": 2.0,
+     "def": 1.0,
+     "int": true,
+     "random": true
+    }
+   ]
+  }
+ ]
+}

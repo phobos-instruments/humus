@@ -1,0 +1,7 @@
+{
+  "width": 600,
+  "height": 236,
+  "controls": [
+    { "type": "spectrum-scope", "x": 12, "y": 8, "w": 576, "h": 220 }
+  ]
+}

@@ -1,0 +1,208 @@
+{
+  "classes": [
+    {
+      "class": "ParaEQ",
+      "category": "Filters",
+      "params": [
+        {
+          "name": "HSCutoffFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 8000.0
+        },
+        {
+          "name": "HSGain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "BP1CenterFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 1000.0
+        },
+        {
+          "name": "BP1Bandwidth",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 200.0
+        },
+        {
+          "name": "BP1Gain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "BP2CenterFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 3000.0
+        },
+        {
+          "name": "BP2Bandwidth",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 200.0
+        },
+        {
+          "name": "BP2Gain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "LSCutoffFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 120.0
+        },
+        {
+          "name": "LSGain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        }
+      ],
+      "editor": "gen:paraeq",
+      "canonical": "SParaEQ"
+    },
+    {
+      "class": "SParaEQ",
+      "category": "Filters",
+      "params": [
+        {
+          "name": "HSCutoffFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 8000.0
+        },
+        {
+          "name": "HSGain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "BP1CenterFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 1000.0
+        },
+        {
+          "name": "BP1Bandwidth",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 200.0
+        },
+        {
+          "name": "BP1Gain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "BP2CenterFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 3000.0
+        },
+        {
+          "name": "BP2Bandwidth",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 200.0
+        },
+        {
+          "name": "BP2Gain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "LSCutoffFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 120.0
+        },
+        {
+          "name": "LSGain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        }
+      ],
+      "editor": "gen:paraeq",
+      "hidden": true
+    },
+    {
+      "class": "MParaEQ",
+      "category": "Filters",
+      "params": [
+        {
+          "name": "HSCutoffFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 8000.0
+        },
+        {
+          "name": "HSGain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "BP1CenterFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 1000.0
+        },
+        {
+          "name": "BP1Bandwidth",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 200.0
+        },
+        {
+          "name": "BP1Gain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "BP2CenterFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 3000.0
+        },
+        {
+          "name": "BP2Bandwidth",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 200.0
+        },
+        {
+          "name": "BP2Gain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        },
+        {
+          "name": "LSCutoffFrequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 120.0
+        },
+        {
+          "name": "LSGain",
+          "min": -30.0,
+          "max": 30.0,
+          "def": 0.0
+        }
+      ],
+      "editor": "gen:paraeq",
+      "hidden": true
+    }
+  ]
+}

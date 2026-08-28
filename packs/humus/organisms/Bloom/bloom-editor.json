@@ -1,0 +1,24 @@
+{
+  "width": 600,
+  "height": 226,
+  "controls": [
+    { "type": "enum-buttons", "param": "Mode", "label": "", "x": 8, "y": 8, "w": 232, "h": 20,
+      "options": ["Bloom", "Hall", "Cathedral", "Cloud"] },
+    { "type": "enum-buttons", "param": "Voice", "label": "", "x": 248, "y": 8, "w": 200, "h": 20,
+      "options": ["Single", "Dual", "Stacked", "Off"] },
+    { "type": "enum-buttons", "param": "Color", "label": "", "x": 456, "y": 8, "w": 136, "h": 20,
+      "options": ["Bright", "Neutral", "Dark"] },
+
+    { "type": "knob", "param": "Shift",     "label": "Shift",   "x": 14,  "y": 36,  "w": 60, "h": 84, "decimals": 0 },
+    { "type": "knob", "param": "Shimmer",   "label": "Shimmer", "x": 78,  "y": 36,  "w": 60, "h": 84 },
+    { "type": "knob", "param": "Feedback",  "label": "Fdbk",    "x": 142, "y": 36,  "w": 60, "h": 84 },
+    { "type": "knob", "param": "Size",      "label": "Size",    "x": 206, "y": 36,  "w": 60, "h": 84 },
+    { "type": "knob", "param": "Diffusion", "label": "Diff",    "x": 270, "y": 36,  "w": 60, "h": 84 },
+    { "type": "knob", "param": "Mix",       "label": "Mix",     "x": 526, "y": 36,  "w": 60, "h": 84 },
+
+    { "type": "knob", "param": "LowCut",    "label": "Low Cut",  "x": 14,  "y": 132, "w": 60, "h": 84, "decimals": 0 },
+    { "type": "knob", "param": "HighCut",   "label": "High Cut", "x": 78,  "y": 132, "w": 60, "h": 84, "decimals": 0 },
+    { "type": "knob", "param": "ModRate",   "label": "Rate",     "x": 142, "y": 132, "w": 60, "h": 84 },
+    { "type": "knob", "param": "ModDepth",  "label": "Depth",    "x": 206, "y": 132, "w": 60, "h": 84 }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "width": 293,
+  "height": 130,
+  "controls": [
+    {
+      "type": "combo",
+      "label": "Mode",
+      "x": 20,
+      "y": 4,
+      "w": 130,
+      "h": 20,
+      "options": [
+        "Stereo",
+        "Mono"
+      ],
+      "reclass": "mode"
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Attack",
+      "x": 20,
+      "y": 32,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "Sustain",
+      "label": "Sustain",
+      "x": 84,
+      "y": 32,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "OutputGain",
+      "label": "Out",
+      "x": 148,
+      "y": 32,
+      "w": 60,
+      "h": 82
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "width": 293,
+  "height": 128,
+  "controls": [
+    {
+      "type": "soundfile",
+      "param": "File",
+      "label": "",
+      "x": 12,
+      "y": 6,
+      "w": 269,
+      "h": 24,
+      "filter": "*.mov;*.mp4;*.m4v;*.avi",
+      "title": "Load a tape"
+    },
+    {
+      "type": "knob",
+      "param": "Rate",
+      "label": "Rate",
+      "x": 12,
+      "y": 38,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Wear",
+      "label": "Wear",
+      "x": 76,
+      "y": 38,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "hslider",
+      "param": "Opacity",
+      "label": "Opacity",
+      "x": 146,
+      "y": 52,
+      "w": 135,
+      "h": 24
+    },
+    {
+      "type": "combo",
+      "param": "Blend",
+      "label": "",
+      "x": 146,
+      "y": 90,
+      "w": 135,
+      "h": 22,
+      "options": [
+        "Normal",
+        "Add",
+        "Multiply",
+        "Screen"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,125 @@
+{
+  "width": 293,
+  "height": 242,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Mode",
+      "label": "",
+      "x": 20,
+      "y": 4,
+      "w": 120,
+      "h": 20,
+      "options": [
+        "Stereo",
+        "Ping-pong"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Glide",
+      "label": "",
+      "x": 148,
+      "y": 4,
+      "w": 124,
+      "h": 20,
+      "options": [
+        "Tape",
+        "Fade"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Time",
+      "label": "Time",
+      "x": 20,
+      "y": 32,
+      "w": 60,
+      "h": 82,
+      "dim-when": "Sync"
+    },
+    {
+      "type": "knob",
+      "param": "Feedback",
+      "label": "Feedback",
+      "x": 84,
+      "y": 32,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "Spread",
+      "label": "Spread",
+      "x": 148,
+      "y": 32,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 212,
+      "y": 32,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "Body",
+      "label": "Body",
+      "x": 20,
+      "y": 120,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "Damp",
+      "label": "Damp",
+      "x": 84,
+      "y": 120,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "knob",
+      "param": "Drive",
+      "label": "Drive",
+      "x": 148,
+      "y": 120,
+      "w": 60,
+      "h": 82
+    },
+    {
+      "type": "minitoggle",
+      "param": "Sync",
+      "label": "Sync",
+      "x": 212,
+      "y": 130,
+      "w": 60,
+      "h": 20
+    },
+    {
+      "type": "tap",
+      "param": "Time",
+      "off": "Sync",
+      "label": "Tap",
+      "x": 212,
+      "y": 156,
+      "w": 60,
+      "h": 20
+    },
+    {
+      "type": "rhythmic-unit",
+      "param": "SyncMultiplier",
+      "param2": "SyncUnit",
+      "label": "",
+      "x": 20,
+      "y": 208,
+      "w": 252,
+      "h": 24
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "classes": [
+    {
+      "class": "SoundIn",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 1,
+          "int": true
+        },
+        {
+          "name": "UseADC",
+          "min": 0,
+          "max": 1,
+          "def": 1,
+          "bool": true
+        },
+        {
+          "name": "File",
+          "def": 0,
+          "isText": true
+        },
+        {
+          "name": "Loop",
+          "min": 0,
+          "max": 1,
+          "def": 1,
+          "bool": true
+        },
+        {
+          "name": "Gain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:soundin-editor.json"
+    }
+  ]
+}

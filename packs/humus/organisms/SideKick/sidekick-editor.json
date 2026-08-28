@@ -1,0 +1,48 @@
+{
+  "width": 600,
+  "height": 264,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Sync",
+      "label": "Sync",
+      "x": 73,
+      "y": 4,
+      "w": 140,
+      "h": 20,
+      "options": [
+        "1 bar",
+        "1/2 bar",
+        "1/4 bar",
+        "1/8 bar",
+        "1/16 bar"
+      ]
+    },
+    {
+      "type": "gain-shape",
+      "param": "Shape",
+      "x": 73,
+      "y": 32,
+      "w": 384,
+      "h": 224
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 465,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Smooth",
+      "label": "Smooth",
+      "x": 465,
+      "y": 132,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

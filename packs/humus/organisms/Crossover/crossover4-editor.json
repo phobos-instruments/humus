@@ -1,0 +1,85 @@
+{
+ "width": 293,
+ "height": 160,
+ "controls": [
+  {
+   "type": "label",
+   "label": "Bands",
+   "x": 8,
+   "y": 8,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "combo",
+   "param": "",
+   "label": "",
+   "x": 56,
+   "y": 8,
+   "w": 80,
+   "h": 22,
+   "options": [
+    "2",
+    "3",
+    "4",
+    "5"
+   ],
+   "reclass": "inputs"
+  },
+  {
+   "type": "knob",
+   "param": "Freq1",
+   "label": "Split 1",
+   "x": 8,
+   "y": 36,
+   "w": 60,
+   "h": 84,
+   "decimals": 0,
+   "log": true
+  },
+  {
+   "type": "knob",
+   "param": "Freq2",
+   "label": "Split 2",
+   "x": 72,
+   "y": 36,
+   "w": 60,
+   "h": 84,
+   "decimals": 0,
+   "log": true
+  },
+  {
+   "type": "knob",
+   "param": "Freq3",
+   "label": "Split 3",
+   "x": 136,
+   "y": 36,
+   "w": 60,
+   "h": 84,
+   "decimals": 0,
+   "log": true
+  },
+  {
+   "type": "label",
+   "label": "Slope",
+   "x": 8,
+   "y": 130,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "combo",
+   "param": "Slope",
+   "label": "",
+   "x": 56,
+   "y": 130,
+   "w": 150,
+   "h": 22,
+   "options": [
+    "24 dB/oct",
+    "12 dB/oct",
+    "48 dB/oct"
+   ]
+  }
+ ]
+}

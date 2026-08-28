@@ -1,0 +1,19 @@
+{
+  "width": 293,
+  "height": 250,
+  "controls": [
+    { "type": "enum-buttons", "param": "Wave", "label": "", "x": 8, "y": 6, "w": 277, "h": 20, "options": ["SIN", "SAW", "SQR"], "icons": "waves" },
+
+    { "type": "label", "label": "Growth", "x": 8, "y": 32, "w": 277, "h": 14 },
+    { "type": "knob", "param": "Runners", "label": "Runners", "x": 8, "y": 48, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Interval", "label": "Degrees", "x": 72, "y": 48, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Creep", "label": "Creep", "x": 136, "y": 48, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Tilt", "label": "Tilt", "x": 200, "y": 48, "w": 60, "h": 84 },
+
+    { "type": "label", "label": "Voice", "x": 8, "y": 140, "w": 277, "h": 14 },
+    { "type": "knob", "param": "Bloom", "label": "Bloom", "x": 8, "y": 156, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Decay", "label": "Decay", "x": 72, "y": 156, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Cutoff", "label": "Cutoff", "x": 136, "y": 156, "w": 60, "h": 84, "log": true },
+    { "type": "knob", "param": "Level", "label": "Level", "x": 200, "y": 156, "w": 60, "h": 84 }
+  ]
+}

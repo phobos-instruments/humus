@@ -1,0 +1,28 @@
+{
+  "width": 293,
+  "height": 128,
+  "controls": [
+    {
+      "type": "combo",
+      "label": "Mode",
+      "x": 36,
+      "y": 4,
+      "w": 130,
+      "h": 20,
+      "options": [
+        "Stereo",
+        "Mono"
+      ],
+      "reclass": "mode"
+    },
+    {
+      "type": "hslider",
+      "param": "Morph",
+      "label": "A  <  >  B",
+      "x": 16,
+      "y": 44,
+      "w": 261,
+      "h": 44
+    }
+  ]
+}

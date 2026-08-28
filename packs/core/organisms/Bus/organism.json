@@ -1,0 +1,110 @@
+{
+  "strips": true,
+ "classes": [
+    {
+      "class": "Bus",
+      "category": "Buses",
+      "canonical": "S2Bus",
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S2Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M2Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S3Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M3Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S4Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M4Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S5Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M5Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S6Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M6Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S7Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M7Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "S8Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    },
+    {
+      "class": "M8Bus",
+      "category": "Buses",
+      "hidden": true,
+      "params": [],
+      "editor": "gen:bus"
+    }
+  ]
+}

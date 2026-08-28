@@ -1,0 +1,60 @@
+{
+  "classes": [
+    {
+      "class": "DigiRust",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "Bits",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 8.0,
+          "random": true,
+          "int": true
+        },
+        {
+          "name": "Rate",
+          "min": 500.0,
+          "max": 48000.0,
+          "def": 12000.0,
+          "random": true,
+          "unit": "Hz"
+        },
+        {
+          "name": "Jitter",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Noise",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Tone",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:digirust-editor.json"
+    }
+  ]
+}

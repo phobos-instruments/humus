@@ -1,0 +1,8 @@
+{
+  "width": 293,
+  "height": 118,
+  "controls": [
+    { "type": "label", "label": "Outlets: 1-2 thru, untouched  ·  3-4 the send", "x": 12, "y": 12, "w": 269, "h": 16 },
+    { "type": "knob", "param": "Level", "label": "Send Level", "x": 114, "y": 36, "w": 64, "h": 74, "decimals": 2 }
+  ]
+}

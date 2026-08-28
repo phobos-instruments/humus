@@ -1,0 +1,437 @@
+{
+ "classes": [
+  {
+   "class": "pH",
+   "category": "Instruments",
+   "editor": "layout:ph-editor.json",
+   "params": [
+    {
+     "name": "Patch",
+     "min": 1.0,
+     "max": 512.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Bright",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "Attack",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "Release",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "Detune",
+     "min": 0.0,
+     "max": 50.0,
+     "def": 0.0,
+     "random": true
+    },
+    {
+     "name": "Vibrato",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "random": true
+    },
+    {
+     "name": "Speed",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "random": true
+    },
+    {
+     "name": "Transpose",
+     "min": -24.0,
+     "max": 24.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Fine",
+     "min": -50.0,
+     "max": 50.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.8
+    },
+    {
+     "name": "Algorithm",
+     "min": 1.0,
+     "max": 32.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Feedback",
+     "min": 0.0,
+     "max": 7.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Level",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Ratio",
+     "min": 0.0,
+     "max": 31.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Detune",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Attack",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Decay",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 40.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Sustain",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 90.0,
+     "int": true
+    },
+    {
+     "name": "Op1_Release",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 55.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Level",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Ratio",
+     "min": 0.0,
+     "max": 31.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Detune",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Attack",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Decay",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 40.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Sustain",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 90.0,
+     "int": true
+    },
+    {
+     "name": "Op2_Release",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 55.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Level",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Ratio",
+     "min": 0.0,
+     "max": 31.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Detune",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Attack",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Decay",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 40.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Sustain",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 90.0,
+     "int": true
+    },
+    {
+     "name": "Op3_Release",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 55.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Level",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Ratio",
+     "min": 0.0,
+     "max": 31.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Detune",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Attack",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Decay",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 40.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Sustain",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 90.0,
+     "int": true
+    },
+    {
+     "name": "Op4_Release",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 55.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Level",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Ratio",
+     "min": 0.0,
+     "max": 31.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Detune",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Attack",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Decay",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 40.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Sustain",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 90.0,
+     "int": true
+    },
+    {
+     "name": "Op5_Release",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 55.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Level",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Ratio",
+     "min": 0.0,
+     "max": 31.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Detune",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Attack",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 99.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Decay",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 40.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Sustain",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 90.0,
+     "int": true
+    },
+    {
+     "name": "Op6_Release",
+     "min": 0.0,
+     "max": 99.0,
+     "def": 55.0,
+     "int": true
+    },
+    {
+     "name": "Op1_On",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Op2_On",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Op3_On",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Op4_On",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Op5_On",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Op6_On",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "File",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "plainText": true
+    }
+   ]
+  }
+ ]
+}

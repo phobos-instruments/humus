@@ -1,0 +1,199 @@
+{
+  "classes": [
+    {
+      "class": "Sequence",
+      "category": "Sequencers",
+      "editor": "layout:sequence-editor.json",
+      "params": [
+        {
+          "name": "SwingFollow",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Swing",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Gate",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Enable_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_1",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 36.0,
+          "int": true
+        },
+        {
+          "name": "Enable_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_2",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 35.0,
+          "int": true
+        },
+        {
+          "name": "Enable_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_3",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 39.0,
+          "int": true
+        },
+        {
+          "name": "Enable_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_4",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 42.0,
+          "int": true
+        },
+        {
+          "name": "Enable_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_5",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 46.0,
+          "int": true
+        },
+        {
+          "name": "Enable_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_6",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 38.0,
+          "int": true
+        },
+        {
+          "name": "Enable_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_7",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 37.0,
+          "int": true
+        },
+        {
+          "name": "Enable_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Vel_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Note_8",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 45.0,
+          "int": true
+        }
+      ]
+    }
+  ]
+}

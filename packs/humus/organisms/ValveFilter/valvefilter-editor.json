@@ -1,0 +1,172 @@
+{
+  "width": 600,
+  "height": 150,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "EnvDecay",
+      "label": "Decay",
+      "x": 10,
+      "y": 4,
+      "w": 96,
+      "h": 20,
+      "options": [
+        "Fast",
+        "Slow"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "EnvToDrive",
+      "label": "EF>OD",
+      "x": 112,
+      "y": 4,
+      "w": 54,
+      "h": 20
+    },
+    {
+      "type": "combo",
+      "param": "LfoWave",
+      "label": "",
+      "x": 172,
+      "y": 4,
+      "w": 100,
+      "h": 20,
+      "options": [
+        "Triangle",
+        "Square"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "HiPass",
+      "label": "HI",
+      "x": 280,
+      "y": 4,
+      "w": 36,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "BandPass",
+      "label": "BAND",
+      "x": 320,
+      "y": 4,
+      "w": 46,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "LoPass",
+      "label": "LO",
+      "x": 370,
+      "y": 4,
+      "w": 36,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mono",
+      "label": "24dB MONO",
+      "x": 414,
+      "y": 4,
+      "w": 82,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "MixInvert",
+      "label": "INV",
+      "x": 500,
+      "y": 4,
+      "w": 38,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "FilterOn",
+      "label": "OFF",
+      "on-label": "ON",
+      "x": 542,
+      "y": 4,
+      "w": 48,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "EnvFollow",
+      "label": "Env Foll",
+      "x": 10,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Drive",
+      "label": "Valve",
+      "x": 74,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "LfoSpeed",
+      "label": "LFO",
+      "logarithmic": true,
+      "x": 138,
+      "y": 32,
+      "w": 60,
+      "h": 84,
+      "dim-when": "LfoSync"
+    },
+    {
+      "type": "knob",
+      "param": "LfoDepth",
+      "label": "Depth",
+      "x": 202,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Resonance",
+      "label": "Res",
+      "x": 266,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Frequency",
+      "label": "VCF Freq",
+      "logarithmic": true,
+      "x": 342,
+      "y": 32,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "LfoSync",
+      "label": "Sync",
+      "x": 138,
+      "y": 118,
+      "w": 52,
+      "h": 20
+    },
+    {
+      "type": "double-spinner",
+      "param": "LfoBeats",
+      "label": "Beats",
+      "x": 196,
+      "y": 118,
+      "w": 108,
+      "h": 20,
+      "dim-when": "!LfoSync"
+    }
+  ]
+}

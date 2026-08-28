@@ -1,0 +1,381 @@
+{
+  "width": 600,
+  "height": 548,
+  "controls": [
+    {
+      "type": "label",
+      "label": "Bank",
+      "x": 12,
+      "y": 6,
+      "w": 320,
+      "h": 14
+    },
+    {
+      "type": "bank-file",
+      "param": "FileBank",
+      "label": "",
+      "x": 12,
+      "y": 24,
+      "w": 300,
+      "h": 26,
+      "kind": "Banks",
+      "filter": "*.sf2"
+    },
+    {
+      "type": "combo",
+      "param": "Preset",
+      "label": "Preset",
+      "source": "patch-bank",
+      "steppers": true,
+      "x": 320,
+      "y": 25,
+      "w": 268,
+      "h": 24,
+      "dim-when": "!FileBank"
+    },
+    {
+      "type": "label",
+      "label": "Slots",
+      "x": 28,
+      "y": 58,
+      "w": 300,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Mode",
+      "label": "",
+      "options": [
+        "Pitched",
+        "Kit"
+      ],
+      "x": 340,
+      "y": 55,
+      "w": 152,
+      "h": 20,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "minitoggle",
+      "param": "Loop",
+      "label": "Loop",
+      "x": 500,
+      "y": 55,
+      "w": 72,
+      "h": 20,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File1",
+      "label": "",
+      "x": 28,
+      "y": 82,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root1",
+      "label": "",
+      "x": 222,
+      "y": 83,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File2",
+      "label": "",
+      "x": 28,
+      "y": 110,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root2",
+      "label": "",
+      "x": 222,
+      "y": 111,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File3",
+      "label": "",
+      "x": 28,
+      "y": 138,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root3",
+      "label": "",
+      "x": 222,
+      "y": 139,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File4",
+      "label": "",
+      "x": 28,
+      "y": 166,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root4",
+      "label": "",
+      "x": 222,
+      "y": 167,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File5",
+      "label": "",
+      "x": 312,
+      "y": 82,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root5",
+      "label": "",
+      "x": 506,
+      "y": 83,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File6",
+      "label": "",
+      "x": 312,
+      "y": 110,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root6",
+      "label": "",
+      "x": 506,
+      "y": 111,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File7",
+      "label": "",
+      "x": 312,
+      "y": 138,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root7",
+      "label": "",
+      "x": 506,
+      "y": 139,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "soundfile",
+      "param": "File8",
+      "label": "",
+      "x": 312,
+      "y": 166,
+      "w": 190,
+      "h": 24,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "note-field",
+      "param": "Root8",
+      "label": "",
+      "x": 506,
+      "y": 167,
+      "w": 66,
+      "h": 22,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "Record",
+      "x": 28,
+      "y": 200,
+      "w": 420,
+      "h": 14
+    },
+    {
+      "type": "minitoggle",
+      "param": "Record",
+      "label": "Record",
+      "x": 28,
+      "y": 218,
+      "w": 76,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "RecSlot",
+      "label": "Slot",
+      "x": 116,
+      "y": 218,
+      "w": 172,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "RecordDuration",
+      "label": "Max ms",
+      "x": 312,
+      "y": 218,
+      "w": 260,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Envelope",
+      "x": 12,
+      "y": 284,
+      "w": 320,
+      "h": 14
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Att",
+      "x": 12,
+      "y": 302,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Decay",
+      "label": "Dec",
+      "x": 76,
+      "y": 302,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Sustain",
+      "label": "Sus",
+      "x": 140,
+      "y": 302,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Release",
+      "label": "Rel",
+      "x": 204,
+      "y": 302,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Gain",
+      "label": "Gain",
+      "x": 340,
+      "y": 302,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "int-spinner",
+      "param": "Polyphony",
+      "label": "Voices",
+      "x": 412,
+      "y": 324,
+      "w": 176,
+      "h": 22
+    },
+    {
+      "type": "midi-keyboard",
+      "x": 6,
+      "y": 398,
+      "w": 588,
+      "h": 84
+    },
+    {
+      "type": "label",
+      "label": "Grain",
+      "x": 12,
+      "y": 496,
+      "w": 470,
+      "h": 14
+    },
+    {
+      "type": "int-spinner",
+      "param": "Bits",
+      "label": "Bits",
+      "x": 12,
+      "y": 514,
+      "w": 270,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Rate",
+      "label": "kHz",
+      "x": 318,
+      "y": 514,
+      "w": 270,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Monitor",
+      "label": "Monitor",
+      "x": 28,
+      "y": 254,
+      "w": 84,
+      "h": 20
+    },
+    {
+      "type": "threshold-meter",
+      "param": "Threshold",
+      "label": "",
+      "x": 124,
+      "y": 242,
+      "w": 448,
+      "h": 34
+    }
+  ]
+}

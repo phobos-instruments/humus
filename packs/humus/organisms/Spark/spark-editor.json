@@ -1,0 +1,101 @@
+{
+  "width": 600,
+  "height": 140,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Mode",
+      "label": "",
+      "x": 20,
+      "y": 6,
+      "w": 130,
+      "h": 20,
+      "options": [
+        "Rise",
+        "Fall",
+        "Free"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Rate",
+      "label": "Rate",
+      "x": 18,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Time",
+      "label": "Time",
+      "x": 80,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Range",
+      "label": "Range",
+      "x": 142,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Feedback",
+      "label": "Feedback",
+      "x": 204,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Damp",
+      "label": "Damp",
+      "x": 266,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Spark",
+      "label": "Spark",
+      "x": 328,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Spread",
+      "label": "Spread",
+      "x": 390,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 474,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 536,
+      "y": 36,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

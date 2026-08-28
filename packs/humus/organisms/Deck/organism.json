@@ -1,0 +1,189 @@
+{
+ "classes": [
+  {
+   "class": "Deck",
+   "category": "Players",
+   "params": [
+    {
+     "name": "File",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true
+    },
+    {
+     "name": "Active",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Loop",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Sync",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Master",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Keylock",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "HQ",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Quantize",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Timecode",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "TimecodeHz",
+     "min": 500.0,
+     "max": 4000.0,
+     "def": 1000.0
+    },
+    {
+     "name": "BPM",
+     "min": 20.0,
+     "max": 300.0,
+     "def": 120.0
+    },
+    {
+     "name": "PitchPercent",
+     "min": -50.0,
+     "max": 50.0,
+     "def": 0.0
+    },
+    {
+     "name": "PitchRange",
+     "min": 8.0,
+     "max": 50.0,
+     "def": 8.0
+    },
+    {
+     "name": "Volume",
+     "min": 0.0,
+     "max": 2.0,
+     "def": 1.0
+    },
+    {
+     "name": "GridOffset",
+     "min": 0.0,
+     "max": 1000000000.0,
+     "def": 0.0
+    },
+    {
+     "name": "LoopIn",
+     "min": 0.0,
+     "max": 1000000000.0,
+     "def": 0.0
+    },
+    {
+     "name": "LoopOut",
+     "min": 0.0,
+     "max": 1000000000.0,
+     "def": 0.0
+    },
+    {
+     "name": "LoopBeats",
+     "min": 0.25,
+     "max": 32.0,
+     "def": 4.0
+    },
+    {
+     "name": "Cue",
+     "min": 0.0,
+     "max": 1000000000.0,
+     "def": 0.0
+    },
+    {
+     "name": "Key",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true
+    },
+    {
+     "name": "HotCue_1",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_2",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_3",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_4",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_5",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_6",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_7",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    },
+    {
+     "name": "HotCue_8",
+     "min": -1.0,
+     "max": 1000000000.0,
+     "def": -1.0
+    }
+   ],
+   "editor": "layout:editor.json"
+  }
+ ]
+}

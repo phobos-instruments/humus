@@ -1,0 +1,16 @@
+! slendro-kanyut-mesem.scl
+!
+Slendro of the gamelan Kanyut Mesem - five near-even steps, octave stretched
+ 5
+!
+ 251.0
+ 489.0
+ 730.0
+ 966.0
+ 1219.0
+!
+! One instrument, not a general tuning: every gamelan is tuned to itself, and
+! the octave is deliberately stretched. Measured tones of the Javanese gamelan
+! Kanyut Mesem, published in W. Surjodiningrat, A. Susanto and P. J. Sudarjana,
+! Tone Measurements of Outstanding Javanese Gamelans in Jogjakarta and
+! Surakarta (Gadjah Mada University Press, 1972).

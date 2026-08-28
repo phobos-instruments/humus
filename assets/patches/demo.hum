@@ -1,0 +1,731 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<humus-document version="1">
+  <patch>
+    <clock tempo="120.0" loop-start="0.0" loop-end="0.0" loop-enabled="0" />
+    <contraption class="SoundOut" name="SoundOut">
+      <properties>
+        <property index="0" name="Channel">
+          <int>1</int>
+        </property>
+        <property index="1" name="Gain">
+          <double>1</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="DNA" name="DNA">
+      <properties>
+        <property index="0" name="Root">
+          <int>52</int>
+        </property>
+        <property index="1" name="Scale">
+          <enum>0</enum>
+        </property>
+        <property index="2" name="Rate">
+          <enum>0</enum>
+        </property>
+        <property index="3" name="Gate">
+          <double>0.886952</double>
+        </property>
+        <property index="4" name="Rest">
+          <double>0.715027</double>
+        </property>
+        <property index="5" name="Octaves">
+          <int>1</int>
+        </property>
+        <property index="6" name="Mutate">
+          <double>0.543584</double>
+        </property>
+        <property index="7" name="Velocity">
+          <int>104</int>
+        </property>
+        <property index="8" name="Seed">
+          <int>5183</int>
+        </property>
+        <property index="9" name="SwingFollow">
+          <double>0</double>
+        </property>
+        <property index="10" name="Swing">
+          <double>0.460977</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="Mineral" name="Mineral">
+      <properties>
+        <property index="0" name="Facets">
+          <int>8</int>
+        </property>
+        <property index="1" name="Ratio">
+          <double>1.01</double>
+        </property>
+        <property index="2" name="Shine">
+          <double>0.98</double>
+        </property>
+        <property index="3" name="Decay">
+          <double>242.627</double>
+        </property>
+        <property index="4" name="Strike">
+          <double>1</double>
+        </property>
+        <property index="5" name="Shimmer">
+          <double>1</double>
+        </property>
+        <property index="6" name="Level">
+          <double>0.979814</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="Kick" name="Kick">
+      <properties>
+        <property index="0" name="Tune">
+          <double>45.9988</double>
+        </property>
+        <property index="1" name="Punch">
+          <double>3.31961</double>
+        </property>
+        <property index="2" name="PitchDecay">
+          <double>47.2886</double>
+        </property>
+        <property index="3" name="Decay">
+          <double>317.422</double>
+        </property>
+        <property index="4" name="Click">
+          <double>0</double>
+        </property>
+        <property index="5" name="Wood">
+          <double>0</double>
+        </property>
+        <property index="6" name="Drive">
+          <double>0.344426</double>
+        </property>
+        <property index="7" name="Level">
+          <double>0.9</double>
+        </property>
+        <property index="8" name="FourFloor">
+          <bool>1</bool>
+        </property>
+        <property index="9" name="Trigger">
+          <bool>0</bool>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" current-preset-name="Smooth Kick"
+        current-preset-source="library" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="Cicada" name="Cicada">
+      <properties>
+        <property index="0" name="Tune">
+          <double>0</double>
+        </property>
+        <property index="1" name="Metal">
+          <double>0.7</double>
+        </property>
+        <property index="2" name="Tone">
+          <double>0.5</double>
+        </property>
+        <property index="3" name="ClosedDecay">
+          <double>10</double>
+        </property>
+        <property index="4" name="OpenDecay">
+          <double>35.6964</double>
+        </property>
+        <property index="5" name="Drive">
+          <double>0.2</double>
+        </property>
+        <property index="6" name="Level">
+          <double>0.9</double>
+        </property>
+        <property index="7" name="OffBeat">
+          <bool>1</bool>
+        </property>
+        <property index="8" name="Closed">
+          <bool>0</bool>
+        </property>
+        <property index="9" name="Open">
+          <bool>0</bool>
+        </property>
+        <property index="10" name="Crash">
+          <bool>0</bool>
+        </property>
+        <property index="11" name="SwingFollow">
+          <double>1</double>
+        </property>
+        <property index="12" name="Swing">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="DNA" name="drifting/DNA_lead">
+      <properties>
+        <property index="0" name="Root">
+          <double>45</double>
+        </property>
+        <property index="1" name="Scale">
+          <double>0</double>
+        </property>
+        <property index="2" name="Rate">
+          <double>1</double>
+        </property>
+        <property index="3" name="Gate">
+          <double>0.55</double>
+        </property>
+        <property index="4" name="Rest">
+          <double>0.3</double>
+        </property>
+        <property index="5" name="Octaves">
+          <double>2</double>
+        </property>
+        <property index="6" name="Mutate">
+          <double>0.08</double>
+        </property>
+        <property index="7" name="Velocity">
+          <double>104</double>
+        </property>
+        <property index="8" name="Seed">
+          <double>7</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="0" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="Rhizome" name="drifting/Rhizome_1">
+      <properties>
+        <property index="0" name="Runners">
+          <double>3</double>
+        </property>
+        <property index="1" name="Interval">
+          <double>21.0621</double>
+        </property>
+        <property index="2" name="Creep">
+          <double>50</double>
+        </property>
+        <property index="3" name="Tilt">
+          <double>0.55</double>
+        </property>
+        <property index="4" name="Wave">
+          <double>0</double>
+        </property>
+        <property index="5" name="Bloom">
+          <double>82.6317</double>
+        </property>
+        <property index="6" name="Decay">
+          <double>1431.33</double>
+        </property>
+        <property index="7" name="Cutoff">
+          <double>699.143</double>
+        </property>
+        <property index="8" name="Level">
+          <double>0.8</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="Substrate" name="drifting/Bed">
+      <properties>
+        <property index="0" name="Drone">
+          <double>1</double>
+        </property>
+        <property index="1" name="Note">
+          <double>45</double>
+        </property>
+        <property index="2" name="Layers">
+          <double>4</double>
+        </property>
+        <property index="3" name="Stack">
+          <double>0</double>
+        </property>
+        <property index="4" name="Spread">
+          <double>31.282</double>
+        </property>
+        <property index="5" name="Motion">
+          <double>1</double>
+        </property>
+        <property index="6" name="Cutoff">
+          <double>1672.78</double>
+        </property>
+        <property index="7" name="Attack">
+          <double>800</double>
+        </property>
+        <property index="8" name="Release">
+          <double>1200</double>
+        </property>
+        <property index="9" name="Level">
+          <double>0.45</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="SGain" name="drifting/Mix">
+      <properties>
+        <property index="0" name="Gain">
+          <double>1</double>
+        </property>
+        <property index="1" name="Mute">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="0" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="StereoTool" name="drifting/Master">
+      <properties>
+        <property index="0" name="Width">
+          <double>1.15</double>
+        </property>
+        <property index="1" name="Balance">
+          <double>0</double>
+        </property>
+        <property index="3" name="MonoBass">
+          <double>120</double>
+        </property>
+        <property index="8" name="Output">
+          <double>1</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="0" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="PodOut" name="drifting/PodOut">
+      <properties />
+      <presets current-preset-dirty="0" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="PodOut" name="drifting/PodOut_2">
+      <properties />
+      <presets current-preset-dirty="0" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="Tuning" name="drifting/Tuning_1">
+      <properties>
+        <property index="0" name="Preset">
+          <int>4</int>
+        </property>
+        <property index="1" name="Divisions">
+          <int>12</int>
+        </property>
+        <property index="2" name="Root">
+          <int>64</int>
+        </property>
+        <property index="3" name="RootHz">
+          <double>417</double>
+        </property>
+        <property index="4" name="Map">
+          <int>0</int>
+        </property>
+        <property index="5" name="File">
+          <soundfile />
+        </property>
+        <property index="6" name="Plugins">
+          <enum>2</enum>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <contraption class="S6Console" name="Console">
+      <properties>
+        <property index="0" name="Output">
+          <double>1</double>
+        </property>
+        <property index="1" name="Direct">
+          <bool>0</bool>
+        </property>
+        <property index="2" name="Drive">
+          <double>0.3</double>
+        </property>
+        <property index="3" name="Crosstalk">
+          <double>0.25</double>
+        </property>
+        <property index="4" name="Sag">
+          <double>0.35</double>
+        </property>
+        <property index="5" name="Flavor">
+          <enum>1</enum>
+        </property>
+        <property index="6" name="Gain_1-2">
+          <double>0.309119</double>
+        </property>
+        <property index="7" name="Pan_1-2">
+          <double>0.5</double>
+        </property>
+        <property index="8" name="Gain_3-4">
+          <double>1</double>
+        </property>
+        <property index="9" name="Pan_3-4">
+          <double>0.5</double>
+        </property>
+        <property index="10" name="Gain_5-6">
+          <double>1</double>
+        </property>
+        <property index="11" name="Pan_5-6">
+          <double>0.5</double>
+        </property>
+        <property index="12" name="Gain_7-8">
+          <double>1</double>
+        </property>
+        <property index="13" name="Pan_7-8">
+          <double>0.5</double>
+        </property>
+        <property index="14" name="Gain_9-10">
+          <double>1</double>
+        </property>
+        <property index="15" name="Pan_9-10">
+          <double>0.5</double>
+        </property>
+        <property index="16" name="Gain_11-12">
+          <double>1</double>
+        </property>
+        <property index="17" name="Pan_11-12">
+          <double>0.5</double>
+        </property>
+        <property index="18" name="Mute_1-2">
+          <bool>0</bool>
+        </property>
+        <property index="19" name="Solo_1-2">
+          <bool>0</bool>
+        </property>
+        <property index="20" name="Mute_3-4">
+          <bool>0</bool>
+        </property>
+        <property index="21" name="Solo_3-4">
+          <bool>0</bool>
+        </property>
+        <property index="22" name="Mute_5-6">
+          <bool>0</bool>
+        </property>
+        <property index="23" name="Solo_5-6">
+          <bool>0</bool>
+        </property>
+        <property index="24" name="Mute_7-8">
+          <bool>0</bool>
+        </property>
+        <property index="25" name="Solo_7-8">
+          <bool>0</bool>
+        </property>
+        <property index="26" name="Mute_9-10">
+          <bool>0</bool>
+        </property>
+        <property index="27" name="Solo_9-10">
+          <bool>0</bool>
+        </property>
+        <property index="28" name="Mute_11-12">
+          <bool>0</bool>
+        </property>
+        <property index="29" name="Solo_11-12">
+          <bool>0</bool>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1" />
+      <modulation-sources />
+    </contraption>
+    <audio-connection from="drifting/Rhizome_1" from-outlet="0" to="drifting/Mix" to-inlet="0" />
+    <audio-connection from="drifting/Rhizome_1" from-outlet="1" to="drifting/Mix" to-inlet="1" />
+    <audio-connection from="drifting/Bed" from-outlet="0" to="drifting/Mix" to-inlet="0" />
+    <audio-connection from="drifting/Bed" from-outlet="1" to="drifting/Mix" to-inlet="1" />
+    <audio-connection from="drifting/Mix" from-outlet="0" to="drifting/Master" to-inlet="0" />
+    <audio-connection from="drifting/Mix" from-outlet="1" to="drifting/Master" to-inlet="1" />
+    <audio-connection from="drifting/Master" from-outlet="0" to="drifting/PodOut" to-inlet="0" />
+    <audio-connection from="drifting/Master" from-outlet="1" to="drifting/PodOut_2"
+      to-inlet="0" />
+    <audio-connection from="drifting/PodOut" from-outlet="0" to="Console" to-inlet="0" />
+    <audio-connection from="drifting/PodOut_2" from-outlet="0" to="Console" to-inlet="1" />
+    <audio-connection from="Console" from-outlet="0" to="SoundOut" to-inlet="0" />
+    <audio-connection from="Console" from-outlet="1" to="SoundOut" to-inlet="1" />
+    <audio-connection from="Cicada" from-outlet="0" to="Console" to-inlet="2" />
+    <audio-connection from="Kick" from-outlet="0" to="Console" to-inlet="4" />
+    <audio-connection from="Mineral" from-outlet="0" to="Console" to-inlet="6" />
+    <audio-connection from="Mineral" from-outlet="1" to="Console" to-inlet="7" />
+    <midi-connection from="DNA" from-outlet="0" to="Mineral" to-inlet="0" />
+    <midi-connection from="DNA" from-outlet="0" to="Kick" to-inlet="0" />
+    <midi-connection from="drifting/DNA_lead" from-outlet="0" to="drifting/Rhizome_1"
+      to-inlet="0" />
+    <midi-connection from="drifting/Tuning_1" from-outlet="0" to="drifting/Bed" to-inlet="0" />
+    <midi-connection from="drifting/Tuning_1" from-outlet="0" to="drifting/Rhizome_1"
+      to-inlet="0" />
+  </patch>
+  <contraption-views>
+    <contraption-view contraption-name="SoundOut" patcher-x="384" patcher-y="304" />
+    <contraption-view contraption-name="DNA" patcher-x="176" patcher-y="66" editor-visible="1"
+      editor-x="0" editor-y="0" />
+    <contraption-view contraption-name="Mineral" patcher-x="108" patcher-y="152" editor-visible="1"
+      editor-x="0" editor-y="0" />
+    <contraption-view contraption-name="Kick" patcher-x="248" patcher-y="152" editor-visible="1"
+      editor-x="0" editor-y="0" />
+    <contraption-view contraption-name="Cicada" patcher-x="512" patcher-y="152" editor-visible="1"
+      editor-x="0" editor-y="0" />
+    <contraption-view contraption-name="drifting/DNA_lead" patcher-x="40" patcher-y="40" />
+    <contraption-view contraption-name="drifting/Rhizome_1" patcher-x="40" patcher-y="126" />
+    <contraption-view contraption-name="drifting/Bed" patcher-x="180" patcher-y="126" />
+    <contraption-view contraption-name="drifting/Mix" patcher-x="110" patcher-y="212" />
+    <contraption-view contraption-name="drifting/Master" patcher-x="110" patcher-y="298" />
+    <contraption-view contraption-name="drifting/PodOut" patcher-x="110" patcher-y="384" />
+    <contraption-view contraption-name="drifting/PodOut_2" patcher-x="200" patcher-y="384" />
+    <contraption-view contraption-name="drifting/Tuning_1" patcher-x="180" patcher-y="40" />
+    <contraption-view contraption-name="Console" patcher-x="384" patcher-y="240" editor-visible="1"
+      editor-x="0" editor-y="0" />
+    <contraption-view contraption-name="drifting" patcher-x="384" patcher-y="152" />
+  </contraption-views>
+  <automation-views />
+  <performance-boxes />
+  <metasurface>
+    <document-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="SoundOut">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+      </contraption-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="DNA">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+        <property-snapshot-restore-mask property-index="2" restore="1" />
+        <property-snapshot-restore-mask property-index="3" restore="1" />
+        <property-snapshot-restore-mask property-index="4" restore="1" />
+        <property-snapshot-restore-mask property-index="5" restore="1" />
+        <property-snapshot-restore-mask property-index="6" restore="1" />
+        <property-snapshot-restore-mask property-index="7" restore="1" />
+        <property-snapshot-restore-mask property-index="8" restore="1" />
+      </contraption-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="Mineral">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+        <property-snapshot-restore-mask property-index="2" restore="1" />
+        <property-snapshot-restore-mask property-index="3" restore="1" />
+        <property-snapshot-restore-mask property-index="4" restore="1" />
+        <property-snapshot-restore-mask property-index="5" restore="1" />
+        <property-snapshot-restore-mask property-index="6" restore="1" />
+      </contraption-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="Flanger">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+        <property-snapshot-restore-mask property-index="2" restore="1" />
+      </contraption-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="SoundOut">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+      </contraption-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="DNA">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+        <property-snapshot-restore-mask property-index="2" restore="1" />
+        <property-snapshot-restore-mask property-index="3" restore="1" />
+        <property-snapshot-restore-mask property-index="4" restore="1" />
+        <property-snapshot-restore-mask property-index="5" restore="1" />
+        <property-snapshot-restore-mask property-index="6" restore="1" />
+        <property-snapshot-restore-mask property-index="7" restore="1" />
+        <property-snapshot-restore-mask property-index="8" restore="1" />
+      </contraption-snapshot-restore-mask>
+      <contraption-snapshot-restore-mask contraption-name="Mineral">
+        <property-snapshot-restore-mask property-index="0" restore="1" />
+        <property-snapshot-restore-mask property-index="1" restore="1" />
+        <property-snapshot-restore-mask property-index="2" restore="1" />
+        <property-snapshot-restore-mask property-index="3" restore="1" />
+        <property-snapshot-restore-mask property-index="4" restore="1" />
+        <property-snapshot-restore-mask property-index="5" restore="1" />
+        <property-snapshot-restore-mask property-index="6" restore="1" />
+      </contraption-snapshot-restore-mask>
+    </document-snapshot-restore-mask>
+    <document-snapshots>
+      <document-snapshot index="0" name="Snapshot 1" colour="#F29D9D">
+        <contraption-snapshot contraption-name="SoundOut">
+          <property-snapshot property-index="0">
+            <int>1</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <double>1</double>
+          </property-snapshot>
+        </contraption-snapshot>
+        <contraption-snapshot contraption-name="DNA">
+          <property-snapshot property-index="0">
+            <int>47</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <enum>0</enum>
+          </property-snapshot>
+          <property-snapshot property-index="2">
+            <enum>0</enum>
+          </property-snapshot>
+          <property-snapshot property-index="3">
+            <double>0.950218</double>
+          </property-snapshot>
+          <property-snapshot property-index="4">
+            <double>0.218922</double>
+          </property-snapshot>
+          <property-snapshot property-index="5">
+            <int>2</int>
+          </property-snapshot>
+          <property-snapshot property-index="6">
+            <double>0.346501</double>
+          </property-snapshot>
+          <property-snapshot property-index="7">
+            <int>104.13</int>
+          </property-snapshot>
+          <property-snapshot property-index="8">
+            <int>6274</int>
+          </property-snapshot>
+        </contraption-snapshot>
+        <contraption-snapshot contraption-name="Mineral">
+          <property-snapshot property-index="0">
+            <int>1</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <double>1.30627</double>
+          </property-snapshot>
+          <property-snapshot property-index="2">
+            <double>0.86645</double>
+          </property-snapshot>
+          <property-snapshot property-index="3">
+            <double>5743.23</double>
+          </property-snapshot>
+          <property-snapshot property-index="4">
+            <double>0.248299</double>
+          </property-snapshot>
+          <property-snapshot property-index="5">
+            <double>0.244771</double>
+          </property-snapshot>
+          <property-snapshot property-index="6">
+            <double>0.979814</double>
+          </property-snapshot>
+        </contraption-snapshot>
+      </document-snapshot>
+      <document-snapshot index="1" name="Snapshot 2" colour="#F2E09D">
+        <contraption-snapshot contraption-name="SoundOut">
+          <property-snapshot property-index="0">
+            <int>1</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <double>1</double>
+          </property-snapshot>
+        </contraption-snapshot>
+        <contraption-snapshot contraption-name="DNA">
+          <property-snapshot property-index="0">
+            <int>47</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <enum>0</enum>
+          </property-snapshot>
+          <property-snapshot property-index="2">
+            <enum>0</enum>
+          </property-snapshot>
+          <property-snapshot property-index="3">
+            <double>0.950218</double>
+          </property-snapshot>
+          <property-snapshot property-index="4">
+            <double>0.218922</double>
+          </property-snapshot>
+          <property-snapshot property-index="5">
+            <int>2</int>
+          </property-snapshot>
+          <property-snapshot property-index="6">
+            <double>0.346501</double>
+          </property-snapshot>
+          <property-snapshot property-index="7">
+            <int>104.13</int>
+          </property-snapshot>
+          <property-snapshot property-index="8">
+            <int>6274</int>
+          </property-snapshot>
+        </contraption-snapshot>
+        <contraption-snapshot contraption-name="Mineral">
+          <property-snapshot property-index="0">
+            <int>8</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <double>1.31043</double>
+          </property-snapshot>
+          <property-snapshot property-index="2">
+            <double>0.536253</double>
+          </property-snapshot>
+          <property-snapshot property-index="3">
+            <double>4457.66</double>
+          </property-snapshot>
+          <property-snapshot property-index="4">
+            <double>0.248299</double>
+          </property-snapshot>
+          <property-snapshot property-index="5">
+            <double>1</double>
+          </property-snapshot>
+          <property-snapshot property-index="6">
+            <double>0.979814</double>
+          </property-snapshot>
+        </contraption-snapshot>
+      </document-snapshot>
+      <document-snapshot index="2" name="Snapshot 3" colour="#C3F29D">
+        <contraption-snapshot contraption-name="SoundOut">
+          <property-snapshot property-index="0">
+            <int>1</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <double>1</double>
+          </property-snapshot>
+        </contraption-snapshot>
+        <contraption-snapshot contraption-name="DNA">
+          <property-snapshot property-index="0">
+            <int>48</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <enum>0</enum>
+          </property-snapshot>
+          <property-snapshot property-index="2">
+            <enum>0</enum>
+          </property-snapshot>
+          <property-snapshot property-index="3">
+            <double>0.950218</double>
+          </property-snapshot>
+          <property-snapshot property-index="4">
+            <double>0.218922</double>
+          </property-snapshot>
+          <property-snapshot property-index="5">
+            <int>2.98027</int>
+          </property-snapshot>
+          <property-snapshot property-index="6">
+            <double>1</double>
+          </property-snapshot>
+          <property-snapshot property-index="7">
+            <int>104.13</int>
+          </property-snapshot>
+          <property-snapshot property-index="8">
+            <int>6274</int>
+          </property-snapshot>
+        </contraption-snapshot>
+        <contraption-snapshot contraption-name="Mineral">
+          <property-snapshot property-index="0">
+            <int>1</int>
+          </property-snapshot>
+          <property-snapshot property-index="1">
+            <double>1.30627</double>
+          </property-snapshot>
+          <property-snapshot property-index="2">
+            <double>0.86645</double>
+          </property-snapshot>
+          <property-snapshot property-index="3">
+            <double>5743.23</double>
+          </property-snapshot>
+          <property-snapshot property-index="4">
+            <double>0.248299</double>
+          </property-snapshot>
+          <property-snapshot property-index="5">
+            <double>0.244771</double>
+          </property-snapshot>
+          <property-snapshot property-index="6">
+            <double>0.979814</double>
+          </property-snapshot>
+        </contraption-snapshot>
+      </document-snapshot>
+    </document-snapshots>
+    <metasurface-points>
+      <metasurface-point snapshot-index="1" x="0.2628394067287445" y="0.635607123374939" />
+      <metasurface-point snapshot-index="0" x="0.8283971548080444" y="0.1753449141979218" />
+      <metasurface-point snapshot-index="2" x="0.2028368413448334" y="0.1342461705207825" />
+    </metasurface-points>
+  </metasurface>
+  <master-limiter value="1" />
+</humus-document>

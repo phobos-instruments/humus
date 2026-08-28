@@ -1,0 +1,48 @@
+{
+  "width": 293,
+  "height": 128,
+  "controls": [
+    {
+      "type": "knob",
+      "param": "Rate",
+      "label": "Rate",
+      "x": 6,
+      "y": 8,
+      "w": 64,
+      "h": 84,
+      "dim-when": "Sync"
+    },
+    {
+      "type": "knob",
+      "param": "Depth",
+      "label": "Depth",
+      "x": 80,
+      "y": 8,
+      "w": 64,
+      "h": 84
+    },
+    {
+      "type": "combo",
+      "param": "Waveform",
+      "label": "Wave",
+      "x": 154,
+      "y": 24,
+      "w": 132,
+      "h": 22,
+      "options": [
+        "Sine",
+        "Triangle",
+        "Square"
+      ]
+    },
+    {
+      "type": "toggle",
+      "param": "Sync",
+      "label": "Sync 1/8",
+      "x": 154,
+      "y": 56,
+      "w": 120,
+      "h": 24
+    }
+  ]
+}

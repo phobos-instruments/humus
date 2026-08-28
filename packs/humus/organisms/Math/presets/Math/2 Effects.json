@@ -1,0 +1,69 @@
+[
+ {
+  "name": "Wobble",
+  "values": {
+   "Expression": "a * (0.5 + 0.5*sin(tau*beat*(1+floor(x*7))))",
+   "X": 0.14,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Waveshaper",
+  "values": {
+   "Expression": "tanh(a * (1 + x*15)) * (1 - y*0.5)",
+   "X": 0.3,
+   "Y": 0.0,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Tremolo",
+  "values": {
+   "Expression": "a * (1 - x*(0.5 + 0.5*sin(tau*beat*2)))",
+   "X": 0.7,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Eighth Gate",
+  "values": {
+   "Expression": "a * (pulse(beat*2, 0.15 + x*0.7) > 0)",
+   "X": 0.5,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Ring Mod",
+  "values": {
+   "Expression": "a * sin(tau*ph(freq))",
+   "X": 0.25,
+   "Auto": 1.0,
+   "Freq": 60.0
+  }
+ },
+ {
+  "name": "Duck",
+  "values": {
+   "Expression": "a * clamp(1 - abs(b)*(2 + x*10), 0, 1)",
+   "X": 0.4,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "One Pole",
+  "values": {
+   "Expression": "mix(prev, a, 0.02 + x*0.5)",
+   "X": 0.3,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Fuzz Octave",
+  "values": {
+   "Expression": "tanh((abs(a)*2 - 1)*(2 + x*8)) * (0.5 + y*0.5)",
+   "X": 0.4,
+   "Y": 0.5,
+   "Auto": 1.0
+  }
+ }
+]

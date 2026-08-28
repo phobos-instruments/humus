@@ -1,0 +1,10 @@
+{
+  "classes": [
+    {
+      "class": "Spectrum",
+      "category": "Meters",
+      "params": [],
+      "editor": "layout:spectrum-editor.json"
+    }
+  ]
+}

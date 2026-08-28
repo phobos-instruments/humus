@@ -1,0 +1,8 @@
+{
+  "id": "sample",
+  "name": "Sample Pack",
+  "version": "1.0.0",
+  "description": "The organism SDK tutorial pack - Tremolo (hello world) and PingPong (a real stereo delay). Read packs/sample/README.md to learn how to build your own.",
+  "origin": "Sample",
+  "license": "MIT"
+}

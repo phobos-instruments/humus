@@ -1,0 +1,30 @@
+{
+ "classes": [
+  {
+   "class": "Follower",
+   "category": "Primitives",
+   "params": [
+    {
+     "name": "Attack",
+     "min": 0.1,
+     "max": 500.0,
+     "def": 10.0,
+      "random": true
+    },
+    {
+     "name": "Release",
+     "min": 1.0,
+     "max": 2000.0,
+     "def": 200.0,
+      "random": true
+    },
+    {
+     "name": "Gain",
+     "min": 0.0,
+     "max": 4.0,
+     "def": 1.0
+    }
+   ]
+  }
+ ]
+}

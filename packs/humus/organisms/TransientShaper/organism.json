@@ -1,0 +1,88 @@
+{
+  "classes": [
+    {
+      "class": "TransientShaper",
+      "category": "Dynamics",
+      "canonical": "STransientShaper",
+      "params": [
+        {
+          "name": "Attack",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Sustain",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "OutputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:transientshaper-editor.json"
+    },
+    {
+      "class": "STransientShaper",
+      "category": "Dynamics",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Attack",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Sustain",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "OutputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:transientshaper-editor.json"
+    },
+    {
+      "class": "MTransientShaper",
+      "category": "Dynamics",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Attack",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Sustain",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "OutputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:transientshaper-editor.json"
+    }
+  ]
+}

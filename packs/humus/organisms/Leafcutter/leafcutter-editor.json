@@ -1,0 +1,106 @@
+{
+  "width": 600,
+  "height": 262,
+  "controls": [
+    {
+      "type": "soundfile",
+      "param": "File",
+      "label": "",
+      "x": 12,
+      "y": 8,
+      "w": 380,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3;*.rx2;*.rex"
+    },
+    {
+      "type": "toggle",
+      "param": "Play",
+      "label": "Play",
+      "x": 404,
+      "y": 8,
+      "w": 70,
+      "h": 24
+    },
+    {
+      "type": "number-field",
+      "param": "Shuffle",
+      "label": "Shuffle",
+      "x": 480,
+      "y": 10,
+      "w": 108,
+      "h": 20
+    },
+    {
+      "type": "slice-map",
+      "param": "",
+      "label": "",
+      "x": 12,
+      "y": 42,
+      "w": 576,
+      "h": 108
+    },
+    {
+      "type": "knob",
+      "param": "Sense",
+      "label": "Sense",
+      "x": 12,
+      "y": 162,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 76,
+      "y": 162,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 140,
+      "y": 162,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "int-spinner",
+      "param": "Beats",
+      "label": "Beats",
+      "x": 404,
+      "y": 204,
+      "w": 160,
+      "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "Pitch",
+      "label": "Pitch",
+      "x": 204,
+      "y": 162,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Decay",
+      "label": "Decay",
+      "x": 268,
+      "y": 162,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "Reverse",
+      "label": "Reverse",
+      "x": 404,
+      "y": 168,
+      "w": 160,
+      "h": 22
+    }
+  ]
+}

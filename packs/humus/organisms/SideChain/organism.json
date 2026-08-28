@@ -1,0 +1,244 @@
+{
+  "classes": [
+    {
+      "class": "SideChain",
+      "category": "Dynamics",
+      "canonical": "SSideChain",
+      "params": [
+        {
+          "name": "Detector",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Threshold",
+          "min": -60.0,
+          "max": 0.0,
+          "def": -30.0,
+          "random": true
+        },
+        {
+          "name": "Ratio",
+          "min": 1.0,
+          "max": 20.0,
+          "def": 4.0,
+          "random": true
+        },
+        {
+          "name": "Knee",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 6.0,
+          "random": true,
+          "unit": "dB"
+        },
+        {
+          "name": "Attack",
+          "min": 0.01,
+          "max": 200.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Hold",
+          "min": 0.0,
+          "max": 500.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Release",
+          "min": 5.0,
+          "max": 3000.0,
+          "def": 120.0,
+          "random": true
+        },
+        {
+          "name": "Makeup",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 0.0,
+          "unit": "dB"
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Listen",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:sidechain-editor.json"
+    },
+    {
+      "class": "SSideChain",
+      "category": "Dynamics",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Detector",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Threshold",
+          "min": -60.0,
+          "max": 0.0,
+          "def": -30.0,
+          "random": true
+        },
+        {
+          "name": "Ratio",
+          "min": 1.0,
+          "max": 20.0,
+          "def": 4.0,
+          "random": true
+        },
+        {
+          "name": "Knee",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 6.0,
+          "random": true,
+          "unit": "dB"
+        },
+        {
+          "name": "Attack",
+          "min": 0.01,
+          "max": 200.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Hold",
+          "min": 0.0,
+          "max": 500.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Release",
+          "min": 5.0,
+          "max": 3000.0,
+          "def": 120.0,
+          "random": true
+        },
+        {
+          "name": "Makeup",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 0.0,
+          "unit": "dB"
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Listen",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:sidechain-editor.json"
+    },
+    {
+      "class": "MSideChain",
+      "category": "Dynamics",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Detector",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Threshold",
+          "min": -60.0,
+          "max": 0.0,
+          "def": -30.0,
+          "random": true
+        },
+        {
+          "name": "Ratio",
+          "min": 1.0,
+          "max": 20.0,
+          "def": 4.0,
+          "random": true
+        },
+        {
+          "name": "Knee",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 6.0,
+          "random": true,
+          "unit": "dB"
+        },
+        {
+          "name": "Attack",
+          "min": 0.01,
+          "max": 200.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Hold",
+          "min": 0.0,
+          "max": 500.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Release",
+          "min": 5.0,
+          "max": 3000.0,
+          "def": 120.0,
+          "random": true
+        },
+        {
+          "name": "Makeup",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 0.0,
+          "unit": "dB"
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        },
+        {
+          "name": "Listen",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:sidechain-editor.json"
+    }
+  ]
+}

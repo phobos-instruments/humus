@@ -1,0 +1,133 @@
+{
+  "classes": [
+    {
+      "class": "SpectralFreeze",
+      "category": "Spectral",
+      "canonical": "SSpectralFreeze",
+      "params": [
+        {
+          "name": "Freeze",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Smear",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Diffusion",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Shimmer",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        }
+      ],
+      "editor": "layout:spectralfreeze-editor.json"
+    },
+    {
+      "class": "SSpectralFreeze",
+      "category": "Spectral",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Freeze",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Smear",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Diffusion",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Shimmer",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        }
+      ],
+      "editor": "layout:spectralfreeze-editor.json"
+    },
+    {
+      "class": "MSpectralFreeze",
+      "category": "Spectral",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Freeze",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Smear",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Diffusion",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Shimmer",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true
+        }
+      ],
+      "editor": "layout:spectralfreeze-editor.json"
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "width": 600,
+  "height": 442,
+  "controls": [
+    {
+      "type": "bank-file",
+      "param": "File",
+      "label": "Bank",
+      "x": 8,
+      "y": 8,
+      "w": 392,
+      "h": 24,
+      "kind": "Banks",
+      "filter": "*.syx;*.wopn;*.tfi;*.dmp",
+      "factory": "factory:six-op|Factory - six operator|6-OP;factory:chip|Factory - chip|CHIP"
+    },
+    {
+      "type": "combo",
+      "param": "Patch",
+      "label": "Patch",
+      "source": "patch-bank",
+      "steppers": true,
+      "x": 8,
+      "y": 38,
+      "w": 392,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Routing",
+      "x": 412,
+      "y": 8,
+      "w": 180,
+      "h": 14
+    },
+    {
+      "type": "int-spinner",
+      "param": "Algorithm",
+      "label": "Algo",
+      "x": 412,
+      "y": 24,
+      "w": 180,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Feedback",
+      "label": "Fbk",
+      "x": 412,
+      "y": 50,
+      "w": 180,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Operators",
+      "x": 8,
+      "y": 78,
+      "w": 200,
+      "h": 14
+    },
+    {
+      "type": "knob-grid",
+      "prefix": "Op",
+      "rows": 6,
+      "fields": "Level,Ratio,Detune,Attack,Decay,Sustain,Release",
+      "x": 8,
+      "y": 94,
+      "w": 362,
+      "h": 290
+    },
+    {
+      "type": "label",
+      "label": "Shape",
+      "x": 372,
+      "y": 78,
+      "w": 220,
+      "h": 14
+    },
+    {
+      "type": "knob",
+      "param": "Bright",
+      "label": "Bright",
+      "x": 372,
+      "y": 94,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Attack",
+      "x": 428,
+      "y": 94,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Release",
+      "label": "Release",
+      "x": 484,
+      "y": 94,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 540,
+      "y": 94,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "label",
+      "label": "Motion",
+      "x": 372,
+      "y": 180,
+      "w": 220,
+      "h": 14
+    },
+    {
+      "type": "knob",
+      "param": "Detune",
+      "label": "Detune",
+      "x": 372,
+      "y": 196,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Vibrato",
+      "label": "Vibrato",
+      "x": 428,
+      "y": 196,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Speed",
+      "label": "Speed",
+      "x": 484,
+      "y": 196,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "label",
+      "label": "Tuning",
+      "x": 372,
+      "y": 284,
+      "w": 220,
+      "h": 14
+    },
+    {
+      "type": "int-spinner",
+      "param": "Transpose",
+      "label": "Semis",
+      "x": 372,
+      "y": 300,
+      "w": 168,
+      "h": 22
+    },
+    {
+      "type": "double-spinner",
+      "param": "Fine",
+      "label": "Cents",
+      "x": 372,
+      "y": 326,
+      "w": 168,
+      "h": 22,
+      "decimals": 0
+    }
+  ]
+}

@@ -1,0 +1,547 @@
+{
+  "classes": [
+    {
+      "class": "Compressor",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "MakeupGain",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "AutoMakeupGain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 10.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 0.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        },
+        {
+          "name": "CompressionRatio",
+          "min": 1.0,
+          "max": 20.0,
+          "def": 2.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "unit": "gain"
+        },
+        {
+          "name": "KneeWidth",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 6.0,
+          "unit": "dB"
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SyncUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "text": "1/8"
+        },
+        {
+          "name": "SyncMultiplier",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 1.0,
+          "int": true
+        }
+      ],
+      "editor": "gen:dynamics",
+      "canonical": "SCompressor"
+    },
+    {
+      "class": "Limiter",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "unit": "gain"
+        },
+        {
+          "name": "Ceiling",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.95,
+          "unit": "gain"
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 0.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 1000.0,
+          "def": 150.0
+        }
+      ],
+      "editor": "gen:dynamics",
+      "canonical": "SLimiter"
+    },
+    {
+      "class": "NoiseGate",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.1,
+          "range": true,
+          "defMax": 0.2,
+          "unit": "gain"
+        },
+        {
+          "name": "Range",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "unit": "gain"
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 1.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 10.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        }
+      ],
+      "editor": "gen:dynamics",
+      "canonical": "SNoiseGate"
+    },
+    {
+      "class": "SCompressor",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "MakeupGain",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "AutoMakeupGain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 10.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 0.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        },
+        {
+          "name": "CompressionRatio",
+          "min": 1.0,
+          "max": 20.0,
+          "def": 2.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "unit": "gain"
+        },
+        {
+          "name": "KneeWidth",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 6.0,
+          "unit": "dB"
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SyncUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "text": "1/8"
+        },
+        {
+          "name": "SyncMultiplier",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 1.0,
+          "int": true
+        }
+      ],
+      "editor": "gen:dynamics",
+      "hidden": true
+    },
+    {
+      "class": "MCompressor",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "MakeupGain",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "AutoMakeupGain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 10.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 0.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        },
+        {
+          "name": "CompressionRatio",
+          "min": 1.0,
+          "max": 20.0,
+          "def": 2.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "unit": "gain"
+        },
+        {
+          "name": "KneeWidth",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 6.0,
+          "unit": "dB"
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SyncUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "text": "1/8"
+        },
+        {
+          "name": "SyncMultiplier",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 1.0,
+          "int": true
+        }
+      ],
+      "editor": "gen:dynamics",
+      "hidden": true
+    },
+    {
+      "class": "SLimiter",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "unit": "gain"
+        },
+        {
+          "name": "Ceiling",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.95,
+          "unit": "gain"
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 0.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 1000.0,
+          "def": 150.0
+        }
+      ],
+      "editor": "gen:dynamics",
+      "hidden": true
+    },
+    {
+      "class": "MLimiter",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "unit": "gain"
+        },
+        {
+          "name": "Ceiling",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.95,
+          "unit": "gain"
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 0.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 1000.0,
+          "def": 150.0
+        }
+      ],
+      "editor": "gen:dynamics",
+      "hidden": true
+    },
+    {
+      "class": "SNoiseGate",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.1,
+          "range": true,
+          "defMax": 0.2,
+          "unit": "gain"
+        },
+        {
+          "name": "Range",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "unit": "gain"
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 1.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 10.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        }
+      ],
+      "editor": "gen:dynamics",
+      "hidden": true
+    },
+    {
+      "class": "MNoiseGate",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.1,
+          "range": true,
+          "defMax": 0.2,
+          "unit": "gain"
+        },
+        {
+          "name": "Range",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "unit": "gain"
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 1.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 10.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        }
+      ],
+      "editor": "gen:dynamics",
+      "hidden": true
+    }
+  ]
+}

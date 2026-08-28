@@ -1,0 +1,24 @@
+{
+  "width": 293,
+  "height": 66,
+  "controls": [
+    {
+      "type": "number-field",
+      "param": "Value",
+      "label": "Value",
+      "x": 12,
+      "y": 20,
+      "w": 170,
+      "h": 26
+    },
+    {
+      "type": "minitoggle",
+      "param": "Integer",
+      "label": "Integer",
+      "x": 196,
+      "y": 23,
+      "w": 85,
+      "h": 22
+    }
+  ]
+}

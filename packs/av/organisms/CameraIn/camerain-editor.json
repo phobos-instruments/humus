@@ -1,0 +1,18 @@
+{
+  "width": 600,
+  "height": 268,
+  "controls": [
+    { "type": "camera", "x": 12, "y": 8, "w": 320, "h": 240 },
+
+    { "type": "combo", "param": "Camera", "label": "Input", "source": "video-inputs", "x": 344, "y": 8, "w": 244, "h": 22 },
+
+    { "type": "toggle", "param": "Enabled", "label": "Camera", "x": 344, "y": 40, "w": 110, "h": 24 },
+    { "type": "toggle", "param": "Mirror", "label": "Mirror", "x": 462, "y": 40, "w": 100, "h": 24 },
+
+    { "type": "hslider", "param": "Opacity", "label": "Opacity", "x": 344, "y": 78, "w": 244, "h": 24 },
+    { "type": "combo", "param": "Blend", "label": "", "x": 344, "y": 116, "w": 244, "h": 22,
+      "options": ["Normal", "Add", "Multiply", "Screen"] },
+
+    { "type": "label", "label": "Video outlet: cord it into Lumen, VideoMix or VideoOut.", "x": 344, "y": 152, "w": 244, "h": 32 }
+  ]
+}

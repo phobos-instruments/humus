@@ -1,0 +1,85 @@
+#pragma once
+#include <string>
+#include <vector>
+
+#include "hum/Pattern.h"
+#include "hum/PatternMatrix.h"
+
+namespace hum {
+
+class EngineHost;
+
+class ClipEditor {
+public:
+    explicit ClipEditor(EngineHost& host) : host_(host) {}
+
+    struct ClipInfo {
+        int index = 0;
+        std::string name;
+        int startTick = 0;
+        int lengthTicks = 0;
+        bool looped = false;
+        bool legacy = false;
+        int color = 0;
+        bool isAudio = false;
+        std::string audioFile;
+        long long audioOffset = 0;
+        int id = 0;
+        double sourceBpm = 0.0;
+        int warpMode = 0;
+        int fadeInTicks = 0, fadeOutTicks = 0;
+        double audioGain = 1.0;
+        bool audioReverse = false;
+        double audioPitch = 0.0;
+    };
+    std::vector<ClipInfo> list(const std::string& node) const;
+    void upgradeLegacy(const std::string& node);
+    int  add(const std::string& node, int startTick, int lengthTicks);
+    int  addAudio(const std::string& node, int startTick, int lengthTicks,
+                  const std::string& file, long long offsetSamples = 0);
+    void setWarp(const std::string& node, int clip, int mode);
+    void setSourceBpm(const std::string& node, int clip, double bpm);
+    void setFades(const std::string& node, int clip, int inTicks, int outTicks);
+    void slip(const std::string& node, int clip, long long deltaSamples);
+    void setGain(const std::string& node, int clip, double gain);
+    void setReverse(const std::string& node, int clip, bool reverse);
+    void setPitch(const std::string& node, int clip, double semitones);
+    bool stretch(const std::string& node, int clip, int newLengthTicks);
+    bool trimTo(const std::string& node, int clip, int fromTick, int toTick);
+    bool removeRange(const std::string& node, int clip, int fromTick, int toTick, bool ripple);
+    PatternChannel copyRange(const std::string& node, int clip, int fromTick, int toTick) const;
+    double samplesPerTick() const;
+    void remove(const std::string& node, int clip);
+    void move(const std::string& node, int clip, int newStartTick);
+    void resize(const std::string& node, int clip, int newLengthTicks, bool fromLeft);
+    void setLooped(const std::string& node, int clip, bool looped);
+    void rename(const std::string& node, int clip, const std::string& name);
+    void setColor(const std::string& node, int clip, int color);
+    int  duplicate(const std::string& node, int clip, int newStartTick);
+    int  split(const std::string& node, int clip, int atTick);
+    int  join(const std::string& node, int a, int b);
+    int  mergeAudio(const std::string& node, const std::vector<int>& clips);
+    std::string exportFile(const std::string& node, int clip);
+    int  raise(const std::string& node, int clip);
+    PatternChannel copyClip(const std::string& node, int clip) const;
+    int  pasteClip(const std::string& node, const PatternChannel& data, int atTick);
+    int  moveToNode(const std::string& node, int clip, const std::string& toNode);
+    bool accepts(const std::string& node, bool audio);
+    void transpose(const std::string& node, int clip, int steps);
+    void quantise(const std::string& node, int clip, int gridTicks);
+    void nudgeVelocity(const std::string& node, int clip, int delta);
+    std::vector<NoteEvent> notes(const std::string& node, int clip) const;
+    void removeTrack(const std::string& node);
+    void setNotes(const std::string& node, int clip,
+                  const std::vector<NoteEvent>& notes, int lengthTicks);
+    bool adoptNotes(const std::string& src, int clipId, const std::string& dst);
+    bool ownsPattern(const std::string& node) const;
+    bool gridTarget(const std::string& node) const;
+    std::vector<CCEvent> ccs(const std::string& node, int clip) const;
+    void setCCs(const std::string& node, int clip, const std::vector<CCEvent>& ccs);
+
+private:
+    EngineHost& host_;
+};
+
+}

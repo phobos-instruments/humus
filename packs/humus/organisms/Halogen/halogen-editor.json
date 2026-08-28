@@ -1,0 +1,136 @@
+{
+  "width": 600,
+  "height": 280,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Scan",
+      "label": "",
+      "x": 10,
+      "y": 6,
+      "w": 110,
+      "h": 20,
+      "options": [
+        "Sweep",
+        "Free"
+      ]
+    },
+    {
+      "type": "toggle",
+      "param": "Reverse",
+      "label": "Reverse",
+      "x": 128,
+      "y": 6,
+      "w": 90,
+      "h": 20
+    },
+    {
+      "type": "picture-field",
+      "param": "File",
+      "label": "",
+      "x": 8,
+      "y": 32,
+      "w": 584,
+      "h": 150
+    },
+    {
+      "type": "knob",
+      "param": "Rate",
+      "label": "Rate",
+      "x": 2,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "X",
+      "label": "X",
+      "x": 54,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Span",
+      "label": "Span",
+      "x": 106,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Y",
+      "label": "Y",
+      "x": 158,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Height",
+      "label": "Height",
+      "x": 210,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Low",
+      "label": "Low",
+      "x": 262,
+      "y": 188,
+      "w": 64,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "High",
+      "label": "High",
+      "x": 326,
+      "y": 188,
+      "w": 64,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 390,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Blur",
+      "label": "Blur",
+      "x": 442,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Tilt",
+      "label": "Tilt",
+      "x": 494,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 546,
+      "y": 188,
+      "w": 52,
+      "h": 84
+    }
+  ]
+}

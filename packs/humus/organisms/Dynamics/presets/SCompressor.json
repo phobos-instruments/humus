@@ -1,0 +1,75 @@
+[
+ {
+  "name": "Glue",
+  "values": {
+   "InputGain": 1.0,
+   "MakeupGain": 1.0,
+   "AutoMakeupGain": 1,
+   "AttackTime": 30.0,
+   "HoldTime": 0.0,
+   "ReleaseTime": 300.0,
+   "CompressionRatio": 2.0,
+   "Threshold": 0.2512,
+   "KneeWidth": 12.0
+  }
+ },
+ {
+  "name": "Ride",
+  "values": {
+   "InputGain": 1.0,
+   "MakeupGain": 1.0,
+   "AutoMakeupGain": 1,
+   "AttackTime": 12.0,
+   "HoldTime": 0.0,
+   "ReleaseTime": 200.0,
+   "CompressionRatio": 3.0,
+   "Threshold": 0.1585,
+   "KneeWidth": 10.0
+  }
+ },
+ {
+  "name": "Snap",
+  "values": {
+   "InputGain": 1.0,
+   "MakeupGain": 1.4125,
+   "AutoMakeupGain": 0,
+   "AttackTime": 45.0,
+   "HoldTime": 0.0,
+   "ReleaseTime": 120.0,
+   "CompressionRatio": 4.0,
+   "Threshold": 0.1778,
+   "KneeWidth": 4.0
+  }
+ },
+ {
+  "name": "Pump",
+  "values": {
+   "InputGain": 1.0,
+   "MakeupGain": 1.5849,
+   "AutoMakeupGain": 0,
+   "AttackTime": 2.0,
+   "HoldTime": 12.0,
+   "ReleaseTime": 70.0,
+   "CompressionRatio": 8.0,
+   "Threshold": 0.1259,
+   "KneeWidth": 1.0
+  }
+ },
+ {
+  "name": "Lockstep",
+  "values": {
+   "InputGain": 1.0,
+   "MakeupGain": 1.5849,
+   "AutoMakeupGain": 0,
+   "AttackTime": 5.0,
+   "HoldTime": 0.0,
+   "ReleaseTime": 250.0,
+   "CompressionRatio": 6.0,
+   "Threshold": 0.1259,
+   "KneeWidth": 2.0,
+   "Sync": 1,
+   "SyncUnit": "1/8",
+   "SyncMultiplier": 1
+  }
+ }
+]

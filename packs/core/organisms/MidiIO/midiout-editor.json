@@ -1,0 +1,13 @@
+{
+  "width": 293,
+  "height": 130,
+  "controls": [
+    { "type": "combo", "param": "Port", "label": "Port", "source": "midi-out-ports", "x": 6, "y": 6, "w": 281, "h": 22 },
+    { "type": "int-spinner", "param": "Channel", "label": "Ch", "x": 6, "y": 36, "w": 110, "h": 22 },
+    { "type": "toggle", "param": "Gate", "label": "Gate", "x": 130, "y": 36, "w": 70, "h": 22 },
+    { "type": "knob", "param": "Controller", "label": "Ctrl", "x": 6, "y": 62, "w": 56, "h": 64 },
+    { "type": "knob", "param": "Value", "label": "Value", "x": 66, "y": 62, "w": 56, "h": 64 },
+    { "type": "knob", "param": "Note", "label": "Note", "x": 126, "y": 62, "w": 56, "h": 64 },
+    { "type": "knob", "param": "Velocity", "label": "Vel", "x": 186, "y": 62, "w": 56, "h": 64 }
+  ]
+}

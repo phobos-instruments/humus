@@ -1,0 +1,8 @@
+{
+  "id": "humus",
+  "name": "Humus",
+  "version": "1.2.0",
+  "description": "Original Humus organisms - the signature instruments and effects (deck, spectral tools, echo, filter), the club building blocks (kick, acid line, rolling bass, sequencers), and the standard workbench every studio expects: compressor, limiter, gate, parametric EQ, chorus, flanger and phaser.",
+  "origin": "Humus",
+  "license": "GPL-3.0"
+}

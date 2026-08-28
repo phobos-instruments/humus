@@ -1,0 +1,69 @@
+{
+  "width": 600,
+  "height": 132,
+  "controls": [
+    {
+      "type": "knob",
+      "param": "Density",
+      "label": "Density",
+      "x": 26,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Size",
+      "label": "Size",
+      "x": 102,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Spread",
+      "label": "Spread",
+      "x": 178,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Chirp",
+      "label": "Chirp",
+      "x": 254,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Pool",
+      "label": "Pool",
+      "x": 330,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Width",
+      "label": "Width",
+      "x": 406,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 522,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "classes": [
+    {
+      "class": "Flanger",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "FrequencyRange",
+          "min": 20.0,
+          "max": 8000.0,
+          "def": 100.0,
+          "range": true,
+          "defMax": 1600.0
+        },
+        {
+          "name": "Rate",
+          "min": 0.01,
+          "max": 5.0,
+          "def": 0.5
+        },
+        {
+          "name": "Feedback",
+          "min": 0.0,
+          "max": 0.95,
+          "def": 0.3
+        },
+        {
+          "name": "WetDryMix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        }
+      ],
+      "editor": "layout:editor.json"
+    }
+  ]
+}

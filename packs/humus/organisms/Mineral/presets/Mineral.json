@@ -1,0 +1,63 @@
+[
+ {
+  "name": "Bell",
+  "values": {
+   "Facets": 5.0,
+   "Geometry": 1.0,
+   "Shine": 0.62,
+   "Decay": 3200.0,
+   "Strike": 0.3,
+   "Shimmer": 0.2,
+   "Level": 0.7
+  }
+ },
+ {
+  "name": "Gamelan",
+  "values": {
+   "Facets": 4.0,
+   "Geometry": 1.0,
+   "Shine": 0.8,
+   "Decay": 1400.0,
+   "Strike": 0.55,
+   "Shimmer": 0.55,
+   "Level": 0.8
+  }
+ },
+ {
+  "name": "Glass",
+  "values": {
+   "Facets": 12.0,
+   "Geometry": 1.0,
+   "Shine": 0.86,
+   "Decay": 700.0,
+   "Strike": 0.7,
+   "Shimmer": 0.4,
+   "Level": 0.55
+  }
+ },
+ {
+  "name": "Anvil",
+  "values": {
+   "Facets": 3.0,
+   "Geometry": 1.0,
+   "Shine": 0.35,
+   "Decay": 260.0,
+   "Strike": 1.0,
+   "Shimmer": 0.05,
+   "Level": 0.9
+  }
+ },
+ {
+  "name": "Frost",
+  "values": {
+   "Facets": 9.0,
+   "Ratio": 2.42,
+   "Geometry": 0.0,
+   "Shine": 0.94,
+   "Decay": 5200.0,
+   "Strike": 0.12,
+   "Shimmer": 0.9,
+   "Level": 0.5
+  }
+ }
+]

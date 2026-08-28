@@ -1,0 +1,13 @@
+[
+  {
+    "name": "Smooth Kick",
+    "values": {
+      "Tune": 46.0,
+      "Punch": 3.32,
+      "PitchDecay": 27.9,
+      "Decay": 50.0,
+      "Click": 0.0,
+      "FourFloor": 1.0
+    }
+  }
+]

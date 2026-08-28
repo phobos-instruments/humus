@@ -1,0 +1,69 @@
+{
+  "width": 293,
+  "height": 164,
+  "controls": [
+    {
+      "type": "label",
+      "label": "Message",
+      "x": 12,
+      "y": 8,
+      "w": 200,
+      "h": 14
+    },
+    {
+      "type": "text-field",
+      "param": "Text",
+      "label": "Type a message...",
+      "x": 12,
+      "y": 24,
+      "w": 273,
+      "h": 26
+    },
+    {
+      "type": "knob",
+      "param": "WPM",
+      "label": "WPM",
+      "x": 12,
+      "y": 58,
+      "w": 60,
+      "h": 84,
+      "dim-when": "Sync"
+    },
+    {
+      "type": "note-field",
+      "param": "Note",
+      "label": "Note",
+      "x": 88,
+      "y": 74,
+      "w": 92,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Sync",
+      "label": "Sync",
+      "x": 88,
+      "y": 104,
+      "w": 92,
+      "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 196,
+      "y": 58,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "Loop",
+      "label": "Loop",
+      "x": 88,
+      "y": 132,
+      "w": 92,
+      "h": 18
+    }
+  ]
+}

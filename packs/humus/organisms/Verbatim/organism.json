@@ -1,0 +1,52 @@
+{
+  "classes": [
+    {
+      "class": "Verbatim",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "File",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "Predelay",
+          "min": 0.0,
+          "max": 250.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "LowCut",
+          "min": 20.0,
+          "max": 2000.0,
+          "def": 20.0,
+          "random": true
+        },
+        {
+          "name": "Damp",
+          "min": 500.0,
+          "max": 20000.0,
+          "def": 20000.0,
+          "random": true
+        },
+        {
+          "name": "Reverse",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:verbatim-editor.json"
+    }
+  ]
+}

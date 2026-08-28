@@ -1,0 +1,87 @@
+[
+ {
+  "name": "Console Bass",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 1.0,
+   "Bright": 0.56
+  }
+ },
+ {
+  "name": "Round Cart",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 2.0,
+   "Bright": 0.52,
+   "Release": 0.56
+  }
+ },
+ {
+  "name": "Arcade Lead",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 15.0,
+   "Bright": 0.66,
+   "Vibrato": 0.26,
+   "Speed": 0.52
+  }
+ },
+ {
+  "name": "Cart Bell",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 4.0,
+   "Release": 0.62
+  }
+ },
+ {
+  "name": "Pixel Pluck",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 8.0,
+   "Bright": 0.6
+  }
+ },
+ {
+  "name": "Eight Brass",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 9.0,
+   "Bright": 0.6,
+   "Attack": 0.44
+  }
+ },
+ {
+  "name": "Chip Organ",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 11.0,
+   "Release": 0.42
+  }
+ },
+ {
+  "name": "Deep Cartridge",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 13.0,
+   "Attack": 0.7,
+   "Release": 0.7,
+   "Detune": 10.0
+  }
+ },
+ {
+  "name": "Chip Marimba",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 6.0
+  }
+ },
+ {
+  "name": "Tick Tock",
+  "values": {
+   "File": "factory:chip",
+   "Patch": 16.0,
+   "Bright": 0.58
+  }
+ }
+]

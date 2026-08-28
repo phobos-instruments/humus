@@ -1,0 +1,45 @@
+{
+ "classes": [
+  {
+   "class": "SerialIn",
+   "category": "Primitives",
+   "editor": "layout:serialin-editor.json",
+   "params": [
+    {
+     "name": "Device",
+     "min": 1.0,
+     "max": 99.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "BaudRate",
+     "min": 0.0,
+     "max": 9.0,
+     "def": 8.0,
+     "enum": true
+    },
+    {
+     "name": "Smooth",
+     "min": 0.0,
+     "max": 500.0,
+     "def": 20.0
+    },
+    {
+     "name": "ASCII",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Port",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true
+    }
+   ]
+  }
+ ]
+}

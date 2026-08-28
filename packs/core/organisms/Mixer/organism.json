@@ -1,0 +1,2857 @@
+{
+  "strips": true,
+ "classes": [
+    {
+      "class": "Mixer",
+      "category": "Mixers",
+      "canonical": "S4Mixer",
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S2Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M2Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P2Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S3Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M3Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P3Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S4Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M4Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P4Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S5Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M5Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P5Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S6Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M6Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P6Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S7Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M7Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P7Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "S8Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1-2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3-4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5-6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7-8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_9-10",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_11-12",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_13-14",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_15-16",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "M8Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Mute_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    },
+    {
+      "class": "P8Mixer",
+      "category": "Mixers",
+      "hidden": true,
+      "params": [
+        {
+          "name": "MasterGain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "MasterMute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Gain_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Pan_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Mute_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Solo_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "gen:mixer"
+    }
+  ]
+}

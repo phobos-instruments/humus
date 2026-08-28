@@ -1,0 +1,7 @@
+{
+  "width": 293,
+  "height": 116,
+  "controls": [
+    { "type": "vu-meter", "x": 12, "y": 8, "w": 269, "h": 100 }
+  ]
+}

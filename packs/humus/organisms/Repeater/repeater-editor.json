@@ -1,0 +1,59 @@
+{
+  "width": 293,
+  "height": 126,
+  "controls": [
+    {
+      "type": "label",
+      "label": "Length",
+      "x": 12,
+      "y": 10,
+      "w": 80,
+      "h": 14
+    },
+    {
+      "type": "combo",
+      "param": "Length",
+      "label": "",
+      "x": 12,
+      "y": 26,
+      "w": 160,
+      "h": 22,
+      "options": [
+        "1/16 bar",
+        "1/8 bar",
+        "1/4 bar",
+        "1/2 bar",
+        "1 bar",
+        "2 bars",
+        "4 bars"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "Repeat",
+      "label": "Repeat",
+      "x": 12,
+      "y": 58,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Hold",
+      "label": "Hold",
+      "x": 12,
+      "y": 86,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 196,
+      "y": 42,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

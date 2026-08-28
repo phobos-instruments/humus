@@ -1,0 +1,39 @@
+{
+  "width": 293,
+  "height": 128,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Waveform",
+      "label": "",
+      "x": 8,
+      "y": 6,
+      "w": 277,
+      "h": 20,
+      "options": [
+        "Sine",
+        "White noise",
+        "Pink noise",
+        "Brown noise"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Frequency",
+      "label": "Frequency",
+      "x": 74,
+      "y": 32,
+      "w": 68,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Amplitude",
+      "label": "Amplitude",
+      "x": 150,
+      "y": 32,
+      "w": 68,
+      "h": 84
+    }
+  ]
+}

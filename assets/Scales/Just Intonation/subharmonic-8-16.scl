@@ -1,0 +1,13 @@
+! subharmonic-8-16.scl
+!
+Subharmonics 16 down to 8 - the overtone series read backwards
+ 8
+!
+ 16/15
+ 8/7
+ 16/13
+ 4/3
+ 16/11
+ 8/5
+ 16/9
+ 2/1

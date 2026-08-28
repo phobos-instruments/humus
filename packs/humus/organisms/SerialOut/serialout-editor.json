@@ -1,0 +1,13 @@
+{
+  "width": 293,
+  "height": 150,
+  "controls": [
+    { "type": "combo", "param": "Device", "label": "Device", "source": "serial-ports", "x": 8, "y": 8, "w": 277, "h": 22 },
+    { "type": "combo", "param": "BaudRate", "label": "Baud", "x": 8, "y": 38, "w": 136, "h": 22,
+      "options": ["300", "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400"] },
+    { "type": "int-spinner", "param": "Rate", "label": "Rate (Hz)", "x": 152, "y": 38, "w": 133, "h": 22 },
+    { "type": "toggle", "param": "ASCII", "label": "ASCII lines", "x": 8, "y": 68, "w": 136, "h": 24 },
+    { "type": "label", "label": "Inlets: 1 A - 2 B, sent as \"a b\" per line", "x": 8, "y": 100, "w": 277, "h": 16 },
+    { "type": "label", "label": "ASCII off: one raw byte each, 0..1 - 0..255", "x": 8, "y": 118, "w": 277, "h": 16 }
+  ]
+}

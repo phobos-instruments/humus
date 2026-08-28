@@ -1,0 +1,274 @@
+{
+  "classes": [
+    {
+      "class": "Fern",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "Time",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 375.0
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SyncMultiplier",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "SyncUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "text": "1/8"
+        },
+        {
+          "name": "Spread",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Feedback",
+          "min": 0.0,
+          "max": 0.95,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Damp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Body",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.2,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.15,
+          "random": true
+        },
+        {
+          "name": "Glide",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        }
+      ],
+      "canonical": "SFern",
+      "editor": "layout:fern-editor.json"
+    },
+    {
+      "class": "SFern",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "Time",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 375.0
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SyncMultiplier",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "SyncUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "text": "1/8"
+        },
+        {
+          "name": "Spread",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Feedback",
+          "min": 0.0,
+          "max": 0.95,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Damp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Body",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.2,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.15,
+          "random": true
+        },
+        {
+          "name": "Glide",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        }
+      ],
+      "hidden": true,
+      "editor": "layout:fern-editor.json"
+    },
+    {
+      "class": "MFern",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "Time",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 375.0
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SyncMultiplier",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "SyncUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "text": "1/8"
+        },
+        {
+          "name": "Spread",
+          "min": -1.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Feedback",
+          "min": 0.0,
+          "max": 0.95,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Mode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Damp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Body",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.2,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.15,
+          "random": true
+        },
+        {
+          "name": "Glide",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35
+        }
+      ],
+      "hidden": true,
+      "editor": "layout:fern-editor.json"
+    }
+  ]
+}

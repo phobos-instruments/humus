@@ -1,0 +1,48 @@
+{
+  "width": 293,
+  "height": 224,
+  "controls": [
+    {
+      "type": "video-preview",
+      "param": "",
+      "label": "",
+      "x": 12,
+      "y": 6,
+      "w": 269,
+      "h": 151
+    },
+    {
+      "type": "toggle",
+      "param": "Preview",
+      "label": "Preview",
+      "x": 12,
+      "y": 165,
+      "w": 90,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Screen",
+      "label": "",
+      "x": 110,
+      "y": 165,
+      "w": 110,
+      "h": 22,
+      "options": [
+        "Window",
+        "Display 1",
+        "Display 2",
+        "Display 3"
+      ]
+    },
+    {
+      "type": "hslider",
+      "param": "Fade",
+      "label": "Fade",
+      "x": 12,
+      "y": 191,
+      "w": 269,
+      "h": 24
+    }
+  ]
+}

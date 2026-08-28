@@ -1,0 +1,8 @@
+{
+  "id": "core",
+  "name": "Core",
+  "version": "1.1.0",
+  "description": "The plumbing every patch needs - sound-card and aux I/O, MIDI ports, gains, mixers, buses, the crossfader and the file recorder. Pre-installed and always available.",
+  "origin": "Humus",
+  "license": "GPL-3.0"
+}

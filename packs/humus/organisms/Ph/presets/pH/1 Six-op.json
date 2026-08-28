@@ -1,0 +1,187 @@
+[
+ {
+  "name": "Topsoil Keys",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 25.0,
+   "Bright": 0.55,
+   "Release": 0.62
+  }
+ },
+ {
+  "name": "Bright Tine",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 2.0,
+   "Bright": 0.72,
+   "Release": 0.58
+  }
+ },
+ {
+  "name": "Deep Loam",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 5.0,
+   "Bright": 0.6,
+   "Release": 0.42
+  }
+ },
+ {
+  "name": "Root Growl",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 7.0,
+   "Bright": 0.7,
+   "Detune": 6.0
+  }
+ },
+ {
+  "name": "Quartz",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 4.0,
+   "Bright": 0.62,
+   "Release": 0.66
+  }
+ },
+ {
+  "name": "Iron Bell",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 30.0,
+   "Bright": 0.58,
+   "Release": 0.7
+  }
+ },
+ {
+  "name": "Dew",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 12.0,
+   "Bright": 0.52,
+   "Release": 0.32
+  }
+ },
+ {
+  "name": "Wet Wood",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 11.0,
+   "Bright": 0.55
+  }
+ },
+ {
+  "name": "Peat Pad",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 13.0,
+   "Attack": 0.7,
+   "Release": 0.75,
+   "Detune": 12.0
+  }
+ },
+ {
+  "name": "Morning Mist",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 14.0,
+   "Attack": 0.8,
+   "Release": 0.8,
+   "Detune": 8.0,
+   "Vibrato": 0.15,
+   "Speed": 0.3
+  }
+ },
+ {
+  "name": "Glasshouse",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 15.0,
+   "Attack": 0.66,
+   "Release": 0.72,
+   "Detune": 14.0
+  }
+ },
+ {
+  "name": "Moss Organ",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 27.0,
+   "Release": 0.45
+  }
+ },
+ {
+  "name": "Reed Bed",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 28.0,
+   "Vibrato": 0.14,
+   "Speed": 0.42
+  }
+ },
+ {
+  "name": "Bowed Root",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 16.0,
+   "Attack": 0.62,
+   "Release": 0.6,
+   "Vibrato": 0.1,
+   "Speed": 0.35
+  }
+ },
+ {
+  "name": "Horn Light",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 17.0,
+   "Bright": 0.58,
+   "Attack": 0.56
+  }
+ },
+ {
+  "name": "Fifth Runner",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 21.0,
+   "Bright": 0.6,
+   "Detune": 9.0
+  }
+ },
+ {
+  "name": "Whistle Root",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 22.0,
+   "Vibrato": 0.22,
+   "Speed": 0.46
+  }
+ },
+ {
+  "name": "Clavina",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 23.0,
+   "Bright": 0.62
+  }
+ },
+ {
+  "name": "Sporecast",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 32.0,
+   "Bright": 0.66,
+   "Detune": 16.0
+  }
+ },
+ {
+  "name": "Compost Heap",
+  "values": {
+   "File": "factory:six-op",
+   "Patch": 31.0,
+   "Bright": 0.7,
+   "Release": 0.55,
+   "Detune": 20.0
+  }
+ }
+]

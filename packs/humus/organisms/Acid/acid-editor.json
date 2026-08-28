@@ -1,0 +1,208 @@
+{
+  "width": 600,
+  "height": 348,
+  "controls": [
+    {
+      "type": "enum-buttons",
+      "param": "Wave",
+      "label": "",
+      "x": 46,
+      "y": 6,
+      "w": 208,
+      "h": 20,
+      "options": [
+        "SAW",
+        "SQR",
+        "PLS",
+        "TRI"
+      ],
+      "icons": "waves"
+    },
+    {
+      "type": "knob",
+      "param": "Cutoff",
+      "label": "Cutoff",
+      "x": 46,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Resonance",
+      "label": "Reso",
+      "x": 110,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "EnvMod",
+      "label": "EnvMod",
+      "x": 174,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Decay",
+      "label": "Decay",
+      "x": 238,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Accent",
+      "label": "Accent",
+      "x": 302,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Glide",
+      "label": "Glide",
+      "x": 366,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Drive",
+      "label": "Drive",
+      "x": 430,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 494,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Attack",
+      "x": 46,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "AmpDecay",
+      "label": "Pluck",
+      "x": 110,
+      "y": 128,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "AccentDecay",
+      "label": "AccDec",
+      "x": 174,
+      "y": 128,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "FilterFM",
+      "label": "FiltFM",
+      "x": 238,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Track",
+      "label": "Track",
+      "x": 302,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "label",
+      "label": "LFO \u2192 Cutoff",
+      "x": 46,
+      "y": 222,
+      "w": 100,
+      "h": 16
+    },
+    {
+      "type": "enum-buttons",
+      "param": "LfoWave",
+      "label": "",
+      "x": 150,
+      "y": 220,
+      "w": 240,
+      "h": 20,
+      "options": [
+        "SIN",
+        "TRI",
+        "SQR",
+        "SAW",
+        "DSAW",
+        "S&H"
+      ],
+      "icons": "waves"
+    },
+    {
+      "type": "knob",
+      "param": "LfoRate",
+      "label": "Rate (Hz)",
+      "x": 46,
+      "y": 246,
+      "w": 60,
+      "h": 84,
+      "log": true,
+      "dim-when": "LfoSync"
+    },
+    {
+      "type": "knob",
+      "param": "LfoDepth",
+      "label": "Depth",
+      "x": 110,
+      "y": 246,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "LfoSync",
+      "label": "Sync",
+      "x": 182,
+      "y": 260,
+      "w": 52,
+      "h": 20
+    },
+    {
+      "type": "double-spinner",
+      "param": "LfoBeats",
+      "label": "Beats",
+      "x": 182,
+      "y": 288,
+      "w": 124,
+      "h": 22,
+      "decimals": 2,
+      "dim-when": "!LfoSync"
+    }
+  ]
+}

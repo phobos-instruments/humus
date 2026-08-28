@@ -1,0 +1,49 @@
+{
+  "classes": [
+    {
+      "class": "SpectralMorph",
+      "category": "Spectral",
+      "canonical": "SSpectralMorph",
+      "params": [
+        {
+          "name": "Morph",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        }
+      ],
+      "editor": "layout:spectralmorph-editor.json"
+    },
+    {
+      "class": "SSpectralMorph",
+      "category": "Spectral",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Morph",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        }
+      ],
+      "editor": "layout:spectralmorph-editor.json"
+    },
+    {
+      "class": "MSpectralMorph",
+      "category": "Spectral",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Morph",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        }
+      ],
+      "editor": "layout:spectralmorph-editor.json"
+    }
+  ]
+}

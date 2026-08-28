@@ -1,0 +1,274 @@
+{
+  "classes": [
+    {
+      "class": "AudioIn",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 1,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AudioOut",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 1,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxIn1",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 3,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn2",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 4,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn3",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 5,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn4",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 6,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn5",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 7,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn6",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 8,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn7",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 9,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxIn8",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 10,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioin-editor.json"
+    },
+    {
+      "class": "AuxOut1",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 3,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut2",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 4,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut3",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 5,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut4",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 6,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut5",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 7,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut6",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 8,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut7",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 9,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    },
+    {
+      "class": "AuxOut8",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 10,
+          "int": true
+        }
+      ],
+      "editor": "layout:audioout-editor.json"
+    }
+  ]
+}

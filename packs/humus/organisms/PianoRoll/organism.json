@@ -1,0 +1,57 @@
+{
+  "classes": [
+    {
+      "class": "PianoRoll",
+      "category": "Sequencers",
+      "params": [
+        {
+          "name": "Bars",
+          "min": 1.0,
+          "max": 64.0,
+          "def": 4.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "Mute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "VelocityScale",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "SwingFollow",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Swing",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "SwingUnit",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:pianoroll-editor.json"
+    }
+  ]
+}

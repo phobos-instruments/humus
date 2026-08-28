@@ -1,0 +1,26 @@
+[
+ {
+  "name": "Sub Split",
+  "values": {
+   "Bands": 2.0,
+   "Freq1": 90.0,
+   "Slope": 2.0
+  }
+ },
+ {
+  "name": "Bass Mono",
+  "values": {
+   "Bands": 2.0,
+   "Freq1": 120.0,
+   "Slope": 0.0
+  }
+ },
+ {
+  "name": "Air Lift",
+  "values": {
+   "Bands": 2.0,
+   "Freq1": 8000.0,
+   "Slope": 1.0
+  }
+ }
+]

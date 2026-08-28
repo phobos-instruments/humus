@@ -1,0 +1,9 @@
+{
+  "width": 600,
+  "height": 300,
+  "controls": [
+    { "type": "osc-log", "x": 12, "y": 8, "w": 576, "h": 246 },
+    { "type": "combo", "param": "Direction", "label": "Show", "x": 12, "y": 264, "w": 286, "h": 22, "options": ["All", "Received", "Sent"] },
+    { "type": "label", "label": "Ports: Settings - MIDI & OSC", "x": 216, "y": 267, "w": 164, "h": 16 }
+  ]
+}

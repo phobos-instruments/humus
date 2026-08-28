@@ -1,0 +1,55 @@
+{
+  "width": 293,
+  "height": 150,
+  "controls": [
+    {
+      "type": "label",
+      "label": "Curve",
+      "x": 12,
+      "y": 10,
+      "w": 80,
+      "h": 14
+    },
+    {
+      "type": "combo",
+      "param": "Curve",
+      "label": "",
+      "x": 12,
+      "y": 26,
+      "w": 150,
+      "h": 22,
+      "options": [
+        "RIAA",
+        "RIAA + IEC",
+        "Flat"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "Rumble",
+      "label": "Rumble",
+      "x": 180,
+      "y": 26,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "Gain",
+      "label": "Gain",
+      "x": 12,
+      "y": 56,
+      "w": 60,
+      "h": 84,
+      "decimals": 1
+    },
+    {
+      "type": "label",
+      "label": "MM 40 dB / MC 60 dB",
+      "x": 88,
+      "y": 90,
+      "w": 190,
+      "h": 14
+    }
+  ]
+}

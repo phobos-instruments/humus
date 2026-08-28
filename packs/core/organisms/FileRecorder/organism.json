@@ -1,0 +1,8050 @@
+{
+  "_note": "GENERATED family: FileRecorder plus 1..32FileRecorder. Size lives in the class name (the house rule for structural size), so the schema can grow with it - N file slots + N channel counts. Regenerate rather than hand-edit.",
+  "classes": [
+    {
+      "class": "FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 2.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "canonical": "2FileRecorder",
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "1FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "2FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 2.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "3FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 3.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "4FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 4.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "5FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 5.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "6FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 6.0,
+          "def": 6.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 6.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 6.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 6.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 6.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 6.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "7FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 7.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "8FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 8.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "9FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 9.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 9.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "10FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 10.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "11FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 11.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "12FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 12.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 12.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "13FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 13.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 13.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "14FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 14.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 14.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "15FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 15.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "16FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 16.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "17FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 17.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 17.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "18FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 18.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 18.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "19FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 19.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 19.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "20FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 20.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "21FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 21.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 21.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "22FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 22.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 22.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "23FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 23.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 23.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "24FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 24.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "25FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 25.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 25.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "26FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 26.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 26.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "27FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_27",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 27.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_27",
+          "min": 0.0,
+          "max": 27.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "28FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_27",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_28",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 28.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_27",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_28",
+          "min": 0.0,
+          "max": 28.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "29FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_27",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_28",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_29",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 29.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_27",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_28",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_29",
+          "min": 0.0,
+          "max": 29.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "30FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_27",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_28",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_29",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_30",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 30.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_27",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_28",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_29",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_30",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "31FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_27",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_28",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_29",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_30",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_31",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 31.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_27",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_28",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_29",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_30",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_31",
+          "min": 0.0,
+          "max": 31.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    },
+    {
+      "class": "32FileRecorder",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "File_1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_9",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_11",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_13",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_15",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_17",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_18",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_19",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_20",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_21",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_22",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_23",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_24",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_25",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_26",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_27",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_28",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_29",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_30",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_31",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File_32",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "RequestedChannelCounts_1",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 32.0
+        },
+        {
+          "name": "RequestedChannelCounts_2",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_3",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_4",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_5",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_6",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_7",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_8",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_9",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_10",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_11",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_12",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_13",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_14",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_15",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_16",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_17",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_18",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_19",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_20",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_21",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_22",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_23",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_24",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_25",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_26",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_27",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_28",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_29",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_30",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_31",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "RequestedChannelCounts_32",
+          "min": 0.0,
+          "max": 32.0,
+          "def": 1.0
+        },
+        {
+          "name": "FileMode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "PunchMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "RecordDuration",
+          "min": 0.0,
+          "max": 3600000.0,
+          "def": 300000.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "hidden": true,
+      "editor": "gen:filerecorder"
+    }
+  ]
+}

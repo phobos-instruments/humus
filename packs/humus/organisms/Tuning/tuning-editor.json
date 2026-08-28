@@ -1,0 +1,94 @@
+{
+  "width": 293,
+  "height": 218,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Preset",
+      "label": "",
+      "x": 8,
+      "y": 8,
+      "w": 277,
+      "h": 22,
+      "options": [
+        "12-TET (standard)",
+        "19-EDO",
+        "24-EDO (quarter tones)",
+        "31-EDO",
+        "Bohlen-Pierce",
+        "Custom EDO",
+        "Just - 5-limit",
+        "Just - 7-limit",
+        "Just - 17-limit",
+        "Harmonics 8-16",
+        "Pythagorean",
+        "Scala file (.scl)"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Map",
+      "label": "Map",
+      "x": 42,
+      "y": 36,
+      "w": 243,
+      "h": 22,
+      "options": [
+        "Degrees (1:1)",
+        "Keyboard"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Divisions",
+      "label": "Divisions",
+      "x": 8,
+      "y": 66,
+      "w": 60,
+      "h": 84,
+      "dim-when": "!Preset=5"
+    },
+    {
+      "type": "knob",
+      "param": "Root",
+      "label": "Root",
+      "x": 72,
+      "y": 66,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "RootHz",
+      "label": "Root Hz",
+      "x": 136,
+      "y": 66,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "scale-file",
+      "param": "File",
+      "label": "",
+      "x": 8,
+      "y": 158,
+      "w": 277,
+      "h": 24,
+      "clear-when": "!Preset=11"
+    },
+    {
+      "type": "combo",
+      "param": "Plugins",
+      "label": "Plugins",
+      "x": 56,
+      "y": 188,
+      "w": 229,
+      "h": 22,
+      "options": [
+        "MTS SysEx",
+        "Pitch bend",
+        "Auto (probe)"
+      ]
+    }
+  ]
+}

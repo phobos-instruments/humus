@@ -1,0 +1,77 @@
+{
+  "classes": [
+    {
+      "class": "Rhizome",
+      "category": "Instruments",
+      "editor": "layout:rhizome-editor.json",
+      "params": [
+        {
+          "name": "Runners",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 4.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Interval",
+          "min": 1.0,
+          "max": 24.0,
+          "def": 7.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Creep",
+          "min": 0.0,
+          "max": 50.0,
+          "def": 8.0,
+          "random": true,
+          "unit": "cent"
+        },
+        {
+          "name": "Tilt",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.6,
+          "random": true
+        },
+        {
+          "name": "Wave",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Bloom",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 300.0,
+          "random": true
+        },
+        {
+          "name": "Decay",
+          "min": 20.0,
+          "max": 6000.0,
+          "def": 900.0,
+          "random": true
+        },
+        {
+          "name": "Cutoff",
+          "min": 40.0,
+          "max": 12000.0,
+          "def": 2200.0,
+          "random": true
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.5,
+          "def": 0.8
+        }
+      ]
+    }
+  ]
+}

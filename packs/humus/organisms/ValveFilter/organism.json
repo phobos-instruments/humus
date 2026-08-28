@@ -1,0 +1,402 @@
+{
+  "classes": [
+    {
+      "class": "Filter",
+      "category": "Filters",
+      "editor": "layout:valvefilter-editor.json",
+      "params": [
+        {
+          "name": "EnvFollow",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "EnvDecay",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "EnvToDrive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "LfoSpeed",
+          "min": 0.2,
+          "max": 10000.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "LfoWave",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "LfoSync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "LfoBeats",
+          "min": 0.0625,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "LfoDepth",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Resonance",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "HiPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "BandPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "LoPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Frequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 20000.0,
+          "random": true
+        },
+        {
+          "name": "FilterOn",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Mono",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "MixInvert",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        }
+      ]
+    },
+    {
+      "class": "SFilter",
+      "category": "Filters",
+      "hidden": true,
+      "editor": "layout:valvefilter-editor.json",
+      "params": [
+        {
+          "name": "EnvFollow",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "EnvDecay",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "EnvToDrive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "LfoSpeed",
+          "min": 0.2,
+          "max": 10000.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "LfoWave",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "LfoSync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "LfoBeats",
+          "min": 0.0625,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "LfoDepth",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Resonance",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "HiPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "BandPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "LoPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Frequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 20000.0,
+          "random": true
+        },
+        {
+          "name": "FilterOn",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Mono",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "MixInvert",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        }
+      ]
+    },
+    {
+      "class": "MFilter",
+      "category": "Filters",
+      "hidden": true,
+      "editor": "layout:valvefilter-editor.json",
+      "params": [
+        {
+          "name": "EnvFollow",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "EnvDecay",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "EnvToDrive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "LfoSpeed",
+          "min": 0.2,
+          "max": 10000.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "LfoWave",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "LfoSync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "LfoBeats",
+          "min": 0.0625,
+          "max": 16.0,
+          "def": 1.0
+        },
+        {
+          "name": "LfoDepth",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Resonance",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 2.0,
+          "random": true
+        },
+        {
+          "name": "HiPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "BandPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "LoPass",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Frequency",
+          "min": 20.0,
+          "max": 20000.0,
+          "def": 20000.0,
+          "random": true
+        },
+        {
+          "name": "FilterOn",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Mono",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "MixInvert",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        }
+      ]
+    }
+  ]
+}

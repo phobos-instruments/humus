@@ -1,0 +1,1 @@
+#include "gui/EmbeddedPluginView.h"

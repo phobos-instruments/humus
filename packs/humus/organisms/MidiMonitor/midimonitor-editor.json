@@ -1,0 +1,9 @@
+{
+  "width": 600,
+  "height": 300,
+  "controls": [
+    { "type": "midi-log", "x": 12, "y": 8, "w": 576, "h": 246 },
+    { "type": "combo", "param": "Source", "label": "Source", "x": 12, "y": 264, "w": 286, "h": 22, "options": ["All", "Cords only", "Live only"] },
+    { "type": "int-spinner", "param": "Channel", "label": "Ch (0=all)", "x": 304, "y": 264, "w": 284, "h": 22 }
+  ]
+}

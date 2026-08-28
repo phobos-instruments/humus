@@ -1,0 +1,20 @@
+{
+ "classes": [
+  {
+   "class": "StereoTool",
+   "category": "Mixers",
+   "params": [
+    { "name": "Width",    "min": 0.0,   "max": 4.0,   "def": 1.0, "random": true, "unit": "%" },
+    { "name": "Balance",  "min": -1.0,  "max": 1.0,   "def": 0.0 },
+    { "name": "Rotation", "min": -45.0, "max": 45.0,  "def": 0.0, "random": true },
+    { "name": "MonoBass", "min": 0.0,   "max": 500.0, "def": 0.0, "random": true, "unit": "Hz" },
+    { "name": "PhaseL",   "min": 0.0,   "max": 1.0,   "def": 0.0, "bool": true },
+    { "name": "PhaseR",   "min": 0.0,   "max": 1.0,   "def": 0.0, "bool": true },
+    { "name": "Swap",     "min": 0.0,   "max": 1.0,   "def": 0.0, "bool": true },
+    { "name": "Mono",     "min": 0.0,   "max": 1.0,   "def": 0.0, "bool": true },
+    { "name": "Output",   "min": 0.0,   "max": 4.0,   "def": 1.0 }
+   ],
+   "editor": "layout:stereotool-editor.json"
+  }
+ ]
+}

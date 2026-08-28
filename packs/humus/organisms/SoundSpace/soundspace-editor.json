@@ -1,0 +1,141 @@
+{
+  "width": 600,
+  "height": 414,
+  "controls": [
+    {
+      "type": "sound-map",
+      "param": "X",
+      "param2": "Y",
+      "x": 12,
+      "y": 8,
+      "w": 368,
+      "h": 368
+    },
+    {
+      "type": "soundfile",
+      "param": "File1",
+      "label": "",
+      "x": 392,
+      "y": 8,
+      "w": 196,
+      "h": 22
+    },
+    {
+      "type": "soundfile",
+      "param": "File2",
+      "label": "",
+      "x": 392,
+      "y": 34,
+      "w": 196,
+      "h": 22
+    },
+    {
+      "type": "soundfile",
+      "param": "File3",
+      "label": "",
+      "x": 392,
+      "y": 60,
+      "w": 196,
+      "h": 22
+    },
+    {
+      "type": "soundfile",
+      "param": "File4",
+      "label": "",
+      "x": 392,
+      "y": 86,
+      "w": 196,
+      "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "Density",
+      "label": "Density",
+      "x": 396,
+      "y": 118,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "GrainSize",
+      "label": "Size",
+      "x": 460,
+      "y": 118,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Spray",
+      "label": "Spray",
+      "x": 524,
+      "y": 118,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Pitch",
+      "label": "Pitch",
+      "x": 396,
+      "y": 206,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Gain",
+      "label": "Gain",
+      "x": 460,
+      "y": 206,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute",
+      "label": "Mute",
+      "x": 12,
+      "y": 384,
+      "w": 62,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "Record",
+      "label": "Rec",
+      "x": 80,
+      "y": 384,
+      "w": 62,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Spread",
+      "label": "Spread",
+      "x": 524,
+      "y": 206,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Jitter",
+      "label": "Jitter",
+      "x": 396,
+      "y": 294,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "SizeRand",
+      "label": "Scatter",
+      "x": 460,
+      "y": 294,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

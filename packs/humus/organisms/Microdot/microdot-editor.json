@@ -1,0 +1,144 @@
+{
+  "width": 600,
+  "height": 252,
+  "controls": [
+    {
+      "type": "step-grid",
+      "mode": "arp",
+      "steps": "16",
+      "seed": "-111-111-111-111",
+      "x": 38,
+      "y": 8,
+      "w": 524,
+      "h": 80
+    },
+    {
+      "type": "note-field",
+      "param": "Note",
+      "label": "Note",
+      "x": 38,
+      "y": 98,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Seq",
+      "label": "Seq",
+      "x": 156,
+      "y": 98,
+      "w": 48,
+      "h": 22
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Wave",
+      "label": "",
+      "x": 340,
+      "y": 98,
+      "w": 222,
+      "h": 22,
+      "options": [
+        "SAW",
+        "SQR",
+        "PLS",
+        "TRI",
+        "SIN",
+        "FAT"
+      ],
+      "icons": "waves"
+    },
+    {
+      "type": "knob",
+      "param": "Cutoff",
+      "label": "Cutoff",
+      "x": 44,
+      "y": 128,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Reso",
+      "label": "Reso",
+      "x": 108,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "EnvMod",
+      "label": "EnvMod",
+      "x": 172,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Decay",
+      "label": "Decay",
+      "x": 236,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 300,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Sub",
+      "label": "Sub",
+      "x": 364,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Drive",
+      "label": "Drive",
+      "x": 428,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 526,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 38,
+      "y": 224,
+      "w": 64,
+      "h": 20
+    },
+    {
+      "type": "hslider",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 112,
+      "y": 224,
+      "w": 220,
+      "h": 20,
+      "dim-when": "SwingFollow"
+    }
+  ]
+}

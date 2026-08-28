@@ -1,0 +1,8 @@
+{
+  "width": 600,
+  "height": 124,
+  "controls": [
+    { "type": "combo", "param": "Port", "label": "Port", "source": "midi-in-ports", "x": 26, "y": 6, "w": 300, "h": 22 },
+    { "type": "midi-keyboard", "x": 26, "y": 34, "w": 548, "h": 84 }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "width": 600,
+  "height": 228,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Chord",
+      "label": "Chord",
+      "x": 39,
+      "y": 6,
+      "w": 128,
+      "h": 20,
+      "options": [
+        "Minor",
+        "Major",
+        "Phrygian",
+        "Pentatonic",
+        "Dorian",
+        "Harmonic Minor",
+        "Whole Tone",
+        "Hirajoshi",
+        "Harmonic (JI)"
+      ]
+    },
+    {
+      "type": "note-field",
+      "param": "Root",
+      "label": "Root",
+      "x": 185,
+      "y": 6,
+      "w": 130,
+      "h": 20
+    },
+    {
+      "type": "number-field",
+      "param": "Seed",
+      "label": "Seed",
+      "x": 321,
+      "y": 6,
+      "w": 110,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 39,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Rest",
+      "label": "Rest",
+      "x": 103,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Octaves",
+      "label": "Octaves",
+      "x": 167,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Mutate",
+      "label": "Mutate",
+      "x": 231,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Velocity",
+      "label": "Vel",
+      "x": 295,
+      "y": 34,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "rotary-switch",
+      "param": "Rate",
+      "label": "Rate",
+      "x": 359,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "options": [
+        "1/16",
+        "1/8",
+        "1/32",
+        "1/8T",
+        "1/16T",
+        "1/8.",
+        "1/4",
+        "1/16.",
+        "1/4T",
+        "1/2",
+        "1/1",
+        "1/64"
+      ]
+    },
+    {
+      "type": "dna-strand",
+      "x": 39,
+      "y": 122,
+      "w": 522,
+      "h": 16
+    },
+    {
+      "type": "dna-bases",
+      "x": 39,
+      "y": 138,
+      "w": 522,
+      "h": 88
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 437,
+      "y": 6,
+      "w": 64,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 427,
+      "y": 34,
+      "w": 60,
+      "h": 84,
+      "dim-when": "SwingFollow"
+    }
+  ]
+}

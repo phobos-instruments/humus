@@ -1,0 +1,7 @@
+{
+  "width": 293,
+  "height": 38,
+  "controls": [
+    { "type": "combo", "param": "Channel", "label": "Input", "source": "audio-in-channels", "x": 6, "y": 8, "w": 281, "h": 22 }
+  ]
+}

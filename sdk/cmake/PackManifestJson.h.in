@@ -1,0 +1,4 @@
+// Generated at configure time from the pack's pack.json (see hum_add_pack_dyn
+// in sdk/cmake/HumPack.cmake). Do not edit.
+#pragma once
+static const char* const kPackManifestJson = R"HUMJSON(@HUM_PACK_JSON@)HUMJSON";

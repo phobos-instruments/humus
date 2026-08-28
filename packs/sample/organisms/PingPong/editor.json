@@ -1,0 +1,43 @@
+{
+  "width": 293,
+  "height": 128,
+  "controls": [
+    {
+      "type": "knob",
+      "param": "TimeMs",
+      "label": "Time ms",
+      "x": 10,
+      "y": 8,
+      "w": 64,
+      "h": 84,
+      "dim-when": "Sync"
+    },
+    {
+      "type": "knob",
+      "param": "Feedback",
+      "label": "Feedb",
+      "x": 84,
+      "y": 8,
+      "w": 64,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "WetDry",
+      "label": "Mix",
+      "x": 158,
+      "y": 8,
+      "w": 64,
+      "h": 84
+    },
+    {
+      "type": "toggle",
+      "param": "Sync",
+      "label": "Sync 1/8",
+      "x": 230,
+      "y": 36,
+      "w": 60,
+      "h": 24
+    }
+  ]
+}

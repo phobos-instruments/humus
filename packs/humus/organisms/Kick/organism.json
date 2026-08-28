@@ -1,0 +1,81 @@
+{
+  "classes": [
+    {
+      "class": "Kick",
+      "category": "Instruments",
+      "editor": "layout:kick-editor.json",
+      "params": [
+        {
+          "name": "Tune",
+          "min": 30.0,
+          "max": 90.0,
+          "def": 48.0,
+          "random": true
+        },
+        {
+          "name": "Punch",
+          "min": 0.0,
+          "max": 8.0,
+          "def": 4.0,
+          "random": true
+        },
+        {
+          "name": "PitchDecay",
+          "min": 5.0,
+          "max": 200.0,
+          "def": 40.0,
+          "random": true
+        },
+        {
+          "name": "Decay",
+          "min": 50.0,
+          "max": 2000.0,
+          "def": 420.0,
+          "random": true
+        },
+        {
+          "name": "Click",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Wood",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.5,
+          "def": 0.9
+        },
+        {
+          "name": "FourFloor",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Trigger",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Slow Pass",
+    "values": {
+      "Scan": 0, "Rate": 0.08, "X": 0, "Span": 1, "Y": 0, "Height": 1,
+      "Low": 55, "High": 8000, "Gate": 0.1, "Blur": 0.25, "Tilt": 0
+    }
+  },
+  {
+    "name": "Hover",
+    "values": {
+      "Scan": 1, "Rate": 0.25, "X": 0.5, "Span": 0.15, "Y": 0.1, "Height": 0.8,
+      "Low": 80, "High": 6000, "Gate": 0.12, "Blur": 0.75, "Tilt": -0.2
+    }
+  },
+  {
+    "name": "Chord",
+    "values": {
+      "Scan": 1, "Rate": 0.25, "X": 0.4, "Span": 0.3, "Y": 0.25, "Height": 0.45,
+      "Low": 220, "High": 880, "Gate": 0.2, "Blur": 0.6, "Tilt": 0
+    }
+  },
+  {
+    "name": "Weather",
+    "values": {
+      "Scan": 0, "Rate": 0.03, "X": 0, "Span": 1, "Y": 0, "Height": 1,
+      "Low": 30, "High": 12000, "Gate": 0.25, "Blur": 0.85, "Tilt": -0.35
+    }
+  },
+  {
+    "name": "Grain",
+    "values": {
+      "Scan": 0, "Rate": 2.5, "X": 0, "Span": 0.4, "Y": 0.15, "Height": 0.7,
+      "Low": 110, "High": 9000, "Gate": 0.35, "Blur": 0, "Tilt": 0.25
+    }
+  }
+]

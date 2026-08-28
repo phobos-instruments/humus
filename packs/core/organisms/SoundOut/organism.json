@@ -1,0 +1,24 @@
+{
+  "classes": [
+    {
+      "class": "SoundOut",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "Channel",
+          "min": 1,
+          "max": 32,
+          "def": 1,
+          "int": true
+        },
+        {
+          "name": "Gain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        }
+      ],
+      "editor": "layout:soundout-editor.json"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "classes": [
+    {
+      "class": "MidiMonitor",
+      "category": "Meters",
+      "editor": "layout:midimonitor-editor.json",
+      "params": [
+        {
+          "name": "Source",
+          "min": 0,
+          "max": 2,
+          "def": 0,
+          "enum": true
+        },
+        {
+          "name": "Channel",
+          "min": 0,
+          "max": 16,
+          "def": 0,
+          "int": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,540 @@
+{
+ "width": 600,
+ "height": 304,
+ "controls": [
+  {
+   "type": "helix-strands",
+   "x": 8,
+   "y": 8,
+   "w": 584,
+   "h": 48
+  },
+  {
+   "type": "momentary",
+   "param": "Rec1",
+   "label": "Rec",
+   "x": 8,
+   "y": 60,
+   "w": 138,
+   "h": 34,
+   "hold": "true"
+  },
+  {
+   "type": "momentary",
+   "param": "Play1",
+   "label": "Play",
+   "x": 8,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Stop1",
+   "label": "Stop",
+   "x": 79,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Undo1",
+   "label": "Undo",
+   "x": 8,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Redo1",
+   "label": "Redo",
+   "x": 54,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Clear1",
+   "label": "Clear",
+   "x": 100,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "minitoggle",
+   "param": "Mute1",
+   "label": "M",
+   "x": 80,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Solo1",
+   "label": "S",
+   "x": 113,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Rev1",
+   "label": "Rev",
+   "x": 8,
+   "y": 156,
+   "w": 42,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Half1",
+   "label": "Half",
+   "x": 54,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Shot1",
+   "label": "Once",
+   "x": 102,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "knob",
+   "param": "Level1",
+   "label": "Level",
+   "x": 14,
+   "y": 182,
+   "w": 60,
+   "h": 84
+  },
+  {
+   "type": "combo",
+   "param": "Sync1",
+   "label": "",
+   "x": 80,
+   "y": 210,
+   "w": 62,
+   "h": 22,
+   "options": [
+    "Free",
+    "Beat",
+    "Bar"
+   ]
+  },
+  {
+   "type": "momentary",
+   "param": "Rec2",
+   "label": "Rec",
+   "x": 154,
+   "y": 60,
+   "w": 138,
+   "h": 34,
+   "hold": "true"
+  },
+  {
+   "type": "momentary",
+   "param": "Play2",
+   "label": "Play",
+   "x": 154,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Stop2",
+   "label": "Stop",
+   "x": 225,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Undo2",
+   "label": "Undo",
+   "x": 154,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Redo2",
+   "label": "Redo",
+   "x": 200,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Clear2",
+   "label": "Clear",
+   "x": 246,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "minitoggle",
+   "param": "Mute2",
+   "label": "M",
+   "x": 226,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Solo2",
+   "label": "S",
+   "x": 259,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Rev2",
+   "label": "Rev",
+   "x": 154,
+   "y": 156,
+   "w": 42,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Half2",
+   "label": "Half",
+   "x": 200,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Shot2",
+   "label": "Once",
+   "x": 248,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "knob",
+   "param": "Level2",
+   "label": "Level",
+   "x": 160,
+   "y": 182,
+   "w": 60,
+   "h": 84
+  },
+  {
+   "type": "combo",
+   "param": "Sync2",
+   "label": "",
+   "x": 226,
+   "y": 210,
+   "w": 62,
+   "h": 22,
+   "options": [
+    "Free",
+    "Beat",
+    "Bar"
+   ]
+  },
+  {
+   "type": "momentary",
+   "param": "Rec3",
+   "label": "Rec",
+   "x": 300,
+   "y": 60,
+   "w": 138,
+   "h": 34,
+   "hold": "true"
+  },
+  {
+   "type": "momentary",
+   "param": "Play3",
+   "label": "Play",
+   "x": 300,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Stop3",
+   "label": "Stop",
+   "x": 371,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Undo3",
+   "label": "Undo",
+   "x": 300,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Redo3",
+   "label": "Redo",
+   "x": 346,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Clear3",
+   "label": "Clear",
+   "x": 392,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "minitoggle",
+   "param": "Mute3",
+   "label": "M",
+   "x": 372,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Solo3",
+   "label": "S",
+   "x": 405,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Rev3",
+   "label": "Rev",
+   "x": 300,
+   "y": 156,
+   "w": 42,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Half3",
+   "label": "Half",
+   "x": 346,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Shot3",
+   "label": "Once",
+   "x": 394,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "knob",
+   "param": "Level3",
+   "label": "Level",
+   "x": 306,
+   "y": 182,
+   "w": 60,
+   "h": 84
+  },
+  {
+   "type": "combo",
+   "param": "Sync3",
+   "label": "",
+   "x": 372,
+   "y": 210,
+   "w": 62,
+   "h": 22,
+   "options": [
+    "Free",
+    "Beat",
+    "Bar"
+   ]
+  },
+  {
+   "type": "momentary",
+   "param": "Rec4",
+   "label": "Rec",
+   "x": 446,
+   "y": 60,
+   "w": 138,
+   "h": 34,
+   "hold": "true"
+  },
+  {
+   "type": "momentary",
+   "param": "Play4",
+   "label": "Play",
+   "x": 446,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Stop4",
+   "label": "Stop",
+   "x": 517,
+   "y": 98,
+   "w": 67,
+   "h": 26
+  },
+  {
+   "type": "momentary",
+   "param": "Undo4",
+   "label": "Undo",
+   "x": 446,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Redo4",
+   "label": "Redo",
+   "x": 492,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "momentary",
+   "param": "Clear4",
+   "label": "Clear",
+   "x": 538,
+   "y": 128,
+   "w": 42,
+   "h": 24
+  },
+  {
+   "type": "minitoggle",
+   "param": "Mute4",
+   "label": "M",
+   "x": 518,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Solo4",
+   "label": "S",
+   "x": 551,
+   "y": 182,
+   "w": 29,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Rev4",
+   "label": "Rev",
+   "x": 446,
+   "y": 156,
+   "w": 42,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Half4",
+   "label": "Half",
+   "x": 492,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "minitoggle",
+   "param": "Shot4",
+   "label": "Once",
+   "x": 540,
+   "y": 156,
+   "w": 44,
+   "h": 22
+  },
+  {
+   "type": "knob",
+   "param": "Level4",
+   "label": "Level",
+   "x": 452,
+   "y": 182,
+   "w": 60,
+   "h": 84
+  },
+  {
+   "type": "combo",
+   "param": "Sync4",
+   "label": "",
+   "x": 518,
+   "y": 210,
+   "w": 62,
+   "h": 22,
+   "options": [
+    "Free",
+    "Beat",
+    "Bar"
+   ]
+  },
+  {
+   "type": "label",
+   "label": "Decay",
+   "x": 8,
+   "y": 274,
+   "w": 48,
+   "h": 22
+  },
+  {
+   "type": "hslider",
+   "param": "Decay",
+   "label": "",
+   "x": 58,
+   "y": 274,
+   "w": 230,
+   "h": 22
+  },
+  {
+   "type": "toggle",
+   "param": "Follow",
+   "label": "Follow",
+   "x": 380,
+   "y": 274,
+   "w": 104,
+   "h": 22
+  },
+  {
+   "type": "toggle",
+   "param": "Monitor",
+   "label": "Monitor",
+   "x": 488,
+   "y": 274,
+   "w": 104,
+   "h": 22
+  }
+ ]
+}

@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Ancient",
+    "values": {
+      "Bits": 8,
+      "Rate": 12
+    }
+  },
+  {
+    "name": "Antique",
+    "values": {
+      "Bits": 8,
+      "Rate": 24
+    }
+  },
+  {
+    "name": "Vintage",
+    "values": {
+      "Bits": 12,
+      "Rate": 26
+    }
+  },
+  {
+    "name": "Classic",
+    "values": {
+      "Bits": 12,
+      "Rate": 32
+    }
+  },
+  {
+    "name": "Modern",
+    "values": {
+      "Bits": 12,
+      "Rate": 40
+    }
+  },
+  {
+    "name": "Pristine",
+    "values": {
+      "Bits": 24,
+      "Rate": 48
+    }
+  }
+]

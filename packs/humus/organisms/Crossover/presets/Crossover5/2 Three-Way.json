@@ -1,0 +1,38 @@
+[
+ {
+  "name": "Isolator",
+  "values": {
+   "Bands": 3.0,
+   "Freq1": 300.0,
+   "Freq2": 4000.0,
+   "Slope": 0.0
+  }
+ },
+ {
+  "name": "Horn Stack",
+  "values": {
+   "Bands": 3.0,
+   "Freq1": 220.0,
+   "Freq2": 1800.0,
+   "Slope": 2.0
+  }
+ },
+ {
+  "name": "Multiband Glue",
+  "values": {
+   "Bands": 3.0,
+   "Freq1": 120.0,
+   "Freq2": 2000.0,
+   "Slope": 0.0
+  }
+ },
+ {
+  "name": "Kick Body Air",
+  "values": {
+   "Bands": 3.0,
+   "Freq1": 110.0,
+   "Freq2": 5000.0,
+   "Slope": 0.0
+  }
+ }
+]

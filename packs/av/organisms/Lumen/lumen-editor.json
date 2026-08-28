@@ -1,0 +1,93 @@
+{
+  "width": 600,
+  "height": 130,
+  "controls": [
+    {
+      "type": "bank-file",
+      "param": "Scene",
+      "label": "",
+      "x": 12,
+      "y": 6,
+      "w": 290,
+      "h": 24,
+      "title": "Choose a scene shader",
+      "kind": "Shaders"
+    },
+    {
+      "type": "combo",
+      "param": "SceneBlend",
+      "label": "",
+      "x": 310,
+      "y": 7,
+      "w": 80,
+      "h": 22,
+      "options": [
+        "Over",
+        "Add"
+      ]
+    },
+    {
+      "type": "hslider",
+      "param": "SceneOpacity",
+      "label": "Scene opacity",
+      "x": 398,
+      "y": 6,
+      "w": 190,
+      "h": 24
+    },
+    {
+      "type": "knob",
+      "param": "Brightness",
+      "label": "Bright",
+      "x": 12,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Speed",
+      "label": "Speed",
+      "x": 76,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Knob1",
+      "label": "Knob 1",
+      "x": 140,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Knob2",
+      "label": "Knob 2",
+      "x": 204,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Knob3",
+      "label": "Knob 3",
+      "x": 268,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Knob4",
+      "label": "Knob 4",
+      "x": 332,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

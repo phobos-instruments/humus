@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Endless",
+    "values": {
+      "Mode": 0, "Rate": 0.1, "Time": 1.5, "Range": 4,
+      "Feedback": 0.7, "Damp": 0.35, "Spark": 0, "Spread": 0.5, "Mix": 0.5
+    }
+  },
+  {
+    "name": "Phantom Notes",
+    "values": {
+      "Mode": 0, "Rate": 0.07, "Time": 2.5, "Range": 3.5,
+      "Feedback": 0.88, "Damp": 0.25, "Spark": 0.85, "Spread": 0.7, "Mix": 0.65
+    }
+  },
+  {
+    "name": "Splash",
+    "values": {
+      "Mode": 2, "Rate": 0.9, "Time": 1.0, "Range": 4.5,
+      "Feedback": 0.8, "Damp": 0.3, "Spark": 0.7, "Spread": 1.0, "Mix": 0.6
+    }
+  },
+  {
+    "name": "Whistle",
+    "values": {
+      "Mode": 0, "Rate": 0.25, "Time": 0.6, "Range": 2,
+      "Feedback": 0.92, "Damp": 0.15, "Spark": 0.55, "Spread": 0.35, "Mix": 0.55
+    }
+  },
+  {
+    "name": "Descent",
+    "values": {
+      "Mode": 1, "Rate": 0.05, "Time": 4.0, "Range": 5,
+      "Feedback": 0.75, "Damp": 0.55, "Spark": 0.4, "Spread": 0.6, "Mix": 0.55
+    }
+  }
+]

@@ -1,0 +1,63 @@
+{
+  "width": 293,
+  "height": 158,
+  "controls": [
+    {
+      "type": "bank-file",
+      "param": "File",
+      "label": "",
+      "x": 8,
+      "y": 6,
+      "w": 220,
+      "h": 24,
+      "kind": "Impulses"
+    },
+    {
+      "type": "minitoggle",
+      "param": "Reverse",
+      "label": "REV",
+      "x": 236,
+      "y": 8,
+      "w": 48,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 8,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Predelay",
+      "label": "Pre ms",
+      "x": 78,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "LowCut",
+      "label": "Low Cut",
+      "logarithmic": true,
+      "x": 148,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Damp",
+      "label": "Damp",
+      "logarithmic": true,
+      "x": 218,
+      "y": 40,
+      "w": 60,
+      "h": 84
+    }
+  ]
+}

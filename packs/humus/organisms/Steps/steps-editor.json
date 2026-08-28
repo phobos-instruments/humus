@@ -1,0 +1,61 @@
+{
+  "width": 600,
+  "height": 184,
+  "controls": [
+    {
+      "type": "step-grid",
+      "mode": "arp",
+      "steps": "16",
+      "x": 38,
+      "y": 8,
+      "w": 524,
+      "h": 80
+    },
+    {
+      "type": "note-field",
+      "param": "Note",
+      "label": "Note",
+      "x": 38,
+      "y": 100,
+      "w": 120,
+      "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 180,
+      "y": 96,
+      "w": 56,
+      "h": 78,
+      "dim-when": "SwingFollow"
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 242,
+      "y": 96,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Velocity",
+      "label": "Vel",
+      "x": 304,
+      "y": 96,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 38,
+      "y": 130,
+      "w": 64,
+      "h": 20
+    }
+  ]
+}

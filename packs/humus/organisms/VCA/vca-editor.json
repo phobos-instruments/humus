@@ -1,0 +1,24 @@
+{
+  "width": 293,
+  "height": 122,
+  "controls": [
+    {
+      "type": "knob",
+      "param": "Gain",
+      "label": "Gain",
+      "x": 12,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "Bipolar",
+      "label": "Bipolar",
+      "x": 100,
+      "y": 58,
+      "w": 110,
+      "h": 22
+    }
+  ]
+}

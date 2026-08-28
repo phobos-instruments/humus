@@ -1,0 +1,121 @@
+{
+  "classes": [
+    {
+      "class": "Wave",
+      "category": "Instruments",
+      "editor": "layout:wave-editor.json",
+      "params": [
+        {
+          "name": "Attack",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 5.0,
+          "random": true
+        },
+        {
+          "name": "Release",
+          "min": 20.0,
+          "max": 4000.0,
+          "def": 400.0,
+          "random": true
+        },
+        {
+          "name": "Sub",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Unison",
+          "min": 1.0,
+          "max": 7.0,
+          "def": 1.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Detune",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.2,
+          "random": true
+        },
+        {
+          "name": "Width",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Cutoff",
+          "min": 100.0,
+          "max": 14000.0,
+          "def": 14000.0,
+          "random": true
+        },
+        {
+          "name": "Reso",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Drive",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "WarpMode",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Warp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Position",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Spectral",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "PositionMod",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "random": true
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.5,
+          "def": 0.8
+        },
+        {
+          "name": "Table",
+          "isText": true,
+          "text": ""
+        }
+      ]
+    }
+  ]
+}

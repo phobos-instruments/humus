@@ -1,0 +1,8 @@
+{
+  "width": 293,
+  "height": 176,
+  "controls": [
+    { "type": "label", "label": "Polarity: inverted 180 degrees", "x": 12, "y": 8, "w": 269, "h": 14 },
+    { "type": "field-scope", "x": 64, "y": 26, "w": 165, "h": 140 }
+  ]
+}

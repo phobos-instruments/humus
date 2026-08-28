@@ -1,0 +1,51 @@
+{
+  "width": 620,
+  "height": 296,
+  "resize": "stretch",
+  "controls": [
+    {
+      "type": "label",
+      "label": "rows are MIDI outlets - wire each to a sound \u00b7 click a name plate for the piano, wheel nudges the note",
+      "x": 8,
+      "y": 4,
+      "w": 540,
+      "h": 16
+    },
+    {
+      "type": "sequence-grid",
+      "param": "",
+      "x": 8,
+      "y": 26,
+      "w": 540,
+      "h": 246
+    },
+    {
+      "type": "knob",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 552,
+      "y": 30,
+      "w": 60,
+      "h": 84,
+      "dim-when": "SwingFollow"
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 552,
+      "y": 124,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 552,
+      "y": 222,
+      "w": 60,
+      "h": 20
+    }
+  ]
+}

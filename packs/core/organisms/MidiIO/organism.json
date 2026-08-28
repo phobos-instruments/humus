@@ -1,0 +1,614 @@
+{
+  "classes": [
+    {
+      "class": "MidiIn",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiOut",
+      "category": "Input/Output",
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiIn1",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn2",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 2.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn3",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 3.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn4",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 4.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn5",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 5.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn6",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 6.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn7",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 7.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiIn8",
+      "category": "MIDI Inputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 8.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:midiin-editor.json"
+    },
+    {
+      "class": "MidiOut1",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut2",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 2.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut3",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 3.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut4",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 4.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut5",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 5.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut6",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 6.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut7",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 7.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    },
+    {
+      "class": "MidiOut8",
+      "category": "MIDI Outputs",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Port",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 8.0,
+          "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Controller",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 1.0
+        },
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 0.0
+        },
+        {
+          "name": "Note",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 60.0
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 100.0
+        },
+        {
+          "name": "Gate",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:midiout-editor.json"
+    }
+  ]
+}

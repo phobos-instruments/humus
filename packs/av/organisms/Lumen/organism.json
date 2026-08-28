@@ -1,0 +1,72 @@
+{
+ "classes": [
+  {
+   "class": "Lumen",
+   "category": "Visual",
+   "editor": "layout:lumen-editor.json",
+   "params": [
+    {
+     "name": "Scene",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true
+    },
+    {
+     "name": "Brightness",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Speed",
+     "min": 0.0,
+     "max": 4.0,
+     "def": 1.0,
+      "random": true
+    },
+    {
+     "name": "Knob1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+      "random": true
+    },
+    {
+     "name": "Knob2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+      "random": true
+    },
+    {
+     "name": "Knob3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+      "random": true
+    },
+    {
+     "name": "Knob4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+      "random": true
+    },
+    {
+     "name": "SceneOpacity",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "SceneBlend",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "enum": true
+    }
+   ]
+  }
+ ]
+}

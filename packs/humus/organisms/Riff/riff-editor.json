@@ -1,0 +1,60 @@
+{
+  "width": 600,
+  "height": 268,
+  "controls": [
+    {
+      "type": "step-grid",
+      "mode": "bassline",
+      "x": 38,
+      "y": 8,
+      "w": 524,
+      "h": 160
+    },
+    {
+      "type": "knob",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 38,
+      "y": 176,
+      "w": 56,
+      "h": 78,
+      "dim-when": "SwingFollow"
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 100,
+      "y": 176,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Velocity",
+      "label": "Vel",
+      "x": 162,
+      "y": 176,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "int-spinner",
+      "param": "Transpose",
+      "label": "Transpose",
+      "x": 230,
+      "y": 204,
+      "w": 130,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 230,
+      "y": 176,
+      "w": 64,
+      "h": 20
+    }
+  ]
+}

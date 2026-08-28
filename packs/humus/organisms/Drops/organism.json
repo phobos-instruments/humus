@@ -1,0 +1,59 @@
+{
+  "classes": [
+    {
+      "class": "Drops",
+      "category": "Instruments",
+      "params": [
+        {
+          "name": "Density",
+          "min": 0.0,
+          "max": 20.0,
+          "def": 4.0,
+          "random": true
+        },
+        {
+          "name": "Size",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Spread",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Chirp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.6,
+          "random": true
+        },
+        {
+          "name": "Pool",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.35,
+          "random": true
+        },
+        {
+          "name": "Width",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.7,
+          "random": true
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.5,
+          "def": 0.9
+        }
+      ],
+      "editor": "layout:drops-editor.json"
+    }
+  ]
+}

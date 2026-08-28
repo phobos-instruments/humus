@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Patina",
+    "values": {
+      "Bits": 12,
+      "Rate": 24000,
+      "Jitter": 0.05,
+      "Noise": 0.1,
+      "Tone": 0.55
+    }
+  },
+  {
+    "name": "S9000",
+    "values": {
+      "Bits": 12,
+      "Rate": 26000,
+      "Jitter": 0.03,
+      "Noise": 0.15,
+      "Tone": 0.35
+    }
+  },
+  {
+    "name": "Corroded",
+    "values": {
+      "Bits": 8,
+      "Rate": 11025,
+      "Jitter": 0.2,
+      "Noise": 0.25,
+      "Tone": 0.45
+    }
+  },
+  {
+    "name": "Rusted Through",
+    "values": {
+      "Bits": 4,
+      "Rate": 5500,
+      "Jitter": 0.35,
+      "Noise": 0.4,
+      "Tone": 0.4
+    }
+  },
+  {
+    "name": "Dust",
+    "values": {
+      "Bits": 10,
+      "Rate": 8000,
+      "Jitter": 0.6,
+      "Noise": 0.8,
+      "Tone": 0.25
+    }
+  }
+]

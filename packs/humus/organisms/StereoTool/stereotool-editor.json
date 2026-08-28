@@ -1,0 +1,17 @@
+{
+  "width": 293,
+  "height": 272,
+  "controls": [
+    { "type": "field-scope", "x": 64, "y": 10, "w": 165, "h": 140 },
+    { "type": "knob", "param": "Width",    "label": "Width",  "x": 6,   "y": 8,   "w": 52, "h": 84 },
+    { "type": "minitoggle", "param": "Mono", "label": "Mono", "x": 6,   "y": 112, "w": 52, "h": 20 },
+    { "type": "knob", "param": "Rotation", "label": "Rotate", "x": 235, "y": 8,   "w": 52, "h": 84 },
+    { "type": "minitoggle", "param": "Swap", "label": "Swap", "x": 235, "y": 112, "w": 52, "h": 20 },
+    { "type": "label", "label": "Balance", "x": 123, "y": 150, "w": 48, "h": 13 },
+    { "type": "hslider", "param": "Balance", "label": "", "x": 64, "y": 166, "w": 165, "h": 16 },
+    { "type": "knob", "param": "MonoBass", "label": "Mono Bass", "x": 24, "y": 192, "w": 56, "h": 74 },
+    { "type": "minitoggle", "param": "PhaseL", "label": "Ø L", "x": 100, "y": 200, "w": 48, "h": 20 },
+    { "type": "minitoggle", "param": "PhaseR", "label": "Ø R", "x": 100, "y": 228, "w": 48, "h": 20 },
+    { "type": "knob", "param": "Output", "label": "Output", "x": 214, "y": 192, "w": 56, "h": 74 }
+  ]
+}

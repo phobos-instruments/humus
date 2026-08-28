@@ -1,0 +1,47 @@
+{
+  "width": 640,
+  "height": 322,
+  "resize": "stretch",
+  "controls": [
+    {
+      "type": "piano-roll",
+      "x": 0,
+      "y": 0,
+      "w": 640,
+      "h": 290
+    },
+    {
+      "type": "minitoggle",
+      "param": "SwingFollow",
+      "label": "Follow",
+      "x": 8,
+      "y": 294,
+      "w": 64,
+      "h": 20
+    },
+    {
+      "type": "hslider",
+      "param": "Swing",
+      "label": "Swing",
+      "x": 82,
+      "y": 294,
+      "w": 200,
+      "h": 20,
+      "dim-when": "SwingFollow"
+    },
+    {
+      "type": "combo",
+      "param": "SwingUnit",
+      "label": "",
+      "x": 292,
+      "y": 294,
+      "w": 84,
+      "h": 20,
+      "dim-when": "SwingFollow",
+      "options": [
+        "1/8",
+        "1/16"
+      ]
+    }
+  ]
+}

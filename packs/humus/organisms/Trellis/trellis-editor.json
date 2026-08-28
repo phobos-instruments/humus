@@ -1,0 +1,82 @@
+{
+  "width": 293,
+  "height": 114,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Key",
+      "label": "Key",
+      "x": 8,
+      "y": 14,
+      "w": 136,
+      "h": 22,
+      "options": [
+        "C",
+        "C#",
+        "D",
+        "D#",
+        "E",
+        "F",
+        "F#",
+        "G",
+        "G#",
+        "A",
+        "A#",
+        "B"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Scale",
+      "label": "Scale",
+      "x": 149,
+      "y": 14,
+      "w": 136,
+      "h": 22,
+      "options": [
+        "Chromatic",
+        "Major",
+        "Minor",
+        "Pentatonic Minor",
+        "Dorian",
+        "Phrygian",
+        "Lydian",
+        "Mixolydian",
+        "Locrian",
+        "Harmonic Minor",
+        "Melodic Minor",
+        "Pentatonic Major",
+        "Blues",
+        "Whole Tone",
+        "Hirajoshi"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Strength",
+      "label": "Strength",
+      "x": 20,
+      "y": 48,
+      "w": 60,
+      "h": 60
+    },
+    {
+      "type": "knob",
+      "param": "Speed",
+      "label": "Speed",
+      "x": 116,
+      "y": 48,
+      "w": 60,
+      "h": 60
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 212,
+      "y": 48,
+      "w": 60,
+      "h": 60
+    }
+  ]
+}

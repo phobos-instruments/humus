@@ -1,0 +1,146 @@
+[
+ {
+  "name": "Glacier",
+  "values": {
+   "Mix": 0.45,
+   "Shift": 12,
+   "Feedback": 0.75,
+   "Diffusion": 0.85,
+   "Size": 0.7,
+   "LowCut": 60,
+   "HighCut": 16000,
+   "ModRate": 0.2,
+   "ModDepth": 0.35,
+   "Shimmer": 0.85,
+   "Mode": 2,
+   "Voice": 0,
+   "Color": 0
+  }
+ },
+ {
+  "name": "Cathedral Air",
+  "values": {
+   "Mix": 0.4,
+   "Shift": 12,
+   "Feedback": 0.7,
+   "Diffusion": 0.9,
+   "Size": 0.85,
+   "LowCut": 100,
+   "HighCut": 8000,
+   "ModRate": 0.1,
+   "ModDepth": 0.2,
+   "Shimmer": 0.0,
+   "Mode": 2,
+   "Voice": 3,
+   "Color": 1
+  }
+ },
+ {
+  "name": "Vapour Trail",
+  "values": {
+   "Mix": 0.35,
+   "Shift": 7,
+   "Feedback": 0.6,
+   "Diffusion": 0.95,
+   "Size": 0.5,
+   "LowCut": 60,
+   "HighCut": 12000,
+   "ModRate": 0.8,
+   "ModDepth": 0.6,
+   "Shimmer": 0.7,
+   "Mode": 3,
+   "Voice": 1,
+   "Color": 0
+  }
+ },
+ {
+  "name": "Deep Space",
+  "values": {
+   "Mix": 0.5,
+   "Shift": -12,
+   "Feedback": 0.85,
+   "Diffusion": 0.8,
+   "Size": 0.95,
+   "LowCut": 30,
+   "HighCut": 3000,
+   "ModRate": 0.1,
+   "ModDepth": 0.3,
+   "Shimmer": 0.75,
+   "Mode": 2,
+   "Voice": 0,
+   "Color": 2
+  }
+ },
+ {
+  "name": "Choir Bloom",
+  "values": {
+   "Mix": 0.4,
+   "Shift": 12,
+   "Feedback": 0.45,
+   "Diffusion": 0.7,
+   "Size": 0.3,
+   "LowCut": 100,
+   "HighCut": 12000,
+   "ModRate": 0.5,
+   "ModDepth": 0.4,
+   "Shimmer": 0.8,
+   "Mode": 0,
+   "Voice": 0,
+   "Color": 0
+  }
+ },
+ {
+  "name": "Octave Cascade",
+  "values": {
+   "Mix": 0.45,
+   "Shift": 12,
+   "Feedback": 0.7,
+   "Diffusion": 0.85,
+   "Size": 0.6,
+   "LowCut": 60,
+   "HighCut": 16000,
+   "ModRate": 0.3,
+   "ModDepth": 0.3,
+   "Shimmer": 0.9,
+   "Mode": 3,
+   "Voice": 2,
+   "Color": 0
+  }
+ },
+ {
+  "name": "Marble Room",
+  "values": {
+   "Mix": 0.3,
+   "Shift": 12,
+   "Feedback": 0.35,
+   "Diffusion": 0.75,
+   "Size": 0.25,
+   "LowCut": 150,
+   "HighCut": 8000,
+   "ModRate": 0.2,
+   "ModDepth": 0.15,
+   "Shimmer": 0.0,
+   "Mode": 0,
+   "Voice": 3,
+   "Color": 1
+  }
+ },
+ {
+  "name": "Slow Drift",
+  "values": {
+   "Mix": 0.5,
+   "Shift": 7,
+   "Feedback": 0.8,
+   "Diffusion": 0.9,
+   "Size": 0.75,
+   "LowCut": 60,
+   "HighCut": 6000,
+   "ModRate": 1.2,
+   "ModDepth": 0.8,
+   "Shimmer": 0.65,
+   "Mode": 1,
+   "Voice": 1,
+   "Color": 2
+  }
+ }
+]

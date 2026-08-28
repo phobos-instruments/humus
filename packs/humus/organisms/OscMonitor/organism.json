@@ -1,0 +1,18 @@
+{
+  "classes": [
+    {
+      "class": "OscMonitor",
+      "category": "Meters",
+      "editor": "layout:oscmonitor-editor.json",
+      "params": [
+        {
+          "name": "Direction",
+          "min": 0,
+          "max": 2,
+          "def": 0,
+          "enum": true
+        }
+      ]
+    }
+  ]
+}

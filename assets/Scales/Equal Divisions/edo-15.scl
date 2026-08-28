@@ -1,0 +1,20 @@
+! edo-15.scl
+!
+15 equal divisions of the octave - a bright 5-limit temperament with no fifth-based comma
+ 15
+!
+ 80.000
+ 160.000
+ 240.000
+ 320.000
+ 400.000
+ 480.000
+ 560.000
+ 640.000
+ 720.000
+ 800.000
+ 880.000
+ 960.000
+ 1040.000
+ 1120.000
+ 1200.000

@@ -1,0 +1,113 @@
+{
+  "classes": [
+    {
+      "class": "Chorus",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "MinDelay",
+          "min": 0.0,
+          "max": 50.0,
+          "def": 5.0
+        },
+        {
+          "name": "DelaySweepDepth",
+          "min": 0.0,
+          "max": 50.0,
+          "def": 8.0
+        },
+        {
+          "name": "Rate",
+          "min": 0.001,
+          "max": 20.0,
+          "def": 0.4
+        },
+        {
+          "name": "RightLFOPhaseOffset",
+          "min": -180.0,
+          "max": 180.0,
+          "def": 90.0
+        },
+        {
+          "name": "Feedback",
+          "min": -0.95,
+          "max": 0.95,
+          "def": 0.0
+        },
+        {
+          "name": "HFRolloffFrequency",
+          "min": 200.0,
+          "max": 20000.0,
+          "def": 12000.0
+        },
+        {
+          "name": "Stereoness",
+          "min": -200.0,
+          "max": 200.0,
+          "def": 100.0
+        },
+        {
+          "name": "WetDryMix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        }
+      ]
+    },
+    {
+      "class": "SChorus",
+      "category": "Effects",
+      "params": [
+        {
+          "name": "MinDelay",
+          "min": 0.0,
+          "max": 50.0,
+          "def": 5.0
+        },
+        {
+          "name": "DelaySweepDepth",
+          "min": 0.0,
+          "max": 50.0,
+          "def": 8.0
+        },
+        {
+          "name": "Rate",
+          "min": 0.001,
+          "max": 20.0,
+          "def": 0.4
+        },
+        {
+          "name": "RightLFOPhaseOffset",
+          "min": -180.0,
+          "max": 180.0,
+          "def": 90.0
+        },
+        {
+          "name": "Feedback",
+          "min": -0.95,
+          "max": 0.95,
+          "def": 0.0
+        },
+        {
+          "name": "HFRolloffFrequency",
+          "min": 200.0,
+          "max": 20000.0,
+          "def": 12000.0
+        },
+        {
+          "name": "Stereoness",
+          "min": -200.0,
+          "max": 200.0,
+          "def": 100.0
+        },
+        {
+          "name": "WetDryMix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        }
+      ],
+      "hidden": true
+    }
+  ]
+}
