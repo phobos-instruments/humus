@@ -10,9 +10,15 @@ The source is here, and building it yourself is your right under the licence bel
 
 ## Building
 
-You need a C++17 compiler, [CMake](https://cmake.org) 3.22 or newer, and
-[Ninja](https://ninja-build.org). On the first configure the build fetches
-[JUCE](https://juce.com); that step needs a network connection, nothing after it does.
+You need a C++17 compiler, [CMake](https://cmake.org) 3.22 or newer,
+[Ninja](https://ninja-build.org) and Python 3. The first configure needs a network
+connection; nothing after it does. It fetches [JUCE](https://juce.com) and
+[Ableton Link](https://github.com/Ableton/link), both pinned to a commit, and rebuilds
+the hand-tracking model from Google's published MediaPipe bundle with
+`tools/hand_model_convert.py` - download, convert, check the digest, all three pinned in
+`engine/CMakeLists.txt`. If the model cannot be reached the configure warns and carries
+on: hand tracking then does nothing where the system has no tracker of its own, and
+everything else builds. Bytes that are not the model stop the configure instead.
 
 ### macOS and Linux
 
@@ -104,9 +110,12 @@ how the project sustains itself - the AGPL expressly allows charging for copies,
 code is not what you pay for. Contributions are AGPL, with a DCO sign-off on
 each commit.
 
-Vendored: [Monocypher](https://monocypher.org) (CC0/BSD-2),
-[Ableton Link](https://github.com/Ableton/link) (GPLv2+) with standalone
-[Asio](https://think-async.com) (Boost Software License 1.0), and the two FM engines behind
+Fetched by the build, pinned to a commit: [Ableton Link](https://github.com/Ableton/link)
+(GPLv2+) with standalone [Asio](https://think-async.com) (Boost Software License 1.0);
+their licence texts and the note on what is taken ride in
+`engine/third_party/ableton_link/`.
+
+Vendored: [Monocypher](https://monocypher.org) (CC0/BSD-2), and the two FM engines behind
 the pH synthesizer -
 [music-synthesizer-for-android](https://github.com/google/music-synthesizer-for-android)
 (Apache-2.0) and [Nuked-OPN2](https://github.com/nukeykt/Nuked-OPN2) (LGPL-2.1) - details

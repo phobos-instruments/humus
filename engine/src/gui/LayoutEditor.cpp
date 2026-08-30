@@ -1,4 +1,5 @@
 #include "gui/LayoutEditor.h"
+#include "gui/StripHover.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -190,6 +191,10 @@ void LayoutEditor::build() {
                 sp->onPopup = [this, cn, pn](juce::Point<int> pos) {
                     showAutomateMenu(host_, cn, pn, pos, [this] { if (onAutomationChanged) onAutomationChanged(); });
                 };
+                if (!stripChannelInlets(pn).empty())
+                    sp->tooltipProvider = [this, cn, pn] {
+                        return stripSourceTip(pn, host_.model().connections, cn);
+                    };
                 addAndMakeVisible(*slider);
                 c.slider = std::move(slider);
                 break;

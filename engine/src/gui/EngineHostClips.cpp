@@ -34,6 +34,8 @@ std::vector<ClipEditor::ClipInfo> ClipEditor::list(const std::string& node) cons
         ci.warpMode = ch->warpMode;
         ci.fadeInTicks = ch->fadeInTicks;
         ci.fadeOutTicks = ch->fadeOutTicks;
+        ci.fadeInCurve = ch->fadeInCurve;
+        ci.fadeOutCurve = ch->fadeOutCurve;
         ci.audioGain = ch->audioGain;
         ci.audioReverse = ch->audioReverse;
         ci.audioPitch = ch->audioPitch;
@@ -150,6 +152,21 @@ void ClipEditor::setFades(const std::string& node, int clip, int inTicks, int ou
     host_.recordPatternRevert(node);
     ch->fadeInTicks = fi;
     ch->fadeOutTicks = fo;
+    host_.markPatternEdited();
+    host_.syncPattern(node);
+}
+
+void ClipEditor::setFadeCurves(const std::string& node, int clip, double in, double out) {
+    auto* cm = host_.mutableByName(node);
+    if (!cm || !cm->pattern.present) return;
+    auto* ch = clipops::clipChannel(cm->pattern, clip);
+    if (!ch) return;
+    in = juce::jlimit(-1.0, 1.0, in);
+    out = juce::jlimit(-1.0, 1.0, out);
+    if (ch->fadeInCurve == in && ch->fadeOutCurve == out) return;
+    host_.recordPatternRevert(node);
+    ch->fadeInCurve = in;
+    ch->fadeOutCurve = out;
     host_.markPatternEdited();
     host_.syncPattern(node);
 }
@@ -454,7 +471,8 @@ std::string ClipEditor::exportFile(const std::string& node, int clip) {
     const double spt = samplesPerTick();
     const double sr = host_.sampleRate_;
     const bool plain = ch->audioOffset == 0 && ch->audioGain == 1.0 && ch->fadeInTicks == 0
-                       && ch->fadeOutTicks == 0 && !ch->audioReverse && ch->audioPitch == 0.0;
+                       && ch->fadeOutTicks == 0 && !ch->audioReverse && ch->audioPitch == 0.0
+                       && ch->fadeInCurve == 0.0 && ch->fadeOutCurve == 0.0;
     if (plain) {
         juce::AudioFormatManager fm;
         fm.registerBasicFormats();

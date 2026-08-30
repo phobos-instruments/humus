@@ -41,6 +41,8 @@ void parsePattern(juce::XmlElement& pe, Pattern& pat) {
         ch.id = ce->getIntAttribute("clip-id", 0);
         ch.fadeInTicks = ce->getIntAttribute("fade-in", 0);
         ch.fadeOutTicks = ce->getIntAttribute("fade-out", 0);
+        ch.fadeInCurve = ce->getDoubleAttribute("fade-in-curve", 0.0);
+        ch.fadeOutCurve = ce->getDoubleAttribute("fade-out-curve", 0.0);
         if (ch.type == "audio-clip") {
             ch.audioFile = ce->getStringAttribute("file", "").toStdString();
             ch.audioOffset = ce->getStringAttribute("offset", "0").getLargeIntValue();

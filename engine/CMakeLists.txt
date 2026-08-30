@@ -15,7 +15,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 endif()
 
-project(Humus VERSION 0.1.2 LANGUAGES C CXX)
+project(Humus VERSION 0.1.4 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -88,12 +88,18 @@ FetchContent_MakeAvailable(JUCE)
 
 # JUCE #includes the VST3 SDK's vst2persistence.cpp from a header, so its
 # multi-character chunk ids ('CcnK') compile inside our targets where no
-# -isystem reaches them. Quiet the file, not the targets, so our own sources
+# -isystem reaches them. Quiet the files, not the targets, so our own sources
 # keep the warning. Link needs no entry - it arrives SYSTEM.
+#
+# Two doors into that header, not one: the module itself, and the plugin
+# wrapper juce_add_plugin generates for every VST3 target. Listing only the
+# first left the wrapper warning, and an incremental build hid it - nothing
+# recompiled it until a version bump touched the build stamp.
 if(NOT MSVC)
   set_source_files_properties(
     "${juce_SOURCE_DIR}/modules/juce_audio_processors/juce_audio_processors.cpp"
     "${juce_SOURCE_DIR}/modules/juce_audio_processors/juce_audio_processors.mm"
+    "${juce_SOURCE_DIR}/modules/juce_audio_plugin_client/juce_audio_plugin_client_VST3.cpp"
     PROPERTIES COMPILE_OPTIONS "-Wno-multichar")
 endif()
 
@@ -660,8 +666,10 @@ if(HUM_PLUGIN_EXPORT)
     PLUGIN_CODE Humu
     FORMATS ${HUM_HUMUS_FORMATS}
     IS_SYNTH FALSE
-    NEEDS_MIDI_INPUT FALSE
-    NEEDS_MIDI_OUTPUT FALSE
+    # The patch is the instrument: MidiIn organisms and hosted plugins take the
+    # DAW's notes, MidiOut organisms drive whatever else is in the project.
+    NEEDS_MIDI_INPUT TRUE
+    NEEDS_MIDI_OUTPUT TRUE
     COPY_PLUGIN_AFTER_BUILD FALSE)
   target_sources(Humus PRIVATE src/plugin/HumusProcessor.cpp)
   target_include_directories(Humus PRIVATE src ${HUM_GENERATED_DIR})
@@ -853,6 +861,7 @@ file(GLOB HUM_EMBEDDED_GUIDE CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/resources/guide/*.md")
 juce_add_binary_data(hum_assets SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/resources/logo.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon-1024.png"
   ${HUM_EMBEDDED_ART}
   ${HUM_EMBEDDED_GUIDE})
 

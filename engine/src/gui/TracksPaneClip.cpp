@@ -64,6 +64,66 @@ juce::Rectangle<int> TracksPane::clipField() const {
             std::max(0, fieldBottom() - kClipRibbonH - top)};
 }
 
+TracksPane::ClipHit TracksPane::clipEditorHit(juce::Point<int> p) const {
+    ClipEditor::ClipInfo ci;
+    if (!clipInfo(ci)) return ClipHit::None;
+    const auto box = clipBox();
+    if (!clipField().contains(p)) return ClipHit::None;
+    using timelinechrome::FadeGrip;
+    if (box.contains(p)) {
+        const auto fg = timelinechrome::fadeGripAt(box, p, kFadeGrip * 2, ci.fadeInTicks,
+                                                   ci.fadeOutTicks, ci.lengthTicks);
+        if (fg == FadeGrip::Left) return ClipHit::FadeL;
+        if (fg == FadeGrip::Right) return ClipHit::FadeR;
+        const auto cg = timelinechrome::fadeCurveGripAt(box, p, kFadeGrip, ci.fadeInTicks,
+                                                        ci.fadeOutTicks, ci.lengthTicks,
+                                                        ci.fadeInCurve, ci.fadeOutCurve);
+        if (cg == FadeGrip::Left) return ClipHit::CurveL;
+        if (cg == FadeGrip::Right) return ClipHit::CurveR;
+    }
+    if (std::abs(p.x - box.getX()) <= kEdgeGrab) return ClipHit::EdgeL;
+    if (std::abs(p.x - box.getRight()) <= kEdgeGrab) return ClipHit::EdgeR;
+    return box.contains(p) ? ClipHit::Body : ClipHit::None;
+}
+
+juce::MouseCursor TracksPane::clipEditorCursor(juce::Point<int> p) const {
+    if (effectiveTool() != Tool::Pointer) return timelinechrome::toolCursor(effectiveTool());
+    switch (clipEditorHit(p)) {
+        case ClipHit::EdgeL:
+        case ClipHit::EdgeR:  return juce::MouseCursor::LeftRightResizeCursor;
+        case ClipHit::FadeL:  return juce::MouseCursor::TopLeftCornerResizeCursor;
+        case ClipHit::FadeR:  return juce::MouseCursor::TopRightCornerResizeCursor;
+        case ClipHit::CurveL:
+        case ClipHit::CurveR: return juce::MouseCursor::UpDownResizeCursor;
+        case ClipHit::Body:   return juce::MouseCursor::IBeamCursor;
+        case ClipHit::None:   break;
+    }
+    return juce::MouseCursor::NormalCursor;
+}
+
+TracksPane::ClipHit TracksPane::rowClipHit(int row, juce::Point<int> p) const {
+    bool l = false, r = false;
+    const int c = clipAt(row, p, l, r);
+    if (c < 0) return ClipHit::None;
+    const auto clips = host_.clips().list(rows_[(size_t) row]);
+    if (c >= (int) clips.size()) return ClipHit::None;
+    const auto& ci = clips[(size_t) c];
+    const auto b = clipBounds(row, ci);
+    using timelinechrome::FadeGrip;
+    const auto fg = timelinechrome::fadeGripAt(b, p, kFadeGrip, ci.fadeInTicks, ci.fadeOutTicks,
+                                               ci.lengthTicks);
+    if (fg == FadeGrip::Left) return ClipHit::FadeL;
+    if (fg == FadeGrip::Right) return ClipHit::FadeR;
+    const auto cg = timelinechrome::fadeCurveGripAt(b, p, kFadeGrip, ci.fadeInTicks,
+                                                    ci.fadeOutTicks, ci.lengthTicks,
+                                                    ci.fadeInCurve, ci.fadeOutCurve);
+    if (cg == FadeGrip::Left) return ClipHit::CurveL;
+    if (cg == FadeGrip::Right) return ClipHit::CurveR;
+    if (l) return ClipHit::EdgeL;
+    if (r) return ClipHit::EdgeR;
+    return ClipHit::Body;
+}
+
 juce::Rectangle<int> TracksPane::clipBox() const {
     ClipEditor::ClipInfo ci;
     if (!clipInfo(ci)) return {};
@@ -172,6 +232,16 @@ bool TracksPane::pasteClipSelection(int atTick) {
     const auto it = std::find(rows_.begin(), rows_.end(), clipNode_);
     if (it == rows_.end()) return false;
     return pasteClips(atTick, (int) (it - rows_.begin()));
+}
+
+void TracksPane::straightenFade(bool in) {
+    ClipEditor::ClipInfo ci;
+    const int c = clipOrdinal();
+    if (c < 0 || !clipInfo(ci)) return;
+    host_.pushUndo();
+    host_.clips().setFadeCurves(clipNode_, c, in ? 0.0 : ci.fadeInCurve,
+                                in ? ci.fadeOutCurve : 0.0);
+    repaint();
 }
 
 void TracksPane::fadeClipToPlayhead(bool in) {
@@ -340,9 +410,22 @@ bool TracksPane::mouseDownClip(const juce::MouseEvent& e, juce::Point<int> p) {
     }
     const bool nearL = std::abs(p.x - box.getX()) <= kEdgeGrab;
     const bool nearR = std::abs(p.x - box.getRight()) <= kEdgeGrab;
-    const bool topBand = p.y < box.getY() + kFadeGrip * 2;
-    if (topBand && box.contains(p) && p.x - box.getX() <= kFadeGrip * 2) clipDrag_ = ClipDrag::FadeL;
-    else if (topBand && box.contains(p) && box.getRight() - p.x <= kFadeGrip * 2) clipDrag_ = ClipDrag::FadeR;
+    const auto fg = box.contains(p)
+                        ? timelinechrome::fadeGripAt(box, p, kFadeGrip * 2, ci.fadeInTicks,
+                                                     ci.fadeOutTicks, ci.lengthTicks)
+                        : timelinechrome::FadeGrip::None;
+    const auto cg = box.contains(p)
+                        ? timelinechrome::fadeCurveGripAt(box, p, kFadeGrip, ci.fadeInTicks,
+                                                          ci.fadeOutTicks, ci.lengthTicks,
+                                                          ci.fadeInCurve, ci.fadeOutCurve)
+                        : timelinechrome::FadeGrip::None;
+    if (fg == timelinechrome::FadeGrip::Left) clipDrag_ = ClipDrag::FadeL;
+    else if (fg == timelinechrome::FadeGrip::Right) clipDrag_ = ClipDrag::FadeR;
+    else if (cg != timelinechrome::FadeGrip::None) {
+        clipDrag_ = cg == timelinechrome::FadeGrip::Left ? ClipDrag::CurveL : ClipDrag::CurveR;
+        dragCurveY0_ = p.y;
+        dragCurve0_ = cg == timelinechrome::FadeGrip::Left ? ci.fadeInCurve : ci.fadeOutCurve;
+    }
     else if (nearL) clipDrag_ = e.mods.isCommandDown() ? ClipDrag::StretchL : ClipDrag::TrimL;
     else if (nearR) clipDrag_ = e.mods.isCommandDown() ? ClipDrag::StretchR : ClipDrag::TrimR;
     else if (e.mods.isAltDown() && box.contains(p)) clipDrag_ = ClipDrag::Slip;
@@ -369,10 +452,14 @@ void TracksPane::mouseDragClip(const juce::MouseEvent& e) {
             selTo_ = std::max(selAnchor_, snapped);
             break;
         case ClipDrag::TrimL: {
-            const int t = juce::jlimit(0, clipStart0_ + clipLen0_ - 1,
+            const auto ci = host_.clips().list(clipNode_)[(size_t) c];
+            const int floorTick = ci.isAudio && !ci.audioReverse
+                ? clipStart0_ - (int) std::llround((double) clipOffset0_ * Pattern::kTicksPerBeat / samplesPerBeat())
+                : 0;
+            const int end = clipStart0_ + clipLen0_;
+            const int t = juce::jlimit(std::max(0, floorTick), end - 1,
                                        (int) std::llround(snapped * Pattern::kTicksPerBeat));
-            const int cur = host_.clips().list(clipNode_)[(size_t) c].startTick;
-            if (t != cur) host_.clips().trimTo(clipNode_, c, t, clipStart0_ + clipLen0_);
+            if (t != ci.startTick) host_.clips().resize(clipNode_, c, end - t, true);
             break;
         }
         case ClipDrag::TrimR: {
@@ -411,6 +498,17 @@ void TracksPane::mouseDragClip(const juce::MouseEvent& e) {
             else
                 host_.clips().setFades(clipNode_, c, ci.fadeInTicks,
                                        juce::jlimit(0, ci.lengthTicks, ci.startTick + ci.lengthTicks - t));
+            break;
+        }
+        case ClipDrag::CurveL:
+        case ClipDrag::CurveR: {
+            const auto ci = host_.clips().list(clipNode_)[(size_t) c];
+            const double v = timelinechrome::fadeCurveFromDrag(dragCurve0_, e.y - dragCurveY0_,
+                                                               clipBox().getHeight());
+            if (clipDrag_ == ClipDrag::CurveL)
+                host_.clips().setFadeCurves(clipNode_, c, v, ci.fadeOutCurve);
+            else
+                host_.clips().setFadeCurves(clipNode_, c, ci.fadeInCurve, v);
             break;
         }
         case ClipDrag::None: break;

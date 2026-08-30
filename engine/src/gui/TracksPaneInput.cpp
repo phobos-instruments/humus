@@ -724,14 +724,26 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
             selectClip(row, made);
             drag_ = Drag::ClipMove;
             dragGrabTicks_ = tick - ci.startTick;
-        } else if (const auto cb = clipBounds(row, ci);
-                   p.y < cb.getY() + kFadeGrip
-                   && (p.x < cb.getX() + kFadeGrip || p.x > cb.getRight() - kFadeGrip)
-                   && cb.getWidth() > 3 * kFadeGrip) {
-            drag_ = p.x < cb.getCentreX() ? Drag::ClipFadeL : Drag::ClipFadeR;
+        } else if (const auto fg = timelinechrome::fadeGripAt(clipBounds(row, ci), p, kFadeGrip,
+                                                             ci.fadeInTicks,
+                                                             ci.fadeOutTicks,
+                                                             ci.lengthTicks);
+                   fg != timelinechrome::FadeGrip::None) {
+            drag_ = fg == timelinechrome::FadeGrip::Left ? Drag::ClipFadeL : Drag::ClipFadeR;
             dragClip_ = clip;
             selectClip(row, clip);
-        } else if (!ci.looped && overRepeatGrip(cb, p)) {
+        } else if (const auto cg = timelinechrome::fadeCurveGripAt(
+                       clipBounds(row, ci), p, kFadeGrip, ci.fadeInTicks, ci.fadeOutTicks,
+                       ci.lengthTicks, ci.fadeInCurve, ci.fadeOutCurve);
+                   cg != timelinechrome::FadeGrip::None) {
+            drag_ = cg == timelinechrome::FadeGrip::Left ? Drag::ClipFadeCurveL
+                                                        : Drag::ClipFadeCurveR;
+            dragClip_ = clip;
+            dragCurveY0_ = p.y;
+            dragCurve0_ = cg == timelinechrome::FadeGrip::Left ? ci.fadeInCurve : ci.fadeOutCurve;
+            host_.pushUndo();
+            selectClip(row, clip);
+        } else if (!ci.looped && overRepeatGrip(clipBounds(row, ci), p)) {
             drag_ = Drag::ClipRepeat;
             dragClip_ = clip;
             repeatSrcId_ = ci.id;
@@ -969,6 +981,21 @@ void TracksPane::mouseDrag(const juce::MouseEvent& e) {
             repaint();
             break;
         }
+        case Drag::ClipFadeCurveL:
+        case Drag::ClipFadeCurveR: {
+            const auto clips = host_.clips().list(rows_[(size_t) dragRow_]);
+            if (dragClip_ < 0 || dragClip_ >= (int) clips.size()) break;
+            const auto& fc = clips[(size_t) dragClip_];
+            const int h = clipBounds(dragRow_, fc).getHeight();
+            const double c = timelinechrome::fadeCurveFromDrag(dragCurve0_, e.y - dragCurveY0_, h);
+            if (drag_ == Drag::ClipFadeCurveL)
+                host_.clips().setFadeCurves(rows_[(size_t) dragRow_], dragClip_, c,
+                                            fc.fadeOutCurve);
+            else
+                host_.clips().setFadeCurves(rows_[(size_t) dragRow_], dragClip_, fc.fadeInCurve, c);
+            repaint();
+            break;
+        }
         case Drag::ClipResizeL: {
             const int end = ci.startTick + ci.lengthTicks;
             const int ns = std::min(snapT(tick), end - Pattern::kTicksPerBeat / 4);
@@ -1112,6 +1139,11 @@ void TracksPane::mouseUp(const juce::MouseEvent& e) {
 void TracksPane::mouseDoubleClick(const juce::MouseEvent& e) {
     traceSel("dbl", e);
     const auto p = e.getPosition();
+    if (mode_ == Mode::Clip) {
+        const auto h = clipEditorHit(p);
+        if (h == ClipHit::CurveL || h == ClipHit::CurveR) straightenFade(h == ClipHit::CurveL);
+        return;
+    }
     if (mode_ == Mode::Track) return;
     if (p.x < kStripW && p.y >= headerH()) {
         if (const int r = rowAt(p.y); r >= 0) {
@@ -1137,6 +1169,18 @@ void TracksPane::mouseDoubleClick(const juce::MouseEvent& e) {
     if (row < 0 || p.x < kStripW) return;
     bool l = false, r = false;
     const int clip = clipAt(row, p, l, r);
+    if (const auto h = rowClipHit(row, p); h == ClipHit::CurveL || h == ClipHit::CurveR) {
+        const auto clips = host_.clips().list(rows_[(size_t) row]);
+        if (clip >= 0 && clip < (int) clips.size()) {
+            const auto& ci = clips[(size_t) clip];
+            host_.pushUndo();
+            host_.clips().setFadeCurves(rows_[(size_t) row], clip,
+                                        h == ClipHit::CurveL ? 0.0 : ci.fadeInCurve,
+                                        h == ClipHit::CurveR ? 0.0 : ci.fadeOutCurve);
+            repaint();
+        }
+        return;
+    }
     if (const int bx = boxAt(row, p); clip < 0 && bx >= 0) {
         if (onOpenBoxDetail)
             onOpenBoxDetail(host_.automation().boxes()[(size_t) bx].organism);
@@ -1163,6 +1207,10 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
             setMouseCursor(juce::MouseCursor::LeftRightResizeCursor);
             return;
         }
+    }
+    if (mode_ == Mode::Clip) {
+        setMouseCursor(clipEditorCursor(p));
+        return;
     }
     const int row = rowAt(p.y);
     const Tool tool = effectiveTool();
@@ -1211,10 +1259,27 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
     if (row >= 0 && p.x >= kStripW) {
         if (const int c = clipAt(row, p, l, r); c < 0) boxAt(row, p, l, r);
         else if (const auto clips = host_.clips().list(rows_[(size_t) row]);
-                 c < (int) clips.size() && !clips[(size_t) c].looped
-                 && overRepeatGrip(clipBounds(row, clips[(size_t) c]), p)) {
-            setMouseCursor(juce::MouseCursor::CopyingCursor);
-            return;
+                 c < (int) clips.size()) {
+            const auto cb = clipBounds(row, clips[(size_t) c]);
+            const auto& hc = clips[(size_t) c];
+            if (const auto fg = timelinechrome::fadeGripAt(cb, p, kFadeGrip, hc.fadeInTicks,
+                                                           hc.fadeOutTicks, hc.lengthTicks);
+                fg != timelinechrome::FadeGrip::None) {
+                setMouseCursor(fg == timelinechrome::FadeGrip::Left
+                                   ? juce::MouseCursor::TopLeftCornerResizeCursor
+                                   : juce::MouseCursor::TopRightCornerResizeCursor);
+                return;
+            }
+            if (timelinechrome::fadeCurveGripAt(cb, p, kFadeGrip, hc.fadeInTicks, hc.fadeOutTicks,
+                                                hc.lengthTicks, hc.fadeInCurve, hc.fadeOutCurve)
+                != timelinechrome::FadeGrip::None) {
+                setMouseCursor(juce::MouseCursor::UpDownResizeCursor);
+                return;
+            }
+            if (!clips[(size_t) c].looped && overRepeatGrip(cb, p)) {
+                setMouseCursor(juce::MouseCursor::CopyingCursor);
+                return;
+            }
         }
     }
     setMouseCursor(l || r ? juce::MouseCursor::LeftRightResizeCursor
@@ -1230,13 +1295,14 @@ void TracksPane::mouseWheelMove(const juce::MouseEvent& e,
     if (e.mods.isShiftDown()) {
         const double d = (std::abs(wheel.deltaX) > std::abs(wheel.deltaY)
                               ? wheel.deltaX : wheel.deltaY);
-        scrollBeats_ = std::max(0.0, scrollBeats_ - d * 16.0);
+        scrollBeats_ = std::max(0.0, scrollBeats_ - d * 0.5 * (getWidth() - kStripW) / ppb_);
     } else if (mode_ == Mode::Clip) {
         const double d = std::abs(wheel.deltaX) > std::abs(wheel.deltaY) ? wheel.deltaX : wheel.deltaY;
         scrollBeats_ = std::max(0.0, scrollBeats_ - d * 0.5 * (getWidth() - kStripW) / ppb_);
     } else if (mode_ == Mode::Track) {
         if (wheel.deltaX != 0.0f)
-            scrollBeats_ = std::max(0.0, scrollBeats_ - wheel.deltaX * 16.0);
+            scrollBeats_ = std::max(0.0, scrollBeats_
+                                             - wheel.deltaX * 0.5 * (getWidth() - kStripW) / ppb_);
         if (wheel.deltaY != 0.0f) {
             if (e.mods.isAltDown())
                 rollRowH_ = juce::jlimit(3.0f, 24.0f,
@@ -1255,7 +1321,8 @@ void TracksPane::mouseWheelMove(const juce::MouseEvent& e,
         }
     } else {
         if (wheel.deltaX != 0.0f)
-            scrollBeats_ = std::max(0.0, scrollBeats_ - wheel.deltaX * 16.0);
+            scrollBeats_ = std::max(0.0, scrollBeats_
+                                             - wheel.deltaX * 0.5 * (getWidth() - kStripW) / ppb_);
         if (wheel.deltaY != 0.0f)
             applyVScroll(vScroll_ - (int) std::round(wheel.deltaY * 240.0));
     }

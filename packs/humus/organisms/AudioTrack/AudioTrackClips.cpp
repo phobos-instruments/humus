@@ -69,6 +69,8 @@ void AudioTrack::ensureClipsLoaded() {
             cp.warpMode = ch.warpMode;
             cp.fadeInBeats = ch.fadeInTicks / (double) Pattern::kTicksPerBeat;
             cp.fadeOutBeats = ch.fadeOutTicks / (double) Pattern::kTicksPerBeat;
+            cp.fadeInCurve = (float) ch.fadeInCurve;
+            cp.fadeOutCurve = (float) ch.fadeOutCurve;
             cp.reverse = ch.audioReverse;
             cp.pitchRatio = std::pow(2.0, ch.audioPitch / 12.0);
             for (auto& s : cp.shift) s.prepare(sampleRate_);

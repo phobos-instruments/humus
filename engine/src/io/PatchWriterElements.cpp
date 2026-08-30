@@ -53,6 +53,8 @@ void writePattern(juce::XmlElement& propEl, const Pattern& pat) {
             if (ch.id > 0) ce->setAttribute("clip-id", ch.id);
             if (ch.fadeInTicks > 0) ce->setAttribute("fade-in", ch.fadeInTicks);
             if (ch.fadeOutTicks > 0) ce->setAttribute("fade-out", ch.fadeOutTicks);
+            if (ch.fadeInCurve != 0.0) ce->setAttribute("fade-in-curve", ch.fadeInCurve);
+            if (ch.fadeOutCurve != 0.0) ce->setAttribute("fade-out-curve", ch.fadeOutCurve);
         }
         if (ch.type == "audio-clip") {
             ce->setAttribute("file", juce::String(ch.audioFile));

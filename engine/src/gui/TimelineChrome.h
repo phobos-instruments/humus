@@ -4,6 +4,8 @@
 #include <map>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "hum/dsp/FadeLaw.h"
+
 #include "core/Categories.h"
 #include "core/CordTrace.h"
 #include "gui/LookAndFeel.h"
@@ -227,29 +229,124 @@ inline void paintWarpBadge(juce::Graphics& g, juce::Rectangle<int> clip,
 
 inline void paintFades(juce::Graphics& g, juce::Rectangle<int> clip,
                        int fadeInTicks, int fadeOutTicks, int lengthTicks,
-                       juce::Colour accent) {
+                       juce::Colour accent, double inCurve = 0.0, double outCurve = 0.0) {
     if (lengthTicks <= 0 || clip.getWidth() < 6) return;
     const auto b = clip.toFloat();
     const float perTick = b.getWidth() / (float) lengthTicks;
-    auto wedge = [&](juce::Path p, juce::Line<float> ramp) {
-        g.setColour(Palette::background.withAlpha(0.55f));
-        g.fillPath(p);
+
+    auto ramp = [&](float xa, float xb, bool rising, double curve) {
+        juce::Path p;
+        constexpr int steps = 24;
+        for (int i = 0; i <= steps; ++i) {
+            const float t = (float) i / (float) steps;
+            const float gain = fadeGain(rising ? t : 1.0f - t, (float) curve);
+            p.lineTo(xa + (xb - xa) * t, b.getBottom() - gain * b.getHeight());
+            if (i == 0) { p.clear(); p.startNewSubPath(xa, b.getBottom() - gain * b.getHeight()); }
+        }
+        return p;
+    };
+    auto wedge = [&](juce::Path r, float cornerX) {
         g.setColour(accent.brighter(0.4f));
-        g.drawLine(ramp, 1.2f);
+        g.strokePath(r, juce::PathStrokeType(1.2f));
+        r.lineTo(cornerX, b.getY());
+        r.closeSubPath();
+        g.setColour(Palette::background.withAlpha(0.55f));
+        g.fillPath(r);
     };
     if (fadeInTicks > 0) {
         const float w = juce::jmin(b.getWidth(), (float) fadeInTicks * perTick);
-        juce::Path p;
-        p.addTriangle(b.getX(), b.getY(), b.getX() + w, b.getY(), b.getX(), b.getBottom());
-        wedge(p, {b.getX(), b.getBottom(), b.getX() + w, b.getY()});
+        wedge(ramp(b.getX(), b.getX() + w, true, inCurve), b.getX());
     }
     if (fadeOutTicks > 0) {
         const float w = juce::jmin(b.getWidth(), (float) fadeOutTicks * perTick);
-        juce::Path p;
-        p.addTriangle(b.getRight(), b.getY(), b.getRight() - w, b.getY(),
-                      b.getRight(), b.getBottom());
-        wedge(p, {b.getRight() - w, b.getY(), b.getRight(), b.getBottom()});
+        wedge(ramp(b.getRight() - w, b.getRight(), false, outCurve), b.getRight());
     }
+}
+
+enum class FadeGrip { None, Left, Right };
+
+inline FadeGrip fadeGripAt(juce::Rectangle<int> clip, juce::Point<int> p, int grip,
+                           int fadeInTicks = 0, int fadeOutTicks = 0, int lengthTicks = 0) {
+    if (clip.getWidth() <= 3 * grip) return FadeGrip::None;
+    if (p.y < clip.getY() || p.y >= clip.getY() + grip) return FadeGrip::None;
+    if (p.x < clip.getX() || p.x >= clip.getRight()) return FadeGrip::None;
+    const float per = lengthTicks > 0 ? (float) clip.getWidth() / (float) lengthTicks : 0.0f;
+    const auto span = [&](int ticks) {
+        return (int) juce::jmin((float) clip.getWidth(), (float) ticks * per);
+    };
+    const int lx = clip.getX() + span(fadeInTicks);
+    const int rx = clip.getRight() - span(fadeOutTicks);
+    const int dl = std::abs(p.x - lx), dr = std::abs(p.x - rx);
+    if (dl <= grip && dl <= dr) return FadeGrip::Left;
+    if (dr <= grip) return FadeGrip::Right;
+    return FadeGrip::None;
+}
+
+inline FadeGrip fadeCurveGripAt(juce::Rectangle<int> clip, juce::Point<int> p, int grip,
+                               int fadeInTicks, int fadeOutTicks, int lengthTicks,
+                               double inCurve, double outCurve) {
+    if (lengthTicks <= 0 || clip.getWidth() <= 3 * grip) return FadeGrip::None;
+    if (!clip.contains(p)) return FadeGrip::None;
+    const float per = (float) clip.getWidth() / (float) lengthTicks;
+    const auto span = [&](int ticks) {
+        return juce::jmin((float) clip.getWidth(), (float) ticks * per);
+    };
+    const auto onRamp = [&](float xa, float xb, bool rising, double curve) {
+        if (xb - xa < 1.0f || p.x < xa + grip || p.x > xb - grip) return false;
+        const float t = ((float) p.x - xa) / (xb - xa);
+        const float y = (float) clip.getBottom()
+                      - fadeGain(rising ? t : 1.0f - t, (float) curve) * (float) clip.getHeight();
+        return std::abs((float) p.y - y) <= (float) grip;
+    };
+    if (fadeInTicks > 0
+        && onRamp((float) clip.getX(), (float) clip.getX() + span(fadeInTicks), true, inCurve))
+        return FadeGrip::Left;
+    if (fadeOutTicks > 0
+        && onRamp((float) clip.getRight() - span(fadeOutTicks), (float) clip.getRight(), false,
+                  outCurve))
+        return FadeGrip::Right;
+    return FadeGrip::None;
+}
+
+inline void paintFadeCurveGrips(juce::Graphics& g, juce::Rectangle<int> clip,
+                                int fadeInTicks, int fadeOutTicks, int lengthTicks,
+                                double inCurve, double outCurve, juce::Colour accent) {
+    if (lengthTicks <= 0 || clip.getWidth() < 12) return;
+    const auto b = clip.toFloat();
+    const float per = b.getWidth() / (float) lengthTicks;
+    const auto dot = [&](float xa, float xb, double curve) {
+        const float mid = (xa + xb) * 0.5f;
+        const float y = b.getBottom() - fadeGain(0.5f, (float) curve) * b.getHeight();
+        g.setColour(Palette::background);
+        g.fillEllipse(mid - 3.5f, y - 3.5f, 7.0f, 7.0f);
+        g.setColour(accent.brighter(0.6f));
+        g.fillEllipse(mid - 2.5f, y - 2.5f, 5.0f, 5.0f);
+    };
+    if (fadeInTicks > 0) {
+        const float w = juce::jmin(b.getWidth(), (float) fadeInTicks * per);
+        dot(b.getX(), b.getX() + w, inCurve);
+    }
+    if (fadeOutTicks > 0) {
+        const float w = juce::jmin(b.getWidth(), (float) fadeOutTicks * per);
+        dot(b.getRight() - w, b.getRight(), outCurve);
+    }
+}
+
+inline double fadeCurveFromDrag(double startCurve, int dyPixels, int clipHeight) {
+    if (clipHeight <= 0) return startCurve;
+    return juce::jlimit(-1.0, 1.0, startCurve - (double) dyPixels / (double) clipHeight * 2.0);
+}
+
+inline void paintFadeGrips(juce::Graphics& g, juce::Rectangle<int> clip, int grip,
+                           int fadeInTicks, int fadeOutTicks, juce::Colour accent) {
+    if (clip.getWidth() < 3 * grip || clip.getHeight() < 2 * grip) return;
+    const auto b = clip.toFloat();
+    g.setColour(accent.withAlpha(0.5f));
+    const float y = b.getY() + 2.5f;
+    if (fadeInTicks <= 0)
+        g.drawLine(b.getX() + 2.0f, y + (float) grip - 4.0f, b.getX() + (float) grip - 2.0f, y, 1.2f);
+    if (fadeOutTicks <= 0)
+        g.drawLine(b.getRight() - (float) grip + 2.0f, y, b.getRight() - 2.0f, y + (float) grip - 4.0f, 1.2f);
 }
 
 inline void paintRepeatGrip(juce::Graphics& g, juce::Rectangle<int> clip, int grip,

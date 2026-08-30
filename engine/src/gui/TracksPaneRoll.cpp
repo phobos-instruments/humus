@@ -367,6 +367,41 @@ juce::String TracksPane::getTooltip() {
         if (nl || nr) return "Drag the edge to resize - Alt-drag the body for velocity";
         return "Drag to move - Alt-drag for velocity, right-click for the menu";
     }
+    const auto handleTip = [](ClipHit h) -> const char* {
+        switch (h) {
+            case ClipHit::FadeL:  return "Fade in - drag to set how long it takes";
+            case ClipHit::FadeR:  return "Fade out - drag to set how long it takes";
+            case ClipHit::CurveL:
+            case ClipHit::CurveR:
+                return "Fade shape - drag up or down to bend it, double-click to straighten";
+            case ClipHit::EdgeL:  return "Drag to trim the start - Cmd-drag to stretch";
+            case ClipHit::EdgeR:  return "Drag to trim the end - Cmd-drag to stretch";
+            default:              return nullptr;
+        }
+    };
+    if (mode_ == Mode::Clip && effectiveTool() == Tool::Pointer) {
+        const auto h = clipEditorHit(p);
+        if (const char* t = handleTip(h)) return t;
+        if (h == ClipHit::Body) return "Drag to select a range - Alt-drag to slip the audio";
+    }
+    if ((mode_ == Mode::Song || mode_ == Mode::Track) && p.x >= kStripW
+        && effectiveTool() == Tool::Pointer) {
+        if (const int row = rowAt(p.y); row >= 0) {
+            const auto h = rowClipHit(row, p);
+            if (const char* t = handleTip(h)) return t;
+            if (h == ClipHit::Body) {
+                bool l = false, r = false;
+                const int c = clipAt(row, p, l, r);
+                const auto clips = host_.clips().list(rows_[(size_t) row]);
+                if (c >= 0 && c < (int) clips.size() && !clips[(size_t) c].looped
+                    && overRepeatGrip(clipBounds(row, clips[(size_t) c]), p))
+                    return "Drag to repeat the clip";
+                return mode_ == Mode::Song
+                    ? "Drag to move - Cmd-drag to duplicate, double-click to edit"
+                    : "Drag to move - Cmd-drag to duplicate";
+            }
+        }
+    }
     if (mode_ == Mode::Song && p.x < kStripW && p.y >= headerH()) {
         if (const int row = rowAt(p.y); row >= 0) {
             if (muteBox(row).contains(p)) return "Mute";

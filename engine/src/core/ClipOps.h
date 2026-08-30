@@ -232,6 +232,8 @@ inline int splitClip(Pattern& p, int clip, int atAbsTick, double samplesPerTick 
     rch.name = ch->name;
     rch.color = ch->color;
     rch.fadeOutTicks = ch->fadeOutTicks;
+    rch.fadeOutCurve = ch->fadeOutCurve;
+    rch.fadeInCurve = ch->fadeInCurve;
     ch->fadeOutTicks = 0;
     if (isAudioClip(*ch)) {
         rch.audioFile = ch->audioFile;
@@ -324,6 +326,7 @@ inline int joinClips(Pattern& p, int a, int b, double samplesPerTick = 0.0) {
         ca->lengthTicks = std::max(ca->lengthTicks, shift + cb->lengthTicks);
     }
     ca->fadeOutTicks = cb->fadeOutTicks;
+    ca->fadeOutCurve = cb->fadeOutCurve;
     const int idA = ca->id;
     removeClip(p, b);
     return clipIndexOfId(p, idA);
@@ -350,6 +353,8 @@ inline int duplicateClip(Pattern& p, int clip, int newStartTick) {
     ch.audioPitch = src->audioPitch;
     ch.fadeInTicks = src->fadeInTicks;
     ch.fadeOutTicks = src->fadeOutTicks;
+    ch.fadeInCurve = src->fadeInCurve;
+    ch.fadeOutCurve = src->fadeOutCurve;
     p.channels.push_back(std::move(ch));
     return clipCount(p) - 1;
 }

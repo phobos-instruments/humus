@@ -154,8 +154,18 @@ void TracksPane::applyVScroll(int v) {
 void TracksPane::zoomAbout(float x, double factor) {
     const double beatAt = xToBeat(x);
     ppb_ = juce::jlimit(2.0, mode_ == Mode::Clip ? kClipMaxPpb : 120.0, ppb_ * factor);
-    scrollBeats_ = std::max(0.0, beatAt - (x - kStripW) / ppb_);
+    scrollBeats_ = juce::jlimit(0.0, std::max(0.0, contentEndBeat() - 1.0),
+                                beatAt - (x - kStripW) / ppb_);
     repaint();
+}
+
+double TracksPane::contentEndBeat() const {
+    if (mode_ == Mode::Clip) {
+        ClipEditor::ClipInfo ci;
+        if (clipInfo(ci))
+            return (ci.startTick + ci.lengthTicks) / (double) Pattern::kTicksPerBeat;
+    }
+    return host_.songEndBeat();
 }
 
 void TracksPane::mouseMagnify(const juce::MouseEvent& e, float scaleFactor) {

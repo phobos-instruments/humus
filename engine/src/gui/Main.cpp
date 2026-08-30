@@ -415,6 +415,11 @@ private:
                 centreWithSize(s.w, s.h);
             }
             setVisible(true);
+#if JUCE_LINUX || JUCE_WINDOWS
+            if (auto* peer = getPeer())
+                peer->setIcon(juce::ImageCache::getFromMemory(
+                    BinaryData::icon1024_png, BinaryData::icon1024_pngSize));
+#endif
 #if JUCE_LINUX
             if (auto* peer = getPeer()) {
                 peer->setConstrainer(getConstrainer());

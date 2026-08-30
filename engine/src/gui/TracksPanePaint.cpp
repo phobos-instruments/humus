@@ -173,10 +173,19 @@ void TracksPane::paintRow(juce::Graphics& g, int row) {
             g.setFont(juce::FontOptions(10.0f));
             const auto label = ci.name.empty()
                 ? juce::String("clip ") + juce::String(ci.index + 1) : juce::String(ci.name);
-            if (b.getWidth() > 30) g.drawText(label, b.reduced(4, 2),
-                                              juce::Justification::topLeft, true);
+            const bool marks = unclampedLeft == b.getX() && b.getWidth() > 3 * kFadeGrip;
+            if (b.getWidth() > 30)
+                g.drawText(label, b.reduced(4, 2).withTrimmedLeft(marks ? kFadeGrip : 0),
+                           juce::Justification::topLeft, true);
             timelinechrome::paintFades(g, b, ci.fadeInTicks, ci.fadeOutTicks,
-                                       ci.lengthTicks, cCol(ci.color));
+                                       ci.lengthTicks, cCol(ci.color),
+                                       ci.fadeInCurve, ci.fadeOutCurve);
+            if (marks)
+                timelinechrome::paintFadeGrips(g, b, kFadeGrip, ci.fadeInTicks,
+                                               ci.fadeOutTicks, cCol(ci.color));
+            timelinechrome::paintFadeCurveGrips(g, b, ci.fadeInTicks, ci.fadeOutTicks,
+                                                ci.lengthTicks, ci.fadeInCurve,
+                                                ci.fadeOutCurve, cCol(ci.color));
             if (!ci.looped)
                 timelinechrome::paintRepeatGrip(g, b, kFadeGrip, cCol(ci.color), sel);
             if (ci.isAudio)

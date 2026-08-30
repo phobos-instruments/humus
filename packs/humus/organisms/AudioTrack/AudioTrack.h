@@ -58,6 +58,7 @@ private:
         double sourceBpm = 0.0;
         int warpMode = 0;
         double fadeInBeats = 0.0, fadeOutBeats = 0.0;
+        float fadeInCurve = 0.0f, fadeOutCurve = 0.0f;
         bool reverse = false;
         double pitchRatio = 1.0;
         std::array<PitchShifter, 2> shift;

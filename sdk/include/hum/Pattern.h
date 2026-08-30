@@ -37,6 +37,8 @@ struct PatternChannel {
 
     int fadeInTicks = 0;
     int fadeOutTicks = 0;
+    double fadeInCurve = 0.0;
+    double fadeOutCurve = 0.0;
 
     bool audioReverse = false;
     double audioPitch = 0.0;

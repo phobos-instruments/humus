@@ -1,3 +1,4 @@
+#include "hum/dsp/FadeLaw.h"
 #include "AudioTrack/AudioTrack.h"
 
 #include <algorithm>
@@ -143,9 +144,10 @@ void AudioTrack::renderClips(float* const* out, int numOut, int numSamples,
                         ? std::fmod((cp.readPos - off) / (spb * cp.rate), cp.periodBeats)
                         : (beat0 + n / spb) - cp.clipStartBeat;
                     if (fadeIn > 0.0 && inClip < fadeIn)
-                        gn *= (float) std::max(0.0, inClip / fadeIn);
+                        gn *= fadeGain((float) std::max(0.0, inClip / fadeIn), cp.fadeInCurve);
                     if (fadeOut > 0.0 && inClip > cp.periodBeats - fadeOut)
-                        gn *= (float) std::max(0.0, (cp.periodBeats - inClip) / fadeOut);
+                        gn *= fadeGain((float) std::max(0.0, (cp.periodBeats - inClip) / fadeOut),
+                                       cp.fadeOutCurve);
                 }
                 for (int c = 0; c < numOut; ++c) {
                     const int sc = pcm.getNumChannels() > c ? c : pcm.getNumChannels() - 1;

@@ -1,3 +1,4 @@
+#include "hum/dsp/FadeLaw.h"
 #include "gui/TracksPane.h"
 
 #include "core/BeatDetector.h"
@@ -15,7 +16,23 @@ constexpr const char* kDefaultInstrument = "Rhizome";
 enum { kMenuOpen = 1, kMenuSplit, kMenuLoop, kMenuRename, kMenuDuplicate, kMenuDelete,
        kMenuSetBpm, kMenuQuantise, kMenuUp, kMenuDown, kMenuOctUp, kMenuOctDown,
        kMenuLouder, kMenuSofter, kMenuMerge,
-       kMenuColor0 = 100, kMenuWarp0 = 200, kMenuQuant0 = 300 };
+       kMenuColor0 = 100, kMenuWarp0 = 200, kMenuQuant0 = 300,
+       kMenuFadeIn0 = 400, kMenuFadeOut0 = 410 };
+
+struct FadeShape { const char* name; double curve; };
+constexpr FadeShape kFadeShapes[] = {{"Linear", hum::kFadeLinear},
+                                     {"Equal Power", hum::kFadeEqualPower},
+                                     {"Logarithmic", hum::kFadeLog},
+                                     {"Exponential", hum::kFadeExp}};
+constexpr int kFadeShapeCount = (int) (sizeof(kFadeShapes) / sizeof(kFadeShapes[0]));
+
+inline int fadeShapeIndex(double curve) {
+    int best = 0;
+    for (int i = 1; i < kFadeShapeCount; ++i)
+        if (std::abs(curve - kFadeShapes[i].curve)
+            < std::abs(curve - kFadeShapes[best].curve)) best = i;
+    return best;
+}
 
 struct QuantChoice { const char* name; int ticks; };
 constexpr QuantChoice kQuantChoices[] = {
@@ -129,6 +146,18 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
                                       ? "Source Tempo: " + juce::String(ci.sourceBpm, 1) + "..."
                                       : juce::String("Source Tempo..."));
         menu.addSubMenu("Warp", warp);
+
+        juce::PopupMenu fades;
+        const int inAt = fadeShapeIndex(ci.fadeInCurve);
+        const int outAt = fadeShapeIndex(ci.fadeOutCurve);
+        juce::PopupMenu fadeIn, fadeOut;
+        for (int i = 0; i < kFadeShapeCount; ++i) {
+            fadeIn.addItem(kMenuFadeIn0 + i, kFadeShapes[i].name, ci.fadeInTicks > 0, i == inAt);
+            fadeOut.addItem(kMenuFadeOut0 + i, kFadeShapes[i].name, ci.fadeOutTicks > 0, i == outAt);
+        }
+        fades.addSubMenu("In", fadeIn, ci.fadeInTicks > 0);
+        fades.addSubMenu("Out", fadeOut, ci.fadeOutTicks > 0);
+        menu.addSubMenu("Fade Shape", fades, ci.fadeInTicks > 0 || ci.fadeOutTicks > 0);
     }
     menu.addSeparator();
     menu.addItem(kMenuDelete, "Delete");
@@ -137,6 +166,20 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
                        [this, node, clip, ci, atTick](int res) {
         if (res == 0) return;
+        if (res >= kMenuFadeIn0 && res < kMenuFadeIn0 + kFadeShapeCount) {
+            host_.pushUndo();
+            host_.clips().setFadeCurves(node, clip, kFadeShapes[res - kMenuFadeIn0].curve,
+                                        ci.fadeOutCurve);
+            repaint();
+            return;
+        }
+        if (res >= kMenuFadeOut0 && res < kMenuFadeOut0 + kFadeShapeCount) {
+            host_.pushUndo();
+            host_.clips().setFadeCurves(node, clip, ci.fadeInCurve,
+                                        kFadeShapes[res - kMenuFadeOut0].curve);
+            repaint();
+            return;
+        }
         if (res >= kMenuWarp0 && res <= kMenuWarp0 + 2) {
             host_.pushParamStep();
             host_.clips().setWarp(node, clip, res - kMenuWarp0);

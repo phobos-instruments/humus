@@ -28,6 +28,7 @@ public:
         double sourceBpm = 0.0;
         int warpMode = 0;
         int fadeInTicks = 0, fadeOutTicks = 0;
+        double fadeInCurve = 0.0, fadeOutCurve = 0.0;
         double audioGain = 1.0;
         bool audioReverse = false;
         double audioPitch = 0.0;
@@ -40,6 +41,7 @@ public:
     void setWarp(const std::string& node, int clip, int mode);
     void setSourceBpm(const std::string& node, int clip, double bpm);
     void setFades(const std::string& node, int clip, int inTicks, int outTicks);
+    void setFadeCurves(const std::string& node, int clip, double in, double out);
     void slip(const std::string& node, int clip, long long deltaSamples);
     void setGain(const std::string& node, int clip, double gain);
     void setReverse(const std::string& node, int clip, bool reverse);

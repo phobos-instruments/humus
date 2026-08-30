@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "core/GraphMidi.h"
 #include "core/HostedPlugin.h"
 #include "core/PluginNode.h"
 #include "gui/LooperFlow.h"
@@ -11,13 +12,7 @@ namespace hum {
 
 namespace {
 bool toMidiEvent(const juce::MidiMessage& m, MidiEvent& out) {
-    const int n = m.getRawDataSize();
-    if (n < 1 || n > 3) return false;
-    const auto* raw = m.getRawData();
-    for (int i = 0; i < n; ++i) out.data[i] = raw[i];
-    out.size = n;
-    out.sampleOffset = 0;
-    return true;
+    return graphmidi::toEvent(m, out);
 }
 }
 
@@ -232,11 +227,8 @@ void EngineHost::pollMidiOut() {
             if (midiOutForPort(port) == nullptr) continue;
             for (int i = 0; i < n; ++i) {
                 if (buf[i].size < 1) continue;
-                const auto& e = buf[i];
-                const auto m = e.size == 1 ? juce::MidiMessage(e.data[0])
-                             : e.size == 2 ? juce::MidiMessage(e.data[0], e.data[1])
-                                           : juce::MidiMessage(e.data[0], e.data[1], e.data[2]);
-                blocks[port].addEvent(m, juce::jmax(0, e.sampleOffset));
+                blocks[port].addEvent(graphmidi::toMessage(buf[i]),
+                                      juce::jmax(0, buf[i].sampleOffset));
             }
         }
     }

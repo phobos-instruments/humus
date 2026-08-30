@@ -36,6 +36,7 @@ public:
 
     void setPixelsPerBeat(double ppb);
     double pixelsPerBeat() const { return ppb_; }
+    double contentEndBeat() const;
     double snapToGrid(double beat) const { return snapBeats(beat, false); }
     void setScrollBeats(double b);
     int rowCount() const { return (int) rows_.size(); }
@@ -347,7 +348,8 @@ private:
     std::string clipNode_;
     int clipId_ = -1;
     double songPpb_ = 12.0, songScroll_ = 0.0;
-    enum class ClipDrag { None, Select, TrimL, TrimR, StretchL, StretchR, Slip, FadeL, FadeR, Pending };
+    enum class ClipDrag { None, Select, TrimL, TrimR, StretchL, StretchR, Slip, FadeL, FadeR,
+                          CurveL, CurveR, Pending };
     ClipDrag clipDrag_ = ClipDrag::None;
     double clipAnchorBeat_ = 0.0;
     long long clipOffset0_ = 0;
@@ -369,6 +371,11 @@ private:
     bool keyPressedClip(const juce::KeyPress&);
     void showClipDetailMenu(juce::Point<int> screenPos);
     void fadeClipToPlayhead(bool in);
+    void straightenFade(bool in);
+    enum class ClipHit { None, Body, EdgeL, EdgeR, FadeL, FadeR, CurveL, CurveR };
+    ClipHit clipEditorHit(juce::Point<int>) const;
+    juce::MouseCursor clipEditorCursor(juce::Point<int>) const;
+    ClipHit rowClipHit(int row, juce::Point<int>) const;
     void setClipGainDb(double db);
     void loopClipSelection();
     void zoomToSelection();
@@ -454,7 +461,7 @@ private:
     bool applyToolAt(int row, juce::Point<int> p, bool alt);
 
     enum class Drag { None, ClipMove, ClipResizeL, ClipResizeR, ClipCreate,
-                      ClipFadeL, ClipFadeR, ClipRepeat, ClipMarquee, TimeSelect, PointMarquee,
+                      ClipFadeL, ClipFadeR, ClipFadeCurveL, ClipFadeCurveR, ClipRepeat, ClipMarquee, TimeSelect, PointMarquee,
                       PointGroup, Curve, BoxMove, BoxTrimL, BoxTrimR, Pencil, Line,
                       Scrub, LoopMove, LoopL, LoopR, LoopNew, SongEnd };
     Drag drag_ = Drag::None;

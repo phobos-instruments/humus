@@ -157,6 +157,12 @@ void HumusProcessor::applyPending() {
     hasPending_.store(false);
     masters_ = graph_ ? findMasterTaps(*graph_) : std::vector<MasterTap*>{};
     auxes_ = graph_ ? findHardwareOuts(*graph_) : std::vector<HardwareOut*>{};
+    midiPorts_ = graph_ ? graphmidi::findPorts(*graph_) : graphmidi::Ports{};
+    if (graph_)
+        for (const auto& cm : model_.organisms)
+            if (auto* hp = dynamic_cast<PluginNode*>(graph_->find(cm.name)))
+                midiPorts_.hosted.push_back({hp, cm.name, cm.midiReceiveMode,
+                                             cm.midiReceiveChannel});
     lastPpq_ = -1.0;
 }
 
@@ -190,12 +196,15 @@ void HumusProcessor::driveTransportFromHost() {
     t.setPlaying(hostPlaying || freeRun_.load(std::memory_order_relaxed));
 }
 
-void HumusProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&) {
+void HumusProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) {
     juce::ScopedNoDenormals noDenormals;
     if (hasPending_.load()) applyPending();
     const int n = buffer.getNumSamples();
 
-    if (!graph_) return;
+    if (!graph_) { midi.clear(); return; }
+
+    graphmidi::deliver(midi, midiPorts_);
+    midi.clear();
 
     if (rewindReq_.exchange(false)) graph_->transport().setBeatPosition(0.0);
     driveTransportFromHost();
@@ -213,6 +222,8 @@ void HumusProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBu
                                                    : buffer.getWritePointer(0) };
     renderGraphBlock(*graph_, ins, 2, outs, std::min(2, buffer.getNumChannels()), nCopy,
                      masters_, auxes_);
+
+    graphmidi::collect(midiPorts_, midi);
 
     for (int c = 0; c < 2 && c < buffer.getNumChannels(); ++c)
         peak_[c].store(buffer.getMagnitude(c, 0, n));

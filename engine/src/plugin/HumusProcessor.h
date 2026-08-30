@@ -8,6 +8,7 @@
 
 #include "core/AudioGraph.h"
 #include "core/GraphIo.h"
+#include "core/GraphMidi.h"
 #include "io/PatchDocument.h"
 
 namespace hum {
@@ -46,10 +47,11 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override {}
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    const graphmidi::Ports& midiPortsForTest() const { return midiPorts_; }
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
-    bool acceptsMidi() const override { return false; }
-    bool producesMidi() const override { return false; }
+    bool acceptsMidi() const override { return true; }
+    bool producesMidi() const override { return true; }
     double getTailLengthSeconds() const override { return 0.0; }
     int getNumPrograms() override { return 1; }
     int getCurrentProgram() override { return 0; }
@@ -74,6 +76,7 @@ private:
     std::unique_ptr<AudioGraph> graph_;
     std::vector<MasterTap*> masters_;
     std::vector<HardwareOut*> auxes_;
+    graphmidi::Ports midiPorts_;
     std::unique_ptr<AudioGraph> pending_;
     std::atomic<bool> hasPending_{false};
     juce::CriticalSection stageLock_;

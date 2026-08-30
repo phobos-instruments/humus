@@ -114,6 +114,10 @@ public:
     }
 
     juce::String paramLabel;
+    std::function<juce::String()> tooltipProvider;
+    juce::String getTooltip() override {
+        return tooltipProvider ? tooltipProvider() : juce::Slider::getTooltip();
+    }
 
     static constexpr int kHoldDelay = 300, kHoldRate = 100, kHoldFastest = 20;
 

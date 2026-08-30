@@ -28,7 +28,11 @@ void TracksPane::paintClip(juce::Graphics& g) {
     g.saveState();
     g.reduceClipRegion(f);
     paintClipWave(g, f, ci, accent);
-    timelinechrome::paintFades(g, box, ci.fadeInTicks, ci.fadeOutTicks, ci.lengthTicks, accent);
+    timelinechrome::paintFades(g, box, ci.fadeInTicks, ci.fadeOutTicks, ci.lengthTicks, accent,
+                               ci.fadeInCurve, ci.fadeOutCurve);
+    timelinechrome::paintFadeGrips(g, box, kFadeGrip * 2, ci.fadeInTicks, ci.fadeOutTicks, accent);
+    timelinechrome::paintFadeCurveGrips(g, box, ci.fadeInTicks, ci.fadeOutTicks, ci.lengthTicks,
+                                        ci.fadeInCurve, ci.fadeOutCurve, accent);
     g.setColour(accent);
     g.fillRect(box.getX() - 1, f.getY(), 2, f.getHeight());
     g.fillRect(box.getRight() - 1, f.getY(), 2, f.getHeight());
