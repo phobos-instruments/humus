@@ -1,4 +1,5 @@
 #include "hum/dsp/FadeLaw.h"
+#include "hum/dsp/MelodyTrace.h"
 #include "gui/TracksPane.h"
 
 #include "core/BeatDetector.h"
@@ -15,7 +16,7 @@ namespace {
 constexpr const char* kDefaultInstrument = "Rhizome";
 enum { kMenuOpen = 1, kMenuSplit, kMenuLoop, kMenuRename, kMenuDuplicate, kMenuDelete,
        kMenuSetBpm, kMenuQuantise, kMenuUp, kMenuDown, kMenuOctUp, kMenuOctDown,
-       kMenuLouder, kMenuSofter, kMenuMerge,
+       kMenuLouder, kMenuSofter, kMenuMerge, kMenuToMidi,
        kMenuColor0 = 100, kMenuWarp0 = 200, kMenuQuant0 = 300,
        kMenuFadeIn0 = 400, kMenuFadeOut0 = 410 };
 
@@ -158,6 +159,7 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
         fades.addSubMenu("In", fadeIn, ci.fadeInTicks > 0);
         fades.addSubMenu("Out", fadeOut, ci.fadeOutTicks > 0);
         menu.addSubMenu("Fade Shape", fades, ci.fadeInTicks > 0 || ci.fadeOutTicks > 0);
+        menu.addItem(kMenuToMidi, "Convert to MIDI Track");
     }
     menu.addSeparator();
     menu.addItem(kMenuDelete, "Delete");
@@ -184,6 +186,10 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
             host_.pushParamStep();
             host_.clips().setWarp(node, clip, res - kMenuWarp0);
             repaint();
+            return;
+        }
+        if (res == kMenuToMidi) {
+            convertClipToMidi(node, ci);
             return;
         }
         if (res == kMenuSetBpm) {
@@ -341,6 +347,51 @@ int TracksPane::placeAudioFile(const std::string& node, int atTick, const juce::
         }
     }
     return clip;
+}
+
+void TracksPane::convertClipToMidi(const std::string& node,
+                                   const ClipEditor::ClipInfo& ci) {
+    std::string uri = ci.audioFile;
+    if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
+    juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+    juce::AudioFormatManager fm;
+    fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
+    if (!rd || rd->lengthInSamples <= 0) return;
+
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    const double ticksPerSecond = bpm / 60.0 * Pattern::kTicksPerBeat;
+    const double hostSr = host_.sampleRate() > 0.0 ? host_.sampleRate() : 44100.0;
+    const double seconds = std::min(600.0, (double) ci.lengthTicks / ticksPerSecond);
+    const auto from = (juce::int64) ((double) ci.audioOffset * rd->sampleRate / hostSr);
+    const int want = (int) std::min<juce::int64>(
+        (juce::int64) std::llround(seconds * rd->sampleRate),
+        rd->lengthInSamples - from);
+    if (want <= 0) return;
+
+    juce::AudioBuffer<float> buf((int) rd->numChannels, want);
+    if (!rd->read(&buf, 0, want, from, true, true)) return;
+    std::vector<float> mono((size_t) want, 0.0f);
+    for (int c = 0; c < buf.getNumChannels(); ++c) {
+        const float* src = buf.getReadPointer(c);
+        for (int i = 0; i < want; ++i) mono[(size_t) i] += src[i];
+    }
+    const float norm = 1.0f / (float) std::max(1, buf.getNumChannels());
+    for (auto& v : mono) v *= norm;
+
+    const auto notes = melodytrace::trace(mono.data(), want, rd->sampleRate,
+                                          ticksPerSecond);
+    if (notes.empty()) return;
+
+    host_.pushUndo();
+    const auto midiNode = addTrack(false, {});
+    if (midiNode.empty()) return;
+    const int clip = host_.clips().add(midiNode, ci.startTick, ci.lengthTicks);
+    if (clip < 0) return;
+    host_.clips().setNotes(midiNode, clip, notes, 0);
+    if (!ci.name.empty()) host_.clips().rename(midiNode, clip, ci.name + " melody");
+    rebuild();
+    repaint();
 }
 
 std::string TracksPane::addTrack(bool audio, const std::string& target) {

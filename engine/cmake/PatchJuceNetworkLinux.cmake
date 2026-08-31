@@ -1,14 +1,6 @@
-# JUCE 8.0.4 writes one blank line too many between the headers and the body of
-# every POST it sends on Linux without libcurl, and we build with
-# JUCE_USE_CURL=0. URL::createHeadersAndPostData always ends the header block
-# with "Content-length: N\r\n", then createRequestHeader appends "\r\n\r\n" on
-# top of that trailing newline. The server reads the extra CRLF as the end of
-# the headers, so the body arrives as "\r\n" + JSON while Content-Length still
-# counts only the JSON - two bytes short. Every hub POST (checkin, license
-# activation, telemetry) came back 422 with an unterminated string.
-#
-# Idempotent. Runs as FetchContent's PATCH_COMMAND, or by hand:
-#   cmake -DJUCE_SOURCE_DIR=engine/build/_deps/juce-src -P engine/cmake/PatchJuceNetworkLinux.cmake
+# Curl-less Linux POSTs framed one CRLF early, so every body arrived two
+# bytes short (docs/dev/build.md, "JUCE, and the three patches"). Idempotent;
+#   cmake -DJUCE_SOURCE_DIR=engine/build/_deps/juce-src -P <this file>
 
 if(NOT DEFINED JUCE_SOURCE_DIR)
   message(FATAL_ERROR "pass -DJUCE_SOURCE_DIR=<juce checkout>")

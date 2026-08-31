@@ -48,6 +48,7 @@ public:
         repaint();
     }
     std::string addTrack(bool audio, const std::string& target);
+    void convertClipToMidi(const std::string& node, const ClipEditor::ClipInfo& ci);
     juce::Rectangle<int> clipBounds(int row, const ClipEditor::ClipInfo& ci) const;
     const std::vector<trackslayout::Slot>& slotsForTest() const { return slots_; }
     juce::Rectangle<float> noteBoundsForTest(int clipStart, const NoteEvent& n) const {

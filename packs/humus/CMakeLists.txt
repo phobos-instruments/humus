@@ -23,6 +23,9 @@ target_link_libraries(hum_pack_humus PUBLIC
   hum_sdk
   msfa                    # pH: six-operator FM engine (vendored, Apache-2.0)
   nuked_opn2              # pH: OPN2 chip core (vendored, LGPL-2.1)
+  nuked_opm               # pH: OPM chip core (vendored, LGPL-2.1)
+  nuked_opl3              # pH: OPL3 chip core (vendored, LGPL-2.1)
+  resid                   # Silt: SID chip core (vendored, GPL-2.0-or-later)
   juce::juce_core
   juce::juce_audio_basics
   juce::juce_audio_formats

@@ -1,0 +1,109 @@
+# Shared between hum_gui and hum_snapshot (which mirrors the GUI headlessly).
+set(HUM_GUI_SOURCES
+    src/gui/MainComponent.cpp
+    src/gui/MainComponentDock.cpp
+    src/gui/MainComponentMenu.cpp
+    src/gui/MainComponentFiles.cpp
+    src/gui/MainComponentAutosave.cpp
+    src/gui/MainComponentLifecycle.cpp
+    src/gui/MainComponentTransport.cpp
+    src/gui/MainComponentWindows.cpp
+    src/gui/EmbeddedPluginView.cpp
+    src/gui/GamepadHost.cpp
+    src/gui/VideoLayer.cpp
+    src/gui/MainComponentPluginUI.cpp
+    src/gui/MainComponentLayout.cpp
+    src/gui/PatcherCanvas.cpp
+    src/gui/PatcherCanvasEdit.cpp
+    src/gui/PatcherCanvasGeometry.cpp
+    src/gui/X11Mirror.cpp
+    src/gui/X11MirrorInput.cpp
+    src/gui/PatcherCanvasPaint.cpp
+    src/gui/PatcherCanvasArrange.cpp
+    src/gui/PatcherCanvasMouse.cpp
+    src/gui/PatcherCanvasMenus.cpp
+    src/gui/PianoRollEditor.cpp
+    src/gui/PianoRollGrid.cpp
+    src/gui/PianoRollInput.cpp
+    src/gui/PianoRollLane.cpp
+    src/gui/PianoRollTools.cpp
+    src/gui/TracksPane.cpp
+    src/gui/TracksPaneInput.cpp
+    src/gui/EngineHostBounce.cpp
+    src/gui/TracksPaneClip.cpp
+    src/gui/TracksPaneClipPaint.cpp
+    src/gui/TracksPaneMenu.cpp
+    src/gui/TracksPaneRepeat.cpp
+    src/gui/TracksPaneRoll.cpp
+    src/gui/TracksPaneRollEdit.cpp
+    src/gui/TracksPaneMove.cpp
+    src/gui/TracksPaneSelect.cpp
+    src/gui/TracksPaneItems.cpp
+    src/gui/TracksPanePaint.cpp
+    src/gui/ParameterPanel.cpp
+    src/gui/PropertiesPane.cpp
+    src/gui/PropertiesPaneLayout.cpp
+    src/gui/ParameterWindow.cpp
+    src/gui/EngineHost.cpp
+    src/gui/EngineHostPodImport.cpp
+    src/gui/EngineHostEdit.cpp
+    src/gui/EngineHostEditCords.cpp
+    src/gui/EngineHostParams.cpp
+    src/gui/EngineHostPresets.cpp
+    src/gui/EngineHostRecord.cpp
+    src/gui/EngineHostFiles.cpp
+    src/gui/EngineHostDeck.cpp
+    src/gui/EngineHostMetapad.cpp
+    src/gui/EngineHostMidi.cpp
+    src/gui/EngineHostMidiControl.cpp
+    src/gui/EngineHostMidiGraph.cpp
+    src/gui/EngineHostSync.cpp
+    src/gui/EngineHostLink.cpp
+    src/gui/LinkSync.cpp
+    src/gui/EngineHostAutomation.cpp
+    src/gui/EngineHostSequencer.cpp
+    src/gui/EngineHostAudio.cpp
+    src/gui/EngineHostPattern.cpp
+    src/gui/EngineHostClips.cpp
+    src/gui/EngineHostPlugins.cpp
+    src/gui/LookAndFeel.cpp
+    src/gui/AppSettings.cpp
+    src/gui/DefaultPatchHandler.cpp
+    src/gui/SettingsComponent.cpp
+    src/gui/SettingsComponentAi.cpp
+    src/gui/SetupWizard.cpp
+    src/gui/OscHost.cpp
+    src/gui/ModHost.cpp
+    src/gui/LookAndFeelSliders.cpp
+    src/gui/LookAndFeelWidgets.cpp
+    src/gui/LayoutLoader.cpp
+    src/gui/LayoutEditor.cpp
+    src/gui/LayoutEditorBricks.cpp
+    src/gui/PatternEditor.cpp
+    src/gui/PatternEditorInput.cpp
+)
+
+if(APPLE)
+  list(APPEND HUM_GUI_SOURCES
+    src/gui/EmbeddedPluginViewMac.mm
+    src/gui/PluginEditorWindowMac.mm
+    src/gui/MacCursors.mm
+    src/gui/GamepadHostMac.mm
+    src/gui/VideoLayerMac.mm
+    src/gui/AppNapMac.mm
+    src/gui/FileDragImageMac.mm
+  )
+endif()
+
+# Compiled in so nothing can go missing at runtime; outside the HUM_GUI guard
+# because hum_tests reads the tour copy too.
+file(GLOB HUM_EMBEDDED_ART CONFIGURE_DEPENDS
+     "${CMAKE_CURRENT_SOURCE_DIR}/resources/glyphs/*.svg"
+     "${CMAKE_CURRENT_SOURCE_DIR}/resources/glyphs/*.png")
+file(GLOB HUM_EMBEDDED_GUIDE CONFIGURE_DEPENDS
+     "${CMAKE_CURRENT_SOURCE_DIR}/resources/guide/*.md")
+juce_add_binary_data(hum_assets SOURCES
+  "${CMAKE_CURRENT_SOURCE_DIR}/resources/logo.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon-1024.png"
+  ${HUM_EMBEDDED_ART}
+  ${HUM_EMBEDDED_GUIDE})

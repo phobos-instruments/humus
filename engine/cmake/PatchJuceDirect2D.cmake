@@ -1,10 +1,6 @@
-# JUCE 8.0.4 opens every window on Direct2D, where Graphics::drawImage draws
-# nothing at all - no image in the app is visible on Windows. Index 0 is the
-# software renderer JUCE used before 8. Re-test on other hardware: if it is a
-# driver bug rather than a JUCE one, a narrower fix may be right.
-#
-# Idempotent. Runs as FetchContent's PATCH_COMMAND, or by hand:
-#   cmake -DJUCE_SOURCE_DIR=engine/build/_deps/juce-src -P engine/cmake/PatchJuceDirect2D.cmake
+# Direct2D draws no images in 8.0.4; default to the software renderer
+# (docs/dev/build.md, "JUCE, and the three patches"). Idempotent; by hand:
+#   cmake -DJUCE_SOURCE_DIR=engine/build/_deps/juce-src -P <this file>
 
 if(NOT DEFINED JUCE_SOURCE_DIR)
   message(FATAL_ERROR "pass -DJUCE_SOURCE_DIR=<juce checkout>")
@@ -22,8 +18,7 @@ if(_src MATCHES "HUMUS-PATCH")
   return()
 endif()
 
-# Trailing argument = engine index into
-# contextDescriptorList<GDIRenderContext, D2DRenderContext>.
+# Trailing argument = index into contextDescriptorList<GDI..., D2D...>.
 set(_old "ComponentPeer* Component::createNewPeer (int styleFlags, void* parentHWND)
 {
     return new HWNDComponentPeer { *this, styleFlags, (HWND) parentHWND, false, 1 };

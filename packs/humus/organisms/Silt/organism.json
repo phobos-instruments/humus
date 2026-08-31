@@ -1,0 +1,150 @@
+{
+  "classes": [
+    {
+      "class": "Silt",
+      "category": "Instruments",
+      "editor": "layout:silt-editor.json",
+      "params": [
+        {
+          "name": "Model",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Wave",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 1.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "PulseWidth",
+          "min": 0.02,
+          "max": 0.98,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Attack",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 0.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Decay",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 8.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Sustain",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 10.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Release",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 8.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Cutoff",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.7,
+          "random": true
+        },
+        {
+          "name": "Resonance",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 4.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "FilterMode",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Filter",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Ring",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Chips",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "TwinDetune",
+          "min": 0.0,
+          "max": 30.0,
+          "def": 6.0,
+          "random": true
+        },
+        {
+          "name": "Chain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "ModelB",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true,
+          "random": true
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8
+        }
+      ]
+    }
+  ]
+}

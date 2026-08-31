@@ -11,7 +11,7 @@
       "w": 392,
       "h": 24,
       "kind": "Banks",
-      "filter": "*.syx;*.wopn;*.tfi;*.dmp",
+      "filter": "*.syx;*.opm;*.wopl;*.wopn;*.tfi;*.dmp",
       "factory": "factory:six-op|Factory - six operator|6-OP;factory:chip|Factory - chip|CHIP"
     },
     {

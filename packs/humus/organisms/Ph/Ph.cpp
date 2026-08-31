@@ -16,6 +16,8 @@ void Ph::prepare(double sampleRate, int) {
 void Ph::reset() {
     six_.reset();
     chip_.allOff();
+    opm_.allOff();
+    opl_.allOff();
     ringL_.fill(0.0f);
     ringR_.fill(0.0f);
     ringWrite_ = 0;
@@ -37,8 +39,12 @@ bool endsWithCI(const std::string& s, const char* ext) {
 
 Ph::Voice Ph::voiceOf(const std::string& bankRef) {
     if (bankRef == kFactoryChip) return Voice::Chip;
+    if (bankRef == kFactoryOpm || bankRef == kFactoryOpp) return Voice::Opm;
+    if (bankRef == kFactoryOpl) return Voice::Opl;
     if (bankRef.empty() || bankRef == kFactorySixOp) return Voice::SixOp;
     if (endsWithCI(bankRef, ".syx")) return Voice::SixOp;
+    if (endsWithCI(bankRef, ".opm")) return Voice::Opm;
+    if (endsWithCI(bankRef, ".wopl")) return Voice::Opl;
     if (endsWithCI(bankRef, ".wopn") || endsWithCI(bankRef, ".tfi")
         || endsWithCI(bankRef, ".dmp"))
         return Voice::Chip;
@@ -46,13 +52,23 @@ Ph::Voice Ph::voiceOf(const std::string& bankRef) {
 }
 
 int Ph::patchCount() const {
-    return voiceOf(params.getText("File")) == Voice::Chip ? chip_.patchCount()
-                                                          : PhSixOp::kSlots;
+    switch (voiceOf(params.getText("File"))) {
+        case Voice::Chip: return chip_.patchCount();
+        case Voice::Opm: return opm_.patchCount();
+        case Voice::Opl: return opl_.patchCount();
+        case Voice::SixOp: break;
+    }
+    return PhSixOp::kSlots;
 }
 
 std::string Ph::patchNameAt(int index) const {
-    return voiceOf(params.getText("File")) == Voice::Chip ? chip_.patchName(index)
-                                                          : six_.patchName(index);
+    switch (voiceOf(params.getText("File"))) {
+        case Voice::Chip: return chip_.patchName(index);
+        case Voice::Opm: return opm_.patchName(index);
+        case Voice::Opl: return opl_.patchName(index);
+        case Voice::SixOp: break;
+    }
+    return six_.patchName(index);
 }
 
 void Ph::loadFromFile(const std::string& uri) {
@@ -62,7 +78,15 @@ void Ph::loadFromFile(const std::string& uri) {
     patchSlot_ = -1;
     if (uri.empty() || uri == kFactorySixOp) { six_.useFactoryBank(); return; }
     if (uri == kFactoryChip) { chip_.useFactoryBank(); return; }
+    if (uri == kFactoryOpm || uri == kFactoryOpp) {
+        opm_.setVariant(uri == kFactoryOpp);
+        opm_.useFactoryBank();
+        return;
+    }
+    if (uri == kFactoryOpl) { opl_.useFactoryBank(); return; }
     if (endsWithCI(uri, ".syx")) six_.loadSyx(uri);
+    else if (endsWithCI(uri, ".opm")) { opm_.setVariant(false); opm_.loadOpm(uri); }
+    else if (endsWithCI(uri, ".wopl")) opl_.loadWopl(uri);
     else if (endsWithCI(uri, ".wopn")) chip_.loadWopn(uri);
     else if (endsWithCI(uri, ".tfi") || endsWithCI(uri, ".dmp")) chip_.loadTfi(uri);
 }
@@ -94,8 +118,11 @@ PhVoice Ph::readVoice(const PhVoice& fromBank) const {
 
 bool Ph::voiceParams(std::vector<std::pair<std::string, double>>& out) const {
     const int slot = (int) params.get("Patch", 1.0) - 1;
-    const PhVoice v = voiceOf(params.getText("File")) == Voice::Chip ? chip_.voiceAt(slot)
-                                                                    : six_.voiceAt(slot);
+    const Voice voice = voiceOf(params.getText("File"));
+    const PhVoice v = voice == Voice::Chip ? chip_.voiceAt(slot)
+                    : voice == Voice::Opm  ? opm_.voiceAt(slot)
+                    : voice == Voice::Opl  ? opl_.voiceAt(slot)
+                                           : six_.voiceAt(slot);
     out.clear();
     out.emplace_back("Algorithm", (double) v.algorithm);
     out.emplace_back("Feedback", (double) v.feedback);
@@ -144,6 +171,28 @@ void Ph::pumpChip() {
     }
 }
 
+void Ph::pumpOpl() {
+    constexpr int kChunk = 64;
+    float l[kChunk], r[kChunk];
+    opl_.render(l, r, kChunk);
+    for (int i = 0; i < kChunk; ++i) {
+        ringL_[(size_t) (ringWrite_ % kRing)] = l[i];
+        ringR_[(size_t) (ringWrite_ % kRing)] = r[i];
+        ++ringWrite_;
+    }
+}
+
+void Ph::pumpOpm() {
+    constexpr int kChunk = 64;
+    float l[kChunk], r[kChunk];
+    opm_.render(l, r, kChunk);
+    for (int i = 0; i < kChunk; ++i) {
+        ringL_[(size_t) (ringWrite_ % kRing)] = l[i];
+        ringR_[(size_t) (ringWrite_ % kRing)] = r[i];
+        ++ringWrite_;
+    }
+}
+
 void Ph::process(const float* const*, int, float* const* out, int numOut,
                  int numSamples, const Transport& transport) {
     if (numOut == 0) return;
@@ -168,17 +217,26 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
     if (slot != patchSlot_) {
         patchSlot_ = slot;
         if (voice_ == Voice::SixOp) six_.selectPatch(slot);
+        else if (voice_ == Voice::Opm) opm_.selectPatch(slot);
+        else if (voice_ == Voice::Opl) opl_.selectPatch(slot);
         else chip_.selectPatch(slot);
-        voice_params_ = voice_ == Voice::Chip ? chip_.selectedVoice() : six_.selectedVoice();
+        voice_params_ = voice_ == Voice::Chip ? chip_.selectedVoice()
+                      : voice_ == Voice::Opm  ? opm_.selectedVoice()
+                      : voice_ == Voice::Opl  ? opl_.selectedVoice()
+                                              : six_.selectedVoice();
     }
     if (const auto m = readMods(); m != mods_) {
         mods_ = m;
         six_.setMods(m);
         chip_.setMods(m);
+        opm_.setMods(m);
+        opl_.setMods(m);
     }
     if (const auto v = readVoice(voice_params_); v != voice_params_) {
         voice_params_ = v;
         if (voice_ == Voice::SixOp) six_.setVoice(v);
+        else if (voice_ == Voice::Opm) opm_.setVoice(v);
+        else if (voice_ == Voice::Opl) opl_.setVoice(v);
         else chip_.setVoice(v);
     }
     const float level = (float) params.get("Level", 0.8);
@@ -199,19 +257,28 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
         if (st == 0x90 && e.data[2] > 0) {
             const double hz = tuning.hz((double) e.data[1]) * bend;
             if (voice_ == Voice::SixOp) six_.noteOn(e.data[1], e.data[2], hz);
+            else if (voice_ == Voice::Opm) opm_.noteOn(e.data[1], e.data[2], hz);
+            else if (voice_ == Voice::Opl) opl_.noteOn(e.data[1], e.data[2], hz);
             else chip_.noteOn(e.data[1], e.data[2], hz);
         } else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) {
             if (voice_ == Voice::SixOp) six_.noteOff(e.data[1]);
+            else if (voice_ == Voice::Opm) opm_.noteOff(e.data[1]);
+            else if (voice_ == Voice::Opl) opl_.noteOff(e.data[1]);
             else chip_.noteOff(e.data[1]);
         }
     }
     stagedCount_ = 0;
 
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
-    const double ratio = (voice_ == Voice::SixOp ? PhSixOp::kRate : PhChip::kRate) / sr;
+    const double ratio = (voice_ == Voice::SixOp ? PhSixOp::kRate
+                          : voice_ == Voice::Opm  ? PhOpm::kRate
+                          : voice_ == Voice::Opl  ? PhOpl::kRate
+                                                  : PhChip::kRate) / sr;
     const double needUpTo = ringRead_ + (double) numSamples * ratio + 2.0;
     while ((double) ringWrite_ < needUpTo) {
         if (voice_ == Voice::SixOp) pumpSixOp();
+        else if (voice_ == Voice::Opm) pumpOpm();
+        else if (voice_ == Voice::Opl) pumpOpl();
         else pumpChip();
     }
     for (int i = 0; i < numSamples; ++i) {

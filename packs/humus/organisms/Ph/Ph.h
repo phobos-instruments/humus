@@ -10,6 +10,8 @@
 
 #include "Ph/PhChip.h"
 #include "Ph/PhMods.h"
+#include "Ph/PhOpl.h"
+#include "Ph/PhOpm.h"
 #include "Ph/PhSixOp.h"
 #include "Ph/PhVoice.h"
 
@@ -50,7 +52,7 @@ public:
             return true;
         }
         if ((param == "Op5_On" || param == "Op6_On")
-            && voiceOf(params.getText("File")) == Voice::Chip) {
+            && voiceOf(params.getText("File")) != Voice::SixOp) {
             lo = hi = 0.0;
             return true;
         }
@@ -60,26 +62,36 @@ public:
     bool voiceParams(std::vector<std::pair<std::string, double>>& out) const override;
 
     int playingSlot() const {
-        return voice_ == Voice::Chip ? chip_.currentSlot() : six_.currentSlot();
+        return voice_ == Voice::Chip  ? chip_.currentSlot()
+             : voice_ == Voice::Opm   ? opm_.currentSlot()
+             : voice_ == Voice::Opl   ? opl_.currentSlot()
+                                      : six_.currentSlot();
     }
 
     void process(const float* const* in, int numIn, float* const* out, int numOut,
                  int numSamples, const Transport& transport) override;
 
-    enum class Voice { SixOp, Chip };
+    enum class Voice { SixOp, Chip, Opm, Opl };
     static Voice voiceOf(const std::string& bankRef);
 
     static constexpr const char* kFactorySixOp = "factory:six-op";
     static constexpr const char* kFactoryChip = "factory:chip";
+    static constexpr const char* kFactoryOpm = "factory:opm";
+    static constexpr const char* kFactoryOpp = "factory:opp";
+    static constexpr const char* kFactoryOpl = "factory:opl";
 
 private:
     void pumpSixOp();
     void pumpChip();
+    void pumpOpm();
+    void pumpOpl();
     PhMods readMods() const;
     PhVoice readVoice(const PhVoice& fromBank) const;
 
     PhSixOp six_;
     PhChip chip_;
+    PhOpm opm_;
+    PhOpl opl_;
     Voice voice_ = Voice::SixOp;
     int patchSlot_ = -1;
     PhMods mods_;

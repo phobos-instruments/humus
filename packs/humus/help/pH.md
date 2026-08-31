@@ -1,18 +1,18 @@
 # pH
 
-How acid or alkaline the soil is. pH is an FM synthesizer with two real engines: a six-operator engine that speaks the classic DX7 .syx bank format, and the OPN2, the Mega Drive's YM2612 sound chip, emulated by the Nuked-OPN2 core.
+How acid or alkaline the soil is. pH is an FM synthesizer with four real engines: a six-operator engine that speaks the classic DX7 .syx bank format, the OPN2 - the Mega Drive's YM2612 sound chip - emulated by the Nuked-OPN2 core, the OPM - the YM2151 that powered a decade of arcade boards and the Sharp X68000 - emulated by the die-traced Nuked-OPM core, and the OPL3, the YMF262 of the DOS-era soundcards, emulated by Nuked-OPL3.
 
-The bank decides which one you hear A bank already knows what it is: a .syx holds six-operator voices, and a .wopn, .tfi or .dmp holds chip instruments. Load one and the right engine plays it. Bank picks the sounds, Patch picks one by name, and a preset remembers both along with everything else on the panel.
+The bank decides which one you hear. A bank already knows what it is: a .syx holds six-operator voices, a .wopn, .tfi or .dmp holds OPN2 instruments, a .opm holds OPM voices in the text format the emulation community has traded for twenty years, and a .wopl holds OPL3 instruments, two-operator and four-operator alike. Load one and the right engine plays it. Bank picks the sounds, Patch picks one by name, and a preset remembers both along with everything else on the panel.
 
-The six-operator engine is the core the Dexed community plays: eight voices, and any 32-voice .syx bank ever made for that format. The chip is the console's own, six channels of polyphony with the ladder-effect converter of the original hardware.
+The six-operator engine is the core the Dexed community plays: eight voices, and any 32-voice .syx bank ever made for that format. The OPN2 is the console's own, six channels of polyphony with the ladder-effect converter of the original hardware. The OPM is the arcade cabinet's: eight channels, and the coarse second detune that gives its bells and electric pianos the metallic shimmer no other chip in the family has. Its desk-module twin, the YM2164 (OPP), is one bank away as well - the same die with the module maker's quirks, played through the same emulation. The OPL3 is the sound of every DOS game with a soundcard: mostly two operators a voice but eighteen of them at once, eight waveforms, and four-operator patches that borrow a second channel.
 
-Pitch comes from the patch tuning, chip included, so a microtonal scale plays on hardware voices that never supported one.
+Pitch comes from the patch tuning, chips included, so a microtonal scale plays on hardware voices that never supported one - the OPM to the nearest sixty-fourth of a semitone, which is what its registers resolve.
 
 Play it over a MIDI cord from a PianoRoll, DNA or MidiIn, or with the QWERTY keyboard while its editor is focused.
 
 ## Adding banks
 
-Two factory banks are built in, plus two chip banks of roughly 185 and 700 named instruments. Drop your own into the banks folder and they join the list; one you install shadows a shipped bank of the same name. A patch names its bank rather than carrying it, so share the bank alongside the patch. Thousands of .syx voice banks and chip instruments circulate freely online, and all of them load. Clearing Bank returns to the factory voices.
+Three factory banks are built in, plus two OPN2 banks of roughly 185 and 700 named instruments. Drop your own into the banks folder and they join the list; one you install shadows a shipped bank of the same name. A patch names its bank rather than carrying it, so share the bank alongside the patch. Thousands of .syx voice banks and chip instruments circulate freely online, and all of them load. Clearing Bank returns to the factory voices.
 
 ## The dice and Evolve
 
@@ -26,7 +26,7 @@ The operator rows are the sound itself. Each operator has a level, a frequency r
 
 Each operator's number is also its switch: turn one off to take it out of the voice, on to put it back. Its level is kept meanwhile, so a mute is not the same as turning a level down.
 
-The chip has four operators, so the fifth and sixth switches are unavailable while a chip bank is loaded, and it offers eight algorithms rather than the six-operator engine's thirty-two.
+The chips have four operators, so the fifth and sixth switches are unavailable while a chip bank is loaded, and they offer eight algorithms rather than the six-operator engine's thirty-two. An OPL3 voice usually has two, so its third and fourth rows only speak on a four-operator patch.
 
 ## Parameters
 

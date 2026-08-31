@@ -46,6 +46,7 @@
 #include "TransientShaper/TransientShaper.h"
 #include "Console/Console.h"
 #include "Acid/Acid.h"
+#include "Silt/Silt.h"
 #include "Bloom/Bloom.h"
 #include "Spectrum/Spectrum.h"
 #include "Cicada/Cicada.h"
@@ -146,6 +147,7 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("Bloom",   [] { return std::make_unique<Bloom>(); });
     r.registerClass("Spectrum", [] { return std::make_unique<Spectrum>(); });
     r.registerClass("Acid",    [] { return std::make_unique<Acid>(); });
+    r.registerClass("Silt", [] { return std::make_unique<Silt>(); });
     r.registerClass("Microdot", [] { return std::make_unique<Microdot>(); });
     r.registerClass("Riff",    [] { return std::make_unique<Riff>(); });
     r.registerClass("Steps",   [] { return std::make_unique<Steps>(); });

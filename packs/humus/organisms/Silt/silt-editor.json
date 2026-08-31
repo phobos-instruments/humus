@@ -1,0 +1,33 @@
+{
+  "width": 600,
+  "height": 300,
+  "controls": [
+    { "type": "enum-buttons", "param": "Wave", "label": "", "x": 12, "y": 8, "w": 232, "h": 22,
+      "options": ["TRI", "SAW", "PLS", "NSE"] },
+    { "type": "enum-buttons", "param": "Model", "label": "", "x": 260, "y": 8, "w": 120, "h": 22,
+      "options": ["6581", "8580"] },
+    { "type": "enum-buttons", "param": "FilterMode", "label": "", "x": 396, "y": 8, "w": 158, "h": 22,
+      "options": ["LOW", "BAND", "HIGH"] },
+
+    { "type": "knob", "param": "PulseWidth", "label": "Width",   "x": 12,  "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Cutoff",     "label": "Cutoff",  "x": 82,  "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Resonance",  "label": "Reso",    "x": 152, "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Attack",     "label": "Attack",  "x": 246, "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Decay",      "label": "Decay",   "x": 316, "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Sustain",    "label": "Sustain", "x": 386, "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Release",    "label": "Release", "x": 456, "y": 42, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Level",      "label": "Level",   "x": 526, "y": 42, "w": 62, "h": 86 },
+
+    { "type": "toggle", "param": "Filter", "label": "Filter", "x": 12,  "y": 142, "w": 88, "h": 26 },
+    { "type": "toggle", "param": "Ring",   "label": "Ring",   "x": 108, "y": 142, "w": 88, "h": 26 },
+    { "type": "toggle", "param": "Sync",   "label": "Sync",   "x": 204, "y": 142, "w": 88, "h": 26 },
+
+    { "type": "label", "label": "Twin board", "x": 12, "y": 186, "w": 90, "h": 16 },
+    { "type": "enum-buttons", "param": "Chips", "label": "", "x": 12, "y": 208, "w": 130, "h": 24,
+      "options": ["ONE", "TWIN"] },
+    { "type": "enum-buttons", "param": "ModelB", "label": "", "x": 156, "y": 208, "w": 130, "h": 24,
+      "options": ["B 6581", "B 8580"] },
+    { "type": "toggle", "param": "Chain", "label": "Chain", "x": 300, "y": 208, "w": 88, "h": 26 },
+    { "type": "knob", "param": "TwinDetune", "label": "Spread", "x": 420, "y": 176, "w": 58, "h": 80 }
+  ]
+}
