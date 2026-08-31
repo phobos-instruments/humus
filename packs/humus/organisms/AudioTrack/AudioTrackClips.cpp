@@ -81,7 +81,7 @@ void AudioTrack::ensureClipsLoaded() {
     }
     {
         const juce::ScopedLock sl(loadLock_);
-        pendingClips_ = std::move(next);
+        pendingClips_.swap(next);
     }
     hasPending_.store(true, std::memory_order_release);
 }

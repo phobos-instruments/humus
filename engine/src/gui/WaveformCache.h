@@ -19,6 +19,8 @@ class WaveformCache {
 public:
     static WaveformCache& instance() { static WaveformCache c; return c; }
 
+    enum class Trouble { None, Missing, Unreadable };
+
     struct Peaks {
         std::vector<float> lo, hi;
         std::vector<float> rms;
@@ -27,6 +29,7 @@ public:
         int binSamples = 0;
         double fileSampleRate = 0.0;
         bool ready = false;
+        Trouble trouble = Trouble::None;
     };
 
     const Peaks* get(const std::string& path, std::function<void()> onReady) {
@@ -87,7 +90,11 @@ private:
         const juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
         juce::AudioFormatManager fm; fm.registerBasicFormats();
         std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
-        if (!rd || rd->lengthInSamples <= 0) { out.ready = true; return; }
+        if (!rd || rd->lengthInSamples <= 0) {
+            out.trouble = f.existsAsFile() ? Trouble::Unreadable : Trouble::Missing;
+            out.ready = true;
+            return;
+        }
 
         const std::int64_t len = rd->lengthInSamples;
         const int nBins = (int) std::min<std::int64_t>(

@@ -165,7 +165,7 @@ void AudioTrack::renderClips(float* const* out, int numOut, int numSamples,
 
 void AudioTrack::applyPending() {
     const juce::ScopedLock sl(loadLock_);
-    clips_ = std::move(pendingClips_);
+    clips_.swap(pendingClips_);
     hasPending_.store(false, std::memory_order_release);
 }
 

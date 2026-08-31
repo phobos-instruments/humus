@@ -15,7 +15,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 endif()
 
-project(Humus VERSION 0.1.4 LANGUAGES C CXX)
+project(Humus VERSION 0.1.5 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -931,6 +931,7 @@ if(HUM_GUI)
       <array><dict>
         <key>UTTypeIdentifier</key><string>com.totel.humus.patch</string>
         <key>UTTypeDescription</key><string>Humus Patch</string>
+        <key>UTTypeIconFile</key><string>Icon.icns</string>
         <key>UTTypeConformsTo</key><array><string>public.xml</string></array>
         <key>UTTypeTagSpecification</key>
         <dict><key>public.filename-extension</key><array><string>hum</string></array></dict>
@@ -939,6 +940,7 @@ if(HUM_GUI)
       <array>
         <dict>
           <key>CFBundleTypeName</key><string>Humus Patch</string>
+          <key>CFBundleTypeIconFile</key><string>Icon.icns</string>
           <key>CFBundleTypeRole</key><string>Editor</string>
           <key>LSHandlerRank</key><string>Owner</string>
           <key>LSItemContentTypes</key><array><string>com.totel.humus.patch</string></array>

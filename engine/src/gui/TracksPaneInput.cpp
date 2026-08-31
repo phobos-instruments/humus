@@ -790,6 +790,8 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
 }
 
 void TracksPane::mouseDrag(const juce::MouseEvent& e) {
+    if (!dragSync_ && (drag_ != Drag::None || clipDrag_ != ClipDrag::None))
+        dragSync_.emplace(host_);
     if (zoomDrag_ >= 0) {
         const auto gr = zoomGroove(zoomDrag_);
         const auto p = e.getPosition();
@@ -1051,6 +1053,7 @@ void TracksPane::dragClipOut(const std::string& node) {
         if (clip < 0) return;
     }
     drag_ = Drag::None;
+    dragSync_.reset();
     dragRow_ = dragClip_ = -1;
     rebuild();
     repaint();
@@ -1104,6 +1107,7 @@ void TracksPane::itemDropped(const SourceDetails& d) {
 }
 
 void TracksPane::mouseUp(const juce::MouseEvent& e) {
+    dragSync_.reset();
     traceSel("up", e);
     if (zoomDrag_ >= 0) { zoomDrag_ = -1; repaint(); return; }
     if (mode_ == Mode::Track) { mouseUpRoll(); return; }

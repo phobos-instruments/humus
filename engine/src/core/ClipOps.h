@@ -155,7 +155,9 @@ inline bool removeClip(Pattern& p, int clip) {
 inline bool moveClip(Pattern& p, int clip, int newStartTick) {
     auto* ch = clipChannel(p, clip);
     if (!ch) return false;
-    ch->startTick = std::max(0, newStartTick);
+    const int want = std::max(0, newStartTick);
+    if (ch->startTick == want) return false;
+    ch->startTick = want;
     return true;
 }
 
@@ -165,6 +167,7 @@ inline bool resizeClip(Pattern& p, int clip, int newLengthTicks, bool fromLeft,
     if (!ch) return false;
     const int oldLen = clipLength(p, clip);
     const int len = std::max(1, newLengthTicks);
+    if (len == oldLen && ch->lengthTicks == len) return false;
     if (fromLeft) {
         const int shift = oldLen - len;
         ch->startTick = std::max(0, clipStart(p, clip) + shift);

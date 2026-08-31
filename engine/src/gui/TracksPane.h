@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <string>
 #include <vector>
@@ -465,6 +466,7 @@ private:
                       PointGroup, Curve, BoxMove, BoxTrimL, BoxTrimR, Pencil, Line,
                       Scrub, LoopMove, LoopL, LoopR, LoopNew, SongEnd };
     Drag drag_ = Drag::None;
+    std::optional<EngineHost::PatternSyncBatch> dragSync_;
     int dragRow_ = -1, dragClip_ = -1;
     int dragGrabTicks_ = 0;
     int dragOriginTick_ = 0;

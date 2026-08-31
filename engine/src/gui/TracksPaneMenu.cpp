@@ -344,6 +344,7 @@ int TracksPane::placeAudioFile(const std::string& node, int atTick, const juce::
 }
 
 std::string TracksPane::addTrack(bool audio, const std::string& target) {
+    clearTimeSelection();
     if (audio) {
         const auto node = host_.addOrganism("AudioTrack", host_.spotBelowPatch());
         if (!node.empty()) host_.connectToMaster(node);

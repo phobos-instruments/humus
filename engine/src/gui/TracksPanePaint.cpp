@@ -544,6 +544,14 @@ void TracksPane::paintDropHint(juce::Graphics& g) {
 void TracksPane::paintWaveform(juce::Graphics& g, juce::Rectangle<int> b, int clipLeft,
                                const ClipEditor::ClipInfo& ci, juce::Colour accent) {
     const auto* peaks = WaveformCache::instance().get(ci.audioFile, [this] { repaint(); });
+    if (peaks && peaks->trouble != WaveformCache::Trouble::None) {
+        g.setColour(Palette::recordRed().withAlpha(0.85f));
+        g.setFont(juce::FontOptions(11.0f));
+        g.drawText(peaks->trouble == WaveformCache::Trouble::Missing
+                       ? "file missing" : "cannot read this file",
+                   b.reduced(4, 0), juce::Justification::centredLeft, true);
+        return;
+    }
     if (!peaks || !peaks->ready || peaks->binSamples <= 0 || peaks->sourceSamples <= 0) return;
 
     const double spb = (host_.tempo() > 0.0 ? 60.0 / host_.tempo() : 0.5) * host_.sampleRate();
@@ -677,20 +685,20 @@ void TracksPane::paintField(juce::Graphics& g) {
         g.drawText("... or press + to add an audio or MIDI track",
                    r, juce::Justification::centredTop);
         if (dropHot_) paintDropHint(g);
-        return;
+    } else {
+        if (dropHot_) paintDropHint(g);
+        const auto cb = g.getClipBounds();
+        g.saveState();
+        g.reduceClipRegion(0, headerH(), getWidth(), getHeight() - headerH());
+        for (const auto& s : slots_) {
+            if (s.y + s.h < cb.getY() || s.y > cb.getBottom()) continue;
+            if (s.kind == trackslayout::Kind::Track)          paintRow(g, s.track);
+            else if (s.kind == trackslayout::Kind::PodHeader) paintPodHeader(g, s);
+            else if (s.kind == trackslayout::Kind::BoxRow)    paintBoxRow(g, s);
+            else                                              paintAutoLane(g, s);
+        }
+        g.restoreState();
     }
-    if (dropHot_) paintDropHint(g);
-    const auto cb = g.getClipBounds();
-    g.saveState();
-    g.reduceClipRegion(0, headerH(), getWidth(), getHeight() - headerH());
-    for (const auto& s : slots_) {
-        if (s.y + s.h < cb.getY() || s.y > cb.getBottom()) continue;
-        if (s.kind == trackslayout::Kind::Track)          paintRow(g, s.track);
-        else if (s.kind == trackslayout::Kind::PodHeader) paintPodHeader(g, s);
-        else if (s.kind == trackslayout::Kind::BoxRow)    paintBoxRow(g, s);
-        else                                              paintAutoLane(g, s);
-    }
-    g.restoreState();
 
     if (drag_ == Drag::ClipMarquee && !clipMarquee_.isEmpty()) {
         g.setColour(Palette::accent.withAlpha(0.14f));
@@ -702,8 +710,9 @@ void TracksPane::paintField(juce::Graphics& g) {
     paintCutGuide(g);
     paintPointSelection(g);
 
-    timelinechrome::paintSongEnd(g, beatToX(host_.songEndBeat()), (float) rulerTop(),
-                                 (float) getHeight(), (float) kStripW, (float) getWidth());
+    if (const double end = host_.songEndBeat(); end > 0.0)
+        timelinechrome::paintSongEnd(g, beatToX(end), (float) rulerTop(),
+                                     (float) getHeight(), (float) kStripW, (float) getWidth());
 
     timelinechrome::paintPlayhead(g, beatToX(playBeat_), (float) rulerTop(),
                                   (float) getHeight(), (float) kStripW,
