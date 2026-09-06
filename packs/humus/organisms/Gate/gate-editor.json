@@ -1,0 +1,17 @@
+{
+  "width": 600,
+  "height": 140,
+  "controls": [
+    { "type": "enum-buttons", "param": "Source", "label": "", "x": 12, "y": 8, "w": 190, "h": 22,
+      "options": ["LEVEL", "MIDI", "SWITCH"] },
+    { "type": "enum-buttons", "param": "Detector", "label": "", "x": 216, "y": 8, "w": 120, "h": 22,
+      "options": ["PEAK", "RMS"] },
+    { "type": "toggle", "param": "Open", "label": "Open", "x": 356, "y": 6, "w": 78, "h": 26 },
+    { "type": "toggle", "param": "Duck", "label": "Duck", "x": 448, "y": 6, "w": 78, "h": 26 },
+    { "type": "knob", "param": "Threshold", "label": "Thresh", "x": 24, "y": 44, "w": 62, "h": 86 },
+    { "type": "knob", "param": "AttackTime", "label": "Attack", "x": 140, "y": 44, "w": 62, "h": 86 },
+    { "type": "knob", "param": "HoldTime", "label": "Hold", "x": 256, "y": 44, "w": 62, "h": 86 },
+    { "type": "knob", "param": "ReleaseTime", "label": "Release", "x": 372, "y": 44, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Floor", "label": "Floor", "x": 488, "y": 44, "w": 62, "h": 86 }
+  ]
+}

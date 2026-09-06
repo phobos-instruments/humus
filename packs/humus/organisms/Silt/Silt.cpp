@@ -154,7 +154,7 @@ void Silt::renderChunk(float* l, float* r, int n, float level) {
             }
             std::fill(buf2 + got2, buf2 + want, (short) 0);
         }
-        const float k = level / 32768.0f;
+        const float k = level * 3.2f / 32768.0f;
         const float kMain = k / 1.35f, kBleed = kMain * 0.35f;
         const float rise = 1.0f / (0.04f * (float) (sampleRate_ > 0.0 ? sampleRate_
                                                                       : 44100.0));

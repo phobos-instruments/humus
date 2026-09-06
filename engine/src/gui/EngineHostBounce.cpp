@@ -9,6 +9,7 @@
 #include "io/PatchLoader.h"
 #include "io/WavWriter.h"
 #include "core/MidiRecord.h"
+#include "hum/NoteSchedule.h"
 
 namespace hum {
 
@@ -17,6 +18,12 @@ std::string EngineHost::bounceSourceOf(const std::string& node) {
     for (auto n = cords::destinationOf(model_, node); !n.empty();
          n = cords::destinationOf(model_, n))
         if (outletsOf(n) > 0) return n;
+    for (const auto& t : noteTargets(node)) {
+        if (outletsOf(t) > 0) return t;
+        for (auto n = cords::destinationOf(model_, t); !n.empty();
+             n = cords::destinationOf(model_, n))
+            if (outletsOf(n) > 0) return n;
+    }
     return {};
 }
 
@@ -30,6 +37,20 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
     if (!buildGraph(model_, g, error)) return {};
     g.prepare(sampleRate_, block_, model_.clock.tempo);
     g.transport().setLoop(0.0, 0.0, false);
+    for (const auto& cm : model_.organisms) {
+        const int ni = g.indexOf(cm.name);
+        if (ni < 0) continue;
+        bool noteTrack = false;
+        for (const auto& ch : cm.pattern.channels)
+            if (ch.type == "note-events") noteTrack = true;
+        if (!noteTrack) continue;
+        auto* mn = dynamic_cast<MidiNode*>(g.find(cm.name));
+        if (mn == nullptr || mn->numMidiInputs() <= 0) continue;
+        if (dynamic_cast<ClipArrangement*>(g.find(cm.name)) != nullptr) continue;
+        g.setNodeTrack(ni, noteschedule::prepare(cm.pattern,
+                                                 4 * 4 * Pattern::kTicksPerBeat));
+        g.setNodeTrackMuted(ni, modelTrackMuted(cm));
+    }
     const int idx = g.indexOf(source);
     const int chans = g.outputChannels(idx);
     if (idx < 0 || chans <= 0) { error = source + " has no audio output"; return {}; }
@@ -77,12 +98,17 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
                          std::max(1, (int) std::llround((toBeat - fromBeat)
                                                         * Pattern::kTicksPerBeat)),
                          path);
+        bool noteTrack = false;
+        if (const auto* cm = model_.byName(node))
+            for (const auto& ch : cm->pattern.channels)
+                if (ch.type == "note-events") noteTrack = true;
         bool hasMute = false;
         if (const auto* cm = model_.byName(node))
             for (const auto& d : schemaFor(cm->classRaw))
                 if (d.name == "Mute") hasMute = true;
-        if (hasMute) setParam(node, "Mute", 1.0);
-        else         setBypass(node, true);
+        if (noteTrack)    setTrackMuted(node, true);
+        else if (hasMute) setParam(node, "Mute", 1.0);
+        else              setBypass(node, true);
     }
     endTransaction();
     return track;

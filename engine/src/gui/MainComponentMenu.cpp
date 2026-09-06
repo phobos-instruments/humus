@@ -1,5 +1,7 @@
 #include "gui/MainComponent.h"
 
+#include "gui/VisualPlanBuilder.h"
+
 #include "gui/SampleLab.h"
 #include "gui/SettingsComponent.h"
 
@@ -9,12 +11,8 @@ namespace hum {
 
 static std::vector<std::string> videoOutNames(EngineHost& host) {
     std::vector<std::string> out;
-    for (const auto& c : host.model().organisms) {
-        auto* v = dynamic_cast<VideoNode*>(host.liveOrganism(c.name));
-        if (v != nullptr && v->numVideoOutputs() == 0 && v->numVideoInputs() > 0
-            && dynamic_cast<VisualSource*>(host.liveOrganism(c.name)) == nullptr)
-            out.push_back(c.name);
-    }
+    for (const auto& c : host.model().organisms)
+        if (isVideoOutputNode(host, c.name)) out.push_back(c.name);
     return out;
 }
 
@@ -83,6 +81,14 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
     } else if (index == 2) {
         m.addItem(20, "Enable Audio", true, host_.audioRunning());
         m.addItem(27, "Audio Settings...");
+        {
+            juce::PopupMenu vids;
+            const auto outs = videoOutNames(host_);
+            for (int i = 0; i < (int) outs.size() && i < 10; ++i)
+                vids.addItem(70 + i, juce::String(outs[(size_t) i]), true,
+                             visualWindows_.count(outs[(size_t) i]) != 0);
+            m.addSubMenu("Video Outputs", vids, !outs.empty());
+        }
         m.addItem(60, "Enable MIDI", true, host_.midi().enabled());
         m.addItem(38, "Parameter Control... (F3)");
         m.addItem(31, "Generate MIDI Clock", true,
@@ -113,14 +119,6 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
         m.addSubMenu("Automation", autoEdit);
         m.addSeparator();
         m.addSeparator();
-        {
-            juce::PopupMenu vids;
-            const auto outs = videoOutNames(host_);
-            for (int i = 0; i < (int) outs.size() && i < 10; ++i)
-                vids.addItem(70 + i, juce::String(outs[(size_t) i]));
-            m.addSubMenu("Video Outputs", vids, !outs.empty());
-        }
-        m.addSeparator();
         m.addItem(29, "AI Assistant...");
         m.addItem(30, "AI Sample Lab...");
     } else if (index == 3) {
@@ -141,7 +139,11 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
 void MainComponent::menuItemSelected(int id, int) {
     if (id >= 70 && id <= 79) {
         const auto outs = videoOutNames(host_);
-        if (id - 70 < (int) outs.size()) openVisualUI(outs[(size_t) (id - 70)]);
+        if (id - 70 < (int) outs.size()) {
+            const auto& n = outs[(size_t) (id - 70)];
+            if (visualWindows_.count(n) != 0) closeVisualUI(n);
+            else openVisualUI(n);
+        }
         return;
     }
     switch (id) {

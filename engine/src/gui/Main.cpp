@@ -213,6 +213,13 @@ public:
                                    .getChildFile(args[oi + 1]));
             return;
         }
+        if (const auto f = firstExistingFile(getCommandLineParameters());
+            f != juce::File()) {
+            bootRouted_ = true;
+            showMainWindow();
+            if (auto* mc = mainComponent()) mc->openFileAt(f);
+            return;
+        }
         if (args.contains("--first-boot")) {
             AppSettings::instance().set("setup.completed", 0);
             AppSettings::instance().set("guide.seen", 0);

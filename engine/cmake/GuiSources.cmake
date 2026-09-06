@@ -83,20 +83,72 @@ set(HUM_GUI_SOURCES
     src/gui/PatternEditorInput.cpp
 )
 
+# Video decode: the OS framework where there is one (AVFoundation, Media
+# Foundation), FFmpeg's LGPL libraries on Linux via pkg-config - the system's,
+# or the trimmed build packaging/linux/ffmpeg-lite.sh makes (HUM_FFMPEG_ROOT).
+# Without any, VideoPlayer plays HAP videos only; the configure says so.
+option(HUM_FFMPEG "Play videos in VideoPlayer through FFmpeg on Linux" ON)
+set(HUM_FFMPEG_ROOT "" CACHE PATH
+  "Prefix of a private FFmpeg build to link and bundle; empty = the system's")
+set(HUM_FFMPEG_FOUND OFF)
+add_library(hum_video INTERFACE)
+if(APPLE)
+  list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerMac.mm)
+  target_link_libraries(hum_video INTERFACE
+    "-framework AVFoundation" "-framework CoreMedia" "-framework CoreVideo")
+elseif(WIN32)
+  list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerMediaFoundation.cpp)
+  target_link_libraries(hum_video INTERFACE mfplat mfreadwrite mfuuid ole32)
+  target_compile_definitions(hum_video INTERFACE HUM_MEDIA_FOUNDATION=1)
+  message(STATUS "video decode: Media Foundation")
+elseif(HUM_FFMPEG)
+  find_package(PkgConfig QUIET)
+  if(PkgConfig_FOUND)
+    if(HUM_FFMPEG_ROOT)
+      set(ENV{PKG_CONFIG_PATH} "${HUM_FFMPEG_ROOT}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+    endif()
+    # Re-probed every configure, or a moved HUM_FFMPEG_ROOT keeps the old answer.
+    unset(HUM_FFMPEG_LIBS_FOUND CACHE)
+    foreach(lib avcodec avformat avutil swscale)
+      unset(pkgcfg_lib_HUM_FFMPEG_LIBS_${lib} CACHE)
+    endforeach()
+    pkg_check_modules(HUM_FFMPEG_LIBS QUIET IMPORTED_TARGET
+      libavcodec libavformat libavutil libswscale)
+  endif()
+  if(HUM_FFMPEG_LIBS_FOUND)
+    set(HUM_FFMPEG_FOUND ON)
+    list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerFfmpeg.cpp)
+    target_link_libraries(hum_video INTERFACE PkgConfig::HUM_FFMPEG_LIBS)
+    target_compile_definitions(hum_video INTERFACE HUM_FFMPEG=1)
+    message(STATUS "video decode: FFmpeg libavcodec ${HUM_FFMPEG_LIBS_libavcodec_VERSION}")
+  else()
+    message(WARNING
+      "no FFmpeg development files (libavcodec-dev libavformat-dev libswscale-dev): "
+      "VideoPlayer will play HAP videos only in this build.")
+  endif()
+endif()
+
+# The rpath is a target property, not a link option: Ninja eats the $ORIGIN.
+function(hum_link_video target)
+  target_link_libraries(${target} PRIVATE hum_video)
+  if(HUM_FFMPEG_FOUND AND HUM_FFMPEG_ROOT)
+    set_property(TARGET ${target} APPEND PROPERTY BUILD_RPATH
+      "\$ORIGIN/lib" "${HUM_FFMPEG_ROOT}/lib")
+  endif()
+endfunction()
+
 if(APPLE)
   list(APPEND HUM_GUI_SOURCES
     src/gui/EmbeddedPluginViewMac.mm
     src/gui/PluginEditorWindowMac.mm
     src/gui/MacCursors.mm
     src/gui/GamepadHostMac.mm
-    src/gui/VideoLayerMac.mm
     src/gui/AppNapMac.mm
     src/gui/FileDragImageMac.mm
   )
 endif()
 
-# Compiled in so nothing can go missing at runtime; outside the HUM_GUI guard
-# because hum_tests reads the tour copy too.
+# Outside the HUM_GUI guard: hum_tests reads the tour copy too.
 file(GLOB HUM_EMBEDDED_ART CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/resources/glyphs/*.svg"
      "${CMAKE_CURRENT_SOURCE_DIR}/resources/glyphs/*.png")

@@ -11,6 +11,7 @@
 #include "gui/PictureFieldBrick.h"
 #include "gui/SliceMapBrick.h"
 #include "gui/VideoPreview.h"
+#include "gui/VideoTransportBrick.h"
 #include "gui/DnaBasesBrick.h"
 #include "gui/DnaStrandBrick.h"
 #include "gui/NumberFieldBrick.h"
@@ -177,6 +178,12 @@ bool LayoutEditor::buildBrick(const LayoutSpec::Control& s, Control& c) {
             auto vp = std::make_unique<hum::VideoPreview>(host_, cn);
             addAndMakeVisible(*vp);
             c.rich = std::move(vp);
+            return true;
+        }
+        case CT::VideoTransport: {
+            auto vt = std::make_unique<VideoTransportBrick>(host_, cn);
+            addAndMakeVisible(*vt);
+            c.rich = std::move(vt);
             return true;
         }
         case CT::KnobGrid: {

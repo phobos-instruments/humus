@@ -2,6 +2,7 @@
 
 #include "core/ClipOps.h"
 #include "core/RecordTake.h"
+#include "hum/dsp/PaulstretchCore.h"
 #include "hum/dsp/SoundFileBuffer.h"
 #include "core/ClipRangeOps.h"
 #include "hum/PatternMatrix.h"
@@ -486,6 +487,25 @@ std::string ClipEditor::exportFile(const std::string& node, int clip) {
     }
     const auto out = renderParts({*ch}, ch->startTick, ch->startTick + ch->lengthTicks, spt, sr);
     return writeTake(host_.record_.recordingsDir(), node + "-clip", out, sr);
+}
+
+std::string ClipEditor::stretchAudioFile(const std::string& node, int clip, double factor) {
+    auto* cm = host_.mutableByName(node);
+    if (!cm) return {};
+    clipops::upgradeLegacyClip(cm->pattern);
+    const auto* ch = clipops::clipChannel(cm->pattern, clip);
+    if (!ch || !clipops::isAudioClip(*ch)) return {};
+    factor = std::clamp(factor, 1.0, 100.0);
+    const double spt = samplesPerTick();
+    const double sr = host_.sampleRate_;
+    auto src = renderParts({*ch}, ch->startTick, ch->startTick + ch->lengthTicks, spt, sr);
+    const int maxSource = (int) (1200.0 / factor * sr);
+    if (src.getNumSamples() > maxSource)
+        src.setSize(src.getNumChannels(), maxSource, true, true, false);
+    if (src.getNumSamples() < 1) return {};
+    const auto stretched = paulstretchRender(src, sr, factor);
+    if (stretched.getNumSamples() < 1) return {};
+    return writeTake(host_.record_.recordingsDir(), node + "-stretched", stretched, sr);
 }
 
 std::vector<NoteEvent> ClipEditor::notes(const std::string& node, int clip) const {

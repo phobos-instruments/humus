@@ -65,7 +65,7 @@ void TracksPane::rollPitchRange(int& lo, int& hi) const {
 
 juce::Rectangle<int> TracksPane::rollField() const {
     const int top = headerH() + kChipH;
-    const int bottom = fieldBottom() - kRibbonH - (rollShowsVelocity() ? kVelH : 0);
+    const int bottom = fieldBottom() - kRibbonH - (rollShowsVelocity() ? velH_ : 0);
     return {kStripW, top, std::max(0, getWidth() - kStripW), std::max(0, bottom - top)};
 }
 
@@ -261,9 +261,9 @@ void TracksPane::paintRoll(juce::Graphics& g) {
     g.drawVerticalLine(kStripW - 1, (float) f.getY(), (float) f.getBottom());
 
     if (rollShowsVelocity()) {
-        const int top = fieldBottom() - kVelH;
+        const int top = fieldBottom() - velH_;
         g.setColour(Palette::background.darker(0.15f));
-        g.fillRect(0, top, getWidth(), kVelH);
+        g.fillRect(0, top, getWidth(), velH_);
         g.setColour(Palette::border);
         g.drawHorizontalLine(top, 0.0f, (float) getWidth());
         g.setColour(Palette::textDim);
@@ -275,9 +275,22 @@ void TracksPane::paintRoll(juce::Graphics& g) {
             for (const auto& n : host_.clips().notes(trackNode_, ci.index)) {
                 const float x = tickToX(ci.startTick + n.tick);
                 if (x < (float) kStripW || x > (float) getWidth()) continue;
-                const float h = (kVelH - 6.0f) * n.velocity / 127.0f;
-                g.fillRect(x, (float) (top + kVelH - 3) - h, 3.0f, h);
+                const float h = ((float) velH_ - 6.0f) * n.velocity / 127.0f;
+                const float barTop = (float) (top + velH_ - 3) - h;
+                g.setColour(col.withAlpha(0.45f));
+                g.fillRect(x, barTop, 3.0f, h);
+                g.setColour(col);
+                g.fillEllipse(x - 1.5f, barTop - 3.0f, 6.0f, 6.0f);
             }
+        }
+        if (velShowX_ >= 0 && velShowVal_ >= 0) {
+            const auto bubble = juce::Rectangle<int>(
+                juce::jlimit(kStripW, getWidth() - 40, velShowX_ - 17), top - 18, 34, 16);
+            g.setColour(Palette::accent);
+            g.fillRoundedRectangle(bubble.toFloat(), 3.0f);
+            g.setColour(Palette::background);
+            g.setFont(juce::FontOptions(10.5f));
+            g.drawText(juce::String(velShowVal_), bubble, juce::Justification::centred);
         }
     }
 

@@ -70,7 +70,7 @@ TracksPane::ClipHit TracksPane::clipEditorHit(juce::Point<int> p) const {
     const auto box = clipBox();
     if (!clipField().contains(p)) return ClipHit::None;
     using timelinechrome::FadeGrip;
-    if (box.contains(p)) {
+    if (ci.isAudio && box.contains(p)) {
         const auto fg = timelinechrome::fadeGripAt(box, p, kFadeGrip * 2, ci.fadeInTicks,
                                                    ci.fadeOutTicks, ci.lengthTicks);
         if (fg == FadeGrip::Left) return ClipHit::FadeL;
@@ -110,13 +110,17 @@ TracksPane::ClipHit TracksPane::rowClipHit(int row, juce::Point<int> p) const {
     const auto& ci = clips[(size_t) c];
     const auto b = clipBounds(row, ci);
     using timelinechrome::FadeGrip;
-    const auto fg = timelinechrome::fadeGripAt(b, p, kFadeGrip, ci.fadeInTicks, ci.fadeOutTicks,
-                                               ci.lengthTicks);
+    const auto fg = ci.isAudio
+        ? timelinechrome::fadeGripAt(b, p, kFadeGrip, ci.fadeInTicks, ci.fadeOutTicks,
+                                     ci.lengthTicks)
+        : FadeGrip::None;
     if (fg == FadeGrip::Left) return ClipHit::FadeL;
     if (fg == FadeGrip::Right) return ClipHit::FadeR;
-    const auto cg = timelinechrome::fadeCurveGripAt(b, p, kFadeGrip, ci.fadeInTicks,
-                                                    ci.fadeOutTicks, ci.lengthTicks,
-                                                    ci.fadeInCurve, ci.fadeOutCurve);
+    const auto cg = ci.isAudio
+        ? timelinechrome::fadeCurveGripAt(b, p, kFadeGrip, ci.fadeInTicks,
+                                          ci.fadeOutTicks, ci.lengthTicks,
+                                          ci.fadeInCurve, ci.fadeOutCurve)
+        : FadeGrip::None;
     if (cg == FadeGrip::Left) return ClipHit::CurveL;
     if (cg == FadeGrip::Right) return ClipHit::CurveR;
     if (l) return ClipHit::EdgeL;

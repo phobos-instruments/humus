@@ -4,6 +4,7 @@
 #include <string>
 
 #include "hum/CameraCapture.h"
+#include "hum/NativeCamera.h"
 #include "hum/Capabilities.h"
 #include "hum/Organism.h"
 
@@ -32,13 +33,18 @@ public:
 
     void injectPreviewFrame(const juce::Image& img);
 
+    NativePicture camNativePicture() const override;
+
 private:
     class Lifecycle;
     friend class Lifecycle;
     void updateCamera(bool wantOpen, int camIndex);
     void frameArrived(const juce::Image& img);
 
+    void nativeFrameArrived(const NativeCamera::FrameRef& f);
+
     std::unique_ptr<Lifecycle> lifecycle_;
+    std::unique_ptr<NativeCamera> native_;
     std::unique_ptr<CameraCapture> device_;
     class FrameListener;
     std::unique_ptr<FrameListener> listener_;
@@ -47,8 +53,11 @@ private:
     std::atomic<bool> deviceOpen_{false};
     std::atomic<unsigned> frameGen_{0};
 
-    juce::CriticalSection frameLock_;
+    mutable juce::CriticalSection frameLock_;
     Frame frame_;
+    NativeCamera::FrameRef nativeFrame_;
+    mutable Frame nativeRgba_;
+    mutable unsigned nativeShownGen_ = ~0u;
 };
 
 }

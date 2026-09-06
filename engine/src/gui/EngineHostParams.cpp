@@ -45,6 +45,13 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
         return;
     }
     if (param == kRandomAction) { fireRandom(organism, value >= 0.5); return; }
+    if (isTransportAction(param)) {
+        if (const auto* cm = model_.byName(organism);
+            cm != nullptr && isClockPseudo(cm->displayClass)) {
+            fireTransport(param, value >= 0.5);
+            return;
+        }
+    }
     if (auto* rl = dynamic_cast<ReloadOnParam*>(liveOrganism(organism)); rl && rl->reloadsOn(param))
         juce::MessageManager::callAsync([this, alive = hostAlive_, organism] {
             if (*alive) onFileNodeChanged(organism, {}, false);
@@ -167,6 +174,22 @@ void EngineHost::firePresetStep(const std::string& organism, int dir, bool high)
                              [this, organism, dir] { presets_.recallAdjacent(organism, dir); });
     ++liveControlGen_;
     if (onNodeRolled) onNodeRolled(organism);
+}
+
+void EngineHost::fireTransport(const std::string& action, bool high) {
+    bool& was = transportHigh_[action];
+    const bool edge = high && !was;
+    was = high;
+    if (!edge) return;
+    if (action == kPlayAction) play();
+    else if (action == kStopAction) stop();
+    else if (action == kPlayFromStartAction) playFromStart();
+    else if (action == kGoToStartAction) goToStart();
+    else if (action == kGoToEndAction) goToEnd();
+    else if (action == kCaptureAction) record().captureToggle();
+    else if (action == kLoopToggleAction)
+        automation().setLoop(automation().loopStartBeat(), automation().loopEndBeat(),
+                             !automation().loopEnabled());
 }
 
 void EngineHost::fireRandom(const std::string& organism, bool high) {
@@ -357,6 +380,9 @@ void EngineHost::editParam(const std::string& organism, const std::string& param
     paramEditKey_ = key;
     paramEditTime_ = now;
     setParam(organism, param, value);
+    if (param == "Target")
+        if (const auto* cm = model_.byName(organism); cm && cm->classRaw == "MidiTrack")
+            applyMidiTrackTarget(organism, (int) value);
 }
 
 NodeState EngineHost::captureNodeState(const std::string& name) const {

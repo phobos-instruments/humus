@@ -1,0 +1,43 @@
+{
+  "classes": [
+    {
+      "class": "Slider",
+      "category": "Primitives",
+      "params": [
+        {
+          "name": "Value",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0
+        },
+        {
+          "name": "Min",
+          "min": -128.0,
+          "max": 128.0,
+          "def": 0.0
+        },
+        {
+          "name": "Max",
+          "min": -128.0,
+          "max": 128.0,
+          "def": 1.0
+        },
+        {
+          "name": "Slew",
+          "min": 0.0,
+          "max": 2000.0,
+          "def": 5.0,
+          "unit": "ms"
+        },
+        {
+          "name": "Log",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:slider-editor.json"
+    }
+  ]
+}

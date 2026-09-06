@@ -496,23 +496,103 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
                                    + juce::String((int) std::ceil(to / bpb)) + ")"
                              : juce::String("Consolidate to Audio"),
                       canBounce);
-            const bool ownsTheRow = host_.nodeRecordsAudio(node);
+            std::vector<std::string> targets;
+            if (host_.midiOutletsOf(node) == 1) {
+                for (const auto& other : host_.model().organisms) {
+                    if (other.name == node) continue;
+                    if (isHiddenOrganism(other.displayClass)) continue;
+                    if (host_.midiInletsOf(other.name) < 1) continue;
+                    targets.push_back(other.name);
+                }
+                juce::PopupMenu send;
+                for (int i = 0; i < (int) targets.size(); ++i) {
+                    bool corded = false;
+                    for (const auto& c : host_.model().midiConnections)
+                        if (c.src == node && c.dst == targets[(size_t) i]) corded = true;
+                    send.addItem(100 + i, juce::String(targets[(size_t) i]), true, corded);
+                }
+                m.addSeparator();
+                m.addSubMenu("Send MIDI to", send, !targets.empty());
+            }
+            const auto* cmRow = host_.model().byName(node);
+            const bool ownsTheRow = host_.nodeRecordsAudio(node)
+                                    || (cmRow != nullptr && cmRow->classRaw == "MidiTrack");
+            std::vector<std::string> group;
+            if (selTracks_.count(node) != 0 && selTracks_.size() > 1)
+                for (const auto& n : rows_)
+                    if (selTracks_.count(n) != 0) group.push_back(n);
             m.addSeparator();
-            m.addItem(4, ownsTheRow ? "Delete Track" : "Remove Track");
+            m.addItem(5, "Rename Track...");
+            m.addItem(4, group.size() > 1
+                             ? juce::String("Delete ") + juce::String((int) group.size())
+                                   + " Tracks"
+                             : juce::String(ownsTheRow ? "Delete Track" : "Remove Track"));
             const auto sp = e.getScreenPosition();
             m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
-                            [this, node, row](int r) {
+                            [this, node, row, targets, group](int r) {
+                if (r >= 100 && r - 100 < (int) targets.size()) {
+                    host_.pushUndo();
+                    std::vector<ConnectionModel> old;
+                    for (const auto& c : host_.model().midiConnections)
+                        if (c.src == node && c.srcOutlet == 0) old.push_back(c);
+                    for (const auto& c : old)
+                        host_.removeMidiConnection(c.src, c.srcOutlet, c.dst, c.dstInlet);
+                    host_.connectMidi(node, 0, targets[(size_t) (r - 100)], 0);
+                    if (onPatchChanged) onPatchChanged();
+                    return;
+                }
                 if (r == 3) { consolidateRow(row); return; }
+                if (r == 5) {
+                    const auto slash = node.rfind('/');
+                    const auto prefix =
+                        slash == std::string::npos ? std::string() : node.substr(0, slash + 1);
+                    const auto leaf =
+                        slash == std::string::npos ? node : node.substr(slash + 1);
+                    auto* aw = new juce::AlertWindow(
+                        "Rename Track", "New name for \"" + juce::String(leaf) + "\":",
+                        juce::MessageBoxIconType::NoIcon);
+                    aw->addTextEditor("name", juce::String(leaf));
+                    aw->addButton("Rename", 1, juce::KeyPress(juce::KeyPress::returnKey));
+                    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+                    aw->enterModalState(true, juce::ModalCallbackFunction::create(
+                        [this, aw, node, prefix](int ok) {
+                            const auto text = aw->getTextEditorContents("name")
+                                                  .replaceCharacter('/', '-')
+                                                  .trim();
+                            aw->exitModalState(ok);
+                            aw->setVisible(false);
+                            delete aw;
+                            if (ok != 1 || text.isEmpty()) return;
+                            if (host_.renameOrganism(node, prefix + text.toStdString())) {
+                                rebuild();
+                                repaint();
+                                if (onPatchChanged) onPatchChanged();
+                            }
+                        }));
+                    return;
+                }
                 if (r == 4) {
                     clearClipSel();
-                    if (host_.nodeRecordsAudio(node)) {
-                        host_.removeOrganism(node);
-                    } else if (arrangeable_.count(node) != 0) {
-                        host_.pushUndo();
-                        host_.clips().removeTrack(node);
+                    auto deleteOne = [this](const std::string& n) {
+                        const auto* cm = host_.model().byName(n);
+                        if (host_.nodeRecordsAudio(n)
+                            || (cm != nullptr && cm->classRaw == "MidiTrack")) {
+                            host_.removeOrganism(n);
+                        } else if (arrangeable_.count(n) != 0) {
+                            host_.pushUndo();
+                            host_.clips().removeTrack(n);
+                        } else {
+                            host_.automation().clearOrganism(n, true);
+                        }
+                    };
+                    if (group.size() > 1) {
+                        host_.beginTransaction();
+                        for (const auto& n : group) deleteOne(n);
+                        host_.endTransaction();
                     } else {
-                        host_.automation().clearOrganism(node, true);
+                        deleteOne(node);
                     }
+                    selTracks_.clear();
                     rebuild();
                     repaint();
                     if (onPatchChanged) onPatchChanged();
@@ -530,7 +610,37 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
             repaint();
             return;
         }
+        if (const auto* cmDest = host_.model().byName(node);
+            cmDest != nullptr && cmDest->classRaw == "MidiTrack"
+            && destBox(row, node).contains(p) && !e.mods.isPopupMenu()) {
+            double current = 1.0;
+            for (const auto& prm : cmDest->properties)
+                if (prm.name == "Target") { current = prm.value; break; }
+            juce::PopupMenu m;
+            for (const auto& item : host_.choiceItems("midi-targets", node))
+                m.addItem(item.first, juce::String::fromUTF8(item.second.c_str()), true,
+                          item.first == (int) current);
+            const auto sp = e.getScreenPosition();
+            m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
+                            [this, node](int r) {
+                if (r <= 0) return;
+                host_.editParam(node, "Target", (double) r);
+                repaint();
+                if (onPatchChanged) onPatchChanged();
+            });
+            return;
+        }
         if (p.x > 18 && p.x < kStripW - 84 && !e.mods.isPopupMenu()) {
+            if (e.mods.isShiftDown() && selClipRow_ >= 0
+                && selClipRow_ < (int) rows_.size()) {
+                const int a = std::min(selClipRow_, row);
+                const int b = std::max(selClipRow_, row);
+                for (int i = a; i <= b; ++i) selTracks_.insert(rows_[(size_t) i]);
+            } else if (e.mods.isCommandDown()) {
+                if (!selTracks_.insert(node).second) selTracks_.erase(node);
+            } else {
+                selTracks_.clear();
+            }
             selectClip(row, -1);
             repaint();
             return;
@@ -571,6 +681,7 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
             }
             const bool arm = !host_.midi().isRecordTarget(node);
             host_.midi().setRecordTarget(node, arm, 0, EngineHost::kClipOnDemand, true);
+            syncLiveTarget();
             repaint();
         }
         return;
@@ -724,17 +835,20 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
             selectClip(row, made);
             drag_ = Drag::ClipMove;
             dragGrabTicks_ = tick - ci.startTick;
-        } else if (const auto fg = timelinechrome::fadeGripAt(clipBounds(row, ci), p, kFadeGrip,
-                                                             ci.fadeInTicks,
-                                                             ci.fadeOutTicks,
-                                                             ci.lengthTicks);
+        } else if (const auto fg = ci.isAudio
+                       ? timelinechrome::fadeGripAt(clipBounds(row, ci), p, kFadeGrip,
+                                                    ci.fadeInTicks, ci.fadeOutTicks,
+                                                    ci.lengthTicks)
+                       : timelinechrome::FadeGrip::None;
                    fg != timelinechrome::FadeGrip::None) {
             drag_ = fg == timelinechrome::FadeGrip::Left ? Drag::ClipFadeL : Drag::ClipFadeR;
             dragClip_ = clip;
             selectClip(row, clip);
-        } else if (const auto cg = timelinechrome::fadeCurveGripAt(
-                       clipBounds(row, ci), p, kFadeGrip, ci.fadeInTicks, ci.fadeOutTicks,
-                       ci.lengthTicks, ci.fadeInCurve, ci.fadeOutCurve);
+        } else if (const auto cg = ci.isAudio
+                       ? timelinechrome::fadeCurveGripAt(
+                             clipBounds(row, ci), p, kFadeGrip, ci.fadeInTicks,
+                             ci.fadeOutTicks, ci.lengthTicks, ci.fadeInCurve, ci.fadeOutCurve)
+                       : timelinechrome::FadeGrip::None;
                    cg != timelinechrome::FadeGrip::None) {
             drag_ = cg == timelinechrome::FadeGrip::Left ? Drag::ClipFadeCurveL
                                                         : Drag::ClipFadeCurveR;
@@ -1219,6 +1333,16 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
     const int row = rowAt(p.y);
     const Tool tool = effectiveTool();
     if (tool == Tool::Scissors) repaintCutGuide(was.x, p.x);
+    if (mode_ == Mode::Track && rollPlot().usable && rollShowsVelocity() && p.x >= kStripW
+        && p.y >= fieldBottom() - velH_ - 3 && p.y < fieldBottom()) {
+        if (std::abs(p.y - (fieldBottom() - velH_)) <= 3) {
+            setMouseCursor(juce::MouseCursor::UpDownResizeCursor);
+            return;
+        }
+        if (tool != Tool::Pointer) { setMouseCursor(timelinechrome::toolCursor(tool)); return; }
+        setMouseCursor(juce::MouseCursor::DraggingHandCursor);
+        return;
+    }
     if (mode_ == Mode::Track && rollPlot().usable && rollField().contains(p)) {
         if (tool != Tool::Pointer) { setMouseCursor(timelinechrome::toolCursor(tool)); return; }
         int clip = -1, index = -1;
@@ -1266,17 +1390,21 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
                  c < (int) clips.size()) {
             const auto cb = clipBounds(row, clips[(size_t) c]);
             const auto& hc = clips[(size_t) c];
-            if (const auto fg = timelinechrome::fadeGripAt(cb, p, kFadeGrip, hc.fadeInTicks,
-                                                           hc.fadeOutTicks, hc.lengthTicks);
+            if (const auto fg = hc.isAudio
+                    ? timelinechrome::fadeGripAt(cb, p, kFadeGrip, hc.fadeInTicks,
+                                                 hc.fadeOutTicks, hc.lengthTicks)
+                    : timelinechrome::FadeGrip::None;
                 fg != timelinechrome::FadeGrip::None) {
                 setMouseCursor(fg == timelinechrome::FadeGrip::Left
                                    ? juce::MouseCursor::TopLeftCornerResizeCursor
                                    : juce::MouseCursor::TopRightCornerResizeCursor);
                 return;
             }
-            if (timelinechrome::fadeCurveGripAt(cb, p, kFadeGrip, hc.fadeInTicks, hc.fadeOutTicks,
-                                                hc.lengthTicks, hc.fadeInCurve, hc.fadeOutCurve)
-                != timelinechrome::FadeGrip::None) {
+            if (hc.isAudio
+                && timelinechrome::fadeCurveGripAt(cb, p, kFadeGrip, hc.fadeInTicks,
+                                                   hc.fadeOutTicks, hc.lengthTicks,
+                                                   hc.fadeInCurve, hc.fadeOutCurve)
+                       != timelinechrome::FadeGrip::None) {
                 setMouseCursor(juce::MouseCursor::UpDownResizeCursor);
                 return;
             }

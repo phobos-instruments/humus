@@ -135,6 +135,7 @@ public:
     void applyBypass(const std::string& name, bool on);
     void applyTrackMute(const std::string& name, bool on);
     void fireRandom(const std::string& name, bool high);
+    void fireTransport(const std::string& action, bool high);
     void firePresetStep(const std::string& name, int dir, bool high);
     void applyMetapadTarget(const std::string& param, double value);
     void pullVoiceParams(const std::string& name);
@@ -511,6 +512,8 @@ private:
     void autoDetectDeckGrid(const std::string& organism, const std::string& filePath);
     void applyGroove();
     void rebuild();
+    void applyMidiTrackTarget(const std::string& name, int value);
+    void syncMidiTrackTargets();
     void discardLiveGraph();
     void publishClock();
     void applyLoadedLayout();
@@ -767,6 +770,7 @@ private:
     hum::LimiterCore limiter_;
     ParamHistory paramHistory_;
     std::map<std::string, bool> randomHigh_;
+    std::map<std::string, bool> transportHigh_;
     std::map<std::string, bool> presetStepHigh_;
     int patternBatch_ = 0;
     std::set<std::string> patternPending_;

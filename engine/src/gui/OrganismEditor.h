@@ -222,6 +222,10 @@ inline std::vector<std::string> controlTargets(EngineHost& host, const std::stri
     if (isClockPseudo(cm->displayClass)) {
         out.push_back(kTempoParam);
         out.push_back(kRandomAction);
+        for (const char* a : {kPlayAction, kStopAction, kPlayFromStartAction,
+                              kGoToStartAction, kGoToEndAction, kCaptureAction,
+                              kLoopToggleAction})
+            out.push_back(a);
         return out;
     }
     if (isMetapadPseudo(cm->displayClass)) {
@@ -378,8 +382,8 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
             followTop.addSubMenu("From a list", follow);
         }
         m.addSeparator();
-        m.addSubMenu("Modulate with", mod, mod.getNumItems() > 0);
-        if (modMapped) m.addItem(12, "Clear modulation");
+        m.addSubMenu("Control with", mod, mod.getNumItems() > 0);
+        if (modMapped) m.addItem(12, "Release control");
         m.addSeparator();
         m.addSubMenu("Follow", followTop);
         if (followMapped) m.addItem(8, "Stop following");

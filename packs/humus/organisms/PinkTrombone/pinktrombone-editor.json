@@ -1,0 +1,18 @@
+{
+  "width": 600,
+  "height": 240,
+  "controls": [
+    { "type": "label", "label": "Tongue", "x": 24, "y": 8, "w": 130, "h": 14 },
+    { "type": "knob", "param": "TongueX", "label": "Front", "x": 16, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "TongueY", "label": "Raise", "x": 88, "y": 26, "w": 62, "h": 86 },
+    { "type": "label", "label": "Constriction", "x": 184, "y": 8, "w": 130, "h": 14 },
+    { "type": "knob", "param": "Place", "label": "Place", "x": 176, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Squeeze", "label": "Squeeze", "x": 248, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Nasal", "label": "Nasal", "x": 344, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Tenseness", "label": "Tense", "x": 440, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Vibrato", "label": "Vibrato", "x": 520, "y": 26, "w": 62, "h": 86 },
+    { "type": "toggle", "param": "Wobble", "label": "Wobble", "x": 16, "y": 140, "w": 90, "h": 26 },
+    { "type": "toggle", "param": "Drone", "label": "Drone", "x": 118, "y": 140, "w": 90, "h": 26 },
+    { "type": "knob", "param": "Level", "label": "Level", "x": 520, "y": 130, "w": 62, "h": 86 }
+  ]
+}

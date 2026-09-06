@@ -9,6 +9,8 @@
 #import <CoreVideo/CoreVideo.h>
 #import <Foundation/Foundation.h>
 
+#include <cstdlib>
+
 namespace hum {
 namespace {
 
@@ -55,12 +57,42 @@ public:
                              toleranceAfter:kCMTimeZero
                           completionHandler:^(BOOL) { player.rate = r; }];
                     }] retain];
-        player_.rate = rate_;
+        if (!paused_) player_.rate = rate_;
     }
 
     void setRate(float rate) override {
         rate_ = rate;
-        if (item_ != nil) player_.rate = rate;
+        if (item_ != nil && !paused_) player_.rate = rate;
+    }
+
+    void setPaused(bool paused) override {
+        if (paused == paused_) return;
+        paused_ = paused;
+        if (item_ == nil) return;
+        if (paused) [player_ pause];
+        else player_.rate = rate_;
+    }
+
+    bool isPaused() const override { return paused_; }
+
+    double positionSeconds() override {
+        if (item_ == nil) return 0.0;
+        const auto t = [item_ currentTime];
+        return CMTIME_IS_NUMERIC(t) ? CMTimeGetSeconds(t) : 0.0;
+    }
+
+    double lengthSeconds() override {
+        if (item_ == nil) return 0.0;
+        const auto d = item_.duration;
+        return CMTIME_IS_NUMERIC(d) ? CMTimeGetSeconds(d) : 0.0;
+    }
+
+    void seekSeconds(double t) override {
+        if (item_ == nil) return;
+        [item_ seekToTime:CMTimeMakeWithSeconds(t, 600)
+            toleranceBefore:kCMTimeZero
+             toleranceAfter:kCMTimeZero
+          completionHandler:nil];
     }
 
     void restart() override {
@@ -73,32 +105,45 @@ public:
     }
 
     std::shared_ptr<const Frame> latestFrame() override {
-        if (item_ == nil) return nullptr;
+        if (item_ == nil) return current_;
         const CMTime t = [item_ currentTime];
-        if (![output_ hasNewPixelBufferForItemTime:t]) return nullptr;
+        if (![output_ hasNewPixelBufferForItemTime:t]) return current_;
         CVPixelBufferRef px = [output_ copyPixelBufferForItemTime:t
                                                 itemTimeForDisplay:nil];
-        if (px == nullptr) return nullptr;
+        if (px == nullptr) return current_;
         auto frame = std::make_shared<Frame>();
-        CVPixelBufferLockBaseAddress(px, kCVPixelBufferLock_ReadOnly);
         frame->width = (int) CVPixelBufferGetWidth(px);
         frame->height = (int) CVPixelBufferGetHeight(px);
-        const auto stride = (size_t) CVPixelBufferGetBytesPerRow(px);
-        const auto* src = (const unsigned char*) CVPixelBufferGetBaseAddress(px);
-        if (src != nullptr && frame->width > 0 && frame->height > 0) {
-            const size_t rowBytes = (size_t) frame->width * 4;
-            frame->bgra.resize(rowBytes * (size_t) frame->height);
-            for (int y = 0; y < frame->height; ++y)
-                memcpy(frame->bgra.data() + rowBytes * (size_t) y,
-                       src + stride * (size_t) y, rowBytes);
+        static const bool forceUpload = getenv("HUMUS_GL_UPLOAD") != nullptr;
+        const bool surfaceBacked = !forceUpload && CVPixelBufferGetIOSurface(px) != nullptr;
+        if (!surfaceBacked) {
+            CVPixelBufferLockBaseAddress(px, kCVPixelBufferLock_ReadOnly);
+            const auto stride = (size_t) CVPixelBufferGetBytesPerRow(px);
+            const auto* src = (const unsigned char*) CVPixelBufferGetBaseAddress(px);
+            if (src != nullptr && frame->width > 0 && frame->height > 0) {
+                const size_t rowBytes = (size_t) frame->width * 4;
+                frame->bgra.resize(rowBytes * (size_t) frame->height);
+                for (int y = 0; y < frame->height; ++y)
+                    memcpy(frame->bgra.data() + rowBytes * (size_t) y,
+                           src + stride * (size_t) y, rowBytes);
+            }
+            CVPixelBufferUnlockBaseAddress(px, kCVPixelBufferLock_ReadOnly);
         }
-        CVPixelBufferUnlockBaseAddress(px, kCVPixelBufferLock_ReadOnly);
-        CVBufferRelease(px);
-        return frame->bgra.empty() ? nullptr : frame;
+        if (frame->width <= 0 || frame->height <= 0
+            || (!surfaceBacked && frame->bgra.empty())) {
+            CVBufferRelease(px);
+            return current_;
+        }
+        frame->native = px;
+        frame->nativeHold = std::shared_ptr<const void>(
+            (const void*) px, [](const void* p) { CVBufferRelease((CVPixelBufferRef) p); });
+        current_ = std::move(frame);
+        return current_;
     }
 
 private:
     void unload() {
+        current_.reset();
         if (endToken_ != nil) {
             [[NSNotificationCenter defaultCenter] removeObserver:endToken_];
             [endToken_ release];
@@ -118,11 +163,13 @@ private:
     AVPlayerItem* item_ = nil;
     id endToken_ = nil;
     float rate_ = 1.0f;
+    bool paused_ = false;
+    std::shared_ptr<const Frame> current_;
 };
 
 }  // namespace
 
-std::unique_ptr<VideoLayer> VideoLayer::create() {
+std::unique_ptr<VideoLayer> VideoLayer::createPlatform() {
     return std::make_unique<AvVideoLayer>();
 }
 

@@ -50,12 +50,19 @@ struct LayerIn {
     float opacity = 1.0f;
     int blend = 0;
 };
+struct Tap {
+    std::string node;
+    int step = -1;
+    int w = 0, h = 0;
+    float fade = 1.0f;
+    bool everyOther = false;
+};
+
 struct Step {
     enum Kind { Black, Deck, Scene, Mix } kind = Black;
     std::string node;
     std::shared_ptr<const VideoLayer::Frame> frame;
     bool active = false;
-    float wear = 0.0f;
     SceneSpec scene;
     visual::Bands bands;
     float time = 0.0f, beat = 0.0f, bpm = 120.0f, onBeat = 0.0f;
@@ -75,9 +82,9 @@ struct Step {
 };
 struct Plan {
     std::vector<Step> steps;
+    std::vector<Tap> taps;
     int root = -1;
     float masterFade = 1.0f;
-    float wearClock = 0.0f;
     bool noSignal = false;
 };
 

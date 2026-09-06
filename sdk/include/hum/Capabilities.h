@@ -2,6 +2,7 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -150,6 +151,16 @@ public:
     virtual Skeleton camSkeleton() const { return {}; }
 
     virtual std::string camUnavailable() const { return {}; }
+
+    virtual bool camSourceHeld() const { return false; }
+
+    struct NativePicture {
+        void* buffer = nullptr;
+        int width = 0, height = 0;
+        bool mirrored = false;
+        std::shared_ptr<const void> hold;
+    };
+    virtual NativePicture camNativePicture() const { return {}; }
 };
 
 class SigilSource {
@@ -194,6 +205,16 @@ public:
     virtual int oscValues(OscVal* out, int capacity) const = 0;
 };
 
+class GestureFeatureSource {
+public:
+    static constexpr int kMaxFeatures = 8;
+    virtual ~GestureFeatureSource() = default;
+    virtual int gestureFeatureCount() const = 0;
+    virtual bool gestureFeaturesLive(float* out) const = 0;
+    virtual const char* gestureHoldPrompt() const { return "hold the pose..."; }
+    virtual const char* gestureAbsentPrompt() const { return "step into view..."; }
+};
+
 class ControlSource {
 public:
     struct ControlVal { const char* name; float value; };
@@ -214,6 +235,23 @@ public:
     virtual int numVideoInputs() const = 0;
     virtual int numVideoOutputs() const = 0;
     virtual unsigned videoLaunchCount() const { return 0; }
+};
+
+class VideoFrameSink {
+public:
+    struct Picture {
+        int width = 0, height = 0;
+        bool bgra = false;
+        const std::uint8_t* pixels = nullptr;
+        void* native = nullptr;
+        std::shared_ptr<const void> hold;
+        bool mirrored = false;
+    };
+
+    virtual ~VideoFrameSink() = default;
+    virtual void pushVideoFrame(const Picture& picture) = 0;
+    virtual void setVideoCordAttached(bool) {}
+    virtual void setVideoSourceHeld(bool) {}
 };
 
 class LiveCaptureSource {

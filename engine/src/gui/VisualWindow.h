@@ -6,13 +6,13 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/FreeWindow.h"
+#include "gui/FpsMeter.h"
 #include "gui/VisualGlCanvas.h"
 #include "gui/VisualPlanBuilder.h"
 
 #if JUCE_MAC
 namespace hum {
-void pluginWindowAttachToMain(juce::ComponentPeer* plugin, juce::ComponentPeer* main);
-void pluginWindowDetachFromMain(juce::ComponentPeer* plugin, juce::ComponentPeer* main);
+void windowKeepFullscreenLocal(juce::ComponentPeer* peer);
 }
 #endif
 
@@ -25,10 +25,10 @@ public:
         : juce::DocumentWindow(juce::String(name), juce::Colours::black,
                                juce::DocumentWindow::allButtons),
           host_(host), name_(std::move(name)),
-          mainPeer_(mainComponent ? mainComponent->getPeer() : nullptr),
           onClosed_(std::move(onClosed)),
           isOutput_(isVideoOutputNode(host_, name_)),
           builder_(host_, name_, isOutput_) {
+        juce::ignoreUnused(mainComponent);
         setUsingNativeTitleBar(true);
         canvas_ = std::make_unique<GlCanvas>();
         if (isOutput_) canvas_->setPreviewNode(name_);
@@ -38,8 +38,7 @@ public:
         setVisible(true);
         startTimerHz(30);
 #if JUCE_MAC
-        pluginWindowAttachToMain(getPeer(), mainPeer_);
-        attached_ = true;
+        windowKeepFullscreenLocal(getPeer());
 #endif
     }
 
@@ -47,7 +46,6 @@ public:
         stopTimer();
         canvas_.reset();
 #if JUCE_MAC
-        if (attached_) pluginWindowDetachFromMain(getPeer(), mainPeer_);
         removeFromDesktop();
 #endif
         clearContentComponent();
@@ -64,12 +62,6 @@ private:
     void applyScreen(int screen) {
         if (screen == lastScreen_) return;
         lastScreen_ = screen;
-#if JUCE_MAC
-        if (attached_) {
-            pluginWindowDetachFromMain(getPeer(), mainPeer_);
-            attached_ = false;
-        }
-#endif
         const auto& ds = juce::Desktop::getInstance().getDisplays().displays;
         if (screen >= 1 && screen <= ds.size()) {
             setUsingNativeTitleBar(false);
@@ -83,13 +75,10 @@ private:
             setUsingNativeTitleBar(true);
             setResizable(true, false);
             centreWithSize(656, 396);
-#if JUCE_MAC
-            pluginWindowAttachToMain(getPeer(), mainPeer_);
-            attached_ = true;
-#else
-            setAlwaysOnTop(true);
-#endif
         }
+#if JUCE_MAC
+        windowKeepFullscreenLocal(getPeer());
+#endif
     }
 
     void timerCallback() override {
@@ -106,6 +95,9 @@ private:
         juce::String title = juce::String(name_);
         if (isOutput_ && builder_.root().empty())
             title += " " + juce::String("-") + " no input corded";
+        meter_.note(canvas_->renderCount());
+        if (fpsOverlayOn() && meter_.fps() > 0.0)
+            title += " " + juce::String("-") + " " + meter_.label();
         setName(err.isEmpty() ? title
                               : juce::String(name_) + " " + juce::String("-")
                                     + " scene error: " + err.upToFirstOccurrenceOf("\n", false, false));
@@ -113,12 +105,11 @@ private:
 
     EngineHost& host_;
     std::string name_;
-    juce::ComponentPeer* mainPeer_;
     std::function<void(const std::string&)> onClosed_;
     const bool isOutput_;
     VisualPlanBuilder builder_;
     std::unique_ptr<GlCanvas> canvas_;
-    bool attached_ = false;
+    FpsMeter meter_;
     int lastScreen_ = -1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VisualWindow)

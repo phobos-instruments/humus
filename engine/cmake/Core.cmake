@@ -37,7 +37,6 @@ add_library(hum_core STATIC
   src/io/AutosaveStore.cpp
 )
 target_include_directories(hum_core PUBLIC src)
-# Dev fallback; shipped builds resolve <exeDir>/packs first.
 target_compile_definitions(hum_core PUBLIC
   HUM_PACKS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../packs")
 target_link_libraries(hum_core PUBLIC
@@ -55,7 +54,6 @@ target_link_libraries(hum_core PUBLIC
   juce::juce_osc
 )
 if(APPLE)
-  # AU hosting references AUGenericView; plain executables need it spelled out.
   target_link_libraries(hum_core PUBLIC "-framework CoreAudioKit")
   target_link_libraries(hum_core PUBLIC "-framework GameController")
 endif()

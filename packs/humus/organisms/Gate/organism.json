@@ -1,0 +1,208 @@
+{
+  "classes": [
+    {
+      "class": "Gate",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "Source",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Detector",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.15,
+          "unit": "gain"
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 1.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 10.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        },
+        {
+          "name": "Floor",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "unit": "gain"
+        },
+        {
+          "name": "Duck",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Open",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:gate-editor.json",
+      "canonical": "SGate"
+    },
+    {
+      "class": "SGate",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "Source",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Detector",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.15,
+          "unit": "gain"
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 1.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 10.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        },
+        {
+          "name": "Floor",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "unit": "gain"
+        },
+        {
+          "name": "Duck",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Open",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:gate-editor.json",
+      "hidden": true
+    },
+    {
+      "class": "MGate",
+      "category": "Dynamics",
+      "params": [
+        {
+          "name": "Source",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Detector",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Threshold",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.15,
+          "unit": "gain"
+        },
+        {
+          "name": "AttackTime",
+          "min": 0.01,
+          "max": 500.0,
+          "def": 1.0
+        },
+        {
+          "name": "HoldTime",
+          "min": 0.0,
+          "max": 1000.0,
+          "def": 10.0
+        },
+        {
+          "name": "ReleaseTime",
+          "min": 1.0,
+          "max": 2000.0,
+          "def": 100.0
+        },
+        {
+          "name": "Floor",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "unit": "gain"
+        },
+        {
+          "name": "Duck",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Open",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:gate-editor.json",
+      "hidden": true
+    }
+  ]
+}

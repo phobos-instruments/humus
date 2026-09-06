@@ -1,6 +1,6 @@
 {
   "width": 293,
-  "height": 128,
+  "height": 186,
   "controls": [
     {
       "type": "soundfile",
@@ -14,20 +14,20 @@
       "title": "Load a tape"
     },
     {
-      "type": "knob",
-      "param": "Rate",
-      "label": "Rate",
+      "type": "video-transport",
+      "param": "",
+      "label": "",
       "x": 12,
       "y": 38,
-      "w": 60,
-      "h": 84
+      "w": 269,
+      "h": 52
     },
     {
       "type": "knob",
-      "param": "Wear",
-      "label": "Wear",
-      "x": 76,
-      "y": 38,
+      "param": "Rate",
+      "label": "Speed",
+      "x": 12,
+      "y": 96,
       "w": 60,
       "h": 84
     },
@@ -35,18 +35,18 @@
       "type": "hslider",
       "param": "Opacity",
       "label": "Opacity",
-      "x": 146,
-      "y": 52,
-      "w": 135,
+      "x": 84,
+      "y": 110,
+      "w": 197,
       "h": 24
     },
     {
       "type": "combo",
       "param": "Blend",
       "label": "",
-      "x": 146,
-      "y": 90,
-      "w": 135,
+      "x": 84,
+      "y": 148,
+      "w": 197,
       "h": 22,
       "options": [
         "Normal",

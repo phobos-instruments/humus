@@ -15,6 +15,7 @@
 #include "gui/SceneAssemble.h"
 #include "core/VisualUniforms.h"
 #include "gui/EngineHost.h"
+#include "gui/VideoDeckPool.h"
 #include "gui/VideoLayer.h"
 #include "gui/VisualGlCanvas.h"
 #include "gui/VisualPlan.h"
@@ -26,7 +27,8 @@ inline bool isVideoOutputNode(EngineHost& host, const std::string& node) {
     auto* org = host.liveOrganism(node);
     if (auto* v = dynamic_cast<VideoNode*>(org))
         return v->numVideoOutputs() == 0 && v->numVideoInputs() > 0
-               && dynamic_cast<VisualSource*>(org) == nullptr;
+               && dynamic_cast<VisualSource*>(org) == nullptr
+               && dynamic_cast<VideoFrameSink*>(org) == nullptr;
     return false;
 }
 
@@ -35,28 +37,48 @@ public:
     VisualPlanBuilder(EngineHost& host, std::string node, bool isOutput)
         : host_(host), name_(std::move(node)), isOutput_(isOutput) {}
 
+    explicit VisualPlanBuilder(EngineHost& host) : host_(host), isOutput_(false) {}
+
     ~VisualPlanBuilder() {
         for (const auto& n : tapped_)
             if (auto* vs = dynamic_cast<VisualSource*>(host_.liveOrganism(n)))
                 vs->setVisualTapEnabled(false);
     }
 
+    struct Want {
+        std::string node;
+        bool isOutput = true;
+        int w = 0, h = 0;
+        bool everyOther = false;
+    };
+
     visual::Plan build() {
+        auto p = buildAll({{name_, isOutput_, 0, 0, false}});
+        p.root = p.taps[0].step;
+        p.masterFade = p.taps[0].fade;
+        if (host_.bypassed(name_)) p.noSignal = true;
+        p.taps.clear();
+        return p;
+    }
+
+    visual::Plan buildAll(const std::vector<Want>& wants) {
         const float dt = 1.0f / 30.0f;
         if (++scenePoll_ >= 30) scenePoll_ = 0;
         const bool pollMtime = scenePoll_ == 0;
 
-        root_ = name_;
-        if (isOutput_) root_ = host_.videoSourceInto(name_, 0);
-
         visual::Plan p;
-        wearClock_ += dt;
-        p.wearClock = wearClock_;
-        p.masterFade = isOutput_ ? paramOr(name_, "Fade", 1.0f) : 1.0f;
 
-        std::vector<std::string> order;
-        if (!root_.empty())
-            order = videoRenderOrder(root_, host_.model().videoConnections);
+        std::vector<std::string> order, roots;
+        std::set<std::string> seen;
+        for (const auto& want : wants) {
+            roots.push_back(want.isOutput ? host_.videoSourceInto(want.node, 0)
+                                          : want.node);
+            if (roots.back().empty()) continue;
+            for (const auto& n :
+                 videoRenderOrder(roots.back(), host_.model().videoConnections))
+                if (seen.insert(n).second) order.push_back(n);
+        }
+        if (!roots.empty()) root_ = roots.front();
         if ((int) order.size() > visual::kMaxSteps) order.resize(visual::kMaxSteps);
 
         std::map<std::string, int> stepOf;
@@ -120,13 +142,17 @@ public:
             stepOf[node] = (int) p.steps.size();
             p.steps.push_back(std::move(s));
         }
-        if (!root_.empty()) {
-            const auto it = stepOf.find(root_);
-            p.root = it != stepOf.end() ? it->second : -1;
-        }
-        if (host_.bypassed(name_)) {
-            p.root = -1;
-            p.noSignal = true;
+        for (size_t i = 0; i < wants.size(); ++i) {
+            visual::Tap t;
+            t.node = wants[i].node;
+            const auto it = stepOf.find(roots[i]);
+            t.step = !roots[i].empty() && it != stepOf.end() ? it->second : -1;
+            if (host_.bypassed(wants[i].node)) t.step = -1;
+            t.w = wants[i].w;
+            t.h = wants[i].h;
+            t.fade = wants[i].isOutput ? paramOr(wants[i].node, "Fade", 1.0f) : 1.0f;
+            t.everyOther = wants[i].everyOther;
+            p.taps.push_back(std::move(t));
         }
 
         for (auto it = decks_.begin(); it != decks_.end();)
@@ -170,7 +196,7 @@ private:
         int frameIndex = 0;
     };
     struct DeckState {
-        std::unique_ptr<VideoLayer> layer;
+        std::shared_ptr<VideoLayer> layer;
         juce::String path;
         float lastRate = 1.0e9f;
         unsigned lastTrig = 0;
@@ -188,13 +214,7 @@ private:
     }
 
     juce::File resolvePath(const juce::String& path) const {
-        if (path.isEmpty()) return {};
-        if (const auto asset = resolveAssetRef(path); asset != juce::File()) return asset;
-        if (juce::File::isAbsolutePath(path)) return juce::File(path);
-        const auto doc = juce::String(host_.documentPath());
-        if (doc.isNotEmpty() && juce::File::isAbsolutePath(doc))
-            return juce::File(doc).getParentDirectory().getChildFile(path);
-        return {};
+        return VideoDeckPool::resolveTape(host_.documentPath(), path);
     }
 
     void adoptScene(SceneState& st, AssembledScene a) {
@@ -428,12 +448,9 @@ private:
             d.path = path;
             d.hadFrame = false;
             const auto file = resolvePath(path);
-            if (path.isEmpty() || file == juce::File()) {
-                d.layer.reset();
-            } else {
-                if (d.layer == nullptr) d.layer = VideoLayer::create();
-                if (d.layer != nullptr) d.layer->load(file.getFullPathName());
-            }
+            d.layer = path.isEmpty() || file == juce::File()
+                          ? nullptr
+                          : VideoDeckPool::instance().open(node, file.getFullPathName());
         }
         if (d.layer == nullptr) return;
         const auto rate = paramOr(node, "Rate", 1.0f);
@@ -450,7 +467,6 @@ private:
         if (f != nullptr) d.hadFrame = true;
         s.frame = std::move(f);
         s.active = d.hadFrame;
-        s.wear = paramOr(node, "Wear", 0.0f);
     }
 
     EngineHost& host_;
@@ -459,7 +475,6 @@ private:
     std::string root_;
     juce::dsp::FFT fft_{visual::kFftOrder};
     int scenePoll_ = 0;
-    float wearClock_ = 0.0f;
     std::map<std::string, SceneState> scenes_;
     std::map<std::string, DeckState> decks_;
     std::set<std::string> tapped_;

@@ -143,6 +143,59 @@ void TracksPane::applyNoteDrag(const juce::MouseEvent& e) {
     commitNotes(std::move(out), keep);
 }
 
+void TracksPane::applyVelLaneEdit(juce::Point<int> p) {
+    const int absTick = std::max(0, xToTick((float) p.x));
+    const int slack = std::max(1, xToTick((float) p.x + 6.0f) - absTick);
+    int bestClip = -1, bestIdx = -1, bestDist = INT_MAX;
+    for (const auto& ci : host_.clips().list(trackNode_)) {
+        const auto notes = host_.clips().notes(trackNode_, ci.index);
+        for (int i = 0; i < (int) notes.size(); ++i) {
+            const int d = std::abs(ci.startTick + notes[(size_t) i].tick - absTick);
+            if (d <= slack && d < bestDist) {
+                bestDist = d;
+                bestClip = ci.index;
+                bestIdx = i;
+            }
+        }
+    }
+    if (bestIdx < 0) return;
+    auto notes = host_.clips().notes(trackNode_, bestClip);
+    if (bestIdx >= (int) notes.size()) return;
+    const int vel = velAtY(p.y);
+    notes[(size_t) bestIdx].velocity = vel;
+    host_.clips().setNotes(trackNode_, bestClip, notes, 0);
+    velShowX_ = p.x;
+    velShowVal_ = vel;
+    repaint();
+}
+
+void TracksPane::applyVelLaneLine(juce::Point<int> a, juce::Point<int> b) {
+    if (a.x > b.x) std::swap(a, b);
+    const int tickA = std::max(0, xToTick((float) a.x));
+    const int tickB = std::max(tickA, xToTick((float) b.x));
+    const int velA = velAtY(a.y);
+    const int velB = velAtY(b.y);
+    const int slack = std::max(1, xToTick((float) a.x + 4.0f) - tickA);
+    for (const auto& ci : host_.clips().list(trackNode_)) {
+        auto notes = host_.clips().notes(trackNode_, ci.index);
+        bool changed = false;
+        for (auto& n : notes) {
+            const int at = ci.startTick + n.tick;
+            if (at < tickA - slack || at > tickB + slack) continue;
+            const double t = tickB > tickA
+                ? juce::jlimit(0.0, 1.0, (at - tickA) / (double) (tickB - tickA))
+                : 0.0;
+            const int vel =
+                juce::jlimit(1, 127, (int) std::lround(velA + (velB - velA) * t));
+            if (n.velocity != vel) { n.velocity = vel; changed = true; }
+        }
+        if (changed) host_.clips().setNotes(trackNode_, ci.index, notes, 0);
+    }
+    velShowX_ = b.x;
+    velShowVal_ = velB;
+    repaint();
+}
+
 void TracksPane::quantiseSelectedNotes(int gridTicks) {
     if (selNotes_.empty() || gridTicks <= 0) return;
     host_.pushUndo();
@@ -307,6 +360,21 @@ bool TracksPane::duplicateSelectedNotes() {
 
 bool TracksPane::mouseDownRollGrid(const juce::MouseEvent& e, juce::Point<int> p) {
     const auto rp = rollPlot();
+    if (rp.usable && rollShowsVelocity() && !e.mods.isPopupMenu() && p.x >= kStripW
+        && std::abs(p.y - (fieldBottom() - velH_)) <= 3) {
+        rollDrag_ = RollDrag::VelDivider;
+        return true;
+    }
+    if (rp.usable && rollShowsVelocity() && !e.mods.isPopupMenu() && p.x >= kStripW
+        && p.y >= fieldBottom() - velH_ && p.y < fieldBottom()) {
+        host_.pushUndo();
+        rollDrag_ = RollDrag::VelLane;
+        velLine_ = effectiveTool() == Tool::Line || e.mods.isShiftDown();
+        velAnchor_ = p;
+        if (velLine_) applyVelLaneLine(p, p);
+        else applyVelLaneEdit(p);
+        return true;
+    }
     if (!rp.usable || !rollField().contains(p)) return false;
     nudgeRunUndoOpen_ = false;
 
@@ -419,6 +487,14 @@ void TracksPane::mouseDragRoll(const juce::MouseEvent& e) {
     switch (rollDrag_) {
         case RollDrag::None: return;
         case RollDrag::Erase: eraseNoteUnder(e.getPosition()); return;
+        case RollDrag::VelDivider:
+            velH_ = juce::jlimit(28, 160, fieldBottom() - e.y);
+            repaint();
+            return;
+        case RollDrag::VelLane:
+            if (velLine_) applyVelLaneLine(velAnchor_, e.getPosition());
+            else applyVelLaneEdit(e.getPosition());
+            return;
         case RollDrag::Marquee: {
             rollMarquee_ = juce::Rectangle<int>(rollAnchor_, e.getPosition());
             selNotes_.clear();
@@ -443,6 +519,8 @@ void TracksPane::mouseUpRoll() {
         repaintRollKeys();
     }
     rollDrag_ = RollDrag::None;
+    velLine_ = false;
+    velShowX_ = -1;
     rollMarquee_ = {};
     rollBase_.clear();
     rollSelBase_.clear();

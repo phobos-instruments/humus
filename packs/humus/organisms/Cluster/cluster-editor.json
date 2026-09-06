@@ -1,0 +1,29 @@
+{
+  "width": 600,
+  "height": 300,
+  "controls": [
+    { "type": "enum-buttons", "param": "Mode", "label": "", "x": 12, "y": 8, "w": 120, "h": 22,
+      "options": ["PADS", "FOLLOW"] },
+    { "type": "note-field", "param": "TriggerNote", "label": "From", "x": 140, "y": 7, "w": 84, "h": 24 },
+    { "type": "int-spinner", "param": "Slot", "label": "Slot", "x": 232, "y": 5, "w": 96, "h": 28, "decimals": 0 },
+    { "type": "int-spinner", "param": "Velocity", "label": "Vel", "x": 336, "y": 5, "w": 92, "h": 28, "decimals": 0 },
+    { "type": "enum-buttons", "param": "Hold", "label": "", "x": 436, "y": 8, "w": 152, "h": 22,
+      "options": ["GATE", "LATCH", "PEDAL"] },
+    { "type": "momentary", "param": "Fire1", "label": "1", "x": 12, "y": 44, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes1", "label": "notes...", "x": 62, "y": 44, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire2", "label": "2", "x": 12, "y": 75, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes2", "label": "notes...", "x": 62, "y": 75, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire3", "label": "3", "x": 12, "y": 106, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes3", "label": "notes...", "x": 62, "y": 106, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire4", "label": "4", "x": 12, "y": 137, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes4", "label": "notes...", "x": 62, "y": 137, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire5", "label": "5", "x": 12, "y": 168, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes5", "label": "notes...", "x": 62, "y": 168, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire6", "label": "6", "x": 12, "y": 199, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes6", "label": "notes...", "x": 62, "y": 199, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire7", "label": "7", "x": 12, "y": 230, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes7", "label": "notes...", "x": 62, "y": 230, "w": 526, "h": 24 },
+    { "type": "momentary", "param": "Fire8", "label": "8", "x": 12, "y": 261, "w": 40, "h": 24 },
+    { "type": "text-field", "param": "Notes8", "label": "notes...", "x": 62, "y": 261, "w": 526, "h": 24 }
+  ]
+}

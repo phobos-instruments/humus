@@ -6,7 +6,7 @@ Reads control values from a serial device - a microcontroller board reading sens
 
 Firmware that prints readable numbers, one line per reading - a value for outlet A, optionally a space and a second value for outlet B - is all it takes. A light sensor, a potentiometer, a distance sensor: print its reading 30 or so times a second and patch outlet A into whatever should follow it. The port is read away from the audio path, so audio never waits on the device, and unplugging and replugging reconnects automatically.
 
-Beyond the two outlets, SerialIn is also a modulation source: right-click any parameter and pick Modulate with - SerialIn (a or b) to have the sensor drive it directly, no patch cord needed. The box meter flickers as data arrives, so a silent patch still shows the sensor is alive.
+Beyond the two outlets, SerialIn is also a control source: right-click any parameter and pick Control with - SerialIn (a or b) to have the sensor drive it directly, no patch cord needed. The box meter flickers as data arrives, so a silent patch still shows the sensor is alive.
 
 ## Parameters
 

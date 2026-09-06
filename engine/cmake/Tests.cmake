@@ -6,7 +6,6 @@ endif()
 
 if(HUM_TESTS)
 add_executable(hum_tests tests/run_tests.cpp)
-# A pack's suite lives with the pack, and arrives and leaves with it.
 file(GLOB HUM_PACK_TESTS CONFIGURE_DEPENDS
      ${CMAKE_CURRENT_SOURCE_DIR}/../packs/*/tests/*.cpp)
 target_sources(hum_tests PRIVATE ${HUM_PACK_TESTS})
@@ -91,10 +90,20 @@ target_sources(hum_tests PRIVATE
   tests/PickerModelTests.cpp
   tests/WizardFlowTests.cpp
   tests/GuideFlowTests.cpp
+  tests/SkeletonTests.cpp
+  tests/GritTests.cpp
+  tests/LoudnessProbeTests.cpp
   tests/HandsTests.cpp
   tests/SigilTests.cpp
   tests/SiltTests.cpp
   tests/MelodyTraceTests.cpp
+  tests/SliderTests.cpp
+  tests/GateTests.cpp
+  tests/ClusterTests.cpp
+  tests/HarmonizerTests.cpp
+  tests/PaulstretchTests.cpp
+  tests/PinkTromboneTests.cpp
+  tests/MidiTrackTests.cpp
   tests/MidiGraphTests.cpp
   tests/MidiMonitorTests.cpp
   tests/MidiSyncTests.cpp
@@ -127,7 +136,6 @@ target_sources(hum_tests PRIVATE
   tests/ConsoleTests.cpp
   tests/MixerTests.cpp
   tests/DocumentSetTests.cpp)
-# Static add-ons: the organism suites instantiate classes directly, no dlopen.
 target_link_libraries(hum_tests PRIVATE hum_core hum_assets)
 foreach(addon ${HUM_ADDON_PACKS})
   target_link_libraries(hum_tests PRIVATE hum_pack_${addon})
@@ -136,7 +144,6 @@ endforeach()
 target_compile_definitions(hum_tests PRIVATE
   HUM_REPO_ROOT="${CMAKE_CURRENT_SOURCE_DIR}/..")
 if(HUM_DYN_PACKS)
-  # SDK conformance dogfood: dlopens the dynamically-built packs too.
   target_compile_definitions(hum_tests PRIVATE
     HUM_PACKS_DYN_DIR="${CMAKE_BINARY_DIR}/packs_dyn"
     HUM_HUMPACKS_DIR="${CMAKE_BINARY_DIR}/humpacks")
@@ -164,7 +171,6 @@ if(HUM_HOSTING_TESTS AND HUM_TESTS)
   target_link_libraries(hum_testgain PRIVATE juce::juce_audio_utils)
   target_compile_definitions(hum_testgain PUBLIC
     JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
-  # The scan dir is the folder CONTAINING TestGain.vst3.
   target_compile_definitions(hum_tests PRIVATE
     HUM_TESTGAIN_VST3_DIR="$<TARGET_FILE_DIR:hum_testgain_VST3>/../../..")
   add_dependencies(hum_tests hum_testgain_VST3)

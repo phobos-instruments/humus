@@ -9,13 +9,11 @@ if(HUM_PLUGIN_EXPORT)
     PRODUCT_NAME "Humus"
     COMPANY_NAME "Phobos Instruments"
     COMPANY_WEBSITE "https://humus.phobos-instruments.com"
-    # Spelled out: derived, it would contain spaces.
     BUNDLE_ID "com.phobos-instruments.humus-plugin"
     PLUGIN_MANUFACTURER_CODE Phob
     PLUGIN_CODE Humu
     FORMATS ${HUM_HUMUS_FORMATS}
     IS_SYNTH FALSE
-    # The patch is the instrument: MidiIn takes the DAW's notes, MidiOut drives it.
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT TRUE
     COPY_PLUGIN_AFTER_BUILD FALSE)
@@ -24,9 +22,8 @@ if(HUM_PLUGIN_EXPORT)
   add_dependencies(Humus hum_build_id)
   target_link_libraries(Humus PRIVATE hum_core juce::juce_audio_utils)
   target_compile_definitions(Humus PUBLIC
-    JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0 JUCE_VST3_CAN_REPLACE_VST2=0)
-  # Every format stages its own packs copy - a DAW loading the .component
-  # resolves beside ITS binary (docs/dev/build.md, "The Humus plugin").
+    JUCE_WEB_BROWSER=0 JUCE_VST3_CAN_REPLACE_VST2=0)
+  # Each format stages its own packs copy: a host resolves beside ITS binary.
   if(APPLE)
     set(HUM_PLUGIN_TS "--timestamp")
     if(HUM_CODESIGN_IDENTITY STREQUAL "-")
@@ -35,7 +32,6 @@ if(HUM_PLUGIN_EXPORT)
   endif()
   function(hum_stage_plugin_packs target)
     if(APPLE)
-      # Data must land in Resources or codesign refuses to seal the bundle.
       set(dest "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/packs")
       set(adest "$<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/assets")
     else()
@@ -43,7 +39,6 @@ if(HUM_PLUGIN_EXPORT)
       set(adest "$<TARGET_FILE_DIR:${target}>/assets")
     endif()
     add_custom_command(TARGET ${target} POST_BUILD
-      # Clear first: copy_directory never deletes.
       COMMAND ${CMAKE_COMMAND} -E rm -rf "${dest}" "$<TARGET_FILE_DIR:${target}>/packs"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/../packs/core" "${dest}/core"
@@ -51,10 +46,8 @@ if(HUM_PLUGIN_EXPORT)
         "${CMAKE_CURRENT_SOURCE_DIR}/../packs/humus" "${dest}/humus"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/../packs/av" "${dest}/av"
-      # Strip pack sources by extension; the manifests beside them survive.
       COMMAND ${CMAKE_COMMAND} -DDIR=${dest}
               -P "${CMAKE_CURRENT_SOURCE_DIR}/../tools/strip_pack_sources.cmake"
-      # Everything a patch can name; not patches - a plugin has no "Load a demo".
       COMMAND ${CMAKE_COMMAND} -E rm -rf "${adest}"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/../assets" "${adest}"
@@ -63,7 +56,7 @@ if(HUM_PLUGIN_EXPORT)
               -P "${CMAKE_CURRENT_SOURCE_DIR}/../tools/strip_junk.cmake"
       COMMENT "Staging organism packs and assets into ${target}")
     if(APPLE)
-      # Staging lands after JUCE seals the bundle; re-sign or it ships broken.
+      # Staging lands after JUCE's seal: re-sign.
       add_custom_command(TARGET ${target} POST_BUILD
         COMMAND codesign --force --options runtime ${HUM_PLUGIN_TS}
                 --sign "${HUM_CODESIGN_IDENTITY}" "$<TARGET_BUNDLE_DIR:${target}>"

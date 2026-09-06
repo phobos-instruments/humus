@@ -21,6 +21,18 @@ void MainComponent::buildTransportRow() {
         if (!rolling) host_.goToStart();
     };
     addAndMakeVisible(recordBtn_);        recordBtn_.onClick = [this] { host_.record().captureToggle(); };
+    const auto mapAction = [this](auto& btn, const char* action) {
+        btn.onRightClick = [this, action](juce::Point<int> at) {
+            showAutomateMenu(host_, host_.clockNodeName(), action, at,
+                             [this] { refreshTimelinePanes(); }, false);
+        };
+    };
+    mapAction(playFromStartBtn_, kPlayFromStartAction);
+    mapAction(playBtn_, kPlayAction);
+    mapAction(stopBtn_, kStopAction);
+    mapAction(goStartBtn_, kGoToStartAction);
+    mapAction(goEndBtn_, kGoToEndAction);
+    mapAction(loopBtn_, kLoopToggleAction);
     recordBtn_.onRightClick = [this](juce::Point<int> at) {
         juce::PopupMenu m;
         m.addItem(1, "Touch: write only while a control is held", true, !host_.latchMode());

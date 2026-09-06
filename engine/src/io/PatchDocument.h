@@ -153,6 +153,21 @@ inline bool isPresetStepAction(const std::string& param) {
     return param == kPresetNextAction || param == kPresetPrevAction;
 }
 
+inline constexpr const char* kPlayAction = "Play";
+inline constexpr const char* kStopAction = "Stop";
+inline constexpr const char* kPlayFromStartAction = "Play From Start";
+inline constexpr const char* kGoToStartAction = "Go To Start";
+inline constexpr const char* kGoToEndAction = "Go To End";
+inline constexpr const char* kCaptureAction = "Record";
+inline constexpr const char* kLoopToggleAction = "Loop";
+
+inline bool isTransportAction(const std::string& param) {
+    return param == kPlayAction || param == kStopAction
+           || param == kPlayFromStartAction || param == kGoToStartAction
+           || param == kGoToEndAction || param == kCaptureAction
+           || param == kLoopToggleAction;
+}
+
 inline bool isClockPseudo(const std::string& displayClass) {
     return displayClass == "ClockPseudoSP";
 }
@@ -180,7 +195,8 @@ inline bool isMetapadAction(const std::string& param) {
 inline bool isHostSwitchTarget(const std::string& param) {
     return param == kBypassParam || param == kTrackMuteParam
         || param == kSoloParam || param == kArmParam
-        || param == kRandomAction || isPresetStepAction(param);
+        || param == kRandomAction || isPresetStepAction(param)
+        || isTransportAction(param);
 }
 
 inline bool modelBypassed(const OrganismModel& cm) {

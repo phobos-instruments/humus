@@ -3,6 +3,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/FpsMeter.h"
 #include "gui/PolledBrick.h"
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
@@ -13,7 +14,8 @@ namespace hum {
 class CamPreview : public PolledBrick {
 public:
     CamPreview(EngineHost& host, std::string organism)
-        : PolledBrick(host, std::move(organism), 2) {
+        : PolledBrick(host, std::move(organism)) {
+        setOpaque(true);
     }
 
     void reloadValues() override { repaint(); }
@@ -21,17 +23,24 @@ public:
     int preferredContentWidth() const override { return 312; }
     int preferredContentHeight(int) const override { return 234; }
 
+    void mouseUp(const juce::MouseEvent& e) override {
+        if (FpsMeter::clickToggles(e.getPosition(), getLocalBounds())) repaint();
+    }
+
     void paint(juce::Graphics& g) override {
         g.fillAll(juce::Colours::black);
+        fetchIfStale(false);
         auto* src = dynamic_cast<CamPreviewSource*>(host_.liveOrganism(name_));
         const juce::String blocked =
             src != nullptr ? juce::String(src->camUnavailable().c_str()) : juce::String();
-        if (!src || blocked.isNotEmpty() || !src->camActive()) {
+        if (!src || blocked.isNotEmpty() || !src->camActive() || stalled()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(13.0f));
             g.drawText(src == nullptr ? juce::String("No live instance")
                        : blocked.isNotEmpty() ? blocked
-                                              : juce::String("Camera off - turn on Enabled below"),
+                       : stalled()
+                           ? juce::String("no picture arriving - is the source on?")
+                           : juce::String("Camera off - turn on Enabled below"),
                        getLocalBounds().reduced(8), juce::Justification::centred, true);
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
@@ -42,7 +51,7 @@ public:
             img = frame_.getBounds().toFloat().transformedBy(
                 juce::RectanglePlacement(juce::RectanglePlacement::centred)
                     .getTransformToFit(frame_.getBounds().toFloat(), img));
-            g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
+            g.setImageResamplingQuality(juce::Graphics::mediumResamplingQuality);
             g.drawImage(frame_, img, juce::RectanglePlacement::stretchToFit);
         }
 
@@ -71,6 +80,8 @@ public:
                            getLocalBounds().reduced(6).removeFromBottom(16),
                            juce::Justification::centredLeft, false);
             }
+            paintRate(g);
+            FpsMeter::paintButton(g, getLocalBounds());
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
             return;
@@ -78,6 +89,7 @@ public:
 
         if (auto* vn = dynamic_cast<VideoNode*>(host_.liveOrganism(name_));
             vn != nullptr && vn->numVideoOutputs() > 0) {
+            FpsMeter::paintButton(g, getLocalBounds());
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
             return;
@@ -98,16 +110,29 @@ public:
         g.drawText("motion " + juce::String(motion, 2) + "   bright " + juce::String(bright, 2),
                    getLocalBounds().reduced(6).removeFromBottom(14),
                    juce::Justification::centredLeft, false);
+        paintRate(g);
+        FpsMeter::paintButton(g, getLocalBounds());
         g.setColour(Palette::border);
         g.drawRect(getLocalBounds());
     }
 
 private:
-    void poll() override {
+    void poll() override { fetchIfStale(true); }
+
+    void paintRate(juce::Graphics& g) { meter_.paint(g, getLocalBounds()); }
+
+    bool stalled() const { return meter_.stalled(); }
+
+    void fetchIfStale(bool repaintOnChange) {
         auto* src = dynamic_cast<CamPreviewSource*>(host_.liveOrganism(name_));
         const unsigned gen = src ? src->camGeneration() : 0;
         const bool active = src && src->camActive();
-        if (gen != lastGen_ || active != lastActive_) {
+        if (active) meter_.note(gen);
+        else meter_.reset();
+        if (src != nullptr && src->camSourceHeld()) meter_.keepFresh();
+        const bool nowStalled = active && stalled();
+        if (gen != lastGen_ || active != lastActive_ || nowStalled != wasStalled_) {
+            wasStalled_ = nowStalled;
             lastGen_ = gen;
             lastActive_ = active;
             if (src && active) {
@@ -123,13 +148,15 @@ private:
                     }
                 }
             }
-            repaint();
+            if (repaintOnChange) repaint();
         }
     }
 
     juce::Image frame_;
     unsigned lastGen_ = ~0u;
     bool lastActive_ = false;
+    FpsMeter meter_;
+    bool wasStalled_ = false;
 };
 
 }

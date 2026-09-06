@@ -1,0 +1,27 @@
+{
+  "width": 600,
+  "height": 240,
+  "controls": [
+    { "type": "enum-buttons", "param": "Mode", "label": "", "x": 12, "y": 8, "w": 130, "h": 22,
+      "options": ["MIDI", "SCALE"] },
+    { "type": "combo", "param": "Key", "label": "", "x": 154, "y": 8, "w": 80, "h": 22,
+      "options": ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"] },
+    { "type": "combo", "param": "Scale", "label": "", "x": 246, "y": 8, "w": 150, "h": 22,
+      "options": ["Chromatic", "Major", "Minor", "Pentatonic Minor", "Dorian", "Phrygian",
+                  "Lydian", "Mixolydian", "Locrian", "Harmonic Minor", "Melodic Minor",
+                  "Pentatonic Major", "Blues", "Whole Tone", "Hirajoshi"] },
+    { "type": "pitch-readout", "x": 412, "y": 4, "w": 176, "h": 44 },
+    { "type": "int-spinner", "param": "Voice1", "label": "Voice 1", "x": 8, "y": 64, "w": 92, "h": 28, "decimals": 0 },
+    { "type": "knob", "param": "Level1", "label": "Level", "x": 102, "y": 52, "w": 52, "h": 80 },
+    { "type": "int-spinner", "param": "Voice2", "label": "Voice 2", "x": 156, "y": 64, "w": 92, "h": 28, "decimals": 0 },
+    { "type": "knob", "param": "Level2", "label": "Level", "x": 250, "y": 52, "w": 52, "h": 80 },
+    { "type": "int-spinner", "param": "Voice3", "label": "Voice 3", "x": 304, "y": 64, "w": 92, "h": 28, "decimals": 0 },
+    { "type": "knob", "param": "Level3", "label": "Level", "x": 398, "y": 52, "w": 52, "h": 80 },
+    { "type": "int-spinner", "param": "Voice4", "label": "Voice 4", "x": 452, "y": 64, "w": 92, "h": 28, "decimals": 0 },
+    { "type": "knob", "param": "Level4", "label": "Level", "x": 546, "y": 52, "w": 52, "h": 80 },
+    { "type": "knob", "param": "Glide", "label": "Glide", "x": 44, "y": 144, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Humanize", "label": "Human", "x": 180, "y": 144, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Spread", "label": "Spread", "x": 316, "y": 144, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Mix", "label": "Mix", "x": 452, "y": 144, "w": 62, "h": 86 }
+  ]
+}

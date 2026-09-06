@@ -37,16 +37,30 @@ void CameraIn::prepare(double, int) {
 }
 
 void CameraIn::updateCamera(bool wantOpen, int camIndex) {
-    const bool isOpen = device_ != nullptr;
+    const bool isOpen = device_ != nullptr || native_ != nullptr;
     if (isOpen == wantOpen && (!isOpen || camIndex == openCam_)) return;
     if (isOpen) {
         if (device_ && listener_) device_->removeListener(listener_.get());
         device_.reset();
         listener_.reset();
+        native_.reset();
         deviceOpen_.store(false);
+        const juce::ScopedLock sl(frameLock_);
+        nativeFrame_ = {};
     }
     if (!wantOpen) return;
-    const int count = (int) CameraCapture::availableDevices().size();
+    const auto devs = CameraCapture::availableDevices();
+    const std::string name = camIndex >= 1 && camIndex <= (int) devs.size()
+                                 ? devs[(size_t) (camIndex - 1)]
+                                 : std::string();
+    native_ = NativeCamera::open(
+        name, [this](const NativeCamera::FrameRef& f) { nativeFrameArrived(f); });
+    if (native_ != nullptr) {
+        deviceOpen_.store(true);
+        openCam_ = camIndex;
+        return;
+    }
+    const int count = (int) devs.size();
     const int idx = juce::jlimit(0, std::max(0, count - 1), camIndex - 1);
     device_ = CameraCapture::open(idx, 640, 480, 1280, 720);
     if (!device_) return;
@@ -56,10 +70,29 @@ void CameraIn::updateCamera(bool wantOpen, int camIndex) {
     openCam_ = camIndex;
 }
 
+void CameraIn::nativeFrameArrived(const NativeCamera::FrameRef& f) {
+    {
+        const juce::ScopedLock sl(frameLock_);
+        nativeFrame_ = f;
+    }
+    frameGen_.fetch_add(1);
+}
+
+CamPreviewSource::NativePicture CameraIn::camNativePicture() const {
+    const juce::ScopedLock sl(frameLock_);
+    NativePicture np;
+    np.buffer = nativeFrame_.buffer;
+    np.width = nativeFrame_.width;
+    np.height = nativeFrame_.height;
+    np.mirrored = params.get("Mirror", 0.0) >= 0.5;
+    np.hold = nativeFrame_.hold;
+    return np;
+}
+
 void CameraIn::frameArrived(const juce::Image& image) {
     const int w = image.getWidth(), h = image.getHeight();
     if (w <= 0 || h <= 0) return;
-    const bool mirror = params.get("Mirror", 1.0) >= 0.5;
+    const bool mirror = params.get("Mirror", 0.0) >= 0.5;
 
     Frame f;
     f.width = w; f.height = h;
@@ -96,7 +129,14 @@ void CameraIn::injectPreviewFrame(const juce::Image& img) {
 
 CamPreviewSource::Frame CameraIn::camFrame() const {
     const juce::ScopedLock sl(frameLock_);
-    return frame_;
+    if (nativeFrame_.buffer == nullptr) return frame_;
+    const unsigned gen = frameGen_.load();
+    if (gen != nativeShownGen_
+        && NativeCamera::copyRgba(nativeFrame_, params.get("Mirror", 0.0) >= 0.5,
+                                  nativeRgba_.rgba, nativeRgba_.width,
+                                  nativeRgba_.height))
+        nativeShownGen_ = gen;
+    return nativeRgba_;
 }
 
 void CameraIn::process(const float* const*, int, float* const*, int, int,

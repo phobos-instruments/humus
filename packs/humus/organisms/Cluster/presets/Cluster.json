@@ -1,0 +1,54 @@
+[
+  {
+    "name": "Pop Classic (C)",
+    "values": {
+      "Notes1": "C3 E3 G3 C4",
+      "Notes2": "G2 D3 G3 B3",
+      "Notes3": "A2 E3 A3 C4",
+      "Notes4": "F2 C3 F3 A3",
+      "Notes5": "D3 F3 A3 D4",
+      "Notes6": "E3 G3 B3 E4",
+      "Notes7": "F2 C3 G3 A3",
+      "Notes8": "G2 C3 D3 G3"
+    }
+  },
+  {
+    "name": "Minor Classic (Am)",
+    "values": {
+      "Notes1": "A2 E3 A3 C4",
+      "Notes2": "F2 C3 F3 A3",
+      "Notes3": "C3 G3 C4 E4",
+      "Notes4": "G2 D3 G3 B3",
+      "Notes5": "D3 A3 D4 F4",
+      "Notes6": "E2 B2 D3 G#3",
+      "Notes7": "G2 A3 C4 E4",
+      "Notes8": "B2 F3 A3 D4"
+    }
+  },
+  {
+    "name": "Jazz Club (C)",
+    "values": {
+      "Notes1": "D3 F3 A3 C4 E4",
+      "Notes2": "G2 F3 A3 B3 E4",
+      "Notes3": "C3 E3 G3 B3 D4",
+      "Notes4": "A2 G3 C#4 F4",
+      "Notes5": "A2 G3 C4 E4",
+      "Notes6": "F2 E3 A3 C4",
+      "Notes7": "B2 A3 D4 F4",
+      "Notes8": "E2 G#3 D4 F4"
+    }
+  },
+  {
+    "name": "Jazz Colors (C)",
+    "values": {
+      "Notes1": "C3 E3 B3 F#4",
+      "Notes2": "F2 A3 C4 E4 G4",
+      "Notes3": "D3 F3 C4 E4 G4",
+      "Notes4": "G2 B3 D#4 F4 G#4",
+      "Notes5": "E3 G3 D4 F#4",
+      "Notes6": "A2 G3 C#4 C5",
+      "Notes7": "G#2 G3 C4 D#4",
+      "Notes8": "C#3 F3 C4 G4"
+    }
+  }
+]

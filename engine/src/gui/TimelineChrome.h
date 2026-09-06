@@ -144,6 +144,40 @@ inline void paintDestChip(juce::Graphics& g, juce::Rectangle<int> r,
     g.drawText(label, r.reduced(3, 0), juce::Justification::centredLeft, true);
 }
 
+inline juce::String midiDestLabel(const PatchDocumentModel& m, const std::string& node) {
+    std::string dest;
+    for (const auto& c : m.midiConnections)
+        if (c.src == node && c.srcOutlet == 0) { dest = c.dst; break; }
+    return juce::String::fromUTF8("\xe2\x86\x92 ")
+           + (dest.empty() ? juce::String("(nothing)") : juce::String(dest))
+           + juce::String::fromUTF8("  \xe2\x96\xbe");
+}
+
+inline juce::Rectangle<int> midiDestChipRect(juce::Rectangle<int> r,
+                                             const PatchDocumentModel& m,
+                                             const std::string& node) {
+    const juce::Font f{juce::FontOptions(12.0f)};
+    const int wanted = (int) textWidth(f, midiDestLabel(m, node)) + 8;
+    return r.withWidth(juce::jmin(r.getWidth(), juce::jmax(26, wanted)));
+}
+
+inline void paintMidiDestChip(juce::Graphics& g, juce::Rectangle<int> r,
+                              const PatchDocumentModel& m, const std::string& node) {
+    if (r.getWidth() < 26) return;
+    std::string dest;
+    for (const auto& c : m.midiConnections)
+        if (c.src == node && c.srcOutlet == 0) { dest = c.dst; break; }
+    const auto label = midiDestLabel(m, node);
+    g.setFont(juce::FontOptions(12.0f));
+    r = midiDestChipRect(r, m, node);
+    g.setColour(Palette::panelLight);
+    g.fillRoundedRectangle(r.toFloat(), 2.0f);
+    g.setColour(Palette::border);
+    g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 2.0f, 1.0f);
+    g.setColour(dest.empty() ? Palette::textDim : Palette::accent);
+    g.drawText(label, r.reduced(3, 0), juce::Justification::centredLeft, true);
+}
+
 inline void paintHeldBadge(juce::Graphics& g, juce::Rectangle<int> r, bool on = true) {
     if (r.getWidth() < 9 || r.getHeight() < 9) return;
     const auto amber = Palette::warnAmber();

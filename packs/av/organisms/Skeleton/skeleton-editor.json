@@ -1,0 +1,124 @@
+{
+  "width": 600,
+  "height": 396,
+  "controls": [
+    {
+      "type": "camera",
+      "x": 12,
+      "y": 8,
+      "w": 320,
+      "h": 240
+    },
+    {
+      "type": "combo",
+      "param": "Camera",
+      "label": "Input",
+      "source": "video-inputs",
+      "x": 344,
+      "y": 8,
+      "w": 244,
+      "h": 22
+    },
+    {
+      "type": "toggle",
+      "param": "Enabled",
+      "label": "Camera",
+      "x": 344,
+      "y": 38,
+      "w": 72,
+      "h": 24
+    },
+    {
+      "type": "toggle",
+      "param": "Mirror",
+      "label": "Mirror",
+      "x": 420,
+      "y": 38,
+      "w": 58,
+      "h": 24,
+      "tooltip": "Flip the picture, so moving right moves the reading right."
+    },
+    {
+      "type": "double-spinner",
+      "param": "Smooth",
+      "label": "Smooth",
+      "x": 344,
+      "y": 70,
+      "w": 244,
+      "h": 22,
+      "decimals": 0
+    },
+    {
+      "type": "double-spinner",
+      "param": "Confidence",
+      "label": "Confidence",
+      "x": 344,
+      "y": 100,
+      "w": 244,
+      "h": 22,
+      "decimals": 2
+    },
+    {
+      "type": "double-spinner",
+      "param": "Tolerance",
+      "label": "Tolerance",
+      "x": 344,
+      "y": 130,
+      "w": 244,
+      "h": 22,
+      "decimals": 2
+    },
+    {
+      "type": "toggle",
+      "param": "SendCC",
+      "label": "CCs",
+      "x": 344,
+      "y": 164,
+      "w": 56,
+      "h": 24
+    },
+    {
+      "type": "toggle",
+      "param": "SendNotes",
+      "label": "Notes",
+      "x": 402,
+      "y": 164,
+      "w": 66,
+      "h": 24
+    },
+    {
+      "type": "toggle",
+      "param": "SendOSC",
+      "label": "OSC",
+      "x": 470,
+      "y": 164,
+      "w": 56,
+      "h": 24
+    },
+    {
+      "type": "int-spinner",
+      "param": "MidiCC",
+      "label": "CC",
+      "x": 344,
+      "y": 196,
+      "w": 244,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "MidiChannel",
+      "label": "Ch",
+      "x": 344,
+      "y": 226,
+      "w": 244,
+      "h": 22
+    },
+    {
+      "type": "hand-gestures",
+      "x": 12,
+      "y": 248,
+      "w": 576,
+      "h": 140
+    }
+  ]
+}

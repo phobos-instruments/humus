@@ -10,7 +10,7 @@
 namespace hum {
 
 bool isHiddenOrganism(const std::string& c) {
-    return c == "ClockPseudoSP" || c == "MetasurfacePseudoSP";
+    return c == "ClockPseudoSP" || c == "MetasurfacePseudoSP" || c == "MidiTrack";
 }
 
 std::string pseudoOwnerLabel(const std::string& c) {

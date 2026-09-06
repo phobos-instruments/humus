@@ -1,4 +1,4 @@
-# The pH organism's voices; before pack discovery so packs can link them.
+# Before pack discovery, so packs can link them.
 add_library(msfa STATIC
   third_party/msfa/sin.cc
   third_party/msfa/exp2.cc
@@ -26,24 +26,36 @@ add_library(resid STATIC
   third_party/resid/extfilt.cc
   third_party/resid/pot.cc)
 target_include_directories(resid PUBLIC third_party/resid)
-# Upstream's warnings stay upstream's; kept verbatim so it can be re-synced.
+add_library(nsfplay_sound STATIC
+  third_party/nsfplay/xgm/devices/Sound/nes_apu.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_dmc.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_vrc6.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_vrc7.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_fds.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_mmc5.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_n106.cpp
+  third_party/nsfplay/xgm/devices/Sound/nes_fme7.cpp
+  third_party/nsfplay/xgm/devices/Sound/legacy/emu2413.c
+  third_party/nsfplay/xgm/devices/Sound/legacy/emu2149.c
+  third_party/nsfplay/humus_cpu_stubs.cpp)
+target_include_directories(nsfplay_sound PUBLIC third_party/nsfplay/xgm/devices/Sound)
+# Vendored verbatim, warnings and all, so upstream can be re-synced.
 if(NOT MSVC)
   target_compile_options(msfa PRIVATE -w)
   target_compile_options(nuked_opn2 PRIVATE -w)
   target_compile_options(nuked_opm PRIVATE -w)
   target_compile_options(nuked_opl3 PRIVATE -w)
   target_compile_options(resid PRIVATE -w)
+  target_compile_options(nsfplay_sound PRIVATE -w)
 endif()
 
-# The OPTIONAL ed25519 files are the point: the core lib's EdDSA is the
-# wrong flavour for the hub licenses (docs/dev/build.md).
+# The optional ed25519 file is the point: the hub licenses use that flavour.
 add_library(monocypher STATIC
   third_party/monocypher/monocypher.c
   third_party/monocypher/monocypher-ed25519.c)
 target_include_directories(monocypher PUBLIC third_party/monocypher)
 
-# Ableton Link: vendored here, fetched by the source distribution
-# (docs/dev/build.md). Only gui/LinkSync.cpp may include Link.hpp.
+# Vendored here, fetched by the source distribution (docs/dev/build.md).
 set(HUM_LINK_VENDORED "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ableton_link")
 if(EXISTS "${HUM_LINK_VENDORED}/include/ableton/Link.hpp")
   set(HUM_LINK_INCLUDES "${HUM_LINK_VENDORED}/include"
@@ -63,7 +75,6 @@ else()
 endif()
 
 add_library(ableton_link INTERFACE)
-# SYSTEM: its payload keys are multi-character constants.
 target_include_directories(ableton_link SYSTEM INTERFACE ${HUM_LINK_INCLUDES})
 
 if(UNIX)

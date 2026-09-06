@@ -62,6 +62,7 @@ public:
     int  join(const std::string& node, int a, int b);
     int  mergeAudio(const std::string& node, const std::vector<int>& clips);
     std::string exportFile(const std::string& node, int clip);
+    std::string stretchAudioFile(const std::string& node, int clip, double factor);
     int  raise(const std::string& node, int clip);
     PatternChannel copyClip(const std::string& node, int clip) const;
     int  pasteClip(const std::string& node, const PatternChannel& data, int atTick);

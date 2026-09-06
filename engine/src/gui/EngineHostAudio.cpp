@@ -1,5 +1,7 @@
 #include "gui/EngineHost.h"
 
+#include "core/Categories.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -620,6 +622,18 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         for (size_t i = 0; i < cams.size(); ++i)
             items.push_back({(int) i + 1, cams[i]});   // utf8-ok: data
         if (items.empty()) items.push_back({1, "Default camera"});
+        return items;
+    }
+    if (source == "midi-targets") {
+        items.push_back({1, "(nothing)"});
+        int id = 2;
+        for (const auto& cm : model_.organisms) {
+            if (cm.name == organism) continue;
+            if (cm.classRaw == "MidiTrack") continue;
+            if (isHiddenOrganism(cm.displayClass)) continue;
+            if (midiInletsOf(cm.name) < 1) continue;
+            items.push_back({id++, cm.name});
+        }
         return items;
     }
     if (source == "serial-ports") {

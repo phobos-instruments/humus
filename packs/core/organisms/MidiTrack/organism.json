@@ -1,0 +1,19 @@
+{
+  "classes": [
+    {
+      "class": "MidiTrack",
+      "category": "Input/Output",
+      "hidden": true,
+      "params": [
+        {
+          "name": "Target",
+          "min": 0.0,
+          "max": 9999.0,
+          "def": 1.0,
+          "int": true
+        }
+      ],
+      "editor": "layout:miditrack-editor.json"
+    }
+  ]
+}

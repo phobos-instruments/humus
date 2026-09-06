@@ -11,6 +11,7 @@
 #include "Invert/Invert.h"
 #include "MidiBus/MidiBus.h"
 #include "MidiIO/MidiIO.h"
+#include "MidiTrack/MidiTrack.h"
 #include "Mixer/Mixer.h"
 #include "SoundIn/SoundIn.h"
 #include "SoundOut/SoundOut.h"
@@ -53,6 +54,7 @@ void hum_register_layouts_core(Registry&);
 
 void hum_register_pack_core(Registry& r) {
     hum_register_layouts_core(r);
+    r.registerClass("MidiTrack", [] { return std::make_unique<MidiTrack>(); });
     r.registerClass("SoundOut", [] { return std::make_unique<SoundOut>(); });
     r.registerClass("SoundIn",  [] { return std::make_unique<SoundIn>(); });
     r.registerClass("SGain",    [] { return std::make_unique<Gain>(2); });

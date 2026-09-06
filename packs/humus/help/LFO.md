@@ -6,7 +6,7 @@ Waveform picks sine, triangle or square. With Sync on, one cycle lasts SyncBeats
 
 The face draws one cycle of the wave it is emitting, carrying its Amplitude and Offset, with a playhead riding the cycle wherever the oscillator has got to. It is one cycle rather than a scrolling trace because an LFO runs faster than a screen can follow, and a picture of the shape stays readable where a trace would turn to noise. Sample-and-hold has no shape to draw, so it shows the level it is holding.
 
-Right-click any parameter and Modulate with offers this LFO twice: "wave" is the wave itself, and "phase" is the rising ramp of the cycle - useful where you want a sweep locked to the LFO rather than the LFO's own shape.
+Right-click any parameter and Control with offers this LFO twice: "wave" is the wave itself, and "phase" is the rising ramp of the cycle - useful where you want a sweep locked to the LFO rather than the LFO's own shape.
 
 Patch it into a VCA's control inlet for tremolo, into another LFO for drifting, never-repeating motion, or anywhere an audio inlet wants slow movement. All of its parameters are morphable from the Metapad - a corner with Rate 0.1 and a corner with Rate 20 makes the modulation speed itself a performance gesture.
 

@@ -1,5 +1,4 @@
-# The headless GUI render behind the check batteries; built only where the
-# fixtures it shares with the tests exist (docs/dev/build.md).
+# The headless GUI render behind the check batteries (docs/dev/build.md).
 if(HUM_GUI AND HUM_TESTS)
   juce_add_console_app(hum_snapshot)
   target_sources(hum_snapshot PRIVATE
@@ -24,7 +23,6 @@ if(HUM_GUI AND HUM_TESTS)
     src/gui/snapshot/HostDiagnostics.cpp
     ${HUM_GUI_SOURCES}
   )
-  # Pack headers for the doc exporter; tests/ for the shared fixtures.
   target_include_directories(hum_snapshot PRIVATE src ${HUM_GENERATED_DIR}
                              ../packs/humus/organisms tests)
   add_dependencies(hum_snapshot hum_build_id)
@@ -35,17 +33,13 @@ if(HUM_GUI AND HUM_TESTS)
     juce::juce_gui_extra
     juce::juce_audio_devices
     juce::juce_audio_utils
-    juce::juce_video        # camera names for "video-inputs" combos
-    juce::juce_cryptography # links only - the boards never download
-    juce::juce_opengl       # links only - headless render never opens a VisualWindow
+    juce::juce_video
+    juce::juce_cryptography
+    juce::juce_opengl
   )
-  if(APPLE)
-    target_link_libraries(hum_snapshot PRIVATE
-      "-framework AVFoundation" "-framework CoreMedia" "-framework CoreVideo")
-  endif()
+  hum_link_video(hum_snapshot)
   if(HUM_DYN_PACKS)
-    # Add-ons arrive as the .humpack this build produced, installed through
-    # the ordinary pack path - never linked (docs/dev/build.md).
+    # Add-ons arrive as this build's .humpack through the ordinary pack path.
     target_compile_definitions(hum_snapshot PRIVATE
       HUM_HUMPACKS_DIR="${CMAKE_BINARY_DIR}/humpacks")
     foreach(addon ${HUM_ADDON_PACKS})
@@ -53,7 +47,6 @@ if(HUM_GUI AND HUM_TESTS)
     endforeach()
   endif()
 
-  # X11 composite mirror: plugin UIs rendered through our windows.
   if(UNIX AND NOT APPLE)
     find_package(X11 COMPONENTS Xcomposite Xext)
     if(X11_FOUND AND X11_Xcomposite_FOUND)
@@ -64,10 +57,12 @@ if(HUM_GUI AND HUM_TESTS)
     endif()
   endif()
 
+  # runDispatchLoopUntil() for the organism exporter: runDispatchLoop() cannot
+  # be stopped and restarted in one process (the quit flag never clears).
   target_compile_definitions(hum_snapshot PRIVATE
-    JUCE_WEB_BROWSER=0 JUCE_USE_CURL=0)
+    JUCE_WEB_BROWSER=0
+    JUCE_MODAL_LOOPS_PERMITTED=1)
 
-  # Stage assets beside the binary so checks exercise the shipped layout.
   add_custom_command(TARGET hum_snapshot POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:hum_snapshot>/assets"
     COMMAND ${CMAKE_COMMAND} -E copy_directory

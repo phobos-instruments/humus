@@ -1,0 +1,14 @@
+{
+  "width": 293,
+  "height": 138,
+  "controls": [
+    { "type": "minitoggle", "param": "Log", "label": "Log scale", "x": 12, "y": 102, "w": 110, "h": 22 },
+    { "type": "hslider", "param": "Value", "label": "Value", "x": 12, "y": 14, "w": 269, "h": 26, "decimals": 3 },
+    { "type": "label", "label": "Min", "x": 14, "y": 50, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Min", "label": "", "x": 12, "y": 66, "w": 85, "h": 24 },
+    { "type": "label", "label": "Max", "x": 105, "y": 50, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Max", "label": "", "x": 103, "y": 66, "w": 85, "h": 24 },
+    { "type": "label", "label": "Slew", "x": 198, "y": 50, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Slew", "label": "", "x": 196, "y": 66, "w": 85, "h": 24 }
+  ]
+}

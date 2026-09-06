@@ -26,6 +26,7 @@ target_link_libraries(hum_pack_humus PUBLIC
   nuked_opm               # pH: OPM chip core (vendored, LGPL-2.1)
   nuked_opl3              # pH: OPL3 chip core (vendored, LGPL-2.1)
   resid                   # Silt: SID chip core (vendored, GPL-2.0-or-later)
+  nsfplay_sound           # Grit: Famicom APU + expansion audio (vendored, NSFPlay)
   juce::juce_core
   juce::juce_audio_basics
   juce::juce_audio_formats
@@ -34,18 +35,6 @@ target_link_libraries(hum_pack_humus PUBLIC
   juce::juce_video        # CamIn camera capture (AVFoundation-backed)
 )
 
-# Hands: the portable detector, compiled on every platform so the path Linux
-# and Windows rely on cannot rot behind a mac-only build - and so macOS can run
-# it against Vision on the same frame.
-target_sources(hum_pack_humus PRIVATE organisms/Hands/HandsPortable.cpp)
-
-if(APPLE)
-  # Hands: Apple Vision hand-pose backend (VNDetectHumanHandPoseRequest).
-  target_sources(hum_pack_humus PRIVATE organisms/Hands/HandsVisionMac.mm)
-  target_link_libraries(hum_pack_humus PUBLIC
-    "-framework Vision" "-framework CoreGraphics"
-    "-framework AVFoundation" "-framework CoreMedia" "-framework CoreVideo")
-endif()
 
 # ---- Deck keylock (time-stretch) ----
 # Default engine: Signalsmith Stretch (MIT, header-only) - high quality. Fallback:

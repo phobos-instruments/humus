@@ -19,6 +19,11 @@ public:
     }
     void setRatio(double r) { ratio_ = (float) std::clamp(r, 0.25, 4.0); }
 
+    void setWindow(int samples) {
+        const int maxWindow = ((int) buf_.size() - 4) / 2;
+        window_ = std::clamp(samples, 64, maxWindow);
+    }
+
     float process(float x) {
         const int size = (int) buf_.size();
         buf_[(size_t) writePos_] = x;

@@ -99,23 +99,37 @@ inline const juce::Image& substrateFor(Family f, int w, int h) {
     return cache.emplace(key, std::move(img)).first->second;
 }
 
-inline void paintSoil(juce::Graphics& g, juce::Rectangle<float> r, Family f) {
+inline const juce::Image& soilFor(Family f, int w, int h) {
+    static std::map<juce::int64, juce::Image> cache;
+    const auto fam = f == Family::Utility ? Palette::border.brighter(0.25f)
+                                          : Palette::familyAccent(f);
+    const juce::int64 key = ((juce::int64) (int) f << 56) ^ ((juce::int64) w << 36)
+                          ^ ((juce::int64) h << 16)
+                          ^ (juce::int64) (juce::uint32) fam.getARGB()
+                          ^ ((juce::int64) (juce::uint32) Palette::panel.getARGB() << 8);
+    if (auto it = cache.find(key); it != cache.end()) return it->second;
+
+    juce::Image img(juce::Image::RGB, juce::jmax(1, w), juce::jmax(1, h), false);
+    juce::Graphics ig(img);
+    const auto r = juce::Rectangle<float>(0.0f, 0.0f, (float) w, (float) h);
     juce::ColourGradient soil(Palette::panel.brighter(0.07f),
-                              r.getX() + r.getWidth() * 0.30f, r.getY() + r.getHeight() * 0.12f,
+                              r.getWidth() * 0.30f, r.getHeight() * 0.12f,
                               Palette::panel.darker(0.22f),
                               r.getRight(), r.getBottom(), true);
     soil.addColour(0.55, Palette::panel.darker(0.04f));
-    g.setGradientFill(soil);
-    g.fillRect(r);
-    if (f != Family::Utility)
-        g.drawImageAt(substrateFor(f, (int) r.getWidth(), (int) r.getHeight()),
-                      (int) r.getX(), (int) r.getY());
-    const auto fam = f == Family::Utility ? Palette::border.brighter(0.25f)
-                                          : Palette::familyAccent(f);
-    juce::ColourGradient hairline(fam.withAlpha(0.85f), r.getX(), 0.0f,
+    ig.setGradientFill(soil);
+    ig.fillRect(r);
+    if (f != Family::Utility) ig.drawImageAt(substrateFor(f, w, h), 0, 0);
+    juce::ColourGradient hairline(fam.withAlpha(0.85f), 0.0f, 0.0f,
                                   fam.withAlpha(0.0f), r.getRight(), 0.0f, false);
-    g.setGradientFill(hairline);
-    g.fillRect(r.getX(), r.getY(), r.getWidth(), 1.0f);
+    ig.setGradientFill(hairline);
+    ig.fillRect(0.0f, 0.0f, r.getWidth(), 1.0f);
+    return cache.emplace(key, std::move(img)).first->second;
+}
+
+inline void paintSoil(juce::Graphics& g, juce::Rectangle<float> r, Family f) {
+    g.drawImageAt(soilFor(f, (int) r.getWidth(), (int) r.getHeight()),
+                  (int) r.getX(), (int) r.getY());
 }
 
 inline const juce::Image& grownMark(const std::string& species, Family f) {

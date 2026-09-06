@@ -4,6 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/EngineHost.h"
+#include "gui/FpsMeter.h"
 #include "gui/LookAndFeel.h"
 #include "gui/PolledBrick.h"
 #include "gui/VideoPreviewStore.h"
@@ -25,11 +26,16 @@ public:
         return juce::roundToInt((float) w * 9.0f / 16.0f);
     }
 
+    void mouseUp(const juce::MouseEvent& e) override {
+        if (FpsMeter::clickToggles(e.getPosition(), getLocalBounds())) repaint();
+    }
+
     void paint(juce::Graphics& g) override {
         auto r = getLocalBounds();
         g.fillAll(juce::Colours::black);
         if (frame_.isValid()) {
             g.drawImage(frame_, r.toFloat(), juce::RectanglePlacement::centred);
+            meter_.paint(g, r);
         } else {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
@@ -40,17 +46,30 @@ public:
                                       "preview is off - tick Preview below"),
                              r.reduced(14), juce::Justification::centred, 3);
         }
+        FpsMeter::paintButton(g, r);
         g.setColour(Palette::border);
         g.drawRect(r);
     }
 
 private:
     void poll() override {
+        auto* c = host_.liveOrganism(name_);
+        if (c != nullptr && c->params.get("Preview", 1.0) < 0.5) {
+            if (frame_.isValid()) {
+                frame_ = juce::Image();
+                meter_.reset();
+                repaint();
+            }
+            return;
+        }
         if (VideoPreviewStore::instance().take(name_, gen_, frame_)) repaint();
+        if (frame_.isValid()) meter_.note(gen_);
+        else meter_.reset();
     }
 
     juce::Image frame_;
     unsigned gen_ = 0;
+    FpsMeter meter_;
 };
 
 }

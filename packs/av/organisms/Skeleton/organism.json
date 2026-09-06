@@ -1,0 +1,142 @@
+{
+  "classes": [
+    {
+      "class": "Skeleton",
+      "category": "Control",
+      "editor": "layout:skeleton-editor.json",
+      "params": [
+        {
+          "name": "Enabled",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Camera",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "Mirror",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Confidence",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Smooth",
+          "min": 1.0,
+          "max": 1000.0,
+          "def": 80.0
+        },
+        {
+          "name": "Tolerance",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.35
+        },
+        {
+          "name": "SendCC",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "SendNotes",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "SendOSC",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "MidiCC",
+          "min": 0.0,
+          "max": 119.0,
+          "def": 70.0,
+          "int": true
+        },
+        {
+          "name": "MidiChannel",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "Gestures",
+          "isText": true,
+          "text": ""
+        },
+        {
+          "name": "GNote_1",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 48.0,
+          "int": true
+        },
+        {
+          "name": "GThresh_1",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.6
+        },
+        {
+          "name": "GNote_2",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 49.0,
+          "int": true
+        },
+        {
+          "name": "GThresh_2",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.6
+        },
+        {
+          "name": "GNote_3",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 50.0,
+          "int": true
+        },
+        {
+          "name": "GThresh_3",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.6
+        },
+        {
+          "name": "GNote_4",
+          "min": 0.0,
+          "max": 127.0,
+          "def": 51.0,
+          "int": true
+        },
+        {
+          "name": "GThresh_4",
+          "min": 0.05,
+          "max": 1.0,
+          "def": 0.6
+        }
+      ]
+    }
+  ]
+}

@@ -4,7 +4,7 @@ One line of arithmetic as a patchable object: type a formula and it runs once pe
 
 ## What it is for
 
-Four habits cover most of it. As a modulator it is an LFO you can bend: write sin(tau*beat)*x and map the out value onto any knob from the right-click Modulate with menu. As a processor it shapes whatever arrives at a - tanh(a*(1+x*15)) is a drive, floor(a*8)/8 a crush, a*(sqr(beat*2)>0) a gate. With both inlets it becomes signal glue: a*clamp(1-abs(b)*8, 0, 1) ducks a under b. And as a voice it is a bare oscillator - sin(tau*ph(freq)) - happiest as sirens, zaps and drones. The presets keep one of each habit; the ones marked (a) shape the inlet and say nothing until something is corded in. Every pitched preset takes its pitch from freq, so Freq or a held key plays all of them and the knobs are left to character. The dice on the property box writes a fresh formula with new knob settings under it.
+Four habits cover most of it. As a modulator it is an LFO you can bend: write sin(tau*beat)*x and map the out value onto any knob from the right-click Control with menu. As a processor it shapes whatever arrives at a - tanh(a*(1+x*15)) is a drive, floor(a*8)/8 a crush, a*(sqr(beat*2)>0) a gate. With both inlets it becomes signal glue: a*clamp(1-abs(b)*8, 0, 1) ducks a under b. And as a voice it is a bare oscillator - sin(tau*ph(freq)) - happiest as sirens, zaps and drones. The presets keep one of each habit; the ones marked (a) shape the inlet and say nothing until something is corded in. Every pitched preset takes its pitch from freq, so Freq or a held key plays all of them and the knobs are left to character. The dice on the property box writes a fresh formula with new knob settings under it.
 
 ## Pitch that moves
 

@@ -1,0 +1,9 @@
+{
+  "width": 293,
+  "height": 100,
+  "controls": [
+    { "type": "label", "label": "Clips on this track play into:", "x": 12, "y": 12, "w": 269, "h": 16 },
+    { "type": "combo", "param": "Target", "label": "", "source": "midi-targets", "x": 8, "y": 36, "w": 277, "h": 24 },
+    { "type": "label", "label": "A cord from the MIDI outlet does the same.", "x": 12, "y": 72, "w": 269, "h": 14 }
+  ]
+}

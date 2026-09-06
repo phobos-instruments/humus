@@ -1,0 +1,21 @@
+{
+  "classes": [
+    {
+      "class": "PinkTrombone",
+      "category": "Instruments",
+      "params": [
+        { "name": "TongueX", "min": 0.0, "max": 1.0, "def": 0.5, "random": true },
+        { "name": "TongueY", "min": 0.0, "max": 1.0, "def": 0.5, "random": true },
+        { "name": "Place", "min": 0.0, "max": 1.0, "def": 0.7, "random": true },
+        { "name": "Squeeze", "min": 0.0, "max": 1.0, "def": 0.0, "random": true },
+        { "name": "Nasal", "min": 0.0, "max": 1.0, "def": 0.0, "random": true },
+        { "name": "Tenseness", "min": 0.01, "max": 0.99, "def": 0.6, "random": true },
+        { "name": "Vibrato", "min": 0.0, "max": 1.0, "def": 0.25, "random": true },
+        { "name": "Wobble", "min": 0.0, "max": 1.0, "def": 0.0, "bool": true },
+        { "name": "Drone", "min": 0.0, "max": 1.0, "def": 0.0, "bool": true },
+        { "name": "Level", "min": 0.0, "max": 2.0, "def": 0.8 }
+      ],
+      "editor": "layout:pinktrombone-editor.json"
+    }
+  ]
+}

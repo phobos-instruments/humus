@@ -24,7 +24,7 @@ private:
     PitchTracker tracker_;
     PitchShifter shifter_;
 
-    int key_ = 0, scale_ = 0;
+    int key_ = 0, scale_ = 0, window_ = 0;
     double targetCents_ = 0.0;
     double smoothCents_ = 0.0;
     double glideCoef_ = 0.3;

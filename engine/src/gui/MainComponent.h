@@ -20,7 +20,8 @@
 #include "gui/Mappable.h"
 #include "gui/PatcherCanvas.h"
 #include "gui/PluginEditorWindow.h"
-#include "gui/VideoPreviewRig.h"
+#include "gui/VideoRenderService.h"
+#include "gui/VideoTrackerFeed.h"
 #include "gui/VisualWindow.h"
 #include "gui/GuideView.h"
 #include "gui/AppUpdater.h"
@@ -136,19 +137,19 @@ private:
 
     IconButton undoBtn_{IconButton::Glyph::Undo, "Undo (Ctrl+Z) - takes back the last roll"};
     IconButton redoBtn_{IconButton::Glyph::Redo, "Redo (Ctrl+Shift+Z)"};
-    IconButton playFromStartBtn_{IconButton::Glyph::PlayFromStart, "Play From Start"};
-    IconButton playBtn_{IconButton::Glyph::Play, "Play (Space)"};
-    IconButton stopBtn_{IconButton::Glyph::Stop, "Stop"};
+    Mappable<IconButton> playFromStartBtn_{IconButton::Glyph::PlayFromStart, "Play From Start"};
+    Mappable<IconButton> playBtn_{IconButton::Glyph::Play, "Play (Space)"};
+    Mappable<IconButton> stopBtn_{IconButton::Glyph::Stop, "Stop"};
     Mappable<IconButton> recordBtn_{IconButton::Glyph::Record,
                                     "Record the performance (every knob move, morph & MIDI in one "
                                     "pass). Right-click: Touch or Latch automation"};
     IconButton keepBtn_{IconButton::Glyph::Keep,
                         "Keep the last 8 bars (retroactive: what you just played "
                         "becomes lanes + audio - no arming needed, the soil remembers)"};
-    IconButton goStartBtn_{IconButton::Glyph::GoToStart, "Go to Start (reset clock to 1-1.00)"};
-    IconButton goEndBtn_{IconButton::Glyph::GoToEnd,
+    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, "Go to Start (reset clock to 1-1.00)"};
+    Mappable<IconButton> goEndBtn_{IconButton::Glyph::GoToEnd,
                          "Go to End (song-end marker, or the end of the content)"};
-    IconButton loopBtn_{IconButton::Glyph::Loop, "Enable Automation Loop"};
+    Mappable<IconButton> loopBtn_{IconButton::Glyph::Loop, "Enable Automation Loop"};
     IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, "Enable Audio (real-time engine on/off)"};
     IconButton enableMidiBtn_{IconButton::Glyph::EnableMidi,
                               "Enable MIDI (open the MIDI devices for control, notes and sync)"};
@@ -286,8 +287,9 @@ private:
     std::unique_ptr<FreeWindow> docSwitcherWindow_;
     std::map<std::string, std::unique_ptr<PluginEditorWindow>> pluginWindows_;
     std::map<std::string, std::unique_ptr<VisualWindow>> visualWindows_;
-    std::map<std::string, std::unique_ptr<VideoPreviewRig>> previewRigs_;
-    void serviceVideoPreviewRigs();
+    std::unique_ptr<VideoRenderService> renderService_;
+    std::map<std::string, std::unique_ptr<VideoTrackerFeed>> trackerFeeds_;
+    void serviceTrackerFeeds();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainComponent)
 };

@@ -91,6 +91,30 @@ inline juce::File assetKindDir(const juce::File& parent, const juce::String& kin
     return {};
 }
 
+inline std::vector<juce::File> packAssetRoots(const juce::String& kind) {
+    std::vector<juce::File> out;
+    const auto addPacksUnder = [&](const juce::File& root) {
+        if (!root.isDirectory()) return;
+        for (const auto& pack : root.findChildFiles(juce::File::findDirectories, false))
+            if (pack.getChildFile("pack.json").existsAsFile())
+                if (const auto d = assetKindDir(pack.getChildFile("assets"), kind);
+                    d != juce::File())
+                    out.push_back(d);
+    };
+    const auto exeDir =
+        juce::File::getSpecialLocation(juce::File::currentExecutableFile)
+            .getParentDirectory();
+    addPacksUnder(
+        exeDir.getParentDirectory().getChildFile("Resources").getChildFile("packs"));
+    addPacksUnder(exeDir.getChildFile("packs"));
+    addPacksUnder(exeDir.getParentDirectory().getChildFile("packs"));
+#ifdef HUM_PACKS_DIR
+    addPacksUnder(juce::File(juce::String(HUM_PACKS_DIR)));
+#endif
+    addPacksUnder(appDataDir().getChildFile("packs"));
+    return out;
+}
+
 inline std::vector<juce::File> assetSearchPath(const juce::String& kind) {
     std::vector<juce::File> out;
     if (const auto mine = assetKindDir(userContentRoot(), kind); mine != juce::File())
@@ -103,6 +127,7 @@ inline std::vector<juce::File> assetSearchPath(const juce::String& kind) {
         repo != juce::File())
         out.push_back(repo);
 #endif
+    for (const auto& d : packAssetRoots(kind)) out.push_back(d);
     return out;
 }
 
@@ -116,7 +141,7 @@ inline juce::File resolveAssetRef(const juce::String& ref) {
     const auto name = rel.fromFirstOccurrenceOf("/", false, false);
     if (kind.isEmpty() || name.isEmpty()) return {};
     for (const auto& dir : assetSearchPath(kind))
-        if (const auto f = dir.getChildFile(name); f.existsAsFile()) return f;
+        if (const auto f = dir.getChildFile(name); f.exists()) return f;
     return {};
 }
 

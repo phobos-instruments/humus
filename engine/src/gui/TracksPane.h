@@ -49,6 +49,8 @@ public:
     }
     std::string addTrack(bool audio, const std::string& target);
     void convertClipToMidi(const std::string& node, const ClipEditor::ClipInfo& ci);
+    void stretchClip(const std::string& node, int clip, const ClipEditor::ClipInfo& ci,
+                     double factor);
     juce::Rectangle<int> clipBounds(int row, const ClipEditor::ClipInfo& ci) const;
     const std::vector<trackslayout::Slot>& slotsForTest() const { return slots_; }
     juce::Rectangle<float> noteBoundsForTest(int clipStart, const NoteEvent& n) const {
@@ -291,7 +293,7 @@ private:
     static constexpr int kChipH = 22;
     static constexpr int kKeyW = 74;
     static constexpr int kRibbonH = 5;
-    static constexpr int kVelH = 34;
+    int velH_ = 56;
     static constexpr int kRollMinPaneH = 220;
     bool rollShowsVelocity() const { return fieldBottom() >= kRollMinPaneH; }
     juce::Rectangle<int> rollField() const;
@@ -307,7 +309,8 @@ private:
     std::vector<PointCopy> pointClipboard_;
     void copySelectedPoints();
     bool pastePoints(double atBeat);
-    enum class RollDrag { None, Move, ResizeL, ResizeR, Velocity, Marquee, Draw, Erase };
+    enum class RollDrag { None, Move, ResizeL, ResizeR, Velocity, VelLane, VelDivider, Marquee, Draw,
+                          Erase };
     RollDrag rollDrag_ = RollDrag::None;
     std::set<std::pair<int, int>> selNotes_;
     std::map<int, std::vector<NoteEvent>> rollBase_;
@@ -323,6 +326,17 @@ private:
     int clipOwning(int absTick) const;
     void snapshotNotes();
     void applyNoteDrag(const juce::MouseEvent&);
+    void applyVelLaneEdit(juce::Point<int> p);
+    void applyVelLaneLine(juce::Point<int> a, juce::Point<int> b);
+    int velAtY(int y) const {
+        const int laneTop = fieldBottom() - velH_;
+        const double f = 1.0 - (double) (y - laneTop - 3) / (double) (velH_ - 6);
+        return juce::jlimit(1, 127, (int) std::lround(f * 127.0));
+    }
+    std::set<std::string> selTracks_;
+    juce::Point<int> velAnchor_;
+    bool velLine_ = false;
+    int velShowX_ = -1, velShowVal_ = -1;
     struct NoteKey { int clip = 0, tick = 0, pitch = 0; };
     void commitNotes(std::map<int, std::vector<NoteEvent>> perClip,
                      const std::vector<NoteKey>& keep);
@@ -407,6 +421,11 @@ private:
     int placeAudioFile(const std::string& node, int atTick, const juce::File& f);
     std::string dropTargetNode(int y);
 
+    juce::Rectangle<int> destBox(int row, const std::string& node) const {
+        return timelinechrome::midiDestChipRect(
+                   {30, rowTop(row) + 18, kStripW - 68, 17}, host_.model(), node)
+            .expanded(2);
+    }
     juce::Rectangle<int> heldBox(int row) const { return {kStripW - 22, rowTop(row) + 21, 14, 13}; }
     juce::Rectangle<int> heldLaneBox(const trackslayout::Slot& s) const {
         return {kStripW - 28, s.y + (s.h - 13) / 2, 14, 13};

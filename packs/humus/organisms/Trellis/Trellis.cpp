@@ -17,6 +17,7 @@ void Trellis::reset() {
     shifter_.reset();
     targetCents_ = 0.0;
     smoothCents_ = 0.0;
+    window_ = 0;
 }
 
 double Trellis::snapMidi(double midi, const Tuning& tuning) const {
@@ -59,6 +60,11 @@ void Trellis::process(const float* const* in, int numIn, float* const* out, int 
             const double midi = tuning.midiNote(hz);
             const double target = snapMidi(midi, tuning);
             targetCents_ = 1200.0 * std::log2(tuning.hz(target) / hz) * strength;
+            const int period = (int) (sampleRate_ / hz);
+            if (std::abs(2 * period - window_) > window_ / 8) {
+                window_ = 2 * period;
+                shifter_.setWindow(window_);
+            }
         } else {
             targetCents_ = 0.0;
         }

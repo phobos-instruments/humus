@@ -241,6 +241,36 @@ void EngineHost::disconnectMidiInto(const std::string& dst, int dstPort) {
     rebuild();
 }
 
+void EngineHost::applyMidiTrackTarget(const std::string& name, int value) {
+    std::string want;
+    if (value > 1)
+        for (const auto& it : choiceItems("midi-targets", name))
+            if (it.first == value) { want = it.second; break; }
+    std::vector<ConnectionModel> old;
+    for (const auto& c : model_.midiConnections)
+        if (c.src == name && c.srcOutlet == 0 && c.dst != want) old.push_back(c);
+    for (const auto& c : old)
+        removeMidiConnection(c.src, c.srcOutlet, c.dst, c.dstInlet);
+    if (!want.empty()) connectMidi(name, 0, want, 0);
+}
+
+void EngineHost::syncMidiTrackTargets() {
+    for (const auto& cm : model_.organisms) {
+        if (cm.classRaw != "MidiTrack") continue;
+        std::string dst;
+        for (const auto& c : model_.midiConnections)
+            if (c.src == cm.name && c.srcOutlet == 0) { dst = c.dst; break; }
+        double want = 1.0;
+        if (!dst.empty())
+            for (const auto& it : choiceItems("midi-targets", cm.name))
+                if (it.second == dst) { want = (double) it.first; break; }
+        double current = 1.0;
+        for (const auto& p : cm.properties)
+            if (p.name == "Target") { current = p.value; break; }
+        if (current != want) setParam(cm.name, "Target", want);
+    }
+}
+
 bool EngineHost::isMidiConnected(const std::string& src, int srcPort,
                                  const std::string& dst, int dstPort) const {
     for (auto& c : model_.midiConnections)

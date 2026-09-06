@@ -508,6 +508,7 @@ void EngineHost::applyGroove() {
 
 void EngineHost::rebuild() {
     ++laneStamp_;
+    syncMidiTrackTargets();
 
     outputGain_.store((float) juce::jlimit(0.0, 1.0, model_.masterLevel));
     limiterOn_.store(model_.masterLimiter);

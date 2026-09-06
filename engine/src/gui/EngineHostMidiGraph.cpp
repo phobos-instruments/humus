@@ -43,8 +43,9 @@ void EngineHost::routeLiveMidi(const juce::MidiMessage& m, int port) {
     if (routable)
         for (const auto& target : liveTargets_) {
             bool already = false;
-            for (const auto& tg : midiRecordTargets_)
-                if (tg.thru && tg.node == target) already = true;
+            if (playing_ && (m.isNoteOn() || m.isNoteOff()))
+                for (const auto& tg : midiRecordTargets_)
+                    if (tg.thru && tg.node == target) already = true;
             if (already) continue;
             for (auto& [nm, in] : namedLiveIns_)
                 if (nm == target) { in->pushLiveMidi(ev); break; }

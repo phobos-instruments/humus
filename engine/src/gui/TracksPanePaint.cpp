@@ -177,15 +177,17 @@ void TracksPane::paintRow(juce::Graphics& g, int row) {
             if (b.getWidth() > 30)
                 g.drawText(label, b.reduced(4, 2).withTrimmedLeft(marks ? kFadeGrip : 0),
                            juce::Justification::topLeft, true);
-            timelinechrome::paintFades(g, b, ci.fadeInTicks, ci.fadeOutTicks,
-                                       ci.lengthTicks, cCol(ci.color),
-                                       ci.fadeInCurve, ci.fadeOutCurve);
-            if (marks)
-                timelinechrome::paintFadeGrips(g, b, kFadeGrip, ci.fadeInTicks,
-                                               ci.fadeOutTicks, cCol(ci.color));
-            timelinechrome::paintFadeCurveGrips(g, b, ci.fadeInTicks, ci.fadeOutTicks,
-                                                ci.lengthTicks, ci.fadeInCurve,
-                                                ci.fadeOutCurve, cCol(ci.color));
+            if (ci.isAudio) {
+                timelinechrome::paintFades(g, b, ci.fadeInTicks, ci.fadeOutTicks,
+                                           ci.lengthTicks, cCol(ci.color),
+                                           ci.fadeInCurve, ci.fadeOutCurve);
+                if (marks)
+                    timelinechrome::paintFadeGrips(g, b, kFadeGrip, ci.fadeInTicks,
+                                                   ci.fadeOutTicks, cCol(ci.color));
+                timelinechrome::paintFadeCurveGrips(g, b, ci.fadeInTicks, ci.fadeOutTicks,
+                                                    ci.lengthTicks, ci.fadeInCurve,
+                                                    ci.fadeOutCurve, cCol(ci.color));
+            }
             if (!ci.looped)
                 timelinechrome::paintRepeatGrip(g, b, kFadeGrip, cCol(ci.color), sel);
             if (ci.isAudio)
@@ -373,7 +375,7 @@ void TracksPane::paintRowHeader(juce::Graphics& g, int row, int y) {
     const auto& node = rows_[(size_t) row];
     g.setColour(Palette::panel);
     g.fillRect(0, y, kStripW, kRowH - 1);
-    if (row == selClipRow_) {
+    if (row == selClipRow_ || selTracks_.count(node) != 0) {
         const auto ac = timelinechrome::laneAccent(host_.model(), node);
         g.setColour(ac.withAlpha(0.16f));
         g.fillRect(0, y, kStripW - 1, kRowH - 1);
@@ -408,8 +410,14 @@ void TracksPane::paintRowHeader(juce::Graphics& g, int row, int y) {
     g.drawText(shown, nameX, y + 2, kStripW - nameX - 82, 18,
                juce::Justification::centredLeft, true);
     const bool rowHeld = host_.automation().anyHeld(node);
-    timelinechrome::paintDestChip(g, {nameX, y + 21, kStripW - nameX - (rowHeld ? 30 : 8), 13},
-                                  host_.model(), node);
+    if (ncm != nullptr && ncm->classRaw == "MidiTrack")
+        timelinechrome::paintMidiDestChip(
+            g, {nameX, y + 18, kStripW - nameX - (rowHeld ? 30 : 8), 17},
+            host_.model(), node);
+    else
+        timelinechrome::paintDestChip(
+            g, {nameX, y + 21, kStripW - nameX - (rowHeld ? 30 : 8), 13},
+            host_.model(), node);
     if (rowHeld) timelinechrome::paintHeldBadge(g, heldBox(row));
 
     const bool muted = nodeMuted(node);

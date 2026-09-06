@@ -21,6 +21,14 @@ void pluginWindowClearTrackingAreas(juce::ComponentPeer* peer) {
     if (root) clearTrackingAreasDeep(root);
 }
 
+void windowKeepFullscreenLocal(juce::ComponentPeer* peer) {
+    NSWindow* w = nsWindowFor(peer);
+    if (w == nil) return;
+    w.collectionBehavior = (w.collectionBehavior
+                            & ~(NSUInteger) NSWindowCollectionBehaviorFullScreenPrimary)
+                           | NSWindowCollectionBehaviorFullScreenNone;
+}
+
 void pluginWindowAttachToMain(juce::ComponentPeer* pluginPeer,
                               juce::ComponentPeer* mainPeer) {
     NSWindow* plugin = nsWindowFor(pluginPeer);

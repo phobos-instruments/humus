@@ -29,8 +29,8 @@ bool readSource(EngineHost& host, const std::string& source, const std::string& 
     if (isParamSource(value)) return readParam(host, source, paramSourceName(value), out);
     auto* src = dynamic_cast<ControlSource*>(host.liveOrganism(source));
     if (src == nullptr) return false;
-    ControlSource::ControlVal vals[16];
-    const int n = src->controlValues(vals, 16);
+    ControlSource::ControlVal vals[32];
+    const int n = src->controlValues(vals, 32);
     for (int i = 0; i < n; ++i)
         if (value == vals[i].name) { out = vals[i].value; return true; }
     return false;
@@ -87,8 +87,8 @@ std::vector<std::pair<std::string, std::string>> ModHost::availableSources() con
     std::vector<std::pair<std::string, std::string>> out;
     for (const auto& cm : host_.model().organisms) {
         if (auto* src = dynamic_cast<ControlSource*>(host_.liveOrganism(cm.name))) {
-            ControlSource::ControlVal vals[16];
-            const int n = src->controlValues(vals, 16);
+            ControlSource::ControlVal vals[32];
+            const int n = src->controlValues(vals, 32);
             for (int i = 0; i < n; ++i) out.push_back({cm.name, vals[i].name});
         }
         for (const auto& d : schemaFor(cm.classRaw))

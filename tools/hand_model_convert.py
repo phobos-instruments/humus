@@ -101,10 +101,11 @@ F32, F16, I32 = 0, 1, 2
 TYPE_MAP = {0: F32, 1: F16, 2: I32}
 
 # Kind codes the C++ interpreter switches on. Order is the file format; append
-# only, and bump kVersion below when you do.
+# only, and emit with a bumped version when a model actually uses the new kind -
+# the hands file stays version 1 so its pinned digest holds.
 KIND = {"CONV_2D": 1, "DEPTHWISE_CONV_2D": 2, "ADD": 3, "PRELU": 4, "MAX_POOL_2D": 5,
         "FULLY_CONNECTED": 6, "LOGISTIC": 7, "MEAN": 8, "PAD": 9, "CONCATENATION": 10,
-        "RESHAPE": 11, "RESIZE_BILINEAR": 12}
+        "RESHAPE": 11, "RESIZE_BILINEAR": 12, "DEPTH_TO_SPACE": 13}
 VERSION = 1
 
 
@@ -179,14 +180,18 @@ def op_params(op):
                 o.num(5, "u8", 0), (o.num(3, "i32", 1) << 8) | o.num(4, "i32", 1)]
     if name == "FULLY_CONNECTED":
         return [0, 0, 0, o.num(0, "u8", 0), 0]
+    if name == "ADD":
+        return [0, 0, 0, o.num(0, "u8", 0), 0]
     if name == "CONCATENATION":
         return [o.num(0, "i32", 0), 0, 0, o.num(1, "u8", 0), 0]
     if name == "RESIZE_BILINEAR":
-        return [o.num(0, "u8", 0), 0, 0, 0, o.num(2, "u8", 0)]
+        return [o.num(2, "u8", 0), 0, 0, 0, o.num(3, "u8", 0)]
+    if name == "DEPTH_TO_SPACE":
+        return [o.num(0, "i32", 1), 0, 0, 0, 0]
     return [0, 0, 0, 0, 0]
 
 
-def emit(g, name):
+def emit(g, name, version=VERSION):
     """One model: a tensor table, an op table, and the weight blob."""
     blob = bytearray()
     tensors = bytearray()
@@ -210,7 +215,7 @@ def emit(g, name):
         for i in op["in"] + op["out"]:
             ops += struct.pack("<i", i)
 
-    head = struct.pack("<4sIIIII", b"HNET", VERSION, len(g.tensors), len(g.ops),
+    head = struct.pack("<4sIIIII", b"HNET", version, len(g.tensors), len(g.ops),
                        len(g.inputs), len(g.outputs))
     head += b"".join(struct.pack("<i", i) for i in g.inputs + g.outputs)
     return head + struct.pack("<III", len(tensors), len(ops), len(blob)) \

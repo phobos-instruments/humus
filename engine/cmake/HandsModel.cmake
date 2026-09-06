@@ -1,9 +1,8 @@
-# Rebuilds the hand model when the source distribution arrives without it.
-# Failure rule: cannot obtain = warn, wrong bytes = fatal (docs/dev/build.md).
-set(HUM_HANDS_MODEL "${CMAKE_CURRENT_SOURCE_DIR}/../assets/Models/hands/hands.humnet")
-set(HUM_HANDS_SHA256 "e531b99d34cf03a7d668f03c35e9fff48137ae471604f632f83f66e9ee71c522")
+# Rebuilds the hand model for a source distribution, which ships without it:
+# cannot obtain = warn, wrong bytes = fatal (docs/dev/build.md).
+set(HUM_HANDS_MODEL "${CMAKE_CURRENT_SOURCE_DIR}/../packs/av/assets/Models/hands/hands.humnet")
+set(HUM_HANDS_SHA256 "29f7f8ab9e50dc1eb82cc904262198edb150c7473a856b79352e4b85c7976b85")
 set(HUM_HANDS_TASK_SHA256 "fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1")
-# The versioned path: only it promises the same bytes tomorrow.
 set(HUM_HANDS_TASK_URL
     "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
     CACHE STRING "MediaPipe bundle the hand model is converted from")
@@ -53,7 +52,7 @@ if(NOT EXISTS "${HUM_HANDS_MODEL}")
           "  got      ${HUM_HANDS_GOT}")
       endif()
       file(COPY "${HUM_HANDS_WORK}/hands.humnet"
-           DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/../assets/Models/hands")
+           DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/../packs/av/assets/Models/hands")
       message(STATUS "hand model rebuilt and verified")
     endif()
   endif()
@@ -62,7 +61,7 @@ if(NOT EXISTS "${HUM_HANDS_MODEL}")
     message(WARNING
       "no hand model: ${HUM_HANDS_WHY}.\n"
       "  Hand tracking will do nothing where the system has no tracker of its own.\n"
-      "  assets/Models/hands/README.md has the commands that build the file by hand.")
+      "  packs/av/assets/Models/hands/README.md has the commands that build the file by hand.")
   endif()
   file(REMOVE_RECURSE "${HUM_HANDS_WORK}")
 endif()

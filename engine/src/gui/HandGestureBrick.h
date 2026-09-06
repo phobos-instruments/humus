@@ -4,11 +4,11 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "Hands/HandPose.h"
-#include "Hands/Hands.h"
+#include "common/GestureVec.h"
 #include "core/ParamSchema.h"
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "hum/Capabilities.h"
 
 namespace hum {
 
@@ -16,7 +16,7 @@ class HandGestureBrick : public juce::Component, private juce::Timer {
 public:
     HandGestureBrick(EngineHost& host, std::string organism)
         : host_(host), cn_(std::move(organism)) {
-        for (int k = 0; k < handpose::kGestureSlots; ++k) {
+        for (int k = 0; k < gvec::kSlots; ++k) {
             auto& learn = learn_[(size_t) k];
             learn.setButtonText("Learn");
             learn.onClick = [this, k] { startLearn(k, false); };
@@ -37,14 +37,15 @@ public:
 
     void paint(juce::Graphics& g) override {
         const auto set = currentSet();
-        auto* hands = liveHands();
-        const auto v = hands ? hands->liveValues() : HandValues{};
+        auto* src = source();
+        std::array<float, GestureFeatureSource::kMaxFeatures> cur{};
+        const bool present = src != nullptr && src->gestureFeaturesLive(cur.data());
         const float tol =
             (float) host_.liveParamValue(cn_, "Tolerance");
-        float matches[handpose::kGestureSlots] = {};
-        if (v.present > 0.5f)
-            handpose::matchAll(set, v.finger, std::max(0.05f, tol), matches);
-        for (int k = 0; k < handpose::kGestureSlots; ++k) {
+        float matches[gvec::kSlots] = {};
+        if (present)
+            gvec::matchAll(set, cur.data(), std::max(0.05f, tol), matches);
+        for (int k = 0; k < gvec::kSlots; ++k) {
             const auto row = rowBounds(k);
             g.setColour(Palette::text);
             g.setFont(juce::FontOptions(11.5f));
@@ -58,7 +59,8 @@ public:
                                                      * (float) samples_ / (float) kNeed), 3.0f);
                 g.setColour(Palette::text);
                 g.setFont(juce::FontOptions(10.0f));
-                g.drawText(v.present > 0.5f ? "hold the pose..." : "show a hand...",
+                g.drawText(src == nullptr ? "..."
+                           : present ? src->gestureHoldPrompt() : src->gestureAbsentPrompt(),
                            bar.toNearestInt(), juce::Justification::centred);
             } else if (set.learned[(size_t) k]) {
                 const float thr = slotThresh(k);
@@ -94,7 +96,7 @@ public:
     }
 
     void resized() override {
-        for (int k = 0; k < handpose::kGestureSlots; ++k) {
+        for (int k = 0; k < gvec::kSlots; ++k) {
             auto row = rowBounds(k);
             row.removeFromLeft(16);
             learn_[(size_t) k].setBounds(row.removeFromLeft(46).reduced(0, 1));
@@ -147,14 +149,19 @@ private:
         return juce::String(kN[note % 12]) + juce::String(note / 12 - 1);
     }
 
-    Hands* liveHands() const { return dynamic_cast<Hands*>(host_.liveOrganism(cn_)); }
-
-    handpose::GestureSet currentSet() const {
-        return handpose::decodeGestures(host_.liveParamText(cn_, "Gestures").c_str());
+    GestureFeatureSource* source() const {
+        auto* src = dynamic_cast<GestureFeatureSource*>(host_.liveOrganism(cn_));
+        if (src != nullptr)
+            dims_ = juce::jlimit(1, gvec::kMaxDims, src->gestureFeatureCount());
+        return src;
     }
 
-    void writeSet(const handpose::GestureSet& g) {
-        host_.setParamText(cn_, "Gestures", handpose::encodeGestures(g));
+    gvec::Set currentSet() const {
+        return gvec::decode(host_.liveParamText(cn_, "Gestures").c_str(), dims_);
+    }
+
+    void writeSet(const gvec::Set& g) {
+        host_.setParamText(cn_, "Gestures", gvec::encode(g));
     }
 
     void startLearn(int slot, bool asReinforce) {
@@ -174,21 +181,23 @@ private:
 
     void timerCallback() override {
         if (learning_ >= 0) {
-            if (auto* hands = liveHands()) {
-                const auto v = hands->liveValues();
-                if (v.present > 0.5f) {
-                    for (int i = 0; i < 5; ++i) acc_[(size_t) i] += v.finger[(size_t) i];
+            auto* src = source();
+            std::array<float, GestureFeatureSource::kMaxFeatures> cur{};
+            if (src != nullptr) {
+                if (src->gestureFeaturesLive(cur.data())) {
+                    for (int i = 0; i < dims_; ++i) acc_[(size_t) i] += cur[(size_t) i];
                     if (++samples_ >= kNeed) {
-                        std::array<float, 5> cap;
-                        for (int i = 0; i < 5; ++i)
+                        std::array<float, GestureFeatureSource::kMaxFeatures> cap{};
+                        for (int i = 0; i < dims_; ++i)
                             cap[(size_t) i] = acc_[(size_t) i] / (float) kNeed;
                         auto g = currentSet();
                         if (reinforcing_) {
-                            handpose::reinforce(g, learning_, cap);
+                            gvec::reinforce(g, learning_, cap.data());
                         } else {
                             g.tpl[(size_t) learning_] = cap;
                             g.learned[(size_t) learning_] = true;
                             g.count[(size_t) learning_] = 1;
+                            gvec::finalizeWeights(g);
                         }
                         writeSet(g);
                         learning_ = -1;
@@ -203,7 +212,7 @@ private:
 
     void mouseDown(const juce::MouseEvent& e) override {
         dragThr_ = dragNote_ = -1;
-        for (int k = 0; k < handpose::kGestureSlots; ++k) {
+        for (int k = 0; k < gvec::kSlots; ++k) {
             if (barBounds(k).expanded(0, 3).contains(e.getPosition())) {
                 dragThr_ = k;
                 applyThr(k, e.x);
@@ -229,7 +238,7 @@ private:
     void mouseUp(const juce::MouseEvent&) override { dragThr_ = dragNote_ = -1; }
     void mouseWheelMove(const juce::MouseEvent& e,
                         const juce::MouseWheelDetails& wheel) override {
-        for (int k = 0; k < handpose::kGestureSlots; ++k)
+        for (int k = 0; k < gvec::kSlots; ++k)
             if (noteRect(k).contains(e.getPosition())) {
                 const int next = juce::jlimit(0, 127,
                                               slotNote(k) + (wheel.deltaY > 0 ? 1 : -1));
@@ -249,15 +258,16 @@ private:
 
     EngineHost& host_;
     std::string cn_;
+    mutable int dims_ = 5;
     int dragThr_ = -1, dragNote_ = -1;
     int dragStartY_ = 0, dragStartNote_ = 60;
-    std::array<juce::TextButton, handpose::kGestureSlots> learn_;
-    std::array<juce::TextButton, handpose::kGestureSlots> reinforce_;
-    std::array<juce::TextButton, handpose::kGestureSlots> clear_;
+    std::array<juce::TextButton, gvec::kSlots> learn_;
+    std::array<juce::TextButton, gvec::kSlots> reinforce_;
+    std::array<juce::TextButton, gvec::kSlots> clear_;
     int learning_ = -1;
     bool reinforcing_ = false;
     int samples_ = 0;
-    std::array<float, 5> acc_{};
+    std::array<float, GestureFeatureSource::kMaxFeatures> acc_{};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HandGestureBrick)
 };

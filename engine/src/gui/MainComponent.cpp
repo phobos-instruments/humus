@@ -255,21 +255,24 @@ void MainComponent::addAt(const std::string& className, juce::Point<int> at) {
     canvas_->refresh();
 }
 
-void MainComponent::serviceVideoPreviewRigs() {
-    if (juce::JUCEApplication::getInstance() == nullptr) return;
-    std::set<std::string> keep;
-    for (const auto& n : VideoPreviewStore::instance().wantedNodes()) {
-        if (visualWindows_.count(n) != 0) continue;
-        if (!isVideoOutputNode(host_, n)) continue;
-        if (auto* c = host_.liveOrganism(n); c == nullptr
-                                             || c->params.get("Preview", 1.0) < 0.5)
-            continue;
-        keep.insert(n);
-        if (previewRigs_.count(n) == 0)
-            previewRigs_[n] = std::make_unique<VideoPreviewRig>(host_, n);
+void MainComponent::serviceTrackerFeeds() {
+    if (renderService_ == nullptr && juce::JUCEApplication::getInstance() != nullptr) {
+        renderService_ = std::make_unique<VideoRenderService>(host_);
+        renderService_->setSuppressed(
+            [this](const std::string& n) { return visualWindows_.count(n) != 0; });
     }
-    for (auto it = previewRigs_.begin(); it != previewRigs_.end();)
-        it = keep.count(it->first) ? std::next(it) : previewRigs_.erase(it);
+    std::set<std::string> keep;
+    for (const auto& c : host_.model().videoConnections) {
+        if (c.dstInlet != 0) continue;
+        if (dynamic_cast<hum::VideoFrameSink*>(host_.liveOrganism(c.dst)) == nullptr)
+            continue;
+        keep.insert(c.dst);
+        if (trackerFeeds_.count(c.dst) == 0)
+            trackerFeeds_[c.dst] = std::make_unique<VideoTrackerFeed>(
+                host_, c.dst, renderService_.get());
+    }
+    for (auto it = trackerFeeds_.begin(); it != trackerFeeds_.end();)
+        it = keep.count(it->first) ? std::next(it) : trackerFeeds_.erase(it);
 }
 
 void MainComponent::timerCallback() {
@@ -397,7 +400,7 @@ void MainComponent::timerCallback() {
 #endif
         }
     }
-    serviceVideoPreviewRigs();
+    serviceTrackerFeeds();
     propsPane_->refreshPresetState();
     propsPane_->refreshTextEdits();
     if (const double bpm = host_.liveTempo();

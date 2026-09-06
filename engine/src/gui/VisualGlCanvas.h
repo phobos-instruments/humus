@@ -1,12 +1,22 @@
 #pragma once
+#include <atomic>
 #include <cstdint>
+#include <cstdio>
 #include <map>
+#include <set>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_opengl/juce_opengl.h>
+
+#if JUCE_MAC
+#include <CoreVideo/CoreVideo.h>
+#include <IOSurface/IOSurface.h>
+#include <OpenGL/OpenGL.h>
+#include <OpenGL/CGLIOSurface.h>
+#endif
 
 #include "gui/SceneAssemble.h"
 #include "gui/SceneCompile.h"
@@ -77,6 +87,8 @@ public:
     void openGLContextClosing() override {
         using namespace juce::gl;
         deckProgram_.reset();
+        deckRectProgram_.reset();
+        deckYCoCgProgram_.reset();
         layerProgram_.reset();
         mixProgram_.reset();
         presentProgram_.reset();
@@ -84,18 +96,21 @@ public:
         scenePrograms_.clear();
         if (passFbo_ != 0) { glDeleteFramebuffers(1, &passFbo_); passFbo_ = 0; }
         destroyFbos();
-        for (auto& [n, t] : deckTex_)
+        for (auto& [n, t] : deckTex_) {
             if (t.tex != 0) glDeleteTextures(1, &t.tex);
+            if (t.rectTex != 0) glDeleteTextures(1, &t.rectTex);
+        }
         deckTex_.clear();
         if (quad_ != 0) { glDeleteBuffers(1, &quad_); quad_ = 0; }
         for (auto* t : {&texWave_, &texFft_, &texBlack_})
             if (*t != 0) { glDeleteTextures(1, t); *t = 0; }
-        if (previewFbo_ != 0) { glDeleteFramebuffers(1, &previewFbo_); previewFbo_ = 0; }
-        if (previewTex_ != 0) { glDeleteTextures(1, &previewTex_); previewTex_ = 0; }
+        for (auto& [n, rb] : taps_) releaseTap(rb);
+        taps_.clear();
     }
 
     void renderOpenGL() override {
         using namespace juce::gl;
+        renders_.fetch_add(1);
         visual::Plan p;
         {
             const juce::SpinLock::ScopedLockType sl(lock_);
@@ -116,7 +131,7 @@ public:
             glViewport(0, 0, w, h);
             juce::OpenGLHelpers::clear(juce::Colours::black);
             switch (s.kind) {
-                case visual::Step::Deck: renderDeck(s, p.wearClock); break;
+                case visual::Step::Deck: renderDeck(s); break;
                 case visual::Step::Scene: renderScene(s, w, h, firstError); break;
                 case visual::Step::Mix: renderMix(s); break;
                 case visual::Step::Black: break;
@@ -137,64 +152,139 @@ public:
             drawQuad(pid);
         }
         if (p.noSignal) drawNoSignal(w, h);
-        publishPreview(p);
+        publishTaps(p);
         {
             const juce::SpinLock::ScopedLockType sl(lock_);
             error_ = firstError;
         }
     }
 
-    void publishPreview(const visual::Plan& p) {
+    void publishTaps(const visual::Plan& p) {
         using namespace juce::gl;
         auto& store = VideoPreviewStore::instance();
-        if (previewNode_.empty() || !store.wanted(previewNode_)) return;
-        if ((previewTick_ ^= 1) == 0) return;
-
-        if (previewFbo_ == 0) {
-            glGenFramebuffers(1, &previewFbo_);
-            glGenTextures(1, &previewTex_);
-            glBindTexture(GL_TEXTURE_2D, previewTex_);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, kPrevW, kPrevH, 0,
-                         GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glBindFramebuffer(GL_FRAMEBUFFER, previewFbo_);
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                   GL_TEXTURE_2D, previewTex_, 0);
+        auto taps = p.taps;
+        if (!previewNode_.empty()) {
+            visual::Tap t;
+            t.node = previewNode_;
+            t.step = p.root;
+            t.w = prevW_;
+            t.h = prevH_;
+            t.fade = p.masterFade;
+            t.everyOther = true;
+            taps.push_back(std::move(t));
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, previewFbo_);
-        glViewport(0, 0, kPrevW, kPrevH);
-        juce::OpenGLHelpers::clear(juce::Colours::black);
-        if (p.root >= 0 && p.root < (int) fbos_.size() && presentProgram_ != nullptr) {
-            presentProgram_->use();
-            const auto pid = presentProgram_->getProgramID();
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, fbos_[(size_t) p.root].tex);
-            glUniform1i(glGetUniformLocation(pid, "tex"), 0);
-            glUniform1f(glGetUniformLocation(pid, "fade"),
-                        juce::jlimit(0.0f, 1.0f, p.masterFade));
-            drawQuad(pid);
+        previewTick_ ^= 1;
+        std::set<std::string> live;
+        for (const auto& t : taps) {
+            if (t.w <= 0 || t.h <= 0 || !store.wanted(t.node)) continue;
+            live.insert(t.node);
+            if (t.everyOther && previewTick_ == 0) continue;
+            auto& rb = taps_[t.node];
+            ensureTapTarget(rb, t.w, t.h);
+            glBindFramebuffer(GL_FRAMEBUFFER, rb.fbo);
+            glViewport(0, 0, t.w, t.h);
+            juce::OpenGLHelpers::clear(juce::Colours::black);
+            if (t.step >= 0 && t.step < (int) fbos_.size()
+                && presentProgram_ != nullptr) {
+                presentProgram_->use();
+                const auto pid = presentProgram_->getProgramID();
+                glActiveTexture(GL_TEXTURE0);
+                glBindTexture(GL_TEXTURE_2D, fbos_[(size_t) t.step].tex);
+                glUniform1i(glGetUniformLocation(pid, "tex"), 0);
+                glUniform1f(glGetUniformLocation(pid, "fade"),
+                            juce::jlimit(0.0f, 1.0f, t.fade));
+                drawQuad(pid);
+            }
+            const size_t bytes = (size_t) t.w * (size_t) t.h * 4u;
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, rb.pbo[rb.next]);
+            if (rb.pboBytes[rb.next] != bytes) {
+                glBufferData(GL_PIXEL_PACK_BUFFER, (GLsizeiptr) bytes, nullptr,
+                             GL_STREAM_READ);
+                rb.pboBytes[rb.next] = bytes;
+            }
+            glReadPixels(0, 0, t.w, t.h, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+            rb.pending[rb.next] = {t.w, t.h};
+            rb.next ^= 1;
+            const auto ready = rb.pending[rb.next];
+            if (ready.first > 0
+                && rb.pboBytes[rb.next]
+                       == (size_t) ready.first * (size_t) ready.second * 4u) {
+                glBindBuffer(GL_PIXEL_PACK_BUFFER, rb.pbo[rb.next]);
+                if (const auto* mapped = (const std::uint8_t*) glMapBuffer(
+                        GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)) {
+                    store.publishFlipped(t.node, ready.first, ready.second, mapped);
+                    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+                }
+            }
+            glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
         }
-        previewPixels_.resize((size_t) kPrevW * (size_t) kPrevH * 4u);
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(0, 0, kPrevW, kPrevH, GL_RGBA, GL_UNSIGNED_BYTE,
-                     previewPixels_.data());
-        for (int y = 0; y < kPrevH / 2; ++y) {
-            auto* a = previewPixels_.data() + (size_t) y * kPrevW * 4u;
-            auto* b = previewPixels_.data() + (size_t) (kPrevH - 1 - y) * kPrevW * 4u;
-            std::swap_ranges(a, a + kPrevW * 4, b);
-        }
-        store.publish(previewNode_, kPrevW, kPrevH, previewPixels_.data());
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        for (auto it = taps_.begin(); it != taps_.end();)
+            it = live.count(it->first) ? std::next(it) : (releaseTap(it->second),
+                                                          taps_.erase(it));
+    }
+
+    struct TapTarget {
+        unsigned int fbo = 0, tex = 0, pbo[2] = {0, 0};
+        int w = 0, h = 0, next = 0;
+        size_t pboBytes[2] = {0, 0};
+        std::pair<int, int> pending[2] = {{0, 0}, {0, 0}};
+    };
+
+    void ensureTapTarget(TapTarget& rb, int w, int h) {
+        using namespace juce::gl;
+        if (rb.fbo != 0 && rb.w == w && rb.h == h) return;
+        if (rb.fbo == 0) {
+            glGenFramebuffers(1, &rb.fbo);
+            glGenTextures(1, &rb.tex);
+            glGenBuffers(2, rb.pbo);
+        }
+        glBindTexture(GL_TEXTURE_2D, rb.tex);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glBindFramebuffer(GL_FRAMEBUFFER, rb.fbo);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, rb.tex, 0);
+        rb.w = w;
+        rb.h = h;
+        rb.pending[0] = rb.pending[1] = {0, 0};
+    }
+
+    void releaseTap(TapTarget& rb) {
+        using namespace juce::gl;
+        if (rb.fbo != 0) glDeleteFramebuffers(1, &rb.fbo);
+        if (rb.tex != 0) glDeleteTextures(1, &rb.tex);
+        if (rb.pbo[0] != 0) glDeleteBuffers(2, rb.pbo);
+        rb = {};
     }
 
     void setPreviewNode(std::string n) { previewNode_ = std::move(n); }
 
+    unsigned renderCount() const { return renders_.load(); }
+
+    void setPreviewSize(int w, int h) {
+        if (w > 0 && h > 0) {
+            prevW_ = w;
+            prevH_ = h;
+        }
+    }
+
 private:
     struct Fbo { unsigned int fbo = 0, tex = 0; };
-    struct DeckTex { unsigned int tex = 0; std::shared_ptr<const VideoLayer::Frame> uploaded; };
+    struct DeckTex {
+        unsigned int tex = 0;
+        int w = 0, h = 0;
+        unsigned int glFmt = 0;
+        unsigned int rectTex = 0;
+        int rectW = 0, rectH = 0;
+        bool rect = false, ycocg = false;
+        std::shared_ptr<const VideoLayer::Frame> uploaded;
+    };
     struct SceneProg {
         std::unique_ptr<juce::OpenGLShaderProgram> program;
         visual::SceneSpec compiled;
@@ -306,39 +396,44 @@ private:
         return nullptr;
     }
 
+    std::unique_ptr<juce::OpenGLShaderProgram> buildDeck(bool rect, bool ycocg = false) {
+        juce::String prologue =
+            rect ? "#extension GL_ARB_texture_rectangle : require\n"
+                   "#define SAMPLER sampler2DRect\n"
+                   "uniform vec2 texSize;\n"
+                   "#define RAWSAMPLE(t, p) texture2DRect(t, (p) * texSize)\n"
+                 : "#define SAMPLER sampler2D\n"
+                   "#define RAWSAMPLE(t, p) texture2D(t, p)\n";
+        prologue += ycocg ? "vec4 hapYcocg(vec4 c) {\n"
+                            "    float scale = c.b * (255.0 / 8.0) + 1.0;\n"
+                            "    float Co = (c.r - 0.50196078) / scale;\n"
+                            "    float Cg = (c.g - 0.50196078) / scale;\n"
+                            "    return vec4(c.a + Co - Cg, c.a + Cg,\n"
+                            "                c.a - Co - Cg, 1.0);\n"
+                            "}\n"
+                            "#define SAMPLE(t, p) hapYcocg(RAWSAMPLE(t, p))\n"
+                          : "#define SAMPLE(t, p) RAWSAMPLE(t, p)\n";
+        const juce::String src =
+            prologue
+            + "varying vec2 uv;\n"
+              "uniform SAMPLER tex;\n"
+              "void main() {\n"
+              "    vec2 p = vec2(uv.x, 1.0 - uv.y);\n"
+              "    gl_FragColor = vec4(SAMPLE(tex, p).rgb, 1.0);\n"
+              "}\n";
+        return build(src.toRawUTF8(), nullptr);
+    }
+
     void ensurePrograms() {
-        if (deckProgram_ == nullptr)
-            deckProgram_ = build(
-                "varying vec2 uv;\n"
-                "uniform sampler2D tex;\n"
-                "uniform float wear;\n"
-                "uniform float wearTime;\n"
-                "float vhsRand(vec2 co) {\n"
-                "    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);\n"
-                "}\n"
-                "void main() {\n"
-                "    vec2 p = vec2(uv.x, 1.0 - uv.y);\n"
-                "    vec3 rgb;\n"
-                "    if (wear > 0.001) {\n"
-                "        float line = floor(p.y * 240.0);\n"
-                "        float roll = fract(p.y - wearTime * 0.11);\n"
-                "        float jit = (vhsRand(vec2(line, floor(wearTime * 24.0))) - 0.5)\n"
-                "                    * 0.02 * wear\n"
-                "                  + smoothstep(0.96, 1.0, roll) * 0.12 * wear;\n"
-                "        p.x = clamp(p.x + jit, 0.0, 1.0);\n"
-                "        float off = 0.006 * wear;\n"
-                "        rgb = vec3(texture2D(tex, vec2(min(p.x + off, 1.0), p.y)).r,\n"
-                "                   texture2D(tex, p).g,\n"
-                "                   texture2D(tex, vec2(max(p.x - off, 0.0), p.y)).b);\n"
-                "        float n = vhsRand(vec2(p.x * 320.0, line + floor(wearTime * 60.0)));\n"
-                "        rgb = mix(rgb, vec3(n), smoothstep(0.955, 1.0, roll) * 0.8 * wear);\n"
-                "        float g = dot(rgb, vec3(0.299, 0.587, 0.114));\n"
-                "        rgb = mix(rgb, vec3(g), 0.25 * wear);\n"
-                "    } else {\n"
-                "        rgb = texture2D(tex, p).rgb;\n"
-                "    }\n"
-                "    gl_FragColor = vec4(rgb, 1.0);\n"
-                "}\n", nullptr);
+        if (deckProgram_ == nullptr) deckProgram_ = buildDeck(false);
+        if (deckYCoCgProgram_ == nullptr) {
+            deckYCoCgProgram_ = buildDeck(false, true);
+            if (deckYCoCgProgram_ == nullptr)
+                std::fprintf(stderr, "deck ycocg shader failed to build\n");
+        }
+#if JUCE_MAC
+        if (deckRectProgram_ == nullptr) deckRectProgram_ = buildDeck(true);
+#endif
         if (layerProgram_ == nullptr)
             layerProgram_ = build(
                 "varying vec2 uv;\n"
@@ -419,35 +514,119 @@ private:
         return idx >= 0 && idx < (int) fbos_.size() ? fbos_[(size_t) idx].tex : texBlack_;
     }
 
-    void renderDeck(const visual::Step& s, float wearClock) {
+    bool bindDeckSurface(DeckTex& dt, const VideoLayer::Frame& f) {
+#if JUCE_MAC
+        using namespace juce::gl;
+        auto* pb = (CVPixelBufferRef) f.native;
+        if (pb == nullptr) return false;
+        IOSurfaceRef surf = CVPixelBufferGetIOSurface(pb);
+        if (surf == nullptr) return false;
+        if (dt.rectTex == 0) glGenTextures(1, &dt.rectTex);
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, dt.rectTex);
+        const auto w = (GLsizei) IOSurfaceGetWidth(surf);
+        const auto h = (GLsizei) IOSurfaceGetHeight(surf);
+        if (CGLTexImageIOSurface2D(CGLGetCurrentContext(), GL_TEXTURE_RECTANGLE_ARB,
+                                   GL_RGBA, w, h, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
+                                   surf, 0)
+            != kCGLNoError)
+            return false;
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        dt.rectW = (int) w;
+        dt.rectH = (int) h;
+        return true;
+#else
+        juce::ignoreUnused(dt, f);
+        return false;
+#endif
+    }
+
+    void uploadCompressedDeck(DeckTex& dt, const VideoLayer::Frame& f) {
+        using namespace juce::gl;
+        constexpr unsigned int kDxt1 = 0x83F0, kDxt5 = 0x83F3;
+        const unsigned int fmt = f.fmt == VideoLayer::Frame::DXT1 ? kDxt1 : kDxt5;
+        if (dt.tex == 0) {
+            glGenTextures(1, &dt.tex);
+            glBindTexture(GL_TEXTURE_2D, dt.tex);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        } else {
+            glBindTexture(GL_TEXTURE_2D, dt.tex);
+        }
+        if (dt.w == f.width && dt.h == f.height && dt.glFmt == fmt) {
+            glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, f.width, f.height, fmt,
+                                      (GLsizei) f.blocks.size(), f.blocks.data());
+        } else {
+            dt.w = f.width;
+            dt.h = f.height;
+            dt.glFmt = fmt;
+            glCompressedTexImage2D(GL_TEXTURE_2D, 0, fmt, f.width, f.height, 0,
+                                   (GLsizei) f.blocks.size(), f.blocks.data());
+        }
+        dt.rect = false;
+        dt.ycocg = f.fmt == VideoLayer::Frame::YCoCgDXT5;
+    }
+
+    void renderDeck(const visual::Step& s) {
         using namespace juce::gl;
         auto& dt = deckTex_[s.node];
         if (s.frame != nullptr && s.frame != dt.uploaded) {
-            if (dt.tex == 0) {
-                glGenTextures(1, &dt.tex);
-                glBindTexture(GL_TEXTURE_2D, dt.tex);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            } else {
-                glBindTexture(GL_TEXTURE_2D, dt.tex);
+            if (s.frame->fmt != VideoLayer::Frame::BGRA && !s.frame->blocks.empty()) {
+                uploadCompressedDeck(dt, *s.frame);
+                dt.uploaded = s.frame;
+            } else if (bindDeckSurface(dt, *s.frame)) {
+                dt.rect = true;
+                dt.ycocg = false;
+                dt.uploaded = s.frame;
+            } else if (!s.frame->bgra.empty()) {
+                dt.rect = false;
+                dt.ycocg = false;
+                if (dt.tex == 0) {
+                    glGenTextures(1, &dt.tex);
+                    glBindTexture(GL_TEXTURE_2D, dt.tex);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                } else {
+                    glBindTexture(GL_TEXTURE_2D, dt.tex);
+                }
+                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+                if (dt.w == s.frame->width && dt.h == s.frame->height
+                    && dt.glFmt == 0) {
+                    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, dt.w, dt.h, GL_BGRA,
+                                    GL_UNSIGNED_BYTE, s.frame->bgra.data());
+                } else {
+                    dt.w = s.frame->width;
+                    dt.h = s.frame->height;
+                    dt.glFmt = 0;
+                    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dt.w, dt.h, 0, GL_BGRA,
+                                 GL_UNSIGNED_BYTE, s.frame->bgra.data());
+                }
+                dt.uploaded = s.frame;
             }
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, s.frame->width,
-                         s.frame->height, 0, GL_BGRA, GL_UNSIGNED_BYTE,
-                         s.frame->bgra.data());
-            dt.uploaded = s.frame;
         }
-        if (!s.active || dt.tex == 0 || deckProgram_ == nullptr) return;
-        deckProgram_->use();
-        const auto pid = deckProgram_->getProgramID();
+        auto* program = dt.rect ? deckRectProgram_.get()
+                      : dt.ycocg ? deckYCoCgProgram_.get()
+                                 : deckProgram_.get();
+        const auto bound = dt.rect ? dt.rectTex : dt.tex;
+        if (!s.active || bound == 0 || program == nullptr) return;
+        program->use();
+        const auto pid = program->getProgramID();
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, dt.tex);
+#if JUCE_MAC
+        if (dt.rect) {
+            glBindTexture(GL_TEXTURE_RECTANGLE_ARB, bound);
+            glUniform2f(glGetUniformLocation(pid, "texSize"), (float) dt.rectW,
+                        (float) dt.rectH);
+        } else
+#endif
+            glBindTexture(GL_TEXTURE_2D, bound);
         glUniform1i(glGetUniformLocation(pid, "tex"), 0);
-        glUniform1f(glGetUniformLocation(pid, "wear"),
-                    juce::jlimit(0.0f, 1.0f, s.wear));
-        glUniform1f(glGetUniformLocation(pid, "wearTime"), wearClock);
         drawQuad(pid);
     }
 
@@ -696,7 +875,8 @@ private:
     }
 
     juce::OpenGLContext ctx_;
-    std::unique_ptr<juce::OpenGLShaderProgram> deckProgram_, layerProgram_,
+    std::unique_ptr<juce::OpenGLShaderProgram> deckProgram_, deckRectProgram_,
+        deckYCoCgProgram_, layerProgram_,
         mixProgram_, presentProgram_;
     std::map<std::string, SceneProg> scenePrograms_;
     std::map<std::string, DeckTex> deckTex_;
@@ -705,10 +885,10 @@ private:
     unsigned int quad_ = 0, texWave_ = 0, texFft_ = 0, texBlack_ = 0;
     unsigned int passFbo_ = 0;
 
-    static constexpr int kPrevW = 160, kPrevH = 90;
+    int prevW_ = 160, prevH_ = 90;
     std::string previewNode_;
-    unsigned int previewFbo_ = 0, previewTex_ = 0;
-    std::vector<std::uint8_t> previewPixels_;
+    std::map<std::string, TapTarget> taps_;
+    std::atomic<unsigned> renders_{0};
     int previewTick_ = 0;
 
     bool paused_ = false;

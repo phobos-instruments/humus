@@ -17,7 +17,7 @@ constexpr const char* kDefaultInstrument = "Rhizome";
 enum { kMenuOpen = 1, kMenuSplit, kMenuLoop, kMenuRename, kMenuDuplicate, kMenuDelete,
        kMenuSetBpm, kMenuQuantise, kMenuUp, kMenuDown, kMenuOctUp, kMenuOctDown,
        kMenuLouder, kMenuSofter, kMenuMerge, kMenuToMidi,
-       kMenuColor0 = 100, kMenuWarp0 = 200, kMenuQuant0 = 300,
+       kMenuColor0 = 100, kMenuWarp0 = 200, kMenuQuant0 = 300, kMenuStretch0 = 400,
        kMenuFadeIn0 = 400, kMenuFadeOut0 = 410 };
 
 struct FadeShape { const char* name; double curve; };
@@ -160,6 +160,12 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
         fades.addSubMenu("Out", fadeOut, ci.fadeOutTicks > 0);
         menu.addSubMenu("Fade Shape", fades, ci.fadeInTicks > 0 || ci.fadeOutTicks > 0);
         menu.addItem(kMenuToMidi, "Convert to MIDI Track");
+        juce::PopupMenu stretch;
+        static const int kStretchFactors[] = {4, 8, 16, 50};
+        for (int i = 0; i < 4; ++i)
+            stretch.addItem(kMenuStretch0 + i,
+                            juce::String(kStretchFactors[i]) + "x to New Track");
+        menu.addSubMenu("Paulstretch", stretch);
     }
     menu.addSeparator();
     menu.addItem(kMenuDelete, "Delete");
@@ -190,6 +196,11 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
         }
         if (res == kMenuToMidi) {
             convertClipToMidi(node, ci);
+            return;
+        }
+        if (res >= kMenuStretch0 && res < kMenuStretch0 + 4) {
+            static const double kFactors[] = {4.0, 8.0, 16.0, 50.0};
+            stretchClip(node, clip, ci, kFactors[res - kMenuStretch0]);
             return;
         }
         if (res == kMenuSetBpm) {
@@ -394,6 +405,31 @@ void TracksPane::convertClipToMidi(const std::string& node,
     repaint();
 }
 
+void TracksPane::stretchClip(const std::string& node, int clip,
+                             const ClipEditor::ClipInfo& ci, double factor) {
+    const auto path = host_.clips().stretchAudioFile(node, clip, factor);
+    if (path.empty()) return;
+    juce::AudioFormatManager fm;
+    fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(
+        juce::File(juce::String(juce::CharPointer_UTF8(path.c_str())))));
+    if (!rd || rd->sampleRate <= 0.0) return;
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    const int ticks = std::max(1, (int) std::llround((double) rd->lengthInSamples
+                                                     / rd->sampleRate * bpm / 60.0
+                                                     * Pattern::kTicksPerBeat));
+    host_.pushUndo();
+    const auto dest = addTrack(true, {});
+    if (dest.empty()) return;
+    const int made = host_.clips().addAudio(dest, ci.startTick, ticks, path);
+    if (made >= 0)
+        host_.clips().rename(dest, made,
+                             (ci.name.empty() ? std::string("stretched") : ci.name)
+                                 + " x" + std::to_string((int) factor));
+    rebuild();
+    repaint();
+}
+
 std::string TracksPane::addTrack(bool audio, const std::string& target) {
     clearTimeSelection();
     if (audio) {
@@ -415,28 +451,18 @@ std::string TracksPane::addTrack(bool audio, const std::string& target) {
 void TracksPane::showAddTrackMenu(juce::Point<int> screenPos) {
     juce::PopupMenu m;
     m.addItem(1, "Audio Track");
-
-    std::vector<std::string> instruments;
-    for (const auto& cm : host_.model().organisms) {
-        if (isHiddenOrganism(cm.displayClass)) continue;
-        if (host_.midiInletsOf(cm.name) > 0) instruments.push_back(cm.name);
-    }
-    juce::PopupMenu notes;
-    for (int i = 0; i < (int) instruments.size(); ++i)
-        notes.addItem(100 + i, juce::String(instruments[(size_t) i]));
-    if (!instruments.empty()) notes.addSeparator();
-    notes.addItem(2, "New instrument");
-    m.addSubMenu("MIDI Track", notes, true);
+    m.addItem(3, "MIDI Track");
 
     m.showMenuAsync(juce::PopupMenu::Options()
                         .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
-                    [this, instruments](int res) {
+                    [this](int res) {
         if (res == 0) return;
         host_.pushUndo();
-        if (res == 1)       addTrack(true, {});
-        else if (res == 2)  addTrack(false, {});
-        else if (res >= 100 && res - 100 < (int) instruments.size())
-            addTrack(false, instruments[(size_t) (res - 100)]);
+        if (res == 1) addTrack(true, {});
+        else if (res == 3) {
+            const auto node = host_.addOrganism("MidiTrack", host_.spotBelowPatch());
+            if (!node.empty()) host_.patterns().ensureNote(node);
+        }
         rebuild();
         repaint();
         if (onPatchChanged) onPatchChanged();
