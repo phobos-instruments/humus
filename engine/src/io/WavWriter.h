@@ -8,4 +8,8 @@ bool writeWav(const std::string& path,
               const std::vector<std::vector<float>>& channels,
               double sampleRate, int bitsPerSample = 24);
 
+bool writeSound(const std::string& path,
+                const std::vector<std::vector<float>>& channels,
+                double sampleRate, int bitsPerSample = 24);
+
 }

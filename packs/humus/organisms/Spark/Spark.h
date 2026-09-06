@@ -4,6 +4,8 @@
 #include "hum/Organism.h"
 #include "hum/dsp/DelayLine.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Spark : public Organism {
@@ -24,7 +26,7 @@ private:
         float damp = 0.0f;
     };
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     Line lines_[2][kLines];
     float offset_[kLines] = {};
 };

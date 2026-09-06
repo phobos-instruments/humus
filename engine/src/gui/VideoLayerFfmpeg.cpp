@@ -1,4 +1,5 @@
 #include "gui/VideoLayer.h"
+#include "gui/VideoLog.h"
 
 #include <algorithm>
 #include <atomic>
@@ -53,6 +54,18 @@ public:
     double lengthSeconds() override { return length_.load(); }
 
     void seekSeconds(double t) override { seekTo_.store(std::max(0.0, t)); }
+
+    void chase(double seconds, double rate) override {
+        chaseTo_.store(std::max(0.0, seconds));
+        chaseRate_.store(rate);
+        chaseStamp_.fetch_add(1);
+    }
+
+    void setLoopRange(const LoopRange& r) override {
+        loopIn_.store(std::max(0.0, r.in));
+        loopOut_.store(r.out);
+        loop_.store(r.loop);
+    }
 
     std::shared_ptr<const Frame> latestFrame() override {
         const juce::ScopedLock sl(lock_);
@@ -129,20 +142,19 @@ private:
     bool open(Decoder& d) {
         const auto leaf = juce::File(path_).getFileName();
         if (avformat_open_input(&d.fmt, path_.toRawUTF8(), nullptr, nullptr) < 0) {
-            std::cout << "[video] " << leaf << ": not a tape this build can open" << std::endl;
+            videoLog(leaf + ": not a tape this build can open");
             return false;
         }
         if (avformat_find_stream_info(d.fmt, nullptr) < 0) return false;
         d.stream = av_find_best_stream(d.fmt, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
         if (d.stream < 0) {
-            std::cout << "[video] " << leaf << ": no video stream" << std::endl;
+            videoLog(leaf + ": no video stream");
             return false;
         }
         const auto codecId = d.fmt->streams[d.stream]->codecpar->codec_id;
         const AVCodec* codec = avcodec_find_decoder(codecId);
         if (codec == nullptr) {
-            std::cout << "[video] " << leaf << ": no decoder for " << avcodec_get_name(codecId)
-                      << " in this build" << std::endl;
+            videoLog(leaf + ": no decoder for " + avcodec_get_name(codecId) + " in this build");
             return false;
         }
         const auto* st = d.fmt->streams[d.stream];
@@ -157,12 +169,10 @@ private:
             AV_HWDEVICE_TYPE_CUDA, AV_HWDEVICE_TYPE_VAAPI, AV_HWDEVICE_TYPE_NONE};
         for (const auto type : tries)
             if (openCodec(d, codec, type)) {
-                std::cout << "[video] " << juce::File(path_).getFileName() << ": "
-                          << codec->name << " "
-                          << (type == AV_HWDEVICE_TYPE_NONE
-                                  ? "in software"
-                                  : juce::String("on ") + av_hwdevice_get_type_name(type))
-                          << std::endl;
+                videoLog(juce::File(path_).getFileName() + ": " + codec->name + " "
+                         + (type == AV_HWDEVICE_TYPE_NONE
+                                ? juce::String("in software")
+                                : juce::String("on ") + av_hwdevice_get_type_name(type)));
                 break;
             }
         if (d.ctx == nullptr) return false;
@@ -201,7 +211,7 @@ private:
         }
     }
 
-    void present(Decoder& d) {
+    void present(Decoder& d, double pts) {
         AVFrame* src = d.frame;
         if (d.hwPix != AV_PIX_FMT_NONE && d.frame->format == d.hwPix) {
             av_frame_unref(d.swFrame);
@@ -222,6 +232,7 @@ private:
         std::uint8_t* dst[4] = {out->bgra.data(), nullptr, nullptr, nullptr};
         const int dstStride[4] = {w * 4, 0, 0, 0};
         sws_scale(d.sws, src->data, src->linesize, 0, h, dst, dstStride);
+        out->pts = pts;
         const juce::ScopedLock sl(lock_);
         current_ = std::move(out);
     }
@@ -236,25 +247,44 @@ private:
         pendingValid_ = false;
         atEof_ = false;
         double pendingPts = 0.0;
+        unsigned chaseSeen = 0;
+        bool chasing = false;
 
         while (!threadShouldExit()) {
             const auto nowMs = juce::Time::getMillisecondCounterHiRes();
+            const auto range = loopWindow(loopIn_.load(), loopOut_.load(), d.span);
             bool jumped = false;
             if (rewind_.exchange(false)) {
-                position = 0.0;
+                position = range.first;
                 jumped = true;
+                chasing = false;
             }
             if (const double target = seekTo_.exchange(-1.0); target >= 0.0) {
                 position = d.span > 0.0 ? std::min(target, d.span) : target;
                 jumped = true;
+                chasing = false;
             }
-            const float rate = rate_.load();
-            if (!paused_.load() && rate > 0.0f)
+            if (const unsigned stamp = chaseStamp_.load(); stamp != chaseSeen) {
+                chaseSeen = stamp;
+                chasing = true;
+                position = chaseTo_.load();
+                if (lastPresented >= 0.0 && position > lastPresented + kChaseSeekAhead) jumped = true;
+            } else if (chasing) {
+                position += (nowMs - lastMs) * 0.001 * chaseRate_.load();
+            } else if (const float rate = rate_.load(); !paused_.load() && rate > 0.0f) {
                 position += (nowMs - lastMs) * 0.001 * (double) rate;
+            }
             lastMs = nowMs;
-            if (d.span > 0.0 && position >= d.span) {
-                position -= d.span * std::floor(position / d.span);
-                jumped = true;
+            if (chasing) {
+                if (d.span > 0.0) position = std::min(position, d.span);
+            } else if (range.second > range.first && position >= range.second) {
+                if (loop_.load()) {
+                    position = range.first
+                             + std::fmod(position - range.first, range.second - range.first);
+                    jumped = true;
+                } else {
+                    position = range.second;
+                }
             }
             shownPosition_.store(position);
 
@@ -270,8 +300,12 @@ private:
                     pendingValid_ = true;
                 } else if (atEof_) {
                     if (d.span <= 0.0) d.span = std::max(lastPresented, 0.0);
-                    seekDecoder(d, 0.0);
-                    position = 0.0;
+                    if (!loop_.load() || chasing) {
+                        wait(chasing ? 10 : 2);
+                        continue;
+                    }
+                    seekDecoder(d, range.first);
+                    position = range.first;
                     lastPresented = -1.0;
                     wait(2);
                     continue;
@@ -279,21 +313,29 @@ private:
             }
             if (pendingValid_ && pendingPts <= position + 0.001) {
                 if (pendingPts >= position - 0.5 || lastPresented < 0.0) {
-                    present(d);
+                    present(d, pendingPts);
                     lastPresented = pendingPts;
                 }
                 pendingValid_ = false;
                 continue;
             }
-            wait(2);
+            wait(paused_.load() && !chasing ? 20 : 2);
         }
     }
+
+    static constexpr double kChaseSeekAhead = 1.0;
 
     juce::String path_;
     std::atomic<float> rate_{1.0f};
     std::atomic<bool> rewind_{false};
+    std::atomic<double> loopIn_{0.0};
+    std::atomic<double> loopOut_{0.0};
+    std::atomic<bool> loop_{true};
     std::atomic<bool> paused_{false};
     std::atomic<double> seekTo_{-1.0};
+    std::atomic<double> chaseTo_{0.0};
+    std::atomic<double> chaseRate_{0.0};
+    std::atomic<unsigned> chaseStamp_{0};
     std::atomic<double> shownPosition_{0.0};
     std::atomic<double> length_{0.0};
     bool pendingValid_ = false;

@@ -6,6 +6,7 @@
 #include "gui/Telemetry.h"
 #include "gui/TelemetryEvents.h"
 #include "io/PatchFormat.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -44,7 +45,7 @@ void MainComponent::newPatchImpl() {
     propsPane_->clearAll();
     if (tracksPane_) tracksPane_->rebuild();
     canvas_->refresh();
-    setStatus("new patch");
+    setStatus(tr("main-files.new-patch", "new patch"));
 }
 
 void MainComponent::openPatch() {
@@ -65,7 +66,7 @@ bool MainComponent::openFileAt(const juce::File& f) {
     UiWatchdog::Suspend noStall(UiWatchdog::active());
     std::string err;
     if (!host_.loadFile(f.getFullPathName().toStdString(), err)) {
-        setStatus("open failed: " + juce::String(err));
+        setStatus(tr("main-files.open-failed", "open failed: ") + juce::String(err));
         return false;
     }
     currentFile_ = f.getFullPathName();
@@ -77,7 +78,7 @@ bool MainComponent::openFileAt(const juce::File& f) {
     propsPane_->syncFromModel();
     refreshTimelinePanes();
     canvas_->refresh();
-    setStatus("opened " + f.getFileName() + strayWarning());
+    setStatus(tr("main-files.opened", "opened ") + f.getFileName() + strayWarning());
     return true;
 }
 
@@ -94,16 +95,16 @@ void MainComponent::savePatch(std::function<void()> onSaved) {
     std::string err;
     if (host_.saveFile(currentFile_.toStdString(), err)) {
         clearAutosave();
-        setStatus("saved " + juce::File(currentFile_).getFileName());
+        setStatus(tr("main-files.saved", "saved ") + juce::File(currentFile_).getFileName());
         telemetryCount(telemetry::kPatchSaved);
         if (onSaved) onSaved();
     } else {
-        setStatus("save failed: " + juce::String(err));
+        setStatus(tr("main-files.save-failed", "save failed: ") + juce::String(err));
     }
 }
 
 void MainComponent::savePatchAs(std::function<void()> onSaved) {
-    chooser_ = std::make_unique<juce::FileChooser>("Save patch as", lastDir(true),
+    chooser_ = std::make_unique<juce::FileChooser>(tr("main-files.save-patch-as", "Save patch as"), lastDir(true),
                                                    juce::String("*.") + kPatchExt);
     chooser_->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles
                               | juce::FileBrowserComponent::warnAboutOverwriting,
@@ -120,10 +121,10 @@ void MainComponent::savePatchAs(std::function<void()> onSaved) {
             rememberDir(f, true);
             recents::push(f);
             menuItemsChanged();
-            setStatus("saved " + f.getFileName());
+            setStatus(tr("main-files.saved", "saved ") + f.getFileName());
             if (onSaved) onSaved();
         } else {
-            setStatus("save failed: " + juce::String(err));
+            setStatus(tr("main-files.save-failed", "save failed: ") + juce::String(err));
         }
     });
 }
@@ -135,9 +136,9 @@ void MainComponent::confirmDiscardThenRun(std::function<void()> action) {
     auto* aw = new juce::AlertWindow("Unsaved Changes",
                                      "Save changes to " + name + " before continuing?",
                                      juce::MessageBoxIconType::QuestionIcon);
-    aw->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw->addButton("Don't Save", 2);
-    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    aw->addButton(tr("main-files.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    aw->addButton(tr("main-files.don-t-save", "Don't Save"), 2);
+    aw->addButton(tr("main-files.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
     aw->enterModalState(true, juce::ModalCallbackFunction::create(
         [this, action](int r) {
             if (r == 1) savePatch(action);
@@ -150,47 +151,13 @@ void MainComponent::closeProject() {
     confirmDiscardThenRun([this] { onCloseProject(); });
 }
 
-void MainComponent::exportSound() {
-    chooser_ = std::make_unique<juce::FileChooser>("Export to sound file", lastDir(true), "*.wav");
-    chooser_->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles
-                              | juce::FileBrowserComponent::warnAboutOverwriting,
-                          [this](const juce::FileChooser& fc) {
-        auto f = fc.getResult();
-        if (f == juce::File()) return;
-        if (!f.hasFileExtension("wav")) f = f.withFileExtension("wav");
-        rememberDir(f, true);
-        auto path = f.getFullPathName().toStdString();
-        auto name = f.getFileName();
-
-        const double guess = host_.songEndSeconds();
-        auto* aw = new juce::AlertWindow("Export to Sound File",
-                                         "Length to render (seconds):", juce::MessageBoxIconType::NoIcon);
-        aw->addTextEditor("secs", guess > 0.0 ? juce::String(guess, 2) : juce::String("10"));
-        aw->addButton("Export", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
-        aw->enterModalState(true, juce::ModalCallbackFunction::create(
-            [this, aw, path, name](int r) {
-                if (r == 1) {
-                    double secs = aw->getTextEditorContents("secs").getDoubleValue();
-                    if (secs <= 0.0) secs = 10.0;
-                    UiWatchdog::Suspend noStall(UiWatchdog::active());
-                    std::string err;
-                    if (host_.renderToFile(path, secs, err))
-                        setStatus("exported " + name + " (" + juce::String(secs, 1) + "s)");
-                    else
-                        setStatus("export failed: " + juce::String(err));
-                }
-            }), true);
-    });
-}
-
 void MainComponent::toggleMixRecording() {
     if (host_.isMixRecording()) {
         host_.stopMixRecording();
-        setStatus("mix recording saved");
+        setStatus(tr("main-files.mix-recording-saved", "mix recording saved"));
         return;
     }
-    chooser_ = std::make_unique<juce::FileChooser>("Record master mix to", lastDir(true), "*.wav");
+    chooser_ = std::make_unique<juce::FileChooser>(tr("main-files.record-live-performance-to", "Record live performance to"), lastDir(true), "*.wav");
     chooser_->launchAsync(juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles
                               | juce::FileBrowserComponent::warnAboutOverwriting,
                           [this](const juce::FileChooser& fc) {
@@ -201,9 +168,9 @@ void MainComponent::toggleMixRecording() {
         ensureAudio();
         std::string err;
         if (host_.startMixRecording(f.getFullPathName().toStdString(), err))
-            setStatus("recording master mix -> " + f.getFileName());
+            setStatus(tr("main-files.recording-master-mix", "recording master mix -> ") + f.getFileName());
         else
-            setStatus("mix record failed: " + juce::String(err));
+            setStatus(tr("main-files.mix-record-failed", "mix record failed: ") + juce::String(err));
     });
 }
 
@@ -214,10 +181,61 @@ void MainComponent::revertPatch() {
     if (host_.loadFile(currentFile_.toStdString(), err)) {
         canvas_->exitToScope("");
     canvas_->select(""); propsPane_->syncFromModel(); canvas_->refresh();
-        setStatus("reverted " + juce::File(currentFile_).getFileName() + strayWarning());
+        setStatus(tr("main-files.reverted", "reverted ") + juce::File(currentFile_).getFileName() + strayWarning());
     } else {
-        setStatus("revert failed: " + juce::String(err));
+        setStatus(tr("main-files.revert-failed", "revert failed: ") + juce::String(err));
     }
+}
+
+
+
+void MainComponent::bounce() {
+    auto offer = bounceOffer(host_);
+    if (host_.automation().loopEnabled()) {
+        offer.loopFrom = host_.automation().loopStartBeat();
+        offer.loopTo = host_.automation().loopEndBeat();
+    }
+    if (double from = 0.0, to = 0.0;
+        tracksPane_ != nullptr && tracksPane_->timeSelection(from, to)) {
+        offer.selectFrom = from;
+        offer.selectTo = to;
+    }
+    offer.folder = lastDir(true);
+    offer.stem = bounceStem(currentFile_, juce::Time::getCurrentTime());
+
+    auto content = std::make_unique<BounceWindow>(offer);
+    content->onBounce = [this](const BounceWants& wants) {
+        closeBounceWindow();
+        juce::MessageManager::callAsync([this, wants] { startBounce(wants); });
+    };
+    content->onCancel = [this] { closeBounceWindow(); };
+    bounceWindow_.reset(content.get());
+    juce::DialogWindow::LaunchOptions o;
+    o.content.setNonOwned(content.release());
+    o.dialogTitle = tr("main-files.bounce", "Bounce");
+    o.dialogBackgroundColour = Palette::background;
+    o.escapeKeyTriggersCloseButton = true;
+    o.useNativeTitleBar = true;
+    o.resizable = false;
+    o.launchAsync();
+}
+
+void MainComponent::closeBounceWindow() {
+    if (bounceWindow_ != nullptr)
+        if (auto* dw = bounceWindow_->findParentComponentOfClass<juce::DialogWindow>())
+            dw->exitModalState(0);
+    bounceWindow_.reset();
+}
+
+void MainComponent::startBounce(const BounceWants& wants) {
+    if (host_.isPlaying()) host_.stop();
+    if (wants.folder.isDirectory()) rememberDir(wants.folder.getChildFile("x"), true);
+    bounce_ = std::make_unique<BounceJob>(host_, wants);
+    bounce_->run([this](BounceJob::Told told) {
+        setStatus(told.ok ? told.said
+                          : tr("main-files.bounce-failed", "bounce failed: ") + told.said);
+        juce::MessageManager::callAsync([this] { bounce_.reset(); });
+    });
 }
 
 }

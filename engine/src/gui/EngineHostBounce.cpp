@@ -27,16 +27,7 @@ std::string EngineHost::bounceSourceOf(const std::string& node) {
     return {};
 }
 
-std::string EngineHost::consolidate(const std::string& node, double fromBeat,
-                                    double toBeat, std::string& error) {
-    if (toBeat <= fromBeat) { error = "nothing selected to consolidate"; return {}; }
-    const auto source = bounceSourceOf(node);
-    if (source.empty()) { error = node + " does not reach anything that makes sound"; return {}; }
-
-    AudioGraph g;
-    if (!buildGraph(model_, g, error)) return {};
-    g.prepare(sampleRate_, block_, model_.clock.tempo);
-    g.transport().setLoop(0.0, 0.0, false);
+void EngineHost::primeNoteTracks(AudioGraph& g) const {
     for (const auto& cm : model_.organisms) {
         const int ni = g.indexOf(cm.name);
         if (ni < 0) continue;
@@ -47,10 +38,22 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
         auto* mn = dynamic_cast<MidiNode*>(g.find(cm.name));
         if (mn == nullptr || mn->numMidiInputs() <= 0) continue;
         if (dynamic_cast<ClipArrangement*>(g.find(cm.name)) != nullptr) continue;
-        g.setNodeTrack(ni, noteschedule::prepare(cm.pattern,
-                                                 4 * 4 * Pattern::kTicksPerBeat));
+        g.setNodeTrack(ni, noteschedule::prepare(cm.pattern, 4 * 4 * Pattern::kTicksPerBeat));
         g.setNodeTrackMuted(ni, modelTrackMuted(cm));
     }
+}
+
+std::string EngineHost::consolidate(const std::string& node, double fromBeat,
+                                    double toBeat, std::string& error) {
+    if (toBeat <= fromBeat) { error = "nothing selected to consolidate"; return {}; }
+    const auto source = bounceSourceOf(node);
+    if (source.empty()) { error = node + " does not reach anything that makes sound"; return {}; }
+
+    AudioGraph g;
+    if (!buildGraph(model_, g, error)) return {};
+    g.prepare(sampleRate_, block_, model_.clock.tempo);
+    g.transport().setLoop(0.0, 0.0, false);
+    primeNoteTracks(g);
     const int idx = g.indexOf(source);
     const int chans = g.outputChannels(idx);
     if (idx < 0 || chans <= 0) { error = source + " has no audio output"; return {}; }

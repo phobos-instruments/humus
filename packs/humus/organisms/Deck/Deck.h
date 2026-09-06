@@ -12,6 +12,8 @@
 #include "hum/Organism.h"
 #include "common/TimeStretcher.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Deck : public Organism, public DeckControl {
@@ -62,17 +64,17 @@ private:
     double velocity_ = 0.0;
     bool prevSync_ = false;
     bool prevKeylock_ = false;
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
 
     juce::CriticalSection loadLock_;
     juce::AudioBuffer<float> pending_;
-    double pendingSr_ = 44100.0;
+    double pendingSr_ = kDefaultSampleRate;
     std::atomic<bool> hasPending_ {false};
 
     std::atomic<int64_t> playPos_ {0};
     std::atomic<int64_t> fileLen_ {0};
     std::atomic<int64_t> seekReq_ {-1};
-    std::atomic<double>  fileSr_  {44100.0};
+    std::atomic<double>  fileSr_  {kDefaultSampleRate};
     std::atomic<double>  effBpm_  {0.0};
     std::atomic<double>  bend_    {0.0};
     std::atomic<bool>    scrubbing_ {false};

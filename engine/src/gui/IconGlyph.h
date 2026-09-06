@@ -9,6 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -20,10 +21,10 @@ enum class IconGlyph {
     Metapad, ParameterControl, Notes, DocumentSwitcher, Help, Library,
     QwertyPiano, Dice, Evolve, Overflow, Gear,
     DockCentre, DockRight, DockBottom,
-    Pause, Power, KnobView, PluginView, RackView, FreeView
+    Pause, Power, KnobView, PluginView, RackView, FreeView, Warning
 };
 
-inline const std::array<const char*, 42> kIconGlyphNames = {
+inline const std::array<const char*, 43> kIconGlyphNames = {
     "New", "Open", "Save", "Export",
     "Undo", "Redo", "Cut", "Copy",
     "Paste", "EnableAudio", "EnableMidi", "GoToStart",
@@ -34,7 +35,7 @@ inline const std::array<const char*, 42> kIconGlyphNames = {
     "QwertyPiano", "Dice", "Evolve", "Overflow",
     "Gear", "DockCentre", "DockRight", "DockBottom",
     "Pause", "Power", "KnobView", "PluginView",
-    "RackView", "FreeView"
+    "RackView", "FreeView", "Warning"
 };
 
 struct IconArt {
@@ -447,6 +448,13 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             g.fillRoundedRectangle(cx - 6.0f * u, cy - 5.5f * u, 6.5f * u, 5.0f * u, 0.8f * u);
             g.fillRoundedRectangle(cx - 1.5f * u, cy + 1.0f * u, 6.5f * u, 5.0f * u, 0.8f * u);
             break;
+        case IconGlyph::Warning: {
+            p.addTriangle(cx, cy - 6.2f * u, cx + 6.6f * u, cy + 5.4f * u, cx - 6.6f * u, cy + 5.4f * u);
+            stroke(p.createPathWithRoundedCorners(1.6f * u));
+            g.fillRoundedRectangle(cx - 0.8f * u, cy - 2.6f * u, 1.6f * u, 4.4f * u, 0.8f * u);
+            g.fillEllipse(cx - 0.95f * u, cy + 2.6f * u, 1.9f * u, 1.9f * u);
+            break;
+        }
         case IconGlyph::DockCentre:
         case IconGlyph::DockRight:
         case IconGlyph::DockBottom: {
@@ -501,12 +509,12 @@ inline const std::array<const char*, 8> kWaveGlyphNames = {
 inline juce::String waveGlyphDescription(WaveGlyph g) {
     switch (g) {
         case WaveGlyph::Square:  return "Square";
-        case WaveGlyph::Pulse:   return "Thin pulse";
+        case WaveGlyph::Pulse:   return tr("icon-glyph.thin-pulse", "Thin pulse");
         case WaveGlyph::Tri:     return "Triangle";
         case WaveGlyph::Sine:    return "Sine";
-        case WaveGlyph::SawDown: return "Saw down";
+        case WaveGlyph::SawDown: return tr("icon-glyph.saw-down", "Saw down");
         case WaveGlyph::Rand:    return "Sample & hold";
-        case WaveGlyph::Fat:     return "Fat saw pair (detuned)";
+        case WaveGlyph::Fat:     return tr("icon-glyph.fat-saw-pair-detuned", "Fat saw pair (detuned)");
         default:                 return "Sawtooth";
     }
 }

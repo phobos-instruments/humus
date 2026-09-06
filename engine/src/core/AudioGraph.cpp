@@ -11,6 +11,8 @@
 #include "core/PluginNode.h"
 #include "core/RtWord.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 int AudioGraph::addNode(OrganismPtr c) {
@@ -71,7 +73,18 @@ void AudioGraph::prepare(double sampleRate, int maxBlock, double tempoBpm) {
     maxBlock_ = maxBlock;
     transport_.prepare(sampleRate, tempoBpm);
     transport_.reset();
+    prepareNodes(sampleRate, maxBlock, nullptr);
+}
 
+void AudioGraph::prepare(double sampleRate, int maxBlock, double tempoBpm,
+                         const AudioGraph& handover) {
+    maxBlock_ = maxBlock;
+    transport_.prepare(sampleRate, tempoBpm);
+    transport_.reset();
+    prepareNodes(sampleRate, maxBlock, &handover);
+}
+
+void AudioGraph::prepareNodes(double sampleRate, int maxBlock, const AudioGraph* handover) {
     for (int i = 0; i < (int) nodes_.size(); ++i) {
         int maxIn = 0, maxOut = 0;
         for (const auto& c : cords_) {
@@ -81,7 +94,11 @@ void AudioGraph::prepare(double sampleRate, int maxBlock, double tempoBpm) {
         nodes_[i].c->configureChannels(maxIn, maxOut);
         nodes_[i].inChannels = nodes_[i].c->numAudioInputs();
         nodes_[i].outChannels = nodes_[i].c->numAudioOutputs();
-        nodes_[i].c->prepare(sampleRate, maxBlock);
+        nodes_[i].midi = dynamic_cast<MidiNode*>(nodes_[i].c.get());
+        nodes_[i].midiIns = nodes_[i].midi ? nodes_[i].midi->numMidiInputs() : 0;
+        nodes_[i].midiOuts = nodes_[i].midi ? nodes_[i].midi->numMidiOutputs() : 0;
+        if (handover == nullptr || adoptableFrom(i, *handover) < 0)
+            nodes_[i].c->prepare(sampleRate, maxBlock);
 
         nodes_[i].outBuf.assign((size_t) nodes_[i].outChannels, std::vector<float>((size_t) maxBlock, 0.0f));
         nodes_[i].inBuf.assign((size_t) nodes_[i].inChannels, std::vector<float>((size_t) maxBlock, 0.0f));
@@ -226,24 +243,34 @@ void AudioGraph::computeLatencyCompensation() {
     }
 }
 
+int AudioGraph::adoptableFrom(int node, const AudioGraph& old) const {
+    const Node& n = nodes_[(size_t) node];
+    if (!n.c) return -1;
+    const int oi = old.indexOf(n.c->name());
+    if (oi < 0) return -1;
+    const Node& on = old.nodes_[(size_t) oi];
+    if (!on.c) return -1;
+    const bool slot = dynamic_cast<const AdoptSlot*>(n.c.get()) != nullptr;
+    if (slot && n.c->matchToken().empty()) return -1;
+    const Organism& oldC = *on.c;
+    const Organism& newC = *n.c;
+    if (!slot && typeid(oldC) != typeid(newC)) return -1;
+    if (on.c->matchToken() != n.c->matchToken()) return -1;
+    if (on.c->numAudioInputs() != n.inChannels) return -1;
+    if (on.c->numAudioOutputs() != n.outChannels) return -1;
+    auto* om = dynamic_cast<const MidiNode*>(on.c.get());
+    if ((om ? om->numMidiInputs() : 0) != n.midiIns) return -1;
+    if ((om ? om->numMidiOutputs() : 0) != n.midiOuts) return -1;
+    return oi;
+}
+
 void AudioGraph::adoptMatchingNodes(AudioGraph& old) {
-    for (auto& n : nodes_) {
-        if (!n.c) continue;
-        int oi = old.indexOf(n.c->name());
+    for (int i = 0; i < (int) nodes_.size(); ++i) {
+        auto& n = nodes_[(size_t) i];
+        const int oi = adoptableFrom(i, old);
         if (oi < 0) continue;
         Node& on = old.nodes_[(size_t) oi];
-        if (!on.c) continue;
-        const bool slot = dynamic_cast<AdoptSlot*>(n.c.get()) != nullptr;
-        if (slot && n.c->matchToken().empty()) continue;
-        const Organism& oldC = *on.c;
-        const Organism& newC = *n.c;
-        if (!slot && typeid(oldC) != typeid(newC)) continue;
-        if (on.c->matchToken() != n.c->matchToken()) continue;
-        if (on.c->numAudioInputs() != n.inChannels) continue;
-        if (on.c->numAudioOutputs() != n.outChannels) continue;
         auto* om = dynamic_cast<MidiNode*>(on.c.get());
-        if ((om ? om->numMidiInputs() : 0) != n.midiIns) continue;
-        if ((om ? om->numMidiOutputs() : 0) != n.midiOuts) continue;
         std::swap(n.c, on.c);
         n.trackHeld = on.trackHeld;
         n.trackWasPlaying = on.trackWasPlaying;
@@ -556,11 +583,11 @@ int AudioGraph::appendTrackMidi(Node& nd, int count, int numSamples) {
         e.size = 3;
         if (ed.cc >= 0) {
             e.data[0] = 0xB0;
-            e.data[1] = (unsigned char) std::clamp(ed.cc, 0, 127);
-            e.data[2] = (unsigned char) std::clamp(ed.vel, 0, 127);
+            e.data[1] = (unsigned char) std::clamp(ed.cc, 0, kMidiMax);
+            e.data[2] = (unsigned char) std::clamp(ed.vel, 0, kMidiMax);
             continue;
         }
-        const int pitch = std::clamp(ed.pitch, 0, 127);
+        const int pitch = std::clamp(ed.pitch, 0, kMidiMax);
         if (!ed.on && !nd.trackHeld[(std::size_t) pitch]) { --count; continue; }
         nd.trackHeld[(std::size_t) pitch] = ed.on;
         if (ed.on) {
@@ -570,7 +597,7 @@ int AudioGraph::appendTrackMidi(Node& nd, int count, int numSamples) {
         }
         e.data[0] = (unsigned char) (ed.on ? 0x90 : 0x80);
         e.data[1] = (unsigned char) pitch;
-        e.data[2] = (unsigned char) (ed.on ? std::clamp(ed.vel, 1, 127) : 0);
+        e.data[2] = (unsigned char) (ed.on ? std::clamp(ed.vel, 1, kMidiMax) : 0);
     }
     if (count > 1)
         std::stable_sort(midiScratch_.begin(), midiScratch_.begin() + count,

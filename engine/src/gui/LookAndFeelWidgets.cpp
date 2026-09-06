@@ -139,6 +139,42 @@ void HumLookAndFeel::drawCallOutBoxBackground(juce::CallOutBox&, juce::Graphics&
     g.strokePath(path, juce::PathStrokeType(1.2f));
 }
 
+void HumLookAndFeel::drawProgressBar(juce::Graphics& g, juce::ProgressBar& bar, int width,
+                                     int height, double progress,
+                                     const juce::String& textToShow) {
+    const auto bounds = juce::Rectangle<float>(0.0f, 0.0f, (float) width, (float) height);
+    const float radius = (float) height * 0.5f;
+    g.setColour(bar.findColour(juce::ProgressBar::backgroundColourId));
+    g.fillRoundedRectangle(bounds, radius);
+
+    auto filled = bounds.withWidth(0.0f);
+    if (progress >= 0.0 && progress <= 1.0) {
+        filled = bounds.withWidth(bounds.getWidth() * (float) progress);
+        juce::Graphics::ScopedSaveState clip(g);
+        juce::Path rounded;
+        rounded.addRoundedRectangle(bounds, radius);
+        g.reduceClipRegion(rounded);
+        g.setColour(bar.findColour(juce::ProgressBar::foregroundColourId));
+        g.fillRoundedRectangle(filled, radius);
+    } else {
+        LookAndFeel_V4::drawProgressBar(g, bar, width, height, progress, {});
+    }
+
+    if (textToShow.isEmpty()) return;
+    g.setFont(juce::FontOptions((float) height * 0.62f, juce::Font::bold));
+    const auto whole = bounds.toNearestInt();
+    {
+        juce::Graphics::ScopedSaveState overFill(g);
+        g.reduceClipRegion(filled.toNearestInt());
+        g.setColour(Palette::background);
+        g.drawText(textToShow, whole, juce::Justification::centred, false);
+    }
+    juce::Graphics::ScopedSaveState overTrack(g);
+    g.excludeClipRegion(filled.toNearestInt());
+    g.setColour(Palette::text);
+    g.drawText(textToShow, whole, juce::Justification::centred, false);
+}
+
 void HumLookAndFeel::drawScrollbar(juce::Graphics& g, juce::ScrollBar& bar, int x, int y,
                                    int w, int h, bool vertical, int thumbStart, int thumbSize,
                                    bool over, bool down) {

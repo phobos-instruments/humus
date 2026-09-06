@@ -2,6 +2,8 @@
 #include "hum/Organism.h"
 #include "hum/dsp/Biquad.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Phono : public Organism {
@@ -41,7 +43,7 @@ private:
 
     void resetFilters();
 
-    double sr_ = 44100.0;
+    double sr_ = kDefaultSampleRate;
     double riaaB_[kNumB] = {}, riaaA_[2] = {};
     RiaaSection eq_[2];
     OnePoleHp iecHp_[2];

@@ -49,6 +49,23 @@ if(NOT MSVC)
   target_compile_options(nsfplay_sound PRIVATE -w)
 endif()
 
+# MP3, the one format JUCE decodes but cannot write. Encode only: no mpglib,
+# no SSE, no assembly, and a hand-written config.h - third_party/lame/README.md
+# says which files and why.
+file(GLOB HUM_LAME_SOURCES CONFIGURE_DEPENDS
+     "${CMAKE_CURRENT_SOURCE_DIR}/third_party/lame/libmp3lame/*.c")
+add_library(mp3lame STATIC ${HUM_LAME_SOURCES})
+target_compile_definitions(mp3lame PRIVATE HAVE_CONFIG_H=1)
+target_include_directories(mp3lame
+  PUBLIC third_party/lame/include
+  PRIVATE third_party/lame third_party/lame/libmp3lame)
+if(NOT MSVC)
+  target_compile_options(mp3lame PRIVATE -w)
+else()
+  target_compile_options(mp3lame PRIVATE /w)
+  target_compile_definitions(mp3lame PRIVATE _CRT_SECURE_NO_WARNINGS=1)
+endif()
+
 # The optional ed25519 file is the point: the hub licenses use that flavour.
 add_library(monocypher STATIC
   third_party/monocypher/monocypher.c

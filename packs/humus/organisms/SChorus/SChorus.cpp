@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void SChorus::prepare(double sampleRate, int) {
@@ -23,7 +25,7 @@ void SChorus::process(const float* const* in, int numIn, float* const* out, int 
     const double hf = std::clamp(params.get("HFRolloffFrequency", 12000.0), 200.0, 20000.0);
     const float mix = (float) std::clamp(params.get("WetDryMix", 0.5), 0.0, 1.0);
     lfo_.setRate(rate, sampleRate_);
-    const double lpC = 1.0 - std::exp(-2.0 * M_PI * hf / sampleRate_);
+    const double lpC = 1.0 - std::exp(-2.0 * kPi * hf / sampleRate_);
 
     for (int n = 0; n < numSamples; ++n) {
         for (int c = 0; c < numOut && c < 2; ++c) {

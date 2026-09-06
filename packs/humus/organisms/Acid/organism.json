@@ -38,8 +38,7 @@
           "name": "Decay",
           "min": 30.0,
           "max": 3000.0,
-          "def": 300.0,
-          "random": true
+          "def": 300.0
         },
         {
           "name": "Accent",
@@ -65,15 +64,13 @@
           "name": "AmpDecay",
           "min": 16.0,
           "max": 3000.0,
-          "def": 1230.0,
-          "random": true
+          "def": 1230.0
         },
         {
           "name": "AccentDecay",
           "min": 30.0,
           "max": 1000.0,
-          "def": 200.0,
-          "random": true
+          "def": 200.0
         },
         {
           "name": "FilterFM",
@@ -88,6 +85,38 @@
           "max": 1.0,
           "def": 0.0,
           "random": true
+        },
+        {
+          "name": "Sustain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0
+        },
+        {
+          "name": "Squelch",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.8,
+          "random": true
+        },
+        {
+          "name": "Velocity",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0
+        },
+        {
+          "name": "Punch",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true
+        },
+        {
+          "name": "Muffler",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0
         },
         {
           "name": "Drive",

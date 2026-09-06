@@ -16,6 +16,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/NodeRandomize.h"
 #include "gui/PresetActions.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -23,7 +24,7 @@ class PresetRow : public juce::Component {
 public:
     PresetRow(int number, const juce::String& nm, bool current, bool canPaste)
         : number_(number), current_(current), canPaste_(canPaste) {
-        name_.setText(nm.isEmpty() ? "(Untitled)" : nm, juce::dontSendNotification);
+        name_.setText(nm.isEmpty() ? tr("presets.untitled", "(Untitled)") : nm, juce::dontSendNotification);
         name_.setEditable(false, true, false);
         name_.setColour(juce::Label::textColourId, current ? Palette::accent : Palette::text);
         name_.setFont(juce::FontOptions(12.0f));
@@ -32,7 +33,7 @@ public:
         addAndMakeVisible(recall_);
         addAndMakeVisible(store_);
         addAndMakeVisible(clear_);
-        clear_.setTooltip("Delete this preset");
+        clear_.setTooltip(tr("presets.delete-this-preset", "Delete this preset"));
         recall_.onClick = [this] { if (onRecall) onRecall(); };
         store_.onClick  = [this] { if (onStore)  onStore(); };
         clear_.onClick  = [this] { if (onClear)  onClear(); };
@@ -47,14 +48,14 @@ public:
         if (!e.mods.isPopupMenu()) return;
         enum { Recall = 1, Store, Clear, Rename, Cut, Copy, Paste };
         juce::PopupMenu m;
-        m.addItem(Recall, "Recall");
-        m.addItem(Store, "Store");
-        m.addItem(Clear, "Clear");
-        m.addItem(Rename, "Rename...");
+        m.addItem(Recall, tr("presets.recall", "Recall"));
+        m.addItem(Store, tr("presets.store", "Store"));
+        m.addItem(Clear, tr("presets.clear", "Clear"));
+        m.addItem(Rename, tr("presets.rename", "Rename..."));
         m.addSeparator();
-        m.addItem(Cut, "Cut");
-        m.addItem(Copy, "Copy");
-        m.addItem(Paste, "Paste", canPaste_);
+        m.addItem(Cut, tr("presets.cut", "Cut"));
+        m.addItem(Copy, tr("presets.copy", "Copy"));
+        m.addItem(Paste, tr("presets.paste", "Paste"), canPaste_);
         m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea(
                             {e.getScreenX(), e.getScreenY(), 1, 1}),
                         [this](int r) {
@@ -92,8 +93,8 @@ private:
     bool current_;
     bool canPaste_ = false;
     juce::Label name_;
-    IconButton recall_{IconGlyph::Open, "Recall this preset"};
-    IconButton store_{IconGlyph::Save, "Store current settings into this slot"};
+    IconButton recall_{IconGlyph::Open, tr("presets.recall-this-preset", "Recall this preset")};
+    IconButton store_{IconGlyph::Save, tr("presets.store-current-settings-into-this", "Store current settings into this slot")};
     juce::TextButton clear_{juce::String::charToString(juce::juce_wchar(0x00d7))};
 };
 
@@ -101,9 +102,9 @@ class PresetsView : public juce::Component {
 public:
     PresetsView(EngineHost& host, std::string organism, std::function<void()> onChanged)
         : host_(host), name_(std::move(organism)), onChanged_(std::move(onChanged)) {
-        addBtn_.setTooltip("Add a new preset from the current settings");
-        prevBtn_.setTooltip("Recall previous preset");
-        nextBtn_.setTooltip("Recall next preset");
+        addBtn_.setTooltip(tr("presets.add-a-new-preset-from", "Add a new preset from the current settings"));
+        prevBtn_.setTooltip(tr("presets.recall-previous-preset", "Recall previous preset"));
+        nextBtn_.setTooltip(tr("presets.recall-next-preset", "Recall next preset"));
         for (auto* b : {&addBtn_, &prevBtn_, &nextBtn_, &recallBtn_, &storeBtn_, &clearBtn_})
             addAndMakeVisible(*b);
         addAndMakeVisible(curName_);
@@ -125,10 +126,11 @@ public:
         clearBtn_.onClick  = [this] { if (const auto r = current(); r.valid()) confirmClear(r); };
 
         for (auto* b : {&genieBtn_, &randomBtn_, &evolveBtn_}) addAndMakeVisible(*b);
-        genieBtn_.setTooltip("Describe the sound you want; the model sets this device's parameters"
-                             " (one undo step)");
-        randomBtn_.setTooltip("Randomize every parameter within its range (one undo step)");
-        evolveBtn_.setTooltip(juce::String("Mutate the current settings slightly - repeat to wander (one undo step)"));
+        genieBtn_.setTooltip(tr("presets.describe-the-sound-you-want",
+           "Describe the sound you want; the model sets this device's parameters"
+           " (one undo step)"));
+        randomBtn_.setTooltip(tr("presets.randomize-every-parameter-within-its", "Randomize every parameter within its range (one undo step)"));
+        evolveBtn_.setTooltip(juce::String(tr("presets.mutate-the-current-settings-slightly", "Mutate the current settings slightly - repeat to wander (one undo step)")));
         genieBtn_.onClick  = [this] { openGenie(); };
         randomBtn_.onClick = [this] { randomize(false); };
         evolveBtn_.onClick = [this] { randomize(true); };
@@ -292,7 +294,7 @@ private:
             [sp = juce::Component::SafePointer<PresetsView>(this)](bool busy) {
                 if (sp == nullptr) return;
                 sp->genieBtn_.setEnabled(!busy);
-                sp->genieBtn_.setButtonText(busy ? "Thinking..." : "Generate...");
+                sp->genieBtn_.setButtonText(busy ? tr("presets.thinking", "Thinking...") : tr("presets.generate", "Generate..."));
             });
     }
 

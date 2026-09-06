@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "DelayLine.h"
+#include "hum/dsp/DspMath.h"
 
 namespace sv
 {

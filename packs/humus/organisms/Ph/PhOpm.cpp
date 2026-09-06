@@ -9,6 +9,8 @@
 
 #include "Ph/PhOpmBank.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -78,7 +80,7 @@ PhVoice PhOpm::voiceAt(int slot) const {
     for (int i = 0; i < 4; ++i) {
         const Op& o = pt.ops[(size_t) i];
         PhVoiceOp& op = v.ops[(size_t) i];
-        op.level = 99 - std::clamp((int) o.tl * 99 / 127, 0, 99);
+        op.level = 99 - std::clamp((int) o.tl * 99 / kSevenBitMax, 0, 99);
         op.ratio = o.mult;
         op.detune = std::clamp((int) o.dt1 * 2, 0, 14);
         op.attack = fromChip(o.ar, 31);
@@ -97,7 +99,7 @@ void PhOpm::setVoice(const PhVoice& v) {
     for (int i = 0; i < 4; ++i) {
         const PhVoiceOp& src = v.ops[(size_t) i];
         Op& o = p.ops[(size_t) i];
-        o.tl = (uint8_t) std::clamp(127 - src.level * 127 / 99, 0, 127);
+        o.tl = (uint8_t) std::clamp(kSevenBitMax - src.level * kSevenBitMax / 99, 0, kSevenBitMax);
         o.mult = (uint8_t) std::clamp(src.ratio, 0, 15);
         o.dt1 = (uint8_t) std::clamp(src.detune / 2, 0, 6);
         o.ar = (uint8_t) toChip(src.attack, 31);
@@ -152,8 +154,8 @@ bool PhOpm::parseOpm(const std::string& text, const std::string& fallbackName) {
         while (got < (int) f.size() && (row >> f[(size_t) got])) ++got;
         if (tag == "LFO" && got >= 4) {
             cur.patch.lfrq = (uint8_t) std::clamp(f[0], 0, 255);
-            cur.patch.amd = (uint8_t) std::clamp(f[1], 0, 127);
-            cur.patch.pmd = (uint8_t) std::clamp(f[2], 0, 127);
+            cur.patch.amd = (uint8_t) std::clamp(f[1], 0, kSevenBitMax);
+            cur.patch.pmd = (uint8_t) std::clamp(f[2], 0, kSevenBitMax);
             cur.patch.wf = (uint8_t) (f[3] & 3);
         } else if (tag == "CH" && got >= 5) {
             cur.patch.fb = (uint8_t) (f[1] & 7);
@@ -168,7 +170,7 @@ bool PhOpm::parseOpm(const std::string& text, const std::string& fallbackName) {
             o.d2r = (uint8_t) (f[2] & 31);
             o.rr = (uint8_t) (f[3] & 15);
             o.d1l = (uint8_t) (f[4] & 15);
-            o.tl = (uint8_t) (f[5] & 127);
+            o.tl = (uint8_t) (f[5] & kSevenBitMax);
             o.ks = (uint8_t) (f[6] & 3);
             o.mult = (uint8_t) (f[7] & 15);
             const int regDt = f[8] & 7;
@@ -209,9 +211,9 @@ void PhOpm::writeLfo() {
                                 0, 255);
     push(0x18, (uint8_t) lfrq);
     push(0x1B, (uint8_t) (pt.wf & 3));
-    const int pmd = std::clamp((int) pt.pmd + (int) std::lround(mods_.vibrato * 64.0), 0, 127);
+    const int pmd = std::clamp((int) pt.pmd + (int) std::lround(mods_.vibrato * 64.0), 0, kSevenBitMax);
     push(0x19, (uint8_t) (0x80 | pmd));
-    push(0x19, (uint8_t) (pt.amd & 127));
+    push(0x19, (uint8_t) (pt.amd & kSevenBitMax));
 }
 
 void PhOpm::writeChannelPatch(int ch, int velocity) {
@@ -229,9 +231,9 @@ void PhOpm::writeChannelPatch(int ch, int velocity) {
         push((uint8_t) (0x40 + s), (uint8_t) ((dt << 4) | op.mult));
         const bool carrier = (kCarriers[pt.alg & 7] & (1 << i)) != 0;
         int tl = op.tl;
-        if (carrier) tl += (127 - std::clamp(velocity, 1, 127)) >> 2;
+        if (carrier) tl += (kMidiMax - std::clamp(velocity, 1, kMidiMax)) >> 2;
         else tl -= lift;
-        push((uint8_t) (0x60 + s), (uint8_t) std::clamp(tl, 0, 127));
+        push((uint8_t) (0x60 + s), (uint8_t) std::clamp(tl, 0, kSevenBitMax));
         push((uint8_t) (0x80 + s),
              (uint8_t) ((op.ks << 6) | std::clamp((int) op.ar - slowAtk, 0, 31)));
         push((uint8_t) (0xA0 + s), (uint8_t) ((op.ame << 7) | op.d1r));
@@ -246,7 +248,7 @@ void PhOpm::writeChannelPatch(int ch, int velocity) {
 }
 
 PhOpm::KeyReg PhOpm::keyRegisters(double hz) {
-    const double semis = 12.0 * std::log2(std::max(1.0, hz) / 440.0);
+    const double semis = 12.0 * std::log2(std::max(1.0, hz) / kA4Hz);
     const double pos = (double) kKeyIndexA4 + semis;
     int whole = (int) std::floor(pos);
     int frac = (int) std::lround((pos - (double) whole) * 64.0);

@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -36,6 +37,45 @@ struct GainShape {
         return py[n - 1];
     }
 };
+
+inline GainShape reversedGainShape(const GainShape& g) {
+    GainShape r;
+    for (int i = g.n - 1; i >= 0; --i) r.add(1.0f - g.px[i], g.py[i]);
+    return r;
+}
+
+inline GainShape invertedGainShape(const GainShape& g) {
+    GainShape r;
+    for (int i = 0; i < g.n; ++i) r.add(g.px[i], 1.0f - g.py[i]);
+    return r;
+}
+
+inline GainShape rotatedGainShape(const GainShape& g, double delta) {
+    if (g.n == 0) return g;
+    double d = delta - std::floor(delta);
+    if (d < 1e-6 || d > 1.0 - 1e-6) return g;
+    const float seam = (float) d;
+    const float startY = (float) g.eval(1.0 - d);
+    GainShape r;
+    r.add(0.0f, startY);
+    for (int i = 0; i < g.n; ++i) {
+        const float x = g.px[i] + seam;
+        if (x > seam && x < 1.0f) r.add(x, g.py[i]);
+    }
+    r.add(1.0f, startY);
+    r.add(seam, g.py[g.n - 1]);
+    r.add(seam, g.py[0]);
+    for (int i = 0; i < g.n; ++i) {
+        const float x = g.px[i] + seam - 1.0f;
+        if (x > 0.0f && x < seam) r.add(x, g.py[i]);
+    }
+    for (int i = 1; i < r.n; ++i)
+        for (int j = i; j > 0 && r.px[j] < r.px[j - 1]; --j) {
+            std::swap(r.px[j], r.px[j - 1]);
+            std::swap(r.py[j], r.py[j - 1]);
+        }
+    return r;
+}
 
 inline bool decodeGainShape(const char* s, GainShape& out) {
     if (s == nullptr) return false;

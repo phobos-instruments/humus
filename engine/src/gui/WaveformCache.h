@@ -13,6 +13,8 @@
 
 #include "hum/dsp/SliceDetect.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class WaveformCache {
@@ -101,7 +103,7 @@ private:
             kMaxBins, (len + kBinSamples - 1) / kBinSamples);
         out.sourceSamples = len;
         out.binSamples = kBinSamples;
-        out.fileSampleRate = rd->sampleRate > 0.0 ? rd->sampleRate : 44100.0;
+        out.fileSampleRate = rd->sampleRate > 0.0 ? rd->sampleRate : kDefaultSampleRate;
         out.lo.assign((size_t) nBins, 0.0f);
         out.hi.assign((size_t) nBins, 0.0f);
         out.rms.assign((size_t) nBins, 0.0f);

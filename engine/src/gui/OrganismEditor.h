@@ -8,11 +8,13 @@
 #include "core/Categories.h"
 #include "core/ParamSchema.h"
 #include "core/ParamUnit.h"
+#include "gui/ControlDefaults.h"
 #include "gui/EngineHost.h"
 #include "gui/NodeRandomize.h"
 #include "gui/FollowPick.h"
 #include "gui/QuickMapWindow.h"
 #include "gui/RangePrompt.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -53,6 +55,8 @@ public:
         onCaptured = nullptr;
         host_ = &host; organism_ = std::move(organism); param_ = std::move(param);
         min_ = min; max_ = max;
+        pendingNote_ = -1;
+        pendingHeld_.clear();
         armedAt_ = juce::Time::getMillisecondCounter();
         host.midi().clearLastCC();
         if (onStatus)
@@ -61,7 +65,8 @@ public:
         window_ = std::make_unique<QuickMapWindow>(
             "Quick Map MIDI Control",
             "Move a controller or play a note on your MIDI device\nto control\n"
-                + juce::String(organism_) + " / " + juce::String(param_),
+                + juce::String(organism_) + " / " + juce::String(param_)
+                + "\n\nHold a button while you do it for a shift combo.",
             [] { MidiLearner::instance().cancel(); });
         window_->setCountdown((int) (kTimeoutMs / 1000));
         startTimerHz(20);
@@ -69,7 +74,7 @@ public:
     bool armed() const { return host_ != nullptr; }
 
     void cancel() {
-        if (host_ != nullptr && onStatus) onStatus("MIDI Learn cancelled");
+        if (host_ != nullptr && onStatus) onStatus(tr("organism-editor.midi-learn-cancelled", "MIDI Learn cancelled"));
         disarm();
     }
 
@@ -87,35 +92,57 @@ private:
         if (!host_) { disarm(); return; }
         const auto elapsed = juce::Time::getMillisecondCounter() - armedAt_;
         if (elapsed > kTimeoutMs) {
-            if (onStatus) onStatus("MIDI Learn timed out (nothing received)");
+            if (onStatus) onStatus(tr("organism-editor.midi-learn-timed-out-nothing", "MIDI Learn timed out (nothing received)"));
             disarm();
             return;
         }
         if (window_) window_->setCountdown((int) ((kTimeoutMs - elapsed) / 1000) + 1);
         const int cc = host_->midi().lastCC();
-        if (cc < 0) return;
+        if (cc >= 0) {
+            host_->midi().clearLastCC();
+            auto held = host_->midi().heldNotes(cc);
+            if (isNoteSource(cc) && host_->midi().sourceValue(cc) > kHeldThreshold) {
+                pendingNote_ = cc;
+                pendingHeld_ = std::move(held);
+                if (window_)
+                    window_->setMessage("Holding " + juce::String(midiSourceLabel(cc))
+                                        + ": release it to map it alone,\nor move another control"
+                                          " to make it the shift.");
+                return;
+            }
+            capture(MidiSource(cc, std::move(held)));
+            return;
+        }
+        if (pendingNote_ >= 0 && host_->midi().sourceValue(pendingNote_) <= kHeldThreshold)
+            capture(MidiSource(pendingNote_, std::move(pendingHeld_)));
+    }
+
+    void capture(const MidiSource& src) {
         auto* host = host_;
         const auto org = organism_, prm = param_;
         const double lo = min_, hi = max_;
-        const auto others = host->midi().map().usersOf(cc, org, prm);
+        const auto others = host->midi().map().usersOf(src, org, prm);
         auto status = onStatus;
         auto next = std::move(onCaptured);
         disarm();
-        auto commit = [host, cc, org, prm, lo, hi, status, next](bool steal) {
-            const auto stolen = host->midi().mapCC(cc, org, prm, lo, hi, steal);
+        auto commit = [host, src, org, prm, lo, hi, status, next](bool steal) {
+            const auto stolen = host->midi().mapCC(src, org, prm, lo, hi, steal);
             if (status)
-                status("MIDI: mapped " + juce::String(midiSourceLabel(cc)) + " to "
+                status("MIDI: mapped " + juce::String(midiSourceLabel(src)) + " to "
                        + juce::String(org) + " / " + juce::String(prm)
                        + (stolen.isNotEmpty() ? " (reassigned from " + stolen + ")" : ""));
             if (next) next();
         };
         if (others.empty()) { commit(true); return; }
-        mapconflict::ask("MIDI", juce::String(midiSourceLabel(cc)),
+        mapconflict::ask("MIDI", juce::String(midiSourceLabel(src)),
                          juce::String(org) + " / " + juce::String(prm), others, commit);
     }
+
     EngineHost* host_ = nullptr;
     std::string organism_, param_;
     double min_ = 0.0, max_ = 1.0;
+    int pendingNote_ = -1;
+    std::vector<int> pendingHeld_;
     juce::uint32 armedAt_ = 0;
     std::unique_ptr<QuickMapWindow> window_;
 };
@@ -145,7 +172,7 @@ public:
     }
 
     void cancel() {
-        if (host_ != nullptr && onStatus) onStatus("OSC Learn cancelled");
+        if (host_ != nullptr && onStatus) onStatus(tr("organism-editor.osc-learn-cancelled", "OSC Learn cancelled"));
         disarm();
     }
 
@@ -162,7 +189,7 @@ private:
         if (!host_) { disarm(); return; }
         const auto elapsed = juce::Time::getMillisecondCounter() - armedAt_;
         if (elapsed > kTimeoutMs) {
-            if (onStatus) onStatus("OSC Learn timed out (nothing received)");
+            if (onStatus) onStatus(tr("organism-editor.osc-learn-timed-out-nothing", "OSC Learn timed out (nothing received)"));
             disarm();
             return;
         }
@@ -279,6 +306,12 @@ public:
             const auto title = juce::String(from) + " / " + juce::String(value)
                              + juce::String::fromUTF8(" \xe2\x86\x92 ") + juce::String(param);
             auto status = onStatus;
+            if (paramIsSwitch(host, organism, param)) {
+                host.mod().mapRoute(from, src, organism, param, lo, hi);
+                if (status) status("Follow: " + title);
+                if (onChanged) onChanged();
+                return;
+            }
             const auto at = juce::Desktop::getMousePosition();
             juce::MessageManager::callAsync([&host, organism, param, from, src, title,
                                              lo, hi, at, status, onChanged] {
@@ -295,7 +328,7 @@ public:
     }
 
     void cancel() {
-        if (followpick::armed() && onStatus) onStatus("Follow cancelled");
+        if (followpick::armed() && onStatus) onStatus(tr("organism-editor.follow-cancelled", "Follow cancelled"));
         close();
     }
 
@@ -333,29 +366,38 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
     const bool rollable = paramSupportsRandom(host, organism, param);
     const bool lockable = rollTouchesParam(host, organism, param);
     const bool locked = lockable && host.rollLocked(organism, param);
+    if (paramHasDefault(host, organism, param)) {
+        m.addItem(14, tr("organism-editor.reset", "Reset"));
+        if (!rollable && !lockable) m.addSeparator();
+    }
     if (rollable || lockable) {
-        if (rollable) m.addItem(10, "Random");
-        if (lockable) m.addItem(11, "Exclude from Random", true, locked);
+        if (rollable) m.addItem(10, tr("organism-editor.random", "Random"));
+        if (lockable) m.addItem(11, tr("organism-editor.exclude-from-random", "Exclude from Random"), true, locked);
         m.addSeparator();
     }
     if (allowAutomate) {
-        m.addItem(1, automated ? "Unautomate" : "Automate");
+        m.addItem(1, automated ? tr("organism-editor.unautomate", "Unautomate") : tr("organism-editor.automate", "Automate"));
         m.addSeparator();
     }
-    m.addItem(3, "MIDI Learn");
-    m.addItem(4, "Clear MIDI", mapped);
+    m.addItem(3, tr("organism-editor.midi-learn", "MIDI Learn"));
+    m.addItem(4, tr("organism-editor.clear-midi", "Clear MIDI"), mapped);
     if (host.osc().enabled() || oscMapped) {
         m.addSeparator();
-        m.addItem(5, "OSC Learn", host.osc().enabled());
-        m.addItem(6, "Clear OSC", oscMapped);
+        m.addItem(5, tr("organism-editor.osc-learn", "OSC Learn"), host.osc().enabled());
+        m.addItem(6, tr("organism-editor.clear-osc", "Clear OSC"), oscMapped);
     }
     {
         juce::PopupMenu mod, follow, modNode, followNode;
         std::string modOpen, followOpen;
-        auto flush = [](juce::PopupMenu& into, juce::PopupMenu& node, std::string& open) {
-            if (!open.empty()) into.addSubMenu(juce::String(open.c_str()), node);
+        bool modOpenRouted = false, followOpenRouted = false;
+        auto flush = [](juce::PopupMenu& into, juce::PopupMenu& node, std::string& open,
+                        bool& openRouted) {
+            if (!open.empty())
+                into.addSubMenu(juce::String(open.c_str()), node, true, juce::Image(),
+                                openRouted, 0);
             node.clear();
             open.clear();
+            openRouted = false;
         };
         for (size_t i = 0; i < sources.size(); ++i) {
             const auto& [from, value] = sources[i];
@@ -365,35 +407,38 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
             auto& into = isParam ? follow : mod;
             auto& node = isParam ? followNode : modNode;
             auto& open = isParam ? followOpen : modOpen;
-            if (from != open) { flush(into, node, open); open = from; }
+            auto& openRouted = isParam ? followOpenRouted : modOpenRouted;
+            if (from != open) { flush(into, node, open, openRouted); open = from; }
             bool routed = false;
             for (const auto& e : host.mod().map().entries())
                 if (e.organism == organism && e.param == param
                     && e.source == from && e.value == value)
                     routed = true;
+            openRouted = openRouted || routed;
             node.addItem(100 + (int) i, juce::String(shown.c_str()), true, routed);
         }
-        flush(mod, modNode, modOpen);
-        flush(follow, followNode, followOpen);
+        flush(mod, modNode, modOpen, modOpenRouted);
+        flush(follow, followNode, followOpen, followOpenRouted);
         juce::PopupMenu followTop;
         followTop.addItem(13, juce::String::fromUTF8("Pick a control\xe2\x80\xa6"));
         if (follow.getNumItems() > 0) {
             followTop.addSeparator();
-            followTop.addSubMenu("From a list", follow);
+            followTop.addSubMenu(tr("organism-editor.from-a-list", "From a list"), follow,
+                                 true, juce::Image(), followMapped, 0);
         }
         m.addSeparator();
-        m.addSubMenu("Control with", mod, mod.getNumItems() > 0);
-        if (modMapped) m.addItem(12, "Release control");
+        m.addSubMenu(tr("organism-editor.control-with", "Control with"), mod, mod.getNumItems() > 0);
+        if (modMapped) m.addItem(12, tr("organism-editor.release-control", "Release control"));
         m.addSeparator();
-        m.addSubMenu("Follow", followTop);
-        if (followMapped) m.addItem(8, "Stop following");
+        m.addSubMenu(tr("organism-editor.follow", "Follow"), followTop);
+        if (followMapped) m.addItem(8, tr("organism-editor.stop-following", "Stop following"));
     }
     m.addSeparator();
-    m.addItem(9, "Clear all control",
+    m.addItem(9, tr("organism-editor.clear-all-control", "Clear all control"),
               automated || mapped || oscMapped || modMapped || followMapped);
     if (host.openParameterControl) {
         m.addSeparator();
-        m.addItem(7, "Parameter Control...");
+        m.addItem(7, tr("organism-editor.parameter-control", "Parameter Control..."));
     }
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screen.x, screen.y, 1, 1}),
                     [&host, organism, param, automated, locked, lo, hi, onChanged, sources,
@@ -403,6 +448,8 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
             else if (automated)     host.automation().remove(organism, param);
             else                    host.automation().add(organism, param);
             if (onChanged) onChanged();
+        } else if (r == 14) {
+            resetParam(host, organism, param);
         } else if (r == 10) {
             randomizeParam(host, organism, param);
             if (onChanged) onChanged();
@@ -412,10 +459,10 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
         } else if (r == 3) {
             MidiLearner::instance().arm(host, organism, param, lo, hi);
         } else if (r == 4) {
-            std::vector<int> ccs;
+            std::vector<MidiSource> ccs;
             for (const auto& e : host.midi().map().entries())
-                if (e.organism == organism && e.param == param) ccs.push_back(e.cc);
-            for (int cc : ccs) host.midi().clearCC(cc, organism, param);
+                if (e.organism == organism && e.param == param) ccs.push_back(e.source());
+            for (const auto& cc : ccs) host.midi().clearCC(cc, organism, param);
         } else if (r == 5) {
             OscLearner::instance().arm(host, organism, param, lo, hi);
         } else if (r == 6) {
@@ -440,10 +487,10 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
                 host.mod().clearRoute(sv.first, sv.second, organism, param);
             if (r == 9) {
                 if (automated) host.automation().remove(organism, param);
-                std::vector<int> ccs;
+                std::vector<MidiSource> ccs;
                 for (const auto& e : host.midi().map().entries())
-                    if (e.organism == organism && e.param == param) ccs.push_back(e.cc);
-                for (int cc : ccs) host.midi().clearCC(cc, organism, param);
+                    if (e.organism == organism && e.param == param) ccs.push_back(e.source());
+                for (const auto& cc : ccs) host.midi().clearCC(cc, organism, param);
                 std::vector<std::string> addrs;
                 for (const auto& e : host.osc().map().entries())
                     if (e.organism == organism && e.param == param) addrs.push_back(e.address);
@@ -459,6 +506,9 @@ inline void showAutomateMenu(EngineHost& host, const std::string& organism,
                     routed = true;
             if (routed) {
                 host.mod().clearRoute(sv.first, sv.second, organism, param);
+                if (onChanged) onChanged();
+            } else if (paramIsSwitch(host, organism, param)) {
+                host.mod().mapRoute(sv.first, sv.second, organism, param, lo, hi);
                 if (onChanged) onChanged();
             } else {
                 const juce::Rectangle<int> at(screen.x, screen.y, 1, 1);

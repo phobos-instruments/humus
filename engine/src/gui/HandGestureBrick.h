@@ -9,6 +9,9 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -18,13 +21,14 @@ public:
         : host_(host), cn_(std::move(organism)) {
         for (int k = 0; k < gvec::kSlots; ++k) {
             auto& learn = learn_[(size_t) k];
-            learn.setButtonText("Learn");
+            learn.setButtonText(tr("hand-gesture.learn", "Learn"));
             learn.onClick = [this, k] { startLearn(k, false); };
             addAndMakeVisible(learn);
             auto& reinf = reinforce_[(size_t) k];
-            reinf.setButtonText("Reinf");
-            reinf.setTooltip("Capture a variation of the same pose and fold it "
-                             "into the template (running average)");
+            reinf.setButtonText(tr("hand-gesture.reinf", "Reinf"));
+            reinf.setTooltip(tr("hand-gesture.reinforce",
+                                "Capture a variation of the same pose and fold it "
+                                "into the template (running average)"));
             reinf.onClick = [this, k] { startLearn(k, true); };
             addAndMakeVisible(reinf);
             auto& clear = clear_[(size_t) k];
@@ -136,7 +140,7 @@ private:
     }
     int slotNote(int k) const {
         return juce::jlimit(
-            0, 127,
+            0, kMidiMax,
             (int) paramOrDefault("GNote_" + std::to_string(k + 1), 60.0 + k));
     }
     float slotThresh(int k) const {
@@ -229,7 +233,7 @@ private:
     void mouseDrag(const juce::MouseEvent& e) override {
         if (dragThr_ >= 0) applyThr(dragThr_, e.x);
         else if (dragNote_ >= 0) {
-            const int next = juce::jlimit(0, 127,
+            const int next = juce::jlimit(0, kMidiMax,
                                           dragStartNote_ + (dragStartY_ - e.y) / 4);
             host_.editParam(cn_, "GNote_" + std::to_string(dragNote_ + 1), (double) next);
             repaint();
@@ -240,7 +244,7 @@ private:
                         const juce::MouseWheelDetails& wheel) override {
         for (int k = 0; k < gvec::kSlots; ++k)
             if (noteRect(k).contains(e.getPosition())) {
-                const int next = juce::jlimit(0, 127,
+                const int next = juce::jlimit(0, kMidiMax,
                                               slotNote(k) + (wheel.deltaY > 0 ? 1 : -1));
                 host_.editParam(cn_, "GNote_" + std::to_string(k + 1), (double) next);
                 repaint();

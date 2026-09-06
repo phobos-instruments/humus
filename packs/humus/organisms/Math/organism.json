@@ -4,6 +4,7 @@
    "class": "Math",
    "category": "Primitives",
    "editor": "layout:math-editor.json",
+   "caution": "Math plays whatever you type, straight to the outlet. A formula can produce full-scale signal, DC offset, or tones far above and below hearing, at any level and without warning.\n\nKeep the master and your monitors low until you know what a line does, take headphones off while you try a new one, and remember that loud or very low tones can damage speakers and hearing.",
    "params": [
     {
      "name": "Expression",

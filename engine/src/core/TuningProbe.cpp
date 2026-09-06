@@ -7,11 +7,12 @@
 #include "core/GraphIo.h"
 #include "core/PluginHost.h"
 #include "hum/Registry.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
 namespace {
-constexpr double kSR = 44100.0;
+constexpr double kSR = kDefaultSampleRate;
 constexpr int kBlock = 4096;
 
 struct DelayedNote : Organism, MidiNode {
@@ -43,7 +44,6 @@ void setP(Organism& c, const char* name, double v) {
 }
 
 double toneAt(const float* b, int n, double f) {
-    constexpr double kPi = 3.14159265358979323846;
     double re = 0.0, im = 0.0, norm = 0.0;
     for (int i = 0; i < n; ++i) {
         const double w = 0.5 * (1.0 - std::cos(2.0 * kPi * (double) i / (double) (n - 1)));
@@ -92,7 +92,7 @@ bool render(const std::string& classRaw, bool retuned,
         renderGraphBlock(g, nullptr, 0, outs, 2, kBlock, taps, {});
         if (b >= 24) tail.insert(tail.end(), buf[0].begin(), buf[0].end());
     }
-    e440 = toneAt(tail.data(), (int) tail.size(), 440.0);
+    e440 = toneAt(tail.data(), (int) tail.size(), kA4Hz);
     e320 = toneAt(tail.data(), (int) tail.size(), 320.0);
     e311 = toneAt(tail.data(), (int) tail.size(), 311.127);
     return true;

@@ -8,6 +8,8 @@
 #include "gui/LookAndFeel.h"
 #include "gui/NoteEdit.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -112,7 +114,7 @@ void TracksPane::applyNoteDrag(const juce::MouseEvent& e) {
             switch (rollDrag_) {
                 case RollDrag::Move:
                     at += dTicks;
-                    n.pitch = juce::jlimit(0, 127, n.pitch + dPitch);
+                    n.pitch = juce::jlimit(0, kMidiMax, n.pitch + dPitch);
                     break;
                 case RollDrag::ResizeR:
                     n.lengthTicks = std::max(kMinNoteTicks, n.lengthTicks + dTicks);
@@ -122,7 +124,7 @@ void TracksPane::applyNoteDrag(const juce::MouseEvent& e) {
                     n.lengthTicks = std::max(kMinNoteTicks, n.lengthTicks - dTicks);
                     break;
                 case RollDrag::Velocity:
-                    n.velocity = juce::jlimit(1, 127, n.velocity + dVel);
+                    n.velocity = juce::jlimit(1, kMidiMax, n.velocity + dVel);
                     break;
                 default: break;
             }
@@ -186,7 +188,7 @@ void TracksPane::applyVelLaneLine(juce::Point<int> a, juce::Point<int> b) {
                 ? juce::jlimit(0.0, 1.0, (at - tickA) / (double) (tickB - tickA))
                 : 0.0;
             const int vel =
-                juce::jlimit(1, 127, (int) std::lround(velA + (velB - velA) * t));
+                juce::jlimit(1, kMidiMax, (int) std::lround(velA + (velB - velA) * t));
             if (n.velocity != vel) { n.velocity = vel; changed = true; }
         }
         if (changed) host_.clips().setNotes(trackNode_, ci.index, notes, 0);
@@ -252,8 +254,8 @@ void TracksPane::nudgeNotes(int dTicks, int dSemis, int dVel) {
             }
             NoteEvent n = notes[(size_t) i];
             int home = clip, at = start + n.tick;
-            n.pitch = juce::jlimit(0, 127, n.pitch + dSemis);
-            n.velocity = juce::jlimit(1, 127, n.velocity + dVel);
+            n.pitch = juce::jlimit(0, kMidiMax, n.pitch + dSemis);
+            n.velocity = juce::jlimit(1, kMidiMax, n.velocity + dVel);
             at += dTicks;
             if (dTicks != 0) {
                 if (const int owner = clipOwning(at); owner >= 0) home = owner;
@@ -382,7 +384,7 @@ bool TracksPane::mouseDownRollGrid(const juce::MouseEvent& e, juce::Point<int> p
     bool leftEdge = false, rightEdge = false;
     noteAt(p, clip, index, leftEdge, rightEdge);
     const int tick = std::max(0, xToTick((float) p.x));
-    const int pitch = juce::jlimit(0, 127, rp.pitchAt((float) p.y));
+    const int pitch = juce::jlimit(0, kMidiMax, rp.pitchAt((float) p.y));
     rollAnchor_ = p;
     rollAnchorTick_ = tick;
     rollAnchorPitch_ = pitch;

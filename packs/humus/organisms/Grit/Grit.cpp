@@ -2,11 +2,15 @@
 
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 Grit::Grit() : impl_(std::make_unique<Impl>()) {
     impl_->dmc.SetAPU(&impl_->apu);
     impl_->dmc.SetMemory(&impl_->rom);
+    impl_->dmc.SetOption(xgm::NES_DMC::OPT_RANDOMIZE_NOISE, 0);
+    impl_->dmc.SetOption(xgm::NES_DMC::OPT_RANDOMIZE_TRI, 0);
 }
 
 Grit::~Grit() = default;
@@ -41,7 +45,7 @@ void Grit::pokeApu(int reg, int value) {
 
 void Grit::applyRegion() {
     const double c = clock();
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     for (xgm::ISoundChip* chip :
          {(xgm::ISoundChip*) &impl_->apu, (xgm::ISoundChip*) &impl_->dmc,
           (xgm::ISoundChip*) &impl_->vrc6, (xgm::ISoundChip*) &impl_->mmc5,
@@ -82,7 +86,7 @@ void Grit::applyTriangle() {
 void Grit::noteOn(int note, int vel, const Tuning& tuning) {
     if (note >= kNoiseSplit && params.get("NoiseKeys", 1.0) >= 0.5) {
         noiseNote_ = note;
-        noiseEnv_.vel = 0.25f + 0.75f * (float) vel / 127.0f;
+        noiseEnv_.vel = 0.25f + 0.75f * (float) vel / kMidiMaxF;
         noiseEnv_.phase = 0;
         noiseEnv_.wait = 0;
         noiseEnv_.sounding = true;
@@ -120,7 +124,7 @@ void Grit::noteOn(int note, int vel, const Tuning& tuning) {
     auto& vc = voices_[(size_t) v];
     vc.note = note;
     vc.hz = tuning.hz(note);
-    vc.vel = 0.25f + 0.75f * (float) vel / 127.0f;
+    vc.vel = 0.25f + 0.75f * (float) vel / kMidiMaxF;
     vc.age = ++age_;
     vc.phase = 0;
     vc.wait = 0;
@@ -219,12 +223,12 @@ void Grit::renderChunk(float* l, float* r, int n, float level) {
         case GritCart::kVrc7: exp = &impl_->vrc7; expGain = 0.9f; break;
         default: break;
     }
-    const double cps = clock() / (sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
+    const double cps = clock() / (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
     const double envHz = pal_ ? 200.0 : 240.0;
-    const double eps = envHz / (sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
-    const float k = level / 4800.0f;
+    const double eps = envHz / (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
+    const float k = level / 3800.0f;
     const float rPole =
-        1.0f - 75.0f / (float) (sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
+        1.0f - 75.0f / (float) (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
     for (int i = 0; i < n; ++i) {
         envAcc_ += eps;
         while (envAcc_ >= 1.0) {

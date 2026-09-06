@@ -1,6 +1,6 @@
 # VideoOut
 
-Where the picture leaves the patch - the video twin of SoundOut. Cord a composition into its video inlet (a Lumen's composite, a VideoMix, a bare VideoPlayer deck) and open its window from Control > Video Outputs, or by right-clicking the organism. The window stays above the patcher while you work the knobs; sent to a display it detaches and nothing can cover it.
+Where the picture leaves the patch - the video twin of SoundOut. Cord a composition into its video inlet (a Lumen's composite, a VideoMix, a bare VideoPlayer deck) and open its window with the screen button beside the Screen menu, from Control > Video Outputs, or by right-clicking the organism. The window stays above the patcher while you work the knobs; sent to a display it detaches and nothing can cover it.
 
 Screen sends it out: Window floats a resizable window; Display 1-3 goes borderless fullscreen on that display - the projector setting. Fade is the master fader: 0 is black, and being an ordinary param it rides automation, MIDI maps and modulation routes - fade the whole show to black on a filter sweep.
 

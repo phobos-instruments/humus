@@ -7,6 +7,8 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class PianoNotePicker : public juce::Component {
@@ -99,7 +101,7 @@ public:
     static std::string noteName(int note) {
         static const char* k[12] = {"C", "C#", "D", "D#", "E", "F",
                                     "F#", "G", "G#", "A", "A#", "B"};
-        note = juce::jlimit(0, 127, note);
+        note = juce::jlimit(0, kMidiMax, note);
         return std::string(k[note % 12]) + std::to_string(note / 12 - 1);
     }
 
@@ -154,7 +156,7 @@ private:
     }
 
     int current_, lo_, hi_;
-    int vLo_ = 0, vHi_ = 127;
+    int vLo_ = 0, vHi_ = kMidiMax;
     int hover_ = -1;
     std::function<void(int)> onPick_;
 
@@ -162,7 +164,7 @@ private:
 };
 
 inline void showNotePicker(EngineHost& host, const std::string& cn, const std::string& param,
-                           juce::Rectangle<int> anchorScreen, int lo = 0, int hi = 127,
+                           juce::Rectangle<int> anchorScreen, int lo = 0, int hi = kMidiMax,
                            std::function<void()> onChanged = {}) {
     const int cur = juce::jlimit(lo, hi, (int) host.liveParamValue(cn, param));
     auto picker = std::make_unique<PianoNotePicker>(cur, lo, hi,

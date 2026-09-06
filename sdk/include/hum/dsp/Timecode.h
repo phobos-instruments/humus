@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class TimecodeTracker {
@@ -17,7 +19,7 @@ public:
     }
 
     void setNominal(double nominalHz) {
-        nominalStep_ = 2.0 * 3.14159265358979323846 * (nominalHz > 1.0 ? nominalHz : 1000.0)
+        nominalStep_ = 2.0 * kPi * (nominalHz > 1.0 ? nominalHz : 1000.0)
                        / (sr_ > 0.0 ? sr_ : 48000.0);
     }
 
@@ -27,8 +29,8 @@ public:
         if (!havePhase_) { phase_ = theta; havePhase_ = true; return; }
         double d = theta - phase_;
         phase_ = theta;
-        while (d > 3.14159265358979323846) d -= 2.0 * 3.14159265358979323846;
-        while (d < -3.14159265358979323846) d += 2.0 * 3.14159265358979323846;
+        while (d > kPi) d -= 2.0 * kPi;
+        while (d < -kPi) d += 2.0 * kPi;
         const double lim = nominalStep_ * 8.0;
         if (d > lim || d < -lim) return;
         omegaSmooth_ += (d - omegaSmooth_) * omegaCoef_;

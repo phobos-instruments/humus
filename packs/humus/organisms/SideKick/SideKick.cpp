@@ -16,6 +16,7 @@ void SideKick::process(const float* const* in, int numIn, float* const* out, int
         for (int n = 0; n < numSamples; ++n)
             for (int c = 0; c < numOut; ++c) out[c][n] = tap(c, n);
         g_ = 1.0;
+        gainOut_.store(1.0f, std::memory_order_relaxed);
         return;
     }
 
@@ -28,13 +29,14 @@ void SideKick::process(const float* const* in, int numIn, float* const* out, int
     static const double kBars[] = {1.0, 1.0 / 2, 1.0 / 4, 1.0 / 8, 1.0 / 16};
     const int si = std::clamp((int) params.get("Sync", 2.0), 0, 4);
     const double cycleBeats = kBars[si] * transport.beatsPerBar();
-    const double beatsPerSample = transport.tempo() / 60.0 / sampleRate_;
+    const double beatsPerSample = transport.tempo() / kSecondsPerMinute / sampleRate_;
     const double smoothMs = std::clamp(params.get("Smooth", 3.0), 0.0, 20.0);
     const double sc = smoothMs > 0.01 ? smoothCoeff(smoothMs, sampleRate_) : 0.0;
 
     double beats = transport.beats();
+    double phase = 0.0;
     for (int n = 0; n < numSamples; ++n) {
-        const double phase = std::fmod(beats, cycleBeats) / cycleBeats;
+        phase = std::fmod(beats, cycleBeats) / cycleBeats;
         beats += beatsPerSample;
         const double target = shape_.eval(phase);
         g_ = sc * g_ + (1.0 - sc) * target;
@@ -43,6 +45,8 @@ void SideKick::process(const float* const* in, int numIn, float* const* out, int
             out[c][n] = (float) (dry * (1.0 - mix) + dry * g_ * mix);
         }
     }
+    phaseOut_.store((float) phase, std::memory_order_relaxed);
+    gainOut_.store((float) g_, std::memory_order_relaxed);
 }
 
 }

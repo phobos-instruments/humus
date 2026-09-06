@@ -11,6 +11,7 @@
 #include "plugin/MacroPanel.h"
 #include "plugin/OrganismParamPanel.h"
 #include "plugin/PatchMapView.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -18,7 +19,7 @@ class HumusEditor : public juce::AudioProcessorEditor, private juce::Timer {
 public:
     explicit HumusEditor(HumusProcessor& p)
         : juce::AudioProcessorEditor(p), proc_(p), params_(p), macros_(p) {
-        load_.setButtonText("Load patch...");
+        load_.setButtonText(tr("humus-editor.load-patch", "Load patch..."));
         load_.onClick = [this] { choose(); };
         addAndMakeVisible(load_);
 
@@ -35,10 +36,10 @@ public:
         playBtn_.setToggleState(proc_.freeRun(), juce::dontSendNotification);
         playBtn_.setColour(juce::TextButton::buttonOnColourId,
                            fxlook::accent().withAlpha(0.35f));
-        playBtn_.setTooltip("Free-run the patch while the DAW is stopped");
+        playBtn_.setTooltip(tr("humus-editor.free-run-the-patch-while", "Free-run the patch while the DAW is stopped"));
         playBtn_.onClick = [this] { proc_.setFreeRun(playBtn_.getToggleState()); };
         addAndMakeVisible(playBtn_);
-        rewindBtn_.setTooltip("Back to bar 1");
+        rewindBtn_.setTooltip(tr("humus-editor.back-to-bar-1", "Back to bar 1"));
         rewindBtn_.onClick = [this] { proc_.rewindTransport(); };
         addAndMakeVisible(rewindBtn_);
         clock_.setJustificationType(juce::Justification::centredLeft);
@@ -63,7 +64,7 @@ public:
         g.fillAll(fxlook::bg());
         g.setColour(fxlook::accent());
         g.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
-        g.drawText("Humus", 12, 8, 100, 22, juce::Justification::centredLeft, false);
+        g.drawText(tr("humus-editor.humus", "Humus"), 12, 8, 100, 22, juce::Justification::centredLeft, false);
         auto meter = getLocalBounds().removeFromBottom(16).reduced(12, 4);
         for (int c = 0; c < 2; ++c) {
             auto lane = meter.removeFromTop(3);
@@ -104,7 +105,7 @@ public:
 
 private:
     void choose() {
-        chooser_ = std::make_unique<juce::FileChooser>("Load patch",
+        chooser_ = std::make_unique<juce::FileChooser>(tr("humus-editor.load-patch-2", "Load patch"),
                                                        juce::File(), kPatchOpenFilter);
         chooser_->launchAsync(juce::FileBrowserComponent::openMode
                                   | juce::FileBrowserComponent::canSelectFiles,
@@ -132,8 +133,9 @@ private:
             if (cm.displayClass == "SoundOut" || cm.displayClass == "AuxOut") hasOut = true;
         if (!hasOut) {
             status_.setColour(juce::Label::textColourId, fxlook::warn());
-            status_.setText("This patch has no SoundOut, so the plugin is silent - "
-                            "add one in Humus and reload.",
+            status_.setText(tr("humus-editor.no-soundout",
+                               "This patch has no SoundOut, so the plugin is silent - "
+                               "add one in Humus and reload."),
                             juce::dontSendNotification);
             return;
         }
@@ -142,7 +144,7 @@ private:
 
     void refreshAll() {
         lastPatch_ = proc_.patchName();
-        name_.setText(lastPatch_.isEmpty() ? "(no patch loaded)" : lastPatch_,
+        name_.setText(lastPatch_.isEmpty() ? tr("humus-editor.no-patch-loaded", "(no patch loaded)") : lastPatch_,
                       juce::dontSendNotification);
         map_.setModel(&proc_.model());
         if (proc_.model().byName(params_.target()) == nullptr) {

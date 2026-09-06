@@ -5,10 +5,12 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct SoundFileInfo {
-    double sampleRate = 44100.0;
+    double sampleRate = kDefaultSampleRate;
     int rootKey = -1;
     int loopStart = 0, loopEnd = 0;
 };
@@ -29,11 +31,11 @@ inline bool loadSoundFile(std::string uri, juce::AudioBuffer<float>& dest,
 
     dest.setSize((int) reader->numChannels, (int) reader->lengthInSamples);
     reader->read(&dest, 0, (int) reader->lengthInSamples, 0, true, true);
-    info.sampleRate = reader->sampleRate > 0.0 ? reader->sampleRate : 44100.0;
+    info.sampleRate = reader->sampleRate > 0.0 ? reader->sampleRate : kDefaultSampleRate;
 
     const auto& meta = reader->metadataValues;
     if (meta.containsKey("MidiUnityNote"))
-        info.rootKey = juce::jlimit(0, 127, meta["MidiUnityNote"].getIntValue());
+        info.rootKey = juce::jlimit(0, kMidiMax, meta["MidiUnityNote"].getIntValue());
     if (meta.getValue("NumSampleLoops", "0").getIntValue() > 0) {
         info.loopStart = meta["Loop0Start"].getIntValue();
         info.loopEnd = meta["Loop0End"].getIntValue();

@@ -73,6 +73,7 @@ static void crashHandler(int sig) {
 #include "gui/DefaultPatchHandler.h"
 #include "io/PatchFormat.h"
 #include "gui/SplashWindow.h"
+#include "gui/Localisation.h"
 #include "gui/StartWindow.h"
 
 namespace hum {
@@ -121,6 +122,8 @@ public:
         }
 
         const auto args = getCommandLineParameterArray();
+
+        i18n::applySaved();
 
         for (const char* child : {"--ai-ping", "--tuning-probe", "--scan-enumerate-out",
                                   "--scan-plugin-out", "--scan-plugin"})
@@ -268,6 +271,15 @@ public:
                     if (auto* mc = mainComponent()) mc->openFileAt(f);
                 });
         };
+        a.onTour = [this] { showMainWindowWithGuide(); };
+        a.onWizard = [this] {
+            showMainWindow();
+            if (auto* mc = mainComponent()) mc->openSetupWizard(false);
+        };
+        a.onHelp = [this] {
+            showMainWindow();
+            if (auto* mc = mainComponent()) mc->openHelpBrowser();
+        };
         a.onRecover = [this](const AutosaveStore::Recovery& r, bool restore) {
             if (!restore) { AutosaveStore::discard(r); return; }
             showMainWindow();
@@ -292,8 +304,8 @@ public:
             display + "'s interface was active when Humus stopped responding.\n"
             "Quarantine its UI? (You can still open it explicitly.)",
             juce::MessageBoxIconType::WarningIcon);
-        aw->addButton("Quarantine", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        aw->addButton("Ignore", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        aw->addButton(tr("main.quarantine", "Quarantine"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+        aw->addButton(tr("main.ignore", "Ignore"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
         aw->enterModalState(true, juce::ModalCallbackFunction::create(
             [cls = rep->pluginClassRaw.toStdString()](int r) {
                 if (r == 1) quarantine::add(cls);

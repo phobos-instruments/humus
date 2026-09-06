@@ -396,12 +396,13 @@ void EngineHost::capturePoint(const std::string& organism, const std::string& pa
                            isRange, captureStartBeat_);
             from = captureStartBeat_;
         }
-        capturePass_[key] = {from, beat, lo, hi, isRange};
+        capturePass_[key] = {from, beat, beat, lo, hi, isRange};
     }
     else {
         auto& pass = it->second;
         pass.firstBeat = std::min(pass.firstBeat, beat);
         pass.lastBeat = beat;
+        pass.highBeat = std::max(pass.highBeat, beat);
         pass.lo = lo; pass.hi = hi; pass.isRange = isRange;
     }
     capturePointAt(organism, param, lo, hi, isRange, beat);
@@ -424,10 +425,11 @@ void EngineHost::extendLatchPasses() {
     if (!latch_ || !capturing_ || !playing_ || capturePass_.empty()) return;
     const double now = positionBeats();
     bool any = false;
-    for (const auto& [key, pass] : capturePass_) {
+    for (auto& [key, pass] : capturePass_) {
         if (now <= pass.lastBeat + kBeatEps) continue;
         eraseSpan(const_cast<OrganismModel*>(model_.byName(key.first)), key.second, pass.lastBeat, now);
         capturePointAt(key.first, key.second, pass.lo, pass.hi, pass.isRange, now);
+        pass.highBeat = std::max(pass.highBeat, now);
         any = true;
     }
     if (any) syncAutomation();
@@ -445,7 +447,7 @@ void EngineHost::endCapturePasses() {
         }
     for (const auto& [key, pass] : capturePass_)
         perfbox::addSpan(model_.perfBoxes, key.first,
-                         pass.firstBeat, std::max(stopBeat, pass.lastBeat));
+                         pass.firstBeat, std::max({stopBeat, pass.lastBeat, pass.highBeat}));
     capturePass_.clear();
     dirty_ = true;
     syncAutomation();

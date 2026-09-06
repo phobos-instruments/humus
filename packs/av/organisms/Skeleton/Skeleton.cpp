@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cstdint>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Skeleton::FrameListener : public CameraCapture::Listener {
@@ -209,7 +211,7 @@ CamPreviewSource::Frame Skeleton::camFrame() const {
 
 void Skeleton::process(const float* const*, int, float* const* out, int numOut,
                    int numSamples, const Transport&) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double ms = std::max(1.0, params.get("Smooth", 80.0));
     const float coef =
         (float) std::exp(-1.0 / (ms * 0.001 * sr / (double) std::max(1, numSamples)));
@@ -245,7 +247,7 @@ int Skeleton::collectMidi(int, MidiEvent* out, int capacity) {
     const int ch = std::clamp((int) params.get("MidiChannel", 1.0), 1, 16);
     int n = 0;
     for (int i = 0; sendCC && i < kLive && n < capacity; ++i) {
-        const int v7 = std::clamp((int) std::lround(smoothed_[(size_t) i] * 127.0f), 0, 127);
+        const int v7 = std::clamp((int) std::lround(smoothed_[(size_t) i] * kMidiMaxF), 0, kMidiMax);
         if (v7 == lastCcSent_[(size_t) i]) continue;
         lastCcSent_[(size_t) i] = v7;
         MidiEvent e;
@@ -268,12 +270,12 @@ int Skeleton::collectMidi(int, MidiEvent* out, int capacity) {
         noteOn_[(size_t) k] = want;
         if (want)
             noteNum_[(size_t) k] =
-                std::clamp((int) params.get("GNote_" + sfx, 48.0 + k), 0, 127);
+                std::clamp((int) params.get("GNote_" + sfx, 48.0 + k), 0, kMidiMax);
         MidiEvent e;
         e.sampleOffset = 0;
         e.data[0] = (unsigned char) ((want ? 0x90 : 0x80) | (ch - 1));
         e.data[1] = (unsigned char) noteNum_[(size_t) k];
-        e.data[2] = (unsigned char) (want ? std::clamp((int) std::lround(m * 127.0f), 1, 127) : 0);
+        e.data[2] = (unsigned char) (want ? std::clamp((int) std::lround(m * kMidiMaxF), 1, kMidiMax) : 0);
         e.size = 3;
         out[n++] = e;
     }

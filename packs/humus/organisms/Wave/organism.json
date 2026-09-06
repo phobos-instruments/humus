@@ -9,15 +9,13 @@
           "name": "Attack",
           "min": 1.0,
           "max": 2000.0,
-          "def": 5.0,
-          "random": true
+          "def": 5.0
         },
         {
           "name": "Release",
           "min": 20.0,
           "max": 4000.0,
-          "def": 400.0,
-          "random": true
+          "def": 400.0
         },
         {
           "name": "Sub",

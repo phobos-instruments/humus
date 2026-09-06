@@ -52,8 +52,7 @@
           "name": "Decay",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.0,
-          "random": true
+          "def": 0.0
         },
         {
           "name": "Shuffle",

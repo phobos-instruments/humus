@@ -8,6 +8,7 @@
 #include "core/ParamSchema.h"
 #include "plugin/FxLook.h"
 #include "plugin/HumusProcessor.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -31,9 +32,9 @@ public:
         rows_.clear();
         content_.removeAllChildren();
         const OrganismModel* cm = proc_.model().byName(target_);
-        title_.setText(cm ? juce::String(cm->name) : "(no organism selected)",
+        title_.setText(cm ? juce::String(cm->name) : tr("organism-param.no-organism-selected", "(no organism selected)"),
                        juce::dontSendNotification);
-        klass_.setText(cm ? juce::String(cm->displayClass) : "click a box in the patch map",
+        klass_.setText(cm ? juce::String(cm->displayClass) : tr("organism-param.click-a-box-in-the", "click a box in the patch map"),
                        juce::dontSendNotification);
         if (cm != nullptr) {
             for (const auto& d : schemaFor(cm->displayClass)) {

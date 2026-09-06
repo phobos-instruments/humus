@@ -10,6 +10,8 @@
 
 #include <juce_core/juce_core.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum::sf2 {
 
 enum Gen : std::uint16_t {
@@ -32,7 +34,7 @@ enum Gen : std::uint16_t {
 struct Sample {
     std::string name;
     std::uint32_t start = 0, end = 0, loopStart = 0, loopEnd = 0;
-    std::uint32_t sampleRate = 44100;
+    std::uint32_t sampleRate = (int) kDefaultSampleRate;
     int originalKey = 60;
     int correction = 0;
     std::uint16_t link = 0;
@@ -41,7 +43,7 @@ struct Sample {
 
 struct Zone {
     int sampleIndex = -1;
-    int keyLo = 0, keyHi = 127, velLo = 0, velHi = 127;
+    int keyLo = 0, keyHi = kMidiMax, velLo = 0, velHi = kMidiMax;
     int rootKey = -1;
     int coarseTune = 0, fineTune = 0, scaleTuning = 100;
     int sampleModes = 0;

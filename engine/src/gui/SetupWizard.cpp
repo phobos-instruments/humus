@@ -9,6 +9,7 @@
 #include "gui/StartWindow.h"
 #include "gui/Telemetry.h"
 #include "gui/TelemetryEvents.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -104,7 +105,7 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
     };
     addChildComponent(*themes_);
 
-    uiScaleLabel_.setText("UI scale", juce::dontSendNotification);
+    uiScaleLabel_.setText(tr("setup-wizard.ui-scale", "UI scale"), juce::dontSendNotification);
     addChildComponent(uiScaleLabel_);
     uiScale_.setRange(0.8, 1.6, 0.05);
     uiScale_.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -130,7 +131,7 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
 
     if (firstBoot_ && AppSettings::instance().getString("menu.style", "").isEmpty())
         setModernMenus(true);
-    menuStyleLabel_.setText("How would you like to pick organisms when patching?",
+    menuStyleLabel_.setText(tr("setup-wizard.how-would-you-like-to", "How would you like to pick organisms when patching?"),
                             juce::dontSendNotification);
     addChildComponent(menuStyleLabel_);
     modernCard_.modern = true;
@@ -148,12 +149,12 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
     addChildComponent(classicCard_);
     addChildComponent(modernCard_);
 
-    telemetryToggle_.setButtonText("Share anonymous usage data");
+    telemetryToggle_.setButtonText(tr("setup-wizard.share-anonymous-usage-data", "Share anonymous usage data"));
     telemetryToggle_.setToggleState(
         AppSettings::instance().getInt("telemetry.enabled", 0) != 0,
         juce::dontSendNotification);
     addChildComponent(telemetryToggle_);
-    updatesToggle_.setButtonText("Check for updates at startup");
+    updatesToggle_.setButtonText(tr("setup-wizard.check-for-updates-at-startup", "Check for updates at startup"));
     updatesToggle_.setToggleState(
         AppSettings::instance().getInt("updates.auto", 0) != 0,
         juce::dontSendNotification);
@@ -163,7 +164,7 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
         styleBrandButton(*b);
         addAndMakeVisible(*b);
     }
-    skipBtn_.setButtonText(firstBoot_ ? "Skip setup" : "Close");
+    skipBtn_.setButtonText(firstBoot_ ? tr("setup-wizard.skip-setup", "Skip setup") : tr("setup-wizard.close", "Close"));
     backBtn_.onClick = [this] { setPage(wizard::back(page_)); };
     nextBtn_.onClick = [this] {
         if (wizard::isLast(page_)) finish();
@@ -208,7 +209,7 @@ void SetupWizard::setPage(wizard::Page p) {
     updatesToggle_.setVisible(p == wizard::kTelemetry);
 
     backBtn_.setEnabled(!wizard::isFirst(p));
-    nextBtn_.setButtonText(wizard::isLast(p) ? "Finish" : "Next");
+    nextBtn_.setButtonText(wizard::isLast(p) ? tr("setup-wizard.finish", "Finish") : tr("setup-wizard.next", "Next"));
     skipBtn_.setVisible(!wizard::isLast(p));
     resized();
     repaint();
@@ -268,7 +269,7 @@ void SetupWizard::paint(juce::Graphics& g) {
     drawHumusLogo(g, juce::Rectangle<float>(24.0f, 8.0f, 110.0f, (float) kHeaderH - 16.0f));
     g.setColour(kBrandInk);
     g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
-    g.drawText("Setup", 150, 0, 200, kHeaderH, juce::Justification::centredLeft);
+    g.drawText(tr("setup-wizard.setup", "Setup"), 150, 0, 200, kHeaderH, juce::Justification::centredLeft);
     g.setColour(kBrandInk.withAlpha(0.65f));
     g.setFont(juce::FontOptions(13.0f));
     g.drawText(wizard::pageTitle(page_), 0, 0, getWidth() - 24, kHeaderH,
@@ -288,7 +289,7 @@ void SetupWizard::paint(juce::Graphics& g) {
     if (page_ == wizard::kTelemetry) {
         auto r = content;
         g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
-        g.drawText("Help improve Humus?", r.removeFromTop(30),
+        g.drawText(tr("setup-wizard.help-improve-humus", "Help improve Humus?"), r.removeFromTop(30),
                    juce::Justification::centredLeft);
         r.removeFromTop(14);
         g.setColour(Palette::textDim);
@@ -308,7 +309,7 @@ void SetupWizard::paint(juce::Graphics& g) {
     } else if (page_ == wizard::kFinish) {
         auto r = content;
         g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
-        g.drawText("All set", r.removeFromTop(30), juce::Justification::centredLeft);
+        g.drawText(tr("setup-wizard.all-set", "All set"), r.removeFromTop(30), juce::Justification::centredLeft);
         r.removeFromTop(14);
         g.setFont(juce::FontOptions(14.5f));
         for (const auto& line : summary()) {

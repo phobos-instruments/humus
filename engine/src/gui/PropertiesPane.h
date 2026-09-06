@@ -9,6 +9,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/Caution.h"
 #include "gui/BarButton.h"
 #include "gui/OrganismEditor.h"
 #include "gui/Dock.h"
@@ -16,6 +17,7 @@
 #include "gui/PresetRail.h"
 #include "gui/SizeGrip.h"
 #include "gui/ViewSwitch.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -49,7 +51,9 @@ public:
         if (editor_) editor_->refreshAutomatedValues();
         const bool off = host_.bypassed(name_);
         if (off != bypass_.isOn()) { bypass_.setOn(off); repaint(); }
+        syncVeil();
     }
+    bool cautionShowing() const { return veil_ != nullptr; }
     void reloadTextValues() {
         if (editor_) editor_->reloadTextValues();
     }
@@ -107,6 +111,7 @@ private:
     }
     void buildContent();
     void buildContentImpl();
+    void syncVeil();
     void layoutBar(juce::Rectangle<int> row);
     void syncRail();
     void refreshBypass();
@@ -123,6 +128,7 @@ private:
     std::unique_ptr<OrganismEditor> editor_;
     std::unique_ptr<EmbeddedPluginView> embedded_;
     std::unique_ptr<DeviceStripView> strip_;
+    std::unique_ptr<caution::Veil> veil_;
     FoldButton fold_;
     juce::TextButton help_{"?"};
     IconButton histBack_{IconGlyph::Undo, {}};
@@ -283,7 +289,7 @@ private:
     class RackMap : public juce::Component, public juce::SettableTooltipClient {
     public:
         explicit RackMap(PropertiesPane& o) : owner_(o) {
-            setTooltip(juce::String("Overview map - drag to scroll, click a block to select its box"));
+            setTooltip(juce::String(tr("properties-pane.overview-map-drag-to-scroll", "Overview map - drag to scroll, click a block to select its box")));
             setMouseCursor(juce::MouseCursor::DraggingHandCursor);
         }
         void paint(juce::Graphics&) override;

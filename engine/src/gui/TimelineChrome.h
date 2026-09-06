@@ -12,6 +12,8 @@
 #include "gui/NoteEdit.h"
 #include "gui/TracksLayout.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum::timelinechrome {
 
 inline void paintTimeGrid(juce::Graphics& g, juce::Rectangle<int> area, int leftEdge,
@@ -105,6 +107,9 @@ inline float textWidth(const juce::Font& f, const juce::String& text) {
     return juce::GlyphArrangement::getStringWidth(f, text);
 }
 
+inline constexpr float kChipFont = 11.0f;
+inline constexpr float kCrumbFont = 11.5f;
+
 inline void paintSnapChip(juce::Graphics& g, juce::Rectangle<int> r,
                           double gridBeats, bool chosen, const char* labelOverride = nullptr) {
     if (r.getWidth() < 24 || r.getHeight() < 8) return;
@@ -114,7 +119,7 @@ inline void paintSnapChip(juce::Graphics& g, juce::Rectangle<int> r,
     g.setColour(Palette::border);
     g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 2.0f, 1.0f);
     g.setColour(chosen ? Palette::accent : Palette::textDim);
-    g.setFont(juce::FontOptions(9.5f));
+    g.setFont(juce::FontOptions(kChipFont));
     g.drawText(label, r, juce::Justification::centred);
     if (chosen) g.fillEllipse((float) r.getRight() - 5.0f, (float) r.getY() + 2.0f, 3.0f, 3.0f);
 }
@@ -192,7 +197,7 @@ inline juce::String barLabel(int barNumber, double beat, double tempo, float bar
     juce::String label(barNumber);
     if (barPixels > 64.0f) {
         const double bpm = tempo > 0.0 ? tempo : 120.0;
-        const int secs = (int) std::floor(beat * 60.0 / bpm);
+        const int secs = (int) std::floor(beat * kSecondsPerMinute / bpm);
         label << "  " << juce::String(secs / 60) << ":"
               << juce::String(secs % 60).paddedLeft('0', 2);
     }
@@ -454,13 +459,13 @@ inline RollPlot rollPlot(float top, float h, int loPitch, int hiPitch,
     rp.top = top;
     rp.h = h;
     if (h < 12.0f) return rp;
-    int lo = juce::jlimit(0, 127, juce::jmin(loPitch, hiPitch) - 2);
-    int hi = juce::jlimit(0, 127, juce::jmax(loPitch, hiPitch) + 2);
-    if (hi - lo < 11) hi = juce::jmin(127, lo + 11);
+    int lo = juce::jlimit(0, kMidiMax, juce::jmin(loPitch, hiPitch) - 2);
+    int hi = juce::jlimit(0, kMidiMax, juce::jmax(loPitch, hiPitch) + 2);
+    if (hi - lo < 11) hi = juce::jmin(kMidiMax, lo + 11);
     const int span = juce::jmax(1, hi - lo + 1);
     rp.rowH = juce::jlimit(3.0f, 24.0f, juce::jmin(wantedRowH, h / (float) span));
     const int visible = (int) std::floor(h / rp.rowH);
-    rp.topPitch = juce::jlimit(0, 127, hi + std::max(0, (visible - span) / 2) + scrollSemis);
+    rp.topPitch = juce::jlimit(0, kMidiMax, hi + std::max(0, (visible - span) / 2) + scrollSemis);
     rp.usable = true;
     return rp;
 }

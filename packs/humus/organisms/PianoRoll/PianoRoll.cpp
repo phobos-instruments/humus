@@ -7,6 +7,8 @@
 
 #include "hum/Swing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void PianoRoll::prepare(double sampleRate, int) {
@@ -44,8 +46,8 @@ void PianoRoll::emit(int offset, bool on, int pitch, int velocity) {
     MidiEvent e;
     e.sampleOffset = offset;
     e.data[0] = (unsigned char) ((on ? 0x90 : 0x80) | ch);
-    e.data[1] = (unsigned char) std::clamp(pitch, 0, 127);
-    e.data[2] = (unsigned char) (on ? std::clamp(velocity, 1, 127) : 0);
+    e.data[1] = (unsigned char) std::clamp(pitch, 0, kMidiMax);
+    e.data[2] = (unsigned char) (on ? std::clamp(velocity, 1, kMidiMax) : 0);
     e.size = 3;
     outEvents_[(size_t) outCount_++] = e;
     if (pitch >= 0 && pitch < 128) held_[(size_t) pitch] = on;
@@ -57,8 +59,8 @@ void PianoRoll::emitCC(int offset, int controller, int value) {
     MidiEvent e;
     e.sampleOffset = offset;
     e.data[0] = (unsigned char) (0xB0 | ch);
-    e.data[1] = (unsigned char) std::clamp(controller, 0, 127);
-    e.data[2] = (unsigned char) std::clamp(value, 0, 127);
+    e.data[1] = (unsigned char) std::clamp(controller, 0, kMidiMax);
+    e.data[2] = (unsigned char) std::clamp(value, 0, kMidiMax);
     e.size = 3;
     outEvents_[(size_t) outCount_++] = e;
 }

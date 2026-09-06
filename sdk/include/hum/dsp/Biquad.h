@@ -1,11 +1,9 @@
 #pragma once
 #include <cmath>
 
-namespace hum {
+#include "hum/dsp/DspMath.h"
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+namespace hum {
 
 struct Biquad {
     double b0 = 1, b1 = 0, b2 = 0, a1 = 0, a2 = 0;
@@ -28,35 +26,35 @@ struct Biquad {
 
     void setLowpass(double sr, double f0, double q) {
         f0 = clampFreq(sr, f0); q = q < 0.05 ? 0.05 : q;
-        const double w = 2.0 * M_PI * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
+        const double w = 2.0 * kPi * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
         normalise((1 - c) / 2, 1 - c, (1 - c) / 2, 1 + a, -2 * c, 1 - a);
     }
     void setHighpass(double sr, double f0, double q) {
         f0 = clampFreq(sr, f0); q = q < 0.05 ? 0.05 : q;
-        const double w = 2.0 * M_PI * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
+        const double w = 2.0 * kPi * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
         normalise((1 + c) / 2, -(1 + c), (1 + c) / 2, 1 + a, -2 * c, 1 - a);
     }
     void setBandpass(double sr, double f0, double q) {
         f0 = clampFreq(sr, f0); q = q < 0.05 ? 0.05 : q;
-        const double w = 2.0 * M_PI * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
+        const double w = 2.0 * kPi * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
         normalise(a, 0.0, -a, 1 + a, -2 * c, 1 - a);
     }
     void setPeaking(double sr, double f0, double q, double gainDb) {
         f0 = clampFreq(sr, f0); q = q < 0.05 ? 0.05 : q;
         const double A = std::pow(10.0, gainDb / 40.0);
-        const double w = 2.0 * M_PI * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
+        const double w = 2.0 * kPi * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
         normalise(1 + a * A, -2 * c, 1 - a * A, 1 + a / A, -2 * c, 1 - a / A);
     }
     void setLowShelf(double sr, double f0, double gainDb) { shelf(sr, f0, gainDb, true); }
     void setHighShelf(double sr, double f0, double gainDb) { shelf(sr, f0, gainDb, false); }
     void setAllpass(double sr, double f0, double q) {
         f0 = clampFreq(sr, f0); q = q < 0.05 ? 0.05 : q;
-        const double w = 2.0 * M_PI * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
+        const double w = 2.0 * kPi * f0 / sr, c = std::cos(w), a = std::sin(w) / (2.0 * q);
         normalise(1 - a, -2 * c, 1 + a, 1 + a, -2 * c, 1 - a);
     }
     void setAllpass1(double sr, double f0) {
         f0 = clampFreq(sr, f0);
-        const double t = std::tan(M_PI * f0 / sr);
+        const double t = std::tan(kPi * f0 / sr);
         const double a = (t - 1.0) / (t + 1.0);
         normalise(a, 1.0, 0.0, 1.0, a, 0.0);
     }
@@ -69,7 +67,7 @@ private:
     void shelf(double sr, double f0, double gainDb, bool low) {
         f0 = clampFreq(sr, f0);
         const double A = std::pow(10.0, gainDb / 40.0);
-        const double w = 2.0 * M_PI * f0 / sr, c = std::cos(w);
+        const double w = 2.0 * kPi * f0 / sr, c = std::cos(w);
         const double alpha = std::sin(w) / 2.0 * std::sqrt((A + 1.0 / A) * (1.0 / 0.9 - 1.0) + 2.0);
         const double tsa = 2.0 * std::sqrt(A) * alpha;
         const double s = low ? 1.0 : -1.0;

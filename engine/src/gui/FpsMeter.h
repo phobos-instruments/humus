@@ -3,6 +3,7 @@
 
 #include "gui/AppSettings.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -74,7 +75,7 @@ public:
         g.setColour(on ? Palette::accent : juce::Colours::white.withAlpha(0.35f));
         g.drawRoundedRectangle(r.reduced(0.5f), 3.0f, 1.0f);
         g.setFont(juce::FontOptions(9.5f));
-        g.drawText("FPS", r.toNearestInt(), juce::Justification::centred, false);
+        g.drawText(tr("fps-meter.fps", "FPS"), r.toNearestInt(), juce::Justification::centred, false);
     }
 
     static bool clickToggles(juce::Point<int> at, juce::Rectangle<int> brick) {

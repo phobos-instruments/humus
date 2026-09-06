@@ -11,6 +11,7 @@
 #include "gui/PolledBrick.h"
 #include "hum/Capabilities.h"
 #include "hum/SliceEdits.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -40,14 +41,14 @@ public:
                                        area.getY(), area.getBottom());
                 g.setColour(Palette::textDim);
                 g.setFont(juce::FontOptions(12.0f));
-                g.drawText(juce::String::fromUTF8(
-                               "Slice map loaded - no audio in this file. "
-                               "Put a sound-file bounce with the same name beside it."),
+                g.drawText(tr("slice-map.no-audio-in-this-file",
+                              "Slice map loaded - no audio in this file. "
+                              "Put a sound-file bounce with the same name beside it."),
                            getLocalBounds(), juce::Justification::centred);
             } else {
                 g.setColour(Palette::textDim);
                 g.setFont(juce::FontOptions(12.0f));
-                g.drawText(juce::String("Load a loop - it will be cut at its transients"),
+                g.drawText(juce::String(tr("slice-map.load-a-loop-it-will", "Load a loop - it will be cut at its transients")),
                            getLocalBounds(), juce::Justification::centred);
             }
             g.setColour(Palette::border);
@@ -137,11 +138,11 @@ private:
 
     void showMenu(int s) {
         juce::PopupMenu m;
-        m.addItem(1, "Reverse this slice", true, edits_[s].reverse);
-        m.addItem(2, "Mute this slice", true, edits_[s].gainPct == 0);
-        m.addItem(3, "Reset this slice");
+        m.addItem(1, tr("slice-map.reverse-this-slice", "Reverse this slice"), true, edits_[s].reverse);
+        m.addItem(2, tr("slice-map.mute-this-slice", "Mute this slice"), true, edits_[s].gainPct == 0);
+        m.addItem(3, tr("slice-map.reset-this-slice", "Reset this slice"));
         m.addSeparator();
-        m.addItem(4, "Clear all slice edits");
+        m.addItem(4, tr("slice-map.clear-all-slice-edits", "Clear all slice edits"));
         m.showMenuAsync(juce::PopupMenu::Options(), [this, s](int r) {
             if (r == 1) edits_[s].reverse = !edits_[s].reverse;
             else if (r == 2) edits_[s].gainPct = edits_[s].gainPct == 0 ? 100 : 0;

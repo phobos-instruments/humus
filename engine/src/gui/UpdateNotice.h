@@ -4,6 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -16,9 +17,9 @@ public:
         : title_("Humus " + version + " is ready"),
           notes_(notes.upToFirstOccurrenceOf("\n", false, false)),
           file_(fileName) {
-        download_.setButtonText("Download");
-        skip_.setButtonText("Skip this version");
-        later_.setButtonText("Later");
+        download_.setButtonText(tr("update-notice.download", "Download"));
+        skip_.setButtonText(tr("update-notice.skip-this-version", "Skip this version"));
+        later_.setButtonText(tr("update-notice.later", "Later"));
         download_.onClick = [this] { if (onDownload) onDownload(); };
         skip_.onClick = [this] { if (onSkip) onSkip(); };
         later_.onClick = [this] {
@@ -37,7 +38,7 @@ public:
         progress_ = fraction;
         download_.setVisible(false);
         skip_.setVisible(false);
-        later_.setButtonText("Cancel");
+        later_.setButtonText(tr("update-notice.cancel", "Cancel"));
         resized();
         repaint();
     }
@@ -48,7 +49,7 @@ public:
         download_.setButtonText(action);
         download_.setVisible(true);
         skip_.setVisible(false);
-        later_.setButtonText("Close");
+        later_.setButtonText(tr("update-notice.close", "Close"));
         resized();
         repaint();
     }
@@ -114,8 +115,8 @@ public:
     std::function<void()> onEnterLicense, onLater;
 
     NagCard() {
-        enter_.setButtonText("Enter License");
-        later_.setButtonText("Later");
+        enter_.setButtonText(tr("update-notice.enter-license", "Enter License"));
+        later_.setButtonText(tr("update-notice.later", "Later"));
         enter_.onClick = [this] { if (onEnterLicense) onEnterLicense(); };
         later_.onClick = [this] { if (onLater) onLater(); };
         addAndMakeVisible(enter_);
@@ -131,12 +132,13 @@ public:
         g.drawRoundedRectangle(r, 6.0f, 1.2f);
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(14.0f, juce::Font::bold));
-        g.drawText("Humus is unregistered", 14, 10, getWidth() - 28, 20,
+        g.drawText(tr("update-notice.humus-is-unregistered", "Humus is unregistered"), 14, 10, getWidth() - 28, 20,
                    juce::Justification::centredLeft);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.0f));
-        g.drawFittedText("Everything works, and keeps working. Got a code? "
-                         "Make it official.",
+        g.drawFittedText(tr("update-notice.everything-works",
+                            "Everything works, and keeps working. Got a code? "
+                            "Make it official."),
                          14, 32, getWidth() - 28, 32,
                          juce::Justification::topLeft, 2);
     }

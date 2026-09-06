@@ -26,6 +26,7 @@
 #include "gui/NodeRandomize.h"
 #include "gui/QwertyPiano.h"
 #include "gui/SettingsComponent.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -54,7 +55,7 @@ MainComponent::MainComponent()
     }
     if (const auto msg = EditorOpGuard::sweepAtStartup(); msg.isNotEmpty())
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-                                               "Plugin safe mode", msg);
+                                               tr("main.plugin-safe-mode", "Plugin safe mode"), msg);
     PackLoader::instance().loadInstalledPacks();
     PluginHost::instance().restoreKnownListFromXml(pluginListStore::load());
     {
@@ -107,6 +108,7 @@ MainComponent::MainComponent()
         propsPane_->releaseEmbeddedEditorsWhere(
             [&](const std::string& n) { return !survives(n); });
     };
+    host_.openVisuals = [this](const std::string& n) { openVisualUI(n); };
     host_.openParameterControl = [this](const std::string& c, const std::string& p) {
         openParameterControl(c, p);
     };
@@ -258,8 +260,9 @@ void MainComponent::addAt(const std::string& className, juce::Point<int> at) {
 void MainComponent::serviceTrackerFeeds() {
     if (renderService_ == nullptr && juce::JUCEApplication::getInstance() != nullptr) {
         renderService_ = std::make_unique<VideoRenderService>(host_);
-        renderService_->setSuppressed(
-            [this](const std::string& n) { return visualWindows_.count(n) != 0; });
+        renderService_->setSuppressed([this](const std::string& n) {
+            return bounce_ != nullptr || visualWindows_.count(n) != 0;
+        });
     }
     std::set<std::string> keep;
     for (const auto& c : host_.model().videoConnections) {
@@ -312,6 +315,7 @@ void MainComponent::timerCallback() {
         const auto label = peers > 0 ? juce::String(peers) + " Link" : juce::String("Link");
         if (linkBtn_.getButtonText() != label) linkBtn_.setButtonText(label);
     }
+    UiTicker::instance().setBusy(host_.audioRunning());
     host_.pollMidiControl();
     host_.pollBridges();
     host_.pumpPluginTunings();
@@ -421,7 +425,7 @@ void MainComponent::updateDspReadout() {
     const unsigned restarts = host_.deviceRestartCount();
     if (restarts != lastDeviceRestarts_) {
         lastDeviceRestarts_ = restarts;
-        setStatus("audio device restarted (opening aux hardware channels)");
+        setStatus(tr("main.audio-device-restarted-opening-aux", "audio device restarted (opening aux hardware channels)"));
     }
     dspLoadHold_ = juce::jmax(host_.audioLoad(), dspLoadHold_ * 0.94f);
     if (dspLoadHold_ < 0.005f) dspLoadHold_ = 0.0f;

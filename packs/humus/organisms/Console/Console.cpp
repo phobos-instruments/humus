@@ -78,7 +78,7 @@ void Console::process(const float* const* in, int numIn,
     const double sag = params.get("Sag", 0.35);
     const Flavor& f = kFlavors[flavorIndex(params.get("Flavor", 1.0))];
 
-    const double xtA = 1.0 - std::exp(-2.0 * M_PI * f.xtHz / sampleRate_);
+    const double xtA = 1.0 - std::exp(-2.0 * kPi * f.xtHz / sampleRate_);
     const double xtGain = xtalk * 0.03;
     const double dAmt = drive * f.drive;
     const double k = 1.0 + dAmt * 4.0;
@@ -88,7 +88,7 @@ void Console::process(const float* const* in, int numIn,
     const double atk = smoothCoeff(f.atkMs, sampleRate_);
     const double rel = smoothCoeff(f.relMs, sampleRate_);
     const double stress = sag * f.stress * 6.0;
-    const double dcR = 1.0 - (2.0 * M_PI * 10.0 / sampleRate_);
+    const double dcR = 1.0 - (2.0 * kPi * 10.0 / sampleRate_);
 
     const bool stereo = numOut > 1;
     for (int n = 0; n < numSamples; ++n) {

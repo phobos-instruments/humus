@@ -8,6 +8,8 @@
 
 #include <juce_audio_basics/juce_audio_basics.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct RexData {
@@ -95,7 +97,7 @@ inline RexData loadRex1(const std::uint8_t* d, std::size_t n) {
 
     const int bars = (rows.back().tick / ppqBar) + 1;
     const double quarters = (double) (bars * ppqBar) / ((double) ppqBar / 4.0);
-    const int loopLen = (int) std::lround(quarters * 60.0 / bpm * rate);
+    const int loopLen = (int) std::lround(quarters * kSecondsPerMinute / bpm * rate);
     if (loopLen <= 0 || loopLen > 60 * 48000 * 8) return out;
     out.audio.setSize(channels, loopLen);
     out.audio.clear();

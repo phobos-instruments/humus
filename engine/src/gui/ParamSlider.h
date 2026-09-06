@@ -13,6 +13,7 @@
 #include "gui/FollowPick.h"
 #include "gui/LookAndFeel.h"
 #include "gui/SetValuePopup.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -194,7 +195,7 @@ public:
         if (dynamic_cast<juce::Button*>(e.originalComponent) != nullptr) return;
         if (e.mods.isAltDown()) { juce::Slider::mouseDoubleClick(e); return; }
         SetValuePopup::show(getScreenBounds(),
-                            paramLabel.isNotEmpty() ? paramLabel : juce::String("Set Value"),
+                            paramLabel.isNotEmpty() ? paramLabel : juce::String(tr("param-slider.set-value", "Set Value")),
                             getValue(), getMinimum(), getMaximum(), getInterval(), unit_,
                             paramLabel.containsIgnoreCase("freq"),
                             [safe = juce::Component::SafePointer<ParamSlider>(this)](double v) {

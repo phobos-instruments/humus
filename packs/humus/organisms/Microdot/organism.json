@@ -52,8 +52,7 @@
           "name": "Decay",
           "min": 30.0,
           "max": 500.0,
-          "def": 120.0,
-          "random": true
+          "def": 120.0
         },
         {
           "name": "Gate",

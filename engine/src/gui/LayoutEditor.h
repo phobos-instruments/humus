@@ -135,6 +135,12 @@ public:
                     gateMoved = true;
                 }
             }
+            if (c.momentary) {
+                const bool on = host_.isLiveTracked(name_, c.param)
+                             && host_.liveParamValue(name_, c.param) >= 0.5;
+                if (c.momentary->getToggleState() != on)
+                    c.momentary->setToggleState(on, juce::dontSendNotification);
+            }
             if (!c.radioRow.empty() && host_.isLiveTracked(name_, c.param)) {
                 const int cur = (int) std::lround(host_.liveParamValue(name_, c.param));
                 if (cur >= 0 && cur < (int) c.radioRow.size()
@@ -173,10 +179,14 @@ public:
 
     int collarHeight() const { return wearsCollar() ? collar::kHeight : 0; }
 
+    static constexpr double kMaxGrow = 2.5;
+
 private:
     double scale(int width) const {
         if (spec_.width <= 0) return 1.0;
-        return std::min(1.0, (double) width / (double) spec_.width);
+        const double want = (double) width / (double) spec_.width;
+        if (spec_.resize == LayoutSpec::Resize::Grow) return std::min(want, kMaxGrow);
+        return std::min(1.0, want);
     }
 
     struct Control {

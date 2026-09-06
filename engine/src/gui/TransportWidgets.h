@@ -2,6 +2,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -74,7 +75,7 @@ private:
 
 class TimeSigChip : public juce::Component, public juce::SettableTooltipClient {
 public:
-    TimeSigChip() { setTooltip("Beats per bar"); }
+    TimeSigChip() { setTooltip(tr("transport-widgets.beats-per-bar", "Beats per bar")); }
     std::function<int()> get;
     std::function<void(int)> set;
 

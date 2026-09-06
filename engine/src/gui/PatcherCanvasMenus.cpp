@@ -13,6 +13,7 @@
 #include "gui/NewPodPanel.h"
 #include "gui/PickerLauncher.h"
 #include "gui/QuickAddPalette.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -30,18 +31,18 @@ void PatcherCanvas::showAddMenu(juce::Point<int> at, juce::Point<int> screenPos)
             menu.addItem(it.getItem());
         menu.addSeparator();
     }
-    menu.addItem(kNewPod, "New Pod...");
-    menu.addItem(kPodFromPatch, "Pod from Patch...");
+    menu.addItem(kNewPod, tr("patcher-canvas-menus.new-pod", "New Pod..."));
+    menu.addItem(kPodFromPatch, tr("patcher-canvas-menus.pod-from-patch", "Pod from Patch..."));
     if (!scope_.empty()) {
-        menu.addItem(kAddInlet, "Add Pod Inlet");
-        menu.addItem(kAddOutlet, "Add Pod Outlet");
-        menu.addItem(kAddMidiInlet, "Add Pod MIDI Inlet");
-        menu.addItem(kAddMidiOutlet, "Add Pod MIDI Outlet");
-        menu.addItem(kAddVideoInlet, "Add Pod Video Inlet");
-        menu.addItem(kAddVideoOutlet, "Add Pod Video Outlet");
+        menu.addItem(kAddInlet, tr("patcher-canvas-menus.add-pod-inlet", "Add Pod Inlet"));
+        menu.addItem(kAddOutlet, tr("patcher-canvas-menus.add-pod-outlet", "Add Pod Outlet"));
+        menu.addItem(kAddMidiInlet, tr("patcher-canvas-menus.add-pod-midi-inlet", "Add Pod MIDI Inlet"));
+        menu.addItem(kAddMidiOutlet, tr("patcher-canvas-menus.add-pod-midi-outlet", "Add Pod MIDI Outlet"));
+        menu.addItem(kAddVideoInlet, tr("patcher-canvas-menus.add-pod-video-inlet", "Add Pod Video Inlet"));
+        menu.addItem(kAddVideoOutlet, tr("patcher-canvas-menus.add-pod-video-outlet", "Add Pod Video Outlet"));
     }
     menu.addSeparator();
-    menu.addItem(kArrange, "Auto-arrange");
+    menu.addItem(kArrange, tr("patcher-canvas-menus.auto-arrange", "Auto-arrange"));
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
                        [this, ids, at, screenPos](int result) {
@@ -125,25 +126,25 @@ void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenP
     };
 
     juce::PopupMenu menu;
-    menu.addItem(Open, "Open Pod");
+    menu.addItem(Open, tr("patcher-canvas-menus.open-pod", "Open Pod"));
     menu.addSeparator();
-    menu.addItem(Cut, "Cut");
-    menu.addItem(Copy, "Copy");
-    menu.addItem(Duplicate, "Duplicate");
+    menu.addItem(Cut, tr("patcher-canvas-menus.cut", "Cut"));
+    menu.addItem(Copy, tr("patcher-canvas-menus.copy", "Copy"));
+    menu.addItem(Duplicate, tr("patcher-canvas-menus.duplicate", "Duplicate"));
     menu.addSeparator();
-    menu.addItem(Delete_, "Delete");
-    menu.addItem(Ungroup, "Ungroup");
-    menu.addItem(Rename, "Rename... (Cmd+R)");
+    menu.addItem(Delete_, tr("patcher-canvas-menus.delete", "Delete"));
+    menu.addItem(Ungroup, tr("patcher-canvas-menus.ungroup", "Ungroup"));
+    menu.addItem(Rename, tr("patcher-canvas-menus.rename-mac", "Rename... (Cmd+R)"));
     menu.addSeparator();
     if (modernMenusEnabled()) {
         menu.addItem(kSearchBase + 1, juce::String::fromUTF8("Insert Before\xe2\x80\xa6"));
         menu.addItem(kSearchBase + 2, juce::String::fromUTF8("Insert After\xe2\x80\xa6"));
     } else {
-        menu.addSubMenu("Insert Before", pickerSubmenu(kInsBefore, 1, true));
-        menu.addSubMenu("Insert After", pickerSubmenu(kInsAfter, 2, false));
+        menu.addSubMenu(tr("patcher-canvas-menus.insert-before", "Insert Before"), pickerSubmenu(kInsBefore, 1, true));
+        menu.addSubMenu(tr("patcher-canvas-menus.insert-after", "Insert After"), pickerSubmenu(kInsAfter, 2, false));
     }
     menu.addSeparator();
-    menu.addItem(Disconnect, "Disconnect");
+    menu.addItem(Disconnect, tr("patcher-canvas-menus.disconnect", "Disconnect"));
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
                        [this, pod, classOrder, screenPos](int r) {
@@ -194,8 +195,8 @@ void PatcherCanvas::renamePodDialog(const std::string& pod) {
                                      "New name for \"" + pods::leafOf(pod) + "\":",
                                      juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", pods::leafOf(pod));
-    aw->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    aw->addButton(tr("patcher-canvas-menus.ok", "OK"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    aw->addButton(tr("patcher-canvas-menus.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
     aw->enterModalState(true, juce::ModalCallbackFunction::create([this, aw, pod](int r) {
         if (r == 1) {
             const auto leaf = aw->getTextEditorContents("name").trim()
@@ -244,24 +245,24 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
     const bool canSwap = two.size() == 2;
 
     juce::PopupMenu menu;
-    menu.addItem(Edit, "Edit");
+    menu.addItem(Edit, tr("patcher-canvas-menus.edit", "Edit"));
     {
         auto* hp = host_.hostedPluginFor(node);
-        if (hp) menu.addItem(PluginUI, "Open Plugin UI", hp->instance()->hasEditor());
+        if (hp) menu.addItem(PluginUI, tr("patcher-canvas-menus.open-plugin-ui", "Open Plugin UI"), hp->instance()->hasEditor());
         if (dynamic_cast<VideoNode*>(host_.liveOrganism(node)) != nullptr
             && dynamic_cast<VisualSource*>(host_.liveOrganism(node)) == nullptr)
-            menu.addItem(VisualUI, "Open Visuals");
+            menu.addItem(VisualUI, tr("patcher-canvas-menus.open-visuals", "Open Visuals"));
         if (auto* pn = host_.pluginNodeFor(node); pn != nullptr && !pn->responding())
-            menu.addItem(RestartPlugin, "Restart Plugin");
+            menu.addItem(RestartPlugin, tr("patcher-canvas-menus.restart-plugin", "Restart Plugin"));
     }
-    menu.addItem(Help, "Help");
-    menu.addItem(ParamControl, "Parameter Control", false);
+    menu.addItem(Help, tr("patcher-canvas-menus.help", "Help"));
+    menu.addItem(ParamControl, tr("patcher-canvas-menus.parameter-control", "Parameter Control"), false);
     menu.addSeparator();
-    menu.addItem(Cut, "Cut");
-    menu.addItem(Copy, "Copy");
+    menu.addItem(Cut, tr("patcher-canvas-menus.cut", "Cut"));
+    menu.addItem(Copy, tr("patcher-canvas-menus.copy", "Copy"));
     menu.addSeparator();
-    menu.addItem(Delete_, "Delete");
-    menu.addItem(Rename, "Rename... (Cmd+R)");
+    menu.addItem(Delete_, tr("patcher-canvas-menus.delete", "Delete"));
+    menu.addItem(Rename, tr("patcher-canvas-menus.rename-mac", "Rename... (Cmd+R)"));
     menu.addSeparator();
     if (modernMenusEnabled()) {
         menu.addItem(kSearchBase + SearchReplace, juce::String::fromUTF8("Replace\xe2\x80\xa6"));
@@ -269,16 +270,16 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
         menu.addItem(kSearchBase + SearchInsBefore, juce::String::fromUTF8("Insert Before\xe2\x80\xa6"));
         menu.addItem(kSearchBase + SearchInsAfter, juce::String::fromUTF8("Insert After\xe2\x80\xa6"));
     } else {
-        menu.addSubMenu("Replace", pickerSubmenu(kReplace, SearchReplace, true));
-        menu.addSubMenu("Substitute", pickerSubmenu(kSubstitute, SearchSubstitute, false));
-        menu.addSubMenu("Insert Before", pickerSubmenu(kInsBefore, SearchInsBefore, false));
-        menu.addSubMenu("Insert After", pickerSubmenu(kInsAfter, SearchInsAfter, false));
+        menu.addSubMenu(tr("patcher-canvas-menus.replace", "Replace"), pickerSubmenu(kReplace, SearchReplace, true));
+        menu.addSubMenu(tr("patcher-canvas-menus.substitute", "Substitute"), pickerSubmenu(kSubstitute, SearchSubstitute, false));
+        menu.addSubMenu(tr("patcher-canvas-menus.insert-before", "Insert Before"), pickerSubmenu(kInsBefore, SearchInsBefore, false));
+        menu.addSubMenu(tr("patcher-canvas-menus.insert-after", "Insert After"), pickerSubmenu(kInsAfter, SearchInsAfter, false));
     }
     menu.addSeparator();
-    menu.addItem(Swap, canSwap ? "Swap" : "Swap (select two nodes)", canSwap);
-    menu.addItem(MakePod, "Make Pod");
-    menu.addItem(Bypass, "Bypass", true, host_.bypassed(node));
-    menu.addItem(Disconnect, "Disconnect");
+    menu.addItem(Swap, canSwap ? tr("patcher-canvas-menus.swap", "Swap") : tr("patcher-canvas-menus.swap-select-two-nodes", "Swap (select two nodes)"), canSwap);
+    menu.addItem(MakePod, tr("patcher-canvas-menus.make-pod", "Make Pod"));
+    menu.addItem(Bypass, tr("patcher-canvas-menus.bypass", "Bypass"), true, host_.bypassed(node));
+    menu.addItem(Disconnect, tr("patcher-canvas-menus.disconnect", "Disconnect"));
     const auto printTargets = host_.midiOutletsOf(node) > 0 ? host_.noteTargets(node)
                                                             : std::vector<std::string>{};
     static constexpr int kPrintTo = 9200000;
@@ -287,9 +288,9 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
             juce::PopupMenu to;
             for (int i = 0; i < (int) printTargets.size(); ++i)
                 to.addItem(kPrintTo + i, juce::String(juce::CharPointer_UTF8(printTargets[(size_t) i].c_str())));
-            menu.addSubMenu("MIDI to Track", to);
+            menu.addSubMenu(tr("patcher-canvas-menus.midi-to-track", "MIDI to Track"), to);
         } else {
-            menu.addItem(Print, "MIDI to Track");
+            menu.addItem(Print, tr("patcher-canvas-menus.midi-to-track", "MIDI to Track"));
         }
     }
 
@@ -297,18 +298,18 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
     const auto* cmNode = host_.model().byName(node);
     if (cmNode && host_.midiInletsOf(node) > 0) {
         juce::PopupMenu recv;
-        recv.addItem(kRecv + 0, "Omni", true,
+        recv.addItem(kRecv + 0, tr("patcher-canvas-menus.omni", "Omni"), true,
                      cmNode->midiReceiveMode == OrganismModel::kMidiOmni);
-        recv.addItem(kRecv + 1, "Patch cords only", true,
+        recv.addItem(kRecv + 1, tr("patcher-canvas-menus.patch-cords-only", "Patch cords only"), true,
                      cmNode->midiReceiveMode == OrganismModel::kMidiCordsOnly);
         juce::PopupMenu chans;
         for (int ch = 1; ch <= 16; ++ch)
-            chans.addItem(kRecv + 1 + ch, "Channel " + juce::String(ch), true,
+            chans.addItem(kRecv + 1 + ch, tr("patcher-canvas-menus.channel", "Channel ") + juce::String(ch), true,
                           cmNode->midiReceiveMode == OrganismModel::kMidiChannel
                               && cmNode->midiReceiveChannel == ch);
-        recv.addSubMenu("Channel", chans);
+        recv.addSubMenu(tr("patcher-canvas-menus.channel-2", "Channel"), chans);
         menu.addSeparator();
-        menu.addSubMenu("MIDI Receive", recv);
+        menu.addSubMenu(tr("patcher-canvas-menus.midi-receive", "MIDI Receive"), recv);
     }
 
     menu.showMenuAsync(juce::PopupMenu::Options()
@@ -417,19 +418,19 @@ void PatcherCanvas::showCordMenu(const Edge& cord, juce::Point<int> at, juce::Po
             juce::PopupMenu picker = classPickerMenu(kInsert, classOrder);
             for (juce::PopupMenu::MenuItemIterator it(picker); it.next();)
                 ins.addItem(it.getItem());
-            menu.addSubMenu("Insert", ins);
+            menu.addSubMenu(tr("patcher-canvas-menus.insert", "Insert"), ins);
         }
         menu.addSeparator();
     } else if (cord.midi) {
         const int cur = host_.midiCordChannel(cord.src, cord.srcOutlet, cord.dst, cord.dstInlet);
         juce::PopupMenu chan;
-        chan.addItem(kChan, "Omni (all channels)", true, cur == 0);
+        chan.addItem(kChan, tr("patcher-canvas-menus.omni-all-channels", "Omni (all channels)"), true, cur == 0);
         for (int c = 1; c <= 16; ++c)
-            chan.addItem(kChan + c, "Channel " + juce::String(c), true, cur == c);
-        menu.addSubMenu("MIDI Channel", chan);
+            chan.addItem(kChan + c, tr("patcher-canvas-menus.channel", "Channel ") + juce::String(c), true, cur == c);
+        menu.addSubMenu(tr("patcher-canvas-menus.midi-channel", "MIDI Channel"), chan);
         menu.addSeparator();
     }
-    menu.addItem(Delete_, "Delete");
+    menu.addItem(Delete_, tr("patcher-canvas-menus.delete", "Delete"));
 
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
@@ -478,8 +479,8 @@ void PatcherCanvas::renameNode(const std::string& node) {
                                      "New name for \"" + leaf + "\":",
                                      juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", leaf);
-    aw->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    aw->addButton(tr("patcher-canvas-menus.ok", "OK"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    aw->addButton(tr("patcher-canvas-menus.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
     aw->enterModalState(true, juce::ModalCallbackFunction::create([this, aw, node, parent](int r) {
         if (r == 1) {
             const auto nl = aw->getTextEditorContents("name").trim()

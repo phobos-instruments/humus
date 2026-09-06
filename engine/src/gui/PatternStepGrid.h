@@ -7,11 +7,14 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/Categories.h"
+#include "core/MidiFormat.h"
 #include "core/Randomize.h"
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/StepCellPaint.h"
 #include "gui/StepPlayhead.h"
 #include "gui/UiTicker.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -21,7 +24,7 @@ public:
 
     PatternStepGrid(EngineHost& host, std::string name, Mode mode)
         : host_(host), name_(std::move(name)), mode_(mode) {
-        tickerId_ = UiTicker::instance().add([this] { pollPlayhead(); });
+        tickerId_ = UiTicker::instance().add([this] { pollPlayhead(); pollBank(); });
     }
     ~PatternStepGrid() override { UiTicker::instance().remove(tickerId_); }
 
@@ -47,9 +50,14 @@ public:
         apply(e, true);
     }
     void mouseDrag(const juce::MouseEvent& e) override { apply(e, false); }
+    void mouseUp(const juce::MouseEvent&) override {
+        if (dragCol_ < 0) return;
+        dragCol_ = -1;
+        repaint();
+    }
 
 private:
-    static constexpr int kMinNote = 36, kMaxNote = 84;
+    static constexpr int kMinNote = kBasslineLowNote, kMaxNote = kBasslineHighNote;
     static constexpr int kRowH = 16;
 
     int stepCount() const {
@@ -88,8 +96,8 @@ private:
             }
             auto cell = [&](int row, bool on, const char* lbl) {
                 juce::Rectangle<float> r(x + 1, (float) (laneBottom + row * kRowH) + 1, cw - 2, (float) kRowH - 2);
-                if (on) sporeCap(g, r, fam);
-                else    soilCell(g, r);
+                if (on) paintSporeCap(g, r, fam);
+                else    paintSoilCell(g, r);
                 g.setColour(on ? Palette::background : Palette::textDim);
                 g.setFont(10.0f); g.drawText(lbl, r, juce::Justification::centred);
             };
@@ -98,6 +106,35 @@ private:
         }
         g.setColour(Palette::background.withAlpha(0.6f));
         g.drawHorizontalLine(laneBottom, 0.0f, (float) getWidth());
+        if (dragCol_ >= 0 && dragCol_ < (int) steps.size() && steps[(size_t) dragCol_].gate)
+            paintNoteReadout(g, steps[(size_t) dragCol_].note, dragCol_ * cw + cw * 0.5f,
+                             laneBottom * (1.0f - (std::clamp(steps[(size_t) dragCol_].note, kMinNote, kMaxNote) - kMinNote) / range),
+                             fam);
+    }
+
+    juce::String noteReadoutText(int note) const {
+        const int transpose = (int) std::lround(host_.liveParamValue(name_, "Transpose"));
+        const auto shown = juce::String(midiNoteName(note));
+        if (transpose == 0) return shown;
+        return shown + "  " + tr("pattern-step-grid.plays", "plays") + " "
+             + juce::String(midiNoteName(std::clamp(note + transpose, 0, kMidiMax)));
+    }
+
+    void paintNoteReadout(juce::Graphics& g, int note, float cx, float barY, juce::Colour fam) {
+        const auto text = noteReadoutText(note);
+        g.setFont(juce::FontOptions(11.0f).withStyle("Bold"));
+        const float w = juce::GlyphArrangement::getStringWidth(g.getCurrentFont(), text) + 12.0f;
+        const float h = 18.0f;
+        float x = std::clamp(cx - w * 0.5f, 2.0f, std::max(2.0f, getWidth() - w - 2.0f));
+        float y = barY - h - 8.0f;
+        if (y < 2.0f) y = barY + 8.0f;
+        const juce::Rectangle<float> pill(x, y, w, h);
+        g.setColour(Palette::background.withAlpha(0.92f));
+        g.fillRoundedRectangle(pill, 4.0f);
+        g.setColour(fam.brighter(0.4f));
+        g.drawRoundedRectangle(pill, 4.0f, 1.0f);
+        g.setColour(Palette::text);
+        g.drawText(text, pill, juce::Justification::centred);
     }
 
     void applyBassline(const juce::MouseEvent& e, bool down) {
@@ -112,8 +149,10 @@ private:
                 const float t = std::clamp(1.0f - e.y / (float) laneBottom, 0.0f, 1.0f);
                 s.note = kMinNote + (int) std::lround(t * (kMaxNote - kMinNote));
                 s.gate = true;
+                dragCol_ = i;
             }
         } else if (down) {
+            if (e.mods.isRightButtonDown()) { bankMenu(); return; }
             const int row = (e.y - laneBottom) / kRowH;
             if (row == 0) s.accent = !s.accent; else s.slide = !s.slide;
         } else return;
@@ -121,24 +160,30 @@ private:
         repaint();
     }
 
-    void sporeCap(juce::Graphics& g, juce::Rectangle<float> r, juce::Colour fam) const {
-        g.setColour(fam.withAlpha(0.16f));
-        g.fillRoundedRectangle(r.expanded(1.6f), 3.5f);
-        juce::ColourGradient glow(fam.brighter(0.35f), r.getCentreX(), r.getY() + r.getHeight() * 0.22f,
-                                  fam.darker(0.28f), r.getCentreX(), r.getBottom(), false);
-        g.setGradientFill(glow);
-        g.fillRoundedRectangle(r, 2.5f);
-        g.setColour(fam.brighter(0.6f).withAlpha(0.75f));
-        g.drawRoundedRectangle(r.reduced(0.4f), 2.5f, 0.9f);
-    }
+    static juce::String bankLetter(int bank) { return juce::String::charToString((juce::juce_wchar) ('A' + bank)); }
 
-    void soilCell(juce::Graphics& g, juce::Rectangle<float> r) const {
-        g.setColour(Palette::background.darker(0.12f));
-        g.fillRoundedRectangle(r, 2.5f);
-        juce::ColourGradient lip(juce::Colours::black.withAlpha(0.35f), 0.0f, r.getY(),
-                                 juce::Colours::transparentBlack, 0.0f, r.getY() + 3.5f, false);
-        g.setGradientFill(lip);
-        g.fillRoundedRectangle(r, 2.5f);
+    void bankMenu() {
+        const int cur = host_.patterns().bank(name_);
+        juce::PopupMenu m;
+        m.addItem(1, tr("pattern-step-grid.random", "Random"));
+        m.addItem(2, tr("pattern-step-grid.clear", "Clear"));
+        m.addSeparator();
+        for (int b = 0; b < kPatternBanks; ++b)
+            if (b != cur)
+                m.addItem(10 + b, tr("pattern-step-grid.copy-to-bank", "Copy to bank") + " " + bankLetter(b));
+        m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this),
+                        [this, cur](int r) {
+            if (r == 0) return;
+            auto steps = host_.patterns().basslineSteps(name_, cur);
+            host_.pushUndo();
+            if (r == 1)
+                steps = randomBassline((int) steps.size(), basslineRoot(steps),
+                                       juce::Random::getSystemRandom());
+            else if (r == 2)
+                steps.assign(steps.size(), BasslineStep{});
+            host_.patterns().setBasslineSteps(name_, r >= 10 ? r - 10 : cur, steps);
+            repaint();
+        });
     }
 
     juce::Colour familyColour() const {
@@ -159,8 +204,8 @@ private:
             if (i % 4 == 0) { g.setColour(Palette::panelLight.withAlpha(0.5f)); g.fillRect(x, 0.0f, cw, (float) getHeight()); }
             const auto& s = steps[(size_t) i];
             juce::Rectangle<float> cell(x + 2, 4.0f, cw - 4, (float) (upTop - 8));
-            if (s.trigger) sporeCap(g, cell, fam);
-            else           soilCell(g, cell);
+            if (s.trigger) paintSporeCap(g, cell, fam);
+            else           paintSoilCell(g, cell);
         }
         g.setFont(juce::FontOptions(9.0f).withStyle("Bold"));
         for (int i = 0; i < (int) steps.size(); ++i) {
@@ -169,8 +214,8 @@ private:
             const auto socket = juce::Rectangle<float>(x + 1, (float) upTop + 1,
                                                        cw - 2, (float) kRowH - 2)
                                     .reduced(cw * 0.28f, 4.0f);
-            if (up) sporeCap(g, socket, fam);
-            else    soilCell(g, socket);
+            if (up) paintSporeCap(g, socket, fam);
+            else    paintSoilCell(g, socket);
             g.setColour(up ? Palette::background : Palette::textDim.withAlpha(0.55f));
             g.drawText("^", socket.expanded(2.0f, 3.0f), juce::Justification::centred);
         }
@@ -180,8 +225,8 @@ private:
             const auto socket = juce::Rectangle<float>(x + 1, (float) tieTop + 1,
                                                        cw - 2, (float) kRowH - 2)
                                     .reduced(cw * 0.28f, 4.0f);
-            if (s.tie) sporeCap(g, socket, fam);
-            else       soilCell(g, socket);
+            if (s.tie) paintSporeCap(g, socket, fam);
+            else       paintSoilCell(g, socket);
         }
         g.setColour(Palette::background.withAlpha(0.6f));
         g.drawHorizontalLine(tieTop, 0.0f, (float) getWidth());
@@ -208,11 +253,11 @@ private:
 
     void stampMenu() {
         juce::PopupMenu m;
-        m.addItem(1, "Roll -111 (offbeat 16ths)");
-        m.addItem(2, "Offbeat --1- (8ths)");
-        m.addItem(3, "Full 1111");
-        m.addItem(5, "Random");
-        m.addItem(4, "Clear");
+        m.addItem(1, tr("pattern-step-grid.roll-111-offbeat-16ths", "Roll -111 (offbeat 16ths)"));
+        m.addItem(2, tr("pattern-step-grid.offbeat-1-8ths", "Offbeat --1- (8ths)"));
+        m.addItem(3, tr("pattern-step-grid.full-1111", "Full 1111"));
+        m.addItem(5, tr("pattern-step-grid.random", "Random"));
+        m.addItem(4, tr("pattern-step-grid.clear", "Clear"));
         m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this),
                         [this](int r) {
             if (r == 0) return;
@@ -264,12 +309,21 @@ private:
         playhead_ = cur;
         if (playhead_ >= 0) repaint(columnRect(playhead_));
     }
+    void pollBank() {
+        if (mode_ != Mode::Bassline) return;
+        const int cur = host_.patterns().bank(name_);
+        if (cur == bank_) return;
+        bank_ = cur;
+        repaint();
+    }
 
     EngineHost& host_;
     std::string name_;
     Mode mode_;
     int tickerId_ = 0;
     int playhead_ = -1;
+    int bank_ = -1;
+    int dragCol_ = -1;
 };
 
 }

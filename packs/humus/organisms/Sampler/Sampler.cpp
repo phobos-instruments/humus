@@ -9,6 +9,8 @@
 #include "hum/dsp/Sf2File.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -283,7 +285,7 @@ int Sampler::pickZone(int note, bool kit) const {
 void Sampler::noteOn(int note, float velocity) {
     if (bankLoaded()) {
         const int sel = selectedPreset();
-        const int vel = std::clamp((int) std::lround(velocity * 127.0f), 0, 127);
+        const int vel = std::clamp((int) std::lround(velocity * kMidiMaxF), 0, kMidiMax);
         for (int z = 0; z < (int) kit_.zones.size(); ++z) {
             const Zone& zone = kit_.zones[(size_t) z];
             if (zone.preset != sel) continue;
@@ -322,7 +324,7 @@ void Sampler::startVoice(const Zone& zone, int zoneIndex, int note, float veloci
     slot->zone = zoneIndex;
     slot->note = note;
     slot->rate = transpose * (kit_.samples[(size_t) zone.sample].srcRate
-                              / (sampleRate_ > 0.0 ? sampleRate_ : 44100.0));
+                              / (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate));
     slot->gain = (0.1f + 0.9f * std::clamp(velocity, 0.0f, 1.0f)) * zone.gain;
     slot->panL = zone.panL;
     slot->panR = zone.panR;
@@ -340,7 +342,7 @@ void Sampler::refreshVoiceEnvelopes() {
 }
 
 void Sampler::updateVoice(Voice& v) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double aMul = params.get("Attack", 2.0) / 2.0;
     const double dMul = params.get("Decay", 120.0) / 120.0;
     const double rMul = params.get("Release", 150.0) / 150.0;
@@ -381,7 +383,7 @@ void Sampler::handleEvent(const MidiEvent& e) {
     if (e.size < 2) return;
     const unsigned char status = e.data[0] & 0xF0;
     if (status == 0x90 && e.size >= 3 && e.data[2] > 0)
-        noteOn(e.data[1], (float) e.data[2] / 127.0f);
+        noteOn(e.data[1], (float) e.data[2] / kMidiMaxF);
     else if (status == 0x80 || (status == 0x90 && e.size >= 3))
         noteOff(e.data[1]);
     else if (status == 0xB0 && e.size >= 3 && (e.data[1] == 123 || e.data[1] == 120))

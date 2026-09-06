@@ -60,15 +60,13 @@
      "name": "Attack",
      "min": 1.0,
      "max": 5000.0,
-     "def": 800.0,
-     "random": true
+     "def": 800.0
     },
     {
      "name": "Release",
      "min": 1.0,
      "max": 8000.0,
-     "def": 1200.0,
-     "random": true
+     "def": 1200.0
     },
     {
      "name": "Level",

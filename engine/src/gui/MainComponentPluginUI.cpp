@@ -4,6 +4,7 @@
 #include "core/HostedPlugin.h"
 #include "core/PluginNode.h"
 #include "gui/PluginQuarantine.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -12,13 +13,13 @@ void MainComponent::openPluginUI(const std::string& name) {
     if (!pn || !pn->hasEditor()) return;
     if (quarantine::contains(pn->classRaw())) {
         auto* aw = new juce::AlertWindow(
-            "Quarantined plugin UI",
+            tr("main-plugin-ui.quarantined", "Quarantined plugin UI"),
             juce::String(pn->classRaw()).upToFirstOccurrenceOf("?", false, false)
                 + " froze Humus before. Open its UI anyway?",
             juce::MessageBoxIconType::WarningIcon);
-        aw->addButton("Open anyway", 1);
-        aw->addButton("Un-quarantine", 2);
-        aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        aw->addButton(tr("main-plugin-ui.open-anyway", "Open anyway"), 1);
+        aw->addButton(tr("main-plugin-ui.un-quarantine", "Un-quarantine"), 2);
+        aw->addButton(tr("main-plugin-ui.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
         aw->enterModalState(true, juce::ModalCallbackFunction::create(
             [this, name, cls = pn->classRaw()](int r) {
                 if (r == 0) return;

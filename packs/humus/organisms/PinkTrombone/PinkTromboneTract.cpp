@@ -3,10 +3,11 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
-constexpr double kPi = 3.14159265358979323846;
 
 double moveTowards(double current, double target, double up, double down) {
     if (current < target) return std::min(current + up, target);

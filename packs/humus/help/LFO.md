@@ -12,7 +12,7 @@ Patch it into a VCA's control inlet for tremolo, into another LFO for drifting, 
 
 ## Parameters
 
-**Rate** cycles per second, when Sync is off.
+**Rate** cycles per second, when Sync is off. The knob runs from one cycle every hundred seconds up to 1000 Hz, so the top of its travel is audio-rate: an LFO at a few hundred hertz into a VCA's control inlet is ring modulation, into a Filter's frequency a rough FM.
 
 **Waveform** sine, triangle, square, saw, down-saw, or sample-and-hold. S&H steps to a new random value once per cycle instead of sweeping.
 

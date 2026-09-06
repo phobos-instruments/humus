@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void DigiRust::prepare(double sampleRate, int) {
@@ -36,7 +38,7 @@ void DigiRust::process(const float* const* in, int numIn, float* const* out, int
     const float steps = std::exp2(bits - 1.0f);
     const double basePeriod = std::max(1.0, sampleRate_ / rate);
     const bool decimate = basePeriod > 1.0 + 1e-9;
-    const float tc = (float) (1.0 - std::exp(-2.0 * 3.14159265358979323846 * 1600.0 / sampleRate_));
+    const float tc = (float) (1.0 - std::exp(-2.0 * kPi * 1600.0 / sampleRate_));
     const float tilt = (tone - 0.5f) * 2.0f;
 
     float* L = out[0];

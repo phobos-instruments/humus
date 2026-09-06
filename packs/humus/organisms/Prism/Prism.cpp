@@ -8,7 +8,6 @@
 namespace hum {
 
 namespace {
-constexpr double kTwoPi = 6.283185307179586;
 constexpr int kOrder = 11;
 constexpr double kMinF0 = 30.0, kMaxF0 = 1400.0;
 constexpr double kF0SmMs = 15.0;
@@ -89,7 +88,7 @@ void Prism::process(const float* const* in, int numIn, float* const* out, int nu
     for (int k = 0; k < kHarms; ++k)
         gains[k] = (float) std::clamp(params.get(kHarmName[k], 1.0), 0.0, 2.0);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int n = std::min(numSamples, (int) wet_.size());
 
     for (int i = 0; i < n; ++i) {

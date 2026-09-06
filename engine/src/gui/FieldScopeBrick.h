@@ -9,6 +9,8 @@
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class FieldScopeView : public PolledBrick {
@@ -44,8 +46,8 @@ public:
             const float span = r.getWidth() * 0.46f;
             for (int i = 0; i < pairs_; ++i) {
                 const float L = lr_[2 * i], R = lr_[2 * i + 1];
-                const float side = (L - R) * 0.70710678f;
-                const float mid = (L + R) * 0.70710678f;
+                const float side = (L - R) * kSqrtHalfF;
+                const float mid = (L + R) * kSqrtHalfF;
                 const float px = cx + juce::jlimit(-1.2f, 1.2f, side) * span;
                 const float py = floorY - juce::jlimit(-0.1f, 1.3f, std::abs(mid)) * (floorY - r.getY() - 8.0f) * 0.8f;
                 const float t = (float) i / (float) juce::jmax(1, pairs_ - 1);

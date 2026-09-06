@@ -20,6 +20,8 @@
 #include "io/WavWriter.h"
 #include "hum/Capabilities.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -245,11 +247,12 @@ void EngineHost::playFromStart() { goToStart(); play(); }
 
 void EngineHost::setPositionBeats(double beat) {
     const double target = beat < 0.0 ? 0.0 : beat;
+    locateBeat_ = target;
+    ++locateStamp_;
     seekBeatsReq_.store(target, std::memory_order_relaxed);
-    if (!audioRunning_) {
+    if (!graphSelfDriven()) {
         const juce::ScopedLock sl(lock_);
-        const double b = seekBeatsReq_.exchange(-1.0, std::memory_order_relaxed);
-        if (graph_ && b >= 0.0) graph_->transport().setBeatPosition(b);
+        takeTransportRequests();
         publishClock();
     }
     if (!playing_) applyStateAt(target);
@@ -260,10 +263,9 @@ void EngineHost::setTempo(double bpm) {
     model_.clock.tempo = bpm;
     if (link_ && linkEnabled_.load(std::memory_order_relaxed)) link_->proposeTempo(bpm);
     tempoReq_.store(bpm, std::memory_order_relaxed);
-    if (!audioRunning_) {
+    if (!graphSelfDriven()) {
         const juce::ScopedLock sl(lock_);
-        const double t = tempoReq_.exchange(0.0, std::memory_order_relaxed);
-        if (graph_ && t > 0.0) graph_->transport().setTempo(t);
+        takeTransportRequests();
         publishClock();
     }
 }
@@ -349,10 +351,7 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
                 refusedLargest_.store(numSamples, std::memory_order_relaxed);
         }
         if (sl.isLocked() && graph_ && numSamples <= graph_->preparedBlock()) {
-            if (const double bpm = tempoReq_.exchange(0.0, std::memory_order_relaxed); bpm > 0.0)
-                graph_->transport().setTempo(bpm);
-            if (const double b = seekBeatsReq_.exchange(-1.0, std::memory_order_relaxed); b >= 0.0)
-                graph_->transport().setBeatPosition(b);
+            takeTransportRequests();
             if (link_ != nullptr && linkEnabled_.load(std::memory_order_relaxed)) {
                 auto& t = graph_->transport();
                 const auto pulse = link_->capture(numSamples, sampleRate_,
@@ -411,7 +410,7 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
             if (std::int64_t left = countInLeft_.load(std::memory_order_acquire);
                 left > 0 && numOut > 0) {
                 auto& t = graph_->transport();
-                const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+                const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
                 const double spb = std::max(1.0, t.samplesPerBeat());
                 const float gain = metroGain_.load(std::memory_order_relaxed);
                 const int dL = masterFallback_ ? 0 : outMap_[0];
@@ -451,8 +450,8 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
             if (metronome_.load(std::memory_order_relaxed) && graph_->transport().playing()
                 && numOut > 0) {
                 auto& t = graph_->transport();
-                const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
-                const double dBeat = t.tempo() / 60.0 / sr;
+                const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
+                const double dBeat = t.tempo() / kSecondsPerMinute / sr;
                 const double perBar = t.beatsPerBar();
                 double beat = t.beats() - dBeat * numSamples;
                 if (metroNextBeat_ < beat || metroNextBeat_ > beat + 1.5)
@@ -495,12 +494,12 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
 
     if (fadeRestart_.exchange(false)) fadeGain_ = 0.0f;
     const float target = fadeTarget_.load();
-    const float inc = (float) (1.0 / (0.012 * (sampleRate_ > 0.0 ? sampleRate_ : 44100.0)));
+    const float inc = (float) (1.0 / (0.012 * (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate)));
     const float master = outputGain_.load();
     const bool lim = limiterOn_.load(std::memory_order_relaxed);
     if (lim)
         limiter_.set(0.966, 80.0, 10.0,
-                     sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
+                     sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
     float limMinGain = 1.0f;
     for (int n = 0; n < numSamples; ++n) {
         if (fadeGain_ < target)      fadeGain_ = std::min(target, fadeGain_ + inc);
@@ -556,40 +555,84 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
     }
 
     const double budgetMs =
-        1000.0 * numSamples / (sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
+        1000.0 * numSamples / (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
     audioLoad_.store((float) ((juce::Time::getMillisecondCounterHiRes() - t0) / budgetMs),
                      std::memory_order_relaxed);
     lastCallbackMs_.store(juce::Time::getMillisecondCounterHiRes(),
                           std::memory_order_relaxed);
 }
 
-bool EngineHost::renderToFile(const std::string& path, double seconds, std::string& error) {
-    AudioGraph g;
-    if (!buildGraph(model_, g, error)) return false;
-    g.prepare(sampleRate_, block_, model_.clock.tempo);
-    MasterTap* so = nullptr;
-    for (int i = 0; i < g.nodeCount(); ++i)
-        if (auto* s = dynamic_cast<MasterTap*>(g.organism(i))) { so = s; break; }
-    if (!so) { error = "patch has no SoundOut"; return false; }
+bool EngineHost::openOfflineSound(OfflineSound& made, std::string& error) {
+    made.graph = std::make_unique<AudioGraph>();
+    if (!buildGraph(model_, *made.graph, error)) {
+        made.graph.reset();
+        return false;
+    }
+    made.graph->prepare(sampleRate_, block_, model_.clock.tempo);
+    primeNoteTracks(*made.graph);
+    for (int i = 0; i < made.graph->nodeCount(); ++i)
+        if (auto* s = dynamic_cast<MasterTap*>(made.graph->organism(i))) { made.tap = s; break; }
+    if (made.tap == nullptr) {
+        error = "patch has no SoundOut";
+        made.graph.reset();
+        return false;
+    }
+    return true;
+}
 
-    const int64_t total = (int64_t) (seconds * sampleRate_);
-    std::vector<std::vector<float>> buf((size_t) so->channels());
+bool EngineHost::renderOfflineSound(OfflineSound& made, double fromSeconds, double toSeconds,
+                                    const SoundSink& sink, std::string& error) {
+    if (made.graph == nullptr || made.tap == nullptr) { error = "nothing to render"; return false; }
+    if (toSeconds <= fromSeconds) { error = "that range is empty"; return false; }
+    auto& g = *made.graph;
+    auto* so = made.tap;
+    const int64_t skip = (int64_t) (std::max(0.0, fromSeconds) * sampleRate_);
+    const int64_t total = (int64_t) (toSeconds * sampleRate_);
+    const int channels = so->channels();
+    std::vector<const float*> ptrs((size_t) channels);
     int64_t done = 0;
     while (done < total) {
-        int n = (int) std::min<int64_t>(block_, total - done);
+        const int n = (int) std::min<int64_t>(block_, total - done);
         g.processBlock(n);
-        for (int c = 0; c < so->channels(); ++c)
-            buf[(size_t) c].insert(buf[(size_t) c].end(), so->channelData(c), so->channelData(c) + so->lastBlockLength());
+        const int madeNow = so->lastBlockLength();
+        const int64_t from = std::max<int64_t>(0, skip - done);
+        if (from < madeNow) {
+            for (int c = 0; c < channels; ++c) ptrs[(size_t) c] = so->channelData(c) + from;
+            if (!sink(ptrs.data(), channels, madeNow - (int) from)) {
+                error = "the bounce was stopped";
+                return false;
+            }
+        }
         done += n;
     }
-    if (!writeWav(path, buf, sampleRate_)) { error = "could not write " + path; return false; }
+    return true;
+}
+
+bool EngineHost::renderRange(double fromSeconds, double toSeconds, const SoundSink& sink,
+                             std::string& error) {
+    OfflineSound made;
+    return openOfflineSound(made, error)
+           && renderOfflineSound(made, fromSeconds, toSeconds, sink, error);
+}
+
+bool EngineHost::renderToFile(const std::string& path, double seconds, std::string& error) {
+    std::vector<std::vector<float>> buf;
+    const bool made = renderRange(0.0, seconds,
+                                  [&buf](const float* const* in, int channels, int n) {
+        if (buf.empty()) buf.resize((size_t) channels);
+        for (int c = 0; c < channels; ++c)
+            buf[(size_t) c].insert(buf[(size_t) c].end(), in[c], in[c] + n);
+        return true;
+    }, error);
+    if (!made) return false;
+    if (!writeSound(path, buf, sampleRate_)) { error = "could not write " + path; return false; }
     return true;
 }
 
 bool EngineHost::startMixRecording(const std::string& path, std::string& error) {
     const juce::ScopedLock sl(lock_);
     if (mixWriter_.active()) mixWriter_.stop();
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     if (!mixWriter_.start(path, 2, sr, false)) {
         error = "could not open " + path + " for recording";
         return false;
@@ -692,9 +735,32 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
     return items;
 }
 
+void EngineHost::advanceModulation(double dt) {
+    if (mod_.map().empty() || dt <= 0.0) return;
+    LiveControlScope live(*this);
+    for (const auto& u : mod_.tick(dt)) setParam(u.organism, u.param, u.value);
+}
+
+void EngineHost::holdAudio(bool held) {
+    if (held == audioHeld_) return;
+    audioHeld_ = held;
+    if (!audioRunning_) return;
+    if (held) devices_.removeAudioCallback(this);
+    else devices_.addAudioCallback(this);
+}
+
+void EngineHost::takeTransportRequests() {
+    if (graph_ == nullptr) return;
+    if (const double b = seekBeatsReq_.exchange(-1.0, std::memory_order_relaxed); b >= 0.0)
+        graph_->transport().setBeatPosition(b);
+    if (const double t = tempoReq_.exchange(0.0, std::memory_order_relaxed); t > 0.0)
+        graph_->transport().setTempo(t);
+}
+
 void EngineHost::primeOffline(int blocks) {
     const juce::ScopedLock sl(lock_);
     if (!graph_ || blocks <= 0) return;
+    takeTransportRequests();
     const std::int64_t pos = graph_->transport().samplePosition();
     const double beats = graph_->transport().beats();
     for (int i = 0; i < blocks; ++i) graph_->processBlock(block_);

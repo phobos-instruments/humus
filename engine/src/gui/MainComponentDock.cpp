@@ -2,6 +2,7 @@
 
 #include "gui/AppSettings.h"
 #include "gui/NotesView.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -28,7 +29,7 @@ void MainComponent::buildDock() {
     paneCenter_.setContent(&patcherView_);
     paneRight_.setContent(propsPane_.get());
     paneBottom_.setContent(tracksPane_.get());
-    paneBottom_.setTitle("Timeline");
+    paneBottom_.setTitle(tr("main-dock.timeline", "Timeline"));
     addAndMakeVisible(paneCenter_);
     addAndMakeVisible(paneRight_);
     addAndMakeVisible(paneBottom_);
@@ -133,7 +134,7 @@ void MainComponent::restoreDock() {
         if (s.getInt("dock." + d.key + ".floated", 0) != 0) detach(d);
     };
     load(center_); load(right_); load(bottom_);
-    paneBottom_.setTitle("Timeline");
+    paneBottom_.setTitle(tr("main-dock.timeline", "Timeline"));
     updateDock();
 }
 

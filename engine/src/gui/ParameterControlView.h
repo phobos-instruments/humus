@@ -10,6 +10,9 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "gui/MappingShapePanel.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -36,24 +39,24 @@ public:
         mapping_.onChanged = [this](const ControlShape& sh) { applyShape(sh); };
         addAndMakeVisible(mapping_);
 
-        addCcLabel_.setText("Add CC", juce::dontSendNotification);
+        addCcLabel_.setText(tr("parameter-control.add-cc", "Add CC"), juce::dontSendNotification);
         addCcLabel_.setFont(juce::FontOptions(12.0f));
         addAndMakeVisible(addCcLabel_);
         addCcEdit_.setInputRestrictions(3, "0123456789");
         addCcEdit_.setJustification(juce::Justification::centred);
         addAndMakeVisible(addCcEdit_);
-        addBtn_.setButtonText("Add");
+        addBtn_.setButtonText(tr("parameter-control.add", "Add"));
         addBtn_.onClick = [this] { addManualCc(); };
         addAndMakeVisible(addBtn_);
-        captureBtn_.setButtonText("Capture next controller...");
+        captureBtn_.setButtonText(tr("parameter-control.capture-next-controller", "Capture next controller..."));
         captureBtn_.onClick = [this] { capture(); };
         addAndMakeVisible(captureBtn_);
 
-        addModLabel_.setText("From", juce::dontSendNotification);
+        addModLabel_.setText(tr("parameter-control.from", "From"), juce::dontSendNotification);
         addModLabel_.setFont(juce::FontOptions(12.0f));
         addAndMakeVisible(addModLabel_);
         addAndMakeVisible(modSourceBox_);
-        addModBtn_.setButtonText("Add");
+        addModBtn_.setButtonText(tr("parameter-control.add", "Add"));
         addModBtn_.onClick = [this] { addModRoute(); };
         addAndMakeVisible(addModBtn_);
 
@@ -188,11 +191,11 @@ private:
     struct SourceRow {
         std::unique_ptr<juce::TextButton> kind;
         std::unique_ptr<juce::TextEditor> cc, min, max;
-        std::unique_ptr<juce::Label> address;
+        std::unique_ptr<juce::Label> address, held;
         std::unique_ptr<juce::TextButton> remove;
         bool isOsc = false;
         bool isMod = false;
-        int ccNum = -1;
+        MidiSource source;
         std::string oscAddress;
         std::string modSource, modValue;
         ControlShape shape;
@@ -204,7 +207,7 @@ private:
         const auto c = selectedOrganism();
         const auto p = selectedParam();
         const juce::String sfx = p.empty() ? juce::String() : juce::String(unitSuffix(rowUnit()));
-        sourcesTitle_.setText(p.empty() ? "Sources"
+        sourcesTitle_.setText(p.empty() ? tr("parameter-control.sources", "Sources")
                                         : "Sources " + juce::String("- ")
                                               + targetOwnerLabel(host_, c) + " / " + juce::String(p)
                                               + (sfx.isEmpty() ? "" : "  (" + sfx + ")"),
@@ -216,7 +219,7 @@ private:
 
         if (enable) {
             for (const auto& e : host_.midi().map().entries())
-                if (e.organism == c && e.param == p) addCcRow(e.cc, e.min, e.max, e.shape);
+                if (e.organism == c && e.param == p) addCcRow(e.source(), e.min, e.max, e.shape);
             for (const auto& e : host_.osc().map().entries())
                 if (e.organism == c && e.param == p) addOscRow(e.address, e.shape);
             for (const auto& e : host_.mod().map().entries())
@@ -273,24 +276,35 @@ private:
         return b;
     }
 
-    void addCcRow(int cc, double min, double max, const ControlShape& shape) {
+    void addCcRow(const MidiSource& src, double min, double max, const ControlShape& shape) {
         SourceRow r;
-        r.kind = kindButton(isNoteSource(cc) ? "MIDI Note" : "MIDI CC");
-        r.ccNum = cc;
+        r.kind = kindButton(isNoteSource(src.cc) ? tr("parameter-control.midi-note", "MIDI Note") : tr("parameter-control.midi-cc", "MIDI CC"));
+        r.source = src;
         r.shape = shape;
-        r.cc = numberCell(juce::String(cc), "0123456789");
+        if (src.isChord()) {
+            juce::String chord;
+            for (int h : src.held) chord << juce::String(midiSourceLabel(h)) << " + ";
+            r.held = std::make_unique<juce::Label>();
+            r.held->setText(chord, juce::dontSendNotification);
+            r.held->setFont(juce::FontOptions(12.0f));
+            r.held->setJustificationType(juce::Justification::centredRight);
+            sourceRows_.addAndMakeVisible(*r.held);
+        }
+        r.cc = numberCell(juce::String(isNoteSource(src.cc) ? noteOfSource(src.cc) : src.cc),
+                          "0123456789");
         r.min = numberCell(numText(min), rangeChars());
         r.max = numberCell(numText(max), rangeChars());
-        auto apply = [this, cc, shape, ccEd = r.cc.get(), minEd = r.min.get(),
+        auto apply = [this, src, shape, ccEd = r.cc.get(), minEd = r.min.get(),
                       maxEd = r.max.get()] {
             const auto c = selectedOrganism();
             const auto p = selectedParam();
             if (c.empty() || p.empty()) return;
-            const int newCc = juce::jlimit(0, 127, ccEd->getText().getIntValue());
-            host_.midi().clearCC(cc, c, p);
-            host_.midi().mapCC(newCc, c, p, numValue(minEd->getText()),
+            const int number = juce::jlimit(0, kMidiMax, ccEd->getText().getIntValue());
+            const MidiSource next(isNoteSource(src.cc) ? sourceForNote(number) : number, src.held);
+            host_.midi().clearCC(src, c, p);
+            host_.midi().mapCC(next, c, p, numValue(minEd->getText()),
                                numValue(maxEd->getText()), false);
-            if (!shape.isDefault()) host_.midi().setShape(newCc, c, p, shape);
+            if (!shape.isDefault()) host_.midi().setShape(next, c, p, shape);
             rebuildSources();
             params_.repaint();
         };
@@ -299,8 +313,8 @@ private:
             ed->onFocusLost = apply;
         }
         r.remove = std::make_unique<juce::TextButton>("Remove");
-        r.remove->onClick = [this, cc] {
-            host_.midi().clearCC(cc, selectedOrganism(), selectedParam());
+        r.remove->onClick = [this, src] {
+            host_.midi().clearCC(src, selectedOrganism(), selectedParam());
             rebuildSources();
             params_.repaint();
         };
@@ -387,7 +401,7 @@ private:
         const auto p = selectedParam();
         if (r.isMod) host_.mod().setShape(r.modSource, r.modValue, c, p, next);
         else if (r.isOsc) host_.osc().setShape(r.oscAddress, c, p, next);
-        else host_.midi().setShape(r.ccNum, c, p, next);
+        else host_.midi().setShape(r.source, c, p, next);
     }
 
     void layoutSourceRows() {
@@ -402,6 +416,10 @@ private:
                 b.removeFromLeft(4);
                 r.max->setBounds(b.removeFromLeft(74));
             } else if (r.cc) {
+                if (r.held) {
+                    r.held->setBounds(b.removeFromLeft(110));
+                    b.removeFromLeft(4);
+                }
                 r.cc->setBounds(b.removeFromLeft(44));
                 b.removeFromLeft(8);
                 r.min->setBounds(b.removeFromLeft(74));
@@ -420,7 +438,7 @@ private:
         const auto c = selectedOrganism();
         const auto p = selectedParam();
         if (c.empty() || p.empty() || addCcEdit_.getText().isEmpty()) return;
-        const int cc = juce::jlimit(0, 127, addCcEdit_.getText().getIntValue());
+        const int cc = juce::jlimit(0, kMidiMax, addCcEdit_.getText().getIntValue());
         const auto range = paramRange(host_, c, p);
         host_.midi().mapCC(cc, c, p, range.first, range.second, false);
         addCcEdit_.clear();
@@ -453,7 +471,7 @@ private:
             modSourceBox_.setSelectedId(prev, juce::dontSendNotification);
         else if (!modChoices_.empty())
             modSourceBox_.setSelectedId(1, juce::dontSendNotification);
-        modSourceBox_.setTextWhenNoChoicesAvailable("Nothing in the patch to follow");
+        modSourceBox_.setTextWhenNoChoicesAvailable(tr("parameter-control.nothing-in-the-patch-to", "Nothing in the patch to follow"));
         modSourceBox_.setEnabled(enable && !modChoices_.empty());
         addModBtn_.setEnabled(enable && !modChoices_.empty());
     }

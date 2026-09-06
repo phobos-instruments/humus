@@ -96,6 +96,19 @@ bool MidiHost::enabled() const { return host_.midiEnabled_; }
 const MidiControlMap& MidiHost::map() const { return host_.midiMap_; }
 int  MidiHost::lastCC() const { return host_.lastCc_.load(); }
 void MidiHost::clearLastCC() { host_.lastCc_.store(-1); }
+int  MidiHost::sourceValue(int source) const {
+    return isMidiSource(source) ? host_.ccValue_[source].load() : -1;
+}
+std::vector<int> MidiHost::heldNotes(int except) const {
+    std::vector<int> held;
+    for (int s = kNoteSourceBase; s < kMidiSourceCount; ++s)
+        if (s != except && host_.ccValue_[s].load() > kHeldThreshold) held.push_back(s);
+    return held;
+}
+void MidiHost::setModifier(int source, bool latching, bool ownAction) {
+    host_.midiMap_.setModifier(source, latching, ownAction);
+    host_.dirty_ = true;
+}
 bool MidiHost::isRecordTarget(const std::string& name) const {
     const juce::ScopedLock ml(host_.midiTargetsLock_);
     for (const auto& t : host_.midiRecordTargets_)
@@ -112,7 +125,8 @@ void MidiHost::syncMapFromModel() {
     host_.midiMap_.clearAll();
     for (auto& c : host_.model_.organisms)
         for (auto& s : c.midiSources) {
-            host_.midiMap_.set(s.cc, c.name, s.propertyName, s.mapMin, s.mapMax);
+            const MidiSource src(s.cc, s.held);
+            host_.midiMap_.set(src, c.name, s.propertyName, s.mapMin, s.mapMax);
             ControlShape sh;
             sh.smoothing = s.smoothing;
             sh.curve = s.curve;
@@ -121,8 +135,10 @@ void MidiHost::syncMapFromModel() {
             sh.toggle = s.toggle;
             sh.threshold = s.threshold;
             if (!sh.isSwitch) sh.logScale = paramIsLog(host_, c.name, s.propertyName);
-            if (!sh.isDefault()) host_.midiMap_.setShape(s.cc, c.name, s.propertyName, sh);
+            if (!sh.isDefault()) host_.midiMap_.setShape(src, c.name, s.propertyName, sh);
         }
+    for (const auto& m : host_.model_.midiModifiers)
+        host_.midiMap_.setModifier(m.source, m.latching, m.ownAction);
 }
 
 void MidiHost::syncMapToModel() {
@@ -132,16 +148,17 @@ void MidiHost::syncMapToModel() {
         c.midiSources.clear();
     }
     auto findPrior = [&](const std::string& name, const std::string& param,
-                         int cc) -> const MidiControllerSource* {
+                         const MidiSource& src) -> const MidiControllerSource* {
         const std::string key = name + "\t" + param;
-        for (auto& p : prior) if (p.propertyName == key && p.cc == cc) return &p;
+        for (auto& p : prior)
+            if (p.propertyName == key && p.cc == src.cc && p.held == src.held) return &p;
         return nullptr;
     };
     for (const auto& e : host_.midiMap_.entries()) {
         auto* cm = const_cast<OrganismModel*>(host_.model_.byName(e.organism));
         if (!cm) continue;
         MidiControllerSource s;
-        if (auto* old = findPrior(e.organism, e.param, e.cc)) {
+        if (auto* old = findPrior(e.organism, e.param, e.source())) {
             s = *old;
         }
         s.propertyName = e.param;
@@ -149,6 +166,7 @@ void MidiHost::syncMapToModel() {
         for (auto& pr : cm->properties)
             if (pr.name == e.param) { s.propertyIndex = pr.index; break; }
         s.cc = e.cc;
+        s.held = e.held;
         s.mapMin = e.min;
         s.mapMax = e.max;
         s.smoothing = e.shape.smoothing;
@@ -159,26 +177,29 @@ void MidiHost::syncMapToModel() {
         s.threshold = e.shape.threshold;
         cm->midiSources.push_back(std::move(s));
     }
+    host_.model_.midiModifiers.clear();
+    for (const auto& m : host_.midiMap_.modifiers())
+        host_.model_.midiModifiers.push_back({m.source, m.latching, m.ownAction});
 }
 
-juce::String MidiHost::mapCC(int cc, const std::string& organism, const std::string& param,
-                             double min, double max, bool steal) {
-    if (cc < 0 || cc >= kMidiSourceCount) return {};
+juce::String MidiHost::mapCC(const MidiSource& src, const std::string& organism,
+                             const std::string& param, double min, double max, bool steal) {
+    if (!isMidiSource(src.cc)) return {};
     juce::String stolenText;
     if (steal) {
-        const auto stolen = host_.midiMap_.steal(cc, organism, param);
+        const auto stolen = host_.midiMap_.steal(src, organism, param);
         for (const auto& [sc, sp] : stolen) {
             if (stolenText.isNotEmpty()) stolenText << ", ";
             stolenText << juce::String(sc) << "/" << juce::String(sp);
         }
     }
-    host_.midiMap_.set(cc, organism, param, min, max);
-    if (const auto* sh = host_.midiMap_.shapeOf(cc, organism, param))
+    host_.midiMap_.set(src, organism, param, min, max);
+    if (const auto* sh = host_.midiMap_.shapeOf(src, organism, param))
         if (sh->isDefault()) {
             ControlShape d;
             if (paramIsSwitch(host_, organism, param)) d.isSwitch = true;
             else d.logScale = paramIsLog(host_, organism, param);
-            if (!d.isDefault()) host_.midiMap_.setShape(cc, organism, param, d);
+            if (!d.isDefault()) host_.midiMap_.setShape(src, organism, param, d);
         }
     host_.dirty_ = true;
     if (!isActionTarget(host_, organism, param)) host_.automation().add(organism, param);
@@ -186,14 +207,15 @@ juce::String MidiHost::mapCC(int cc, const std::string& organism, const std::str
     return stolenText;
 }
 
-void MidiHost::setShape(int cc, const std::string& organism, const std::string& param,
-                        const ControlShape& shape) {
-    host_.midiMap_.setShape(cc, organism, param, shape);
+void MidiHost::setShape(const MidiSource& src, const std::string& organism,
+                        const std::string& param, const ControlShape& shape) {
+    host_.midiMap_.setShape(src, organism, param, shape);
     host_.dirty_ = true;
 }
 
-void MidiHost::clearCC(int cc, const std::string& organism, const std::string& param) {
-    host_.midiMap_.clear(cc, organism, param);
+void MidiHost::clearCC(const MidiSource& src, const std::string& organism,
+                       const std::string& param) {
+    host_.midiMap_.clear(src, organism, param);
     host_.dirty_ = true;
     host_.pokeLiveRefresh();
 }

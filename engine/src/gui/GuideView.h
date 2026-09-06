@@ -9,32 +9,13 @@
 #include "core/GuideFlow.h"
 #include "gui/AppSettings.h"
 #include "gui/HelpBody.h"
-#include "core/AppPaths.h"
 #include "gui/HelpMarkdown.h"
 #include "gui/LookAndFeel.h"
+#include "gui/DemoPatches.h"
 #include "gui/StartWindow.h"
+#include "gui/Localisation.h"
 
 namespace hum {
-
-inline juce::File demoPatchesDir() {
-    const auto path = assetSearchPath("patches");
-    return path.empty() ? juce::File() : path.front();
-}
-
-inline juce::Array<juce::File> demoPatches() {
-    juce::Array<juce::File> out;
-    juce::StringArray seen;
-    for (const auto& dir : assetSearchPath("patches"))
-        for (const auto& f : dir.findChildFiles(juce::File::findFiles, false, "*.hum;*.amh")) {
-            if (f.getFileName().startsWith("my-") || seen.contains(f.getFileName())) continue;
-            seen.add(f.getFileName());
-            out.add(f);
-        }
-    struct { int compareElements(const juce::File& a, const juce::File& b) {
-        return a.getFileName().compareIgnoreCase(b.getFileName()); } } byName;
-    out.sort(byName);
-    return out;
-}
 
 class GuideBody : public juce::Component {
 public:
@@ -136,7 +117,7 @@ public:
             b->setColour(juce::TextButton::textColourOffId, kBrandBg);
             addAndMakeVisible(*b);
         }
-        skipBtn_.setButtonText(firstBoot_ ? "Skip tour" : "Close");
+        skipBtn_.setButtonText(firstBoot_ ? tr("guide.skip-tour", "Skip tour") : tr("guide.close", "Close"));
         backBtn_.onClick = [this] { setPage(guide::back(page_)); };
         nextBtn_.onClick = [this] {
             if (guide::isLast(page_)) finish();
@@ -180,7 +161,7 @@ public:
         demoBtn_.setVisible(last && hasDemos_);
         wizardBtn_.setVisible(last);
         backBtn_.setEnabled(!guide::isFirst(p));
-        nextBtn_.setButtonText(last ? "Start Growing" : "Next");
+        nextBtn_.setButtonText(last ? tr("guide.start-growing", "Start Growing") : tr("guide.next", "Next"));
         skipBtn_.setVisible(!last);
         resized();
         repaint();
@@ -238,7 +219,7 @@ public:
         drawHumusLogo(g, juce::Rectangle<float>(24.0f, 8.0f, 110.0f, (float) kHeaderH - 16.0f));
         g.setColour(kBrandInk);
         g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
-        g.drawText("Meet Humus", 150, 0, 240, kHeaderH, juce::Justification::centredLeft);
+        g.drawText(tr("guide.meet-humus", "Meet Humus"), 150, 0, 240, kHeaderH, juce::Justification::centredLeft);
         g.setColour(kBrandInk.withAlpha(0.65f));
         g.setFont(juce::FontOptions(13.0f));
         g.drawText(juce::String::fromUTF8(guide::pageTitle(page_).c_str()), 0, 0,
@@ -337,7 +318,7 @@ private:
             g.drawRoundedRectangle(pod.reduced(0.75f), 8.0f, 1.5f);
             g.setFont(juce::FontOptions(10.5f, juce::Font::bold));
             g.setColour(Palette::textDim);
-            g.drawText("MyRig", pod.toNearestInt().reduced(8, 3),
+            g.drawText(tr("guide.myrig", "MyRig"), pod.toNearestInt().reduced(8, 3),
                        juce::Justification::topRight);
             g.setColour(Palette::cord);
             for (const float y : {pod.getY(), pod.getBottom()})
@@ -389,7 +370,7 @@ private:
     CordLegend legend_;
     PodSketch podSketch_;
     juce::TextButton backBtn_{"Back"}, nextBtn_{"Next"}, skipBtn_;
-    juce::TextButton demoBtn_{"Load a Demo Patch..."}, wizardBtn_{"Run the Setup Wizard"};
+    juce::TextButton demoBtn_{tr("guide.load-a-demo-patch", "Load a Demo Patch...")}, wizardBtn_{tr("guide.run-the-setup-wizard", "Run the Setup Wizard")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GuideView)
 };

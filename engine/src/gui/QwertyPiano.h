@@ -7,6 +7,8 @@
 #include "gui/AppSettings.h"
 #include "gui/MidiKeyboardPanel.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class QwertyPiano {
@@ -64,7 +66,7 @@ public:
             const bool down = keyIsDown(c) && !shortcutHeld;
             const auto held = held_.find(c);
             if (down && held == held_.end()) {
-                const int note = juce::jlimit(0, 127, baseNote_ + (int) i);
+                const int note = juce::jlimit(0, kMidiMax, baseNote_ + (int) i);
                 held_[c] = {note, strip};
                 sound(strip, note, true);
                 changed = true;

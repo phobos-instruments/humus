@@ -1,5 +1,8 @@
 #pragma once
+#include <algorithm>
+#include <functional>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include <juce_core/juce_core.h>
@@ -16,6 +19,8 @@ public:
         std::vector<unsigned char> blocks;
         void* native = nullptr;
         std::shared_ptr<const void> nativeHold;
+        std::function<bool(std::vector<unsigned char>&)> readPixels;
+        double pts = -1.0;
     };
 
     virtual ~VideoLayer() = default;
@@ -28,9 +33,27 @@ public:
     virtual double positionSeconds() { return 0.0; }
     virtual double lengthSeconds() { return 0.0; }
     virtual void seekSeconds(double) {}
+    struct LoopRange {
+        double in = 0.0;
+        double out = 0.0;
+        bool loop = true;
+    };
+    virtual void setLoopRange(const LoopRange&) {}
+    virtual void chase(double seconds, double rate) {
+        seekSeconds(seconds);
+        setRate((float) rate);
+    }
 
-    static std::unique_ptr<VideoLayer> create();
+    static std::unique_ptr<VideoLayer> create(bool offline = false);
     static std::unique_ptr<VideoLayer> createPlatform();
+    static std::unique_ptr<VideoLayer> createOffline();
+    static double probeLengthSeconds(const juce::File& file);
 };
+
+inline std::pair<double, double> loopWindow(double in, double out, double span) {
+    const double lo = span > 0.0 && in >= span ? 0.0 : std::max(0.0, in);
+    const double hi = out > lo && (span <= 0.0 || out < span) ? out : span;
+    return {lo, hi};
+}
 
 }

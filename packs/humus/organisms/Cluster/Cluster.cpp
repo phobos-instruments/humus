@@ -3,6 +3,8 @@
 #include <cctype>
 #include <cstdlib>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -46,7 +48,7 @@ int Cluster::parseNotes(const std::string& text, int* out, int capacity) {
         } else {
             ++p;
         }
-        if (note >= 0 && note <= 127) out[count++] = note;
+        if (note >= 0 && note <= kMidiMax) out[count++] = note;
     }
     return count;
 }
@@ -67,8 +69,8 @@ void Cluster::emit(int offset, bool on, int note, int velocity) {
     MidiEvent e;
     e.sampleOffset = offset;
     e.data[0] = on ? 0x90 : 0x80;
-    e.data[1] = (unsigned char) std::clamp(note, 0, 127);
-    e.data[2] = (unsigned char) std::clamp(velocity, 0, 127);
+    e.data[1] = (unsigned char) std::clamp(note, 0, kMidiMax);
+    e.data[2] = (unsigned char) std::clamp(velocity, 0, kMidiMax);
     e.size = 3;
     outEvents_[(size_t) outCount_++] = e;
 }
@@ -77,7 +79,7 @@ void Cluster::soundChord(const int* notes, int count, int velocity, int offset,
                          Emitted& slot) {
     slot.count = 0;
     for (int i = 0; i < count && slot.count < kChordMax; ++i) {
-        const int n = std::clamp(notes[i], 0, 127);
+        const int n = std::clamp(notes[i], 0, kMidiMax);
         if (refs_[(size_t) n]++ == 0) emit(offset, true, n, velocity);
         slot.notes[(size_t) slot.count++] = n;
     }
@@ -112,7 +114,7 @@ void Cluster::hushAll(int offset) {
 }
 
 void Cluster::handleFireEdges(int hold) {
-    const int velocity = (int) std::clamp(params.get("Velocity", 100.0), 1.0, 127.0);
+    const int velocity = (int) std::clamp(params.get("Velocity", 100.0), 1.0, kMidiMaxD);
     for (int s = 0; s < kSlots; ++s) {
         const bool now = params.get("Fire" + std::to_string(s + 1), 0.0) >= 0.5;
         const bool was = lastFire_[(size_t) s];
@@ -196,7 +198,7 @@ void Cluster::process(const float* const*, int, float* const*, int, int,
     const int hold = (int) std::clamp(params.get("Hold", 0.0), 0.0, 2.0);
     const int triggerNote = (int) std::clamp(params.get("TriggerNote", 36.0), 0.0, 120.0);
     const int followSlot = (int) std::clamp(params.get("Slot", 1.0), 1.0, 8.0) - 1;
-    const int velocity = (int) std::clamp(params.get("Velocity", 100.0), 1.0, 127.0);
+    const int velocity = (int) std::clamp(params.get("Velocity", 100.0), 1.0, kMidiMaxD);
 
     if (mode != lastMode_ || hold != lastHold_) {
         hushAll(0);

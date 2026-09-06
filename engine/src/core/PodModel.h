@@ -246,6 +246,31 @@ inline bool drawnAt(const PatchDocumentModel& m, const ConnectionModel& c,
 }
 inline int strayTotal(const PatchDocumentModel& m);
 
+inline bool resolvePodVideoCord(const PatchDocumentModel& m, ConnectionModel& c) {
+    bool changed = false;
+    if (isPod(m, c.src)) {
+        const auto list = videoPortRefs(m, c.src, false);
+        if (c.srcOutlet >= 0 && c.srcOutlet < (int) list.size()) {
+            c.src = list[(size_t) c.srcOutlet].node;
+            c.srcOutlet = list[(size_t) c.srcOutlet].chan;
+            changed = true;
+        }
+    }
+    if (isPod(m, c.dst)) {
+        const auto list = videoPortRefs(m, c.dst, true);
+        if (c.dstInlet >= 0 && c.dstInlet < (int) list.size()) {
+            c.dst = list[(size_t) c.dstInlet].node;
+            c.dstInlet = list[(size_t) c.dstInlet].chan;
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+inline void resolvePodVideoCords(PatchDocumentModel& m) {
+    for (auto& c : m.videoConnections) resolvePodVideoCord(m, c);
+}
+
 inline std::vector<std::string> allScopes(const PatchDocumentModel& m) {
     std::vector<std::string> out{""};
     for (size_t i = 0; i < out.size(); ++i)

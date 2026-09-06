@@ -9,6 +9,8 @@
 #include "gui/LookAndFeel.h"
 #include "gui/PianoNotePicker.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class NoteFieldBrick : public PolledBrick {
@@ -63,7 +65,7 @@ private:
     }
 
     std::string param_;
-    int lo_ = 0, hi_ = 127, last_ = 0;
+    int lo_ = 0, hi_ = kMidiMax, last_ = 0;
     bool hover_ = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoteFieldBrick)

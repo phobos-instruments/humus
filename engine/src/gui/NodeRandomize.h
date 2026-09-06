@@ -62,6 +62,29 @@ inline void randomizeParam(EngineHost& host, const std::string& name,
     }
 }
 
+inline bool paramHasDefault(EngineHost& host, const std::string& name,
+                            const std::string& param) {
+    const auto* cm = host.model().byName(name);
+    if (cm == nullptr) return false;
+    for (const auto& d : schemaFor(cm->classRaw))
+        if (d.name == param) return !d.isText;
+    return false;
+}
+
+inline void resetParam(EngineHost& host, const std::string& name, const std::string& param) {
+    const auto* cm = host.model().byName(name);
+    if (cm == nullptr) return;
+    for (const auto& d : schemaFor(cm->classRaw)) {
+        if (d.name != param) continue;
+        if (d.isText) return;
+        host.pushParamStep();
+        if (d.isRange) host.setParamRange(name, param, d.def, d.defMax);
+        else host.setParam(name, param, d.def);
+        if (host.onNodeRolled) host.onNodeRolled(name);
+        return;
+    }
+}
+
 inline void randomizeNode(EngineHost& host, const std::string& name, bool undoable = true) {
     const auto* cm = host.model().byName(name);
     if (cm == nullptr) return;
@@ -91,13 +114,12 @@ inline void randomizeNode(EngineHost& host, const std::string& name, bool undoab
         }
     }
 
+    if (auto* rl = dynamic_cast<RollListener*>(host.liveOrganism(name))) rl->rolled();
+
     if (cm->displayClass == "Riff") {
         host.patterns().ensureMatrix(name, "bassline-pattern-matrix", 16);
         const auto cur = host.patterns().basslineSteps(name);
-        int root = 45;
-        for (const auto& s : cur)
-            if (s.gate) { root = juce::jlimit(36, 72, s.note); break; }
-        const auto rolled = randomBassline((int) cur.size(), root, r);
+        const auto rolled = randomBassline((int) cur.size(), basslineRoot(cur), r);
         for (int i = 0; i < (int) rolled.size(); ++i)
             host.patterns().setBasslineStep(name, i, rolled[(size_t) i]);
     } else if (cm->displayClass == "Steps") {
@@ -118,7 +140,7 @@ inline void randomizeNode(EngineHost& host, const std::string& name, bool undoab
         waveTableRandom((uint32_t) r.nextInt(), t, kWaveTableLen);
         host.setParamText(name, "Table", encodeWaveTable(t, kWaveTableLen));
     } else if (cm->displayClass == "Sequence") {
-        host.patterns().ensure(name, 8);
+        host.patterns().ensureBanks(name, 8, kPatternBanks);
         for (int row = 0; row < 8; ++row) {
             host.patterns().clearChannel(name, row);
             const auto cells = randomTriggerRow(16, 0.10 + r.nextDouble() * 0.35, r);

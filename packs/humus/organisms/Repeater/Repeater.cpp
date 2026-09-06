@@ -29,7 +29,7 @@ void Repeater::process(const float* const* in, int numIn, float* const* out, int
     static const double kBars[] = {1.0 / 16, 1.0 / 8, 1.0 / 4, 1.0 / 2, 1.0, 2.0, 4.0};
     const int li = std::clamp((int) params.get("Length", 4.0), 0, 6);
     const double loopBeats = kBars[li] * transport.beatsPerBar();
-    const double spb = 60.0 / std::max(1.0, transport.tempo()) * sampleRate_;
+    const double spb = kSecondsPerMinute / std::max(1.0, transport.tempo()) * sampleRate_;
     const long long loopLen =
         std::clamp((long long) (loopBeats * spb), (long long) (2 * xfN_), ring_ - 2 * xfN_);
 

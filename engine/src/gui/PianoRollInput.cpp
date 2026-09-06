@@ -1,4 +1,7 @@
 #include "gui/PianoRollEditor.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -28,7 +31,7 @@ void PianoRollEditor::mouseDown(const juce::MouseEvent& e) {
     }
     if (p.y < gridTop() || p.y >= gridBottom() || p.x < gridLeft()) return;
     const int pitch = pitchAt(p.y);
-    if (pitch < 0 || pitch > 127) return;
+    if (pitch < 0 || pitch > kMidiMax) return;
     const int tick = juce::jlimit(0, durationTicks() - 1, xToTick((float) p.x));
 
     noteedit::Grab grab = noteedit::Grab::Miss;
@@ -37,9 +40,9 @@ void PianoRollEditor::mouseDown(const juce::MouseEvent& e) {
     if (e.mods.isPopupMenu()) {
         if (!selection_.empty()) {
             juce::PopupMenu m;
-            m.addItem(1, "Print groove into selection");
+            m.addItem(1, tr("piano-roll-input.print-groove-into-selection", "Print groove into selection"));
             m.addSeparator();
-            m.addItem(2, "Delete selection");
+            m.addItem(2, tr("piano-roll-input.delete-selection", "Delete selection"));
             m.showMenuAsync(juce::PopupMenu::Options(), [this](int r) {
                 if (r == 1) printGrooveToSelection();
                 else if (r == 2) deleteSelection();
@@ -172,13 +175,13 @@ void PianoRollEditor::mouseDrag(const juce::MouseEvent& e) {
     }
     if (gesture_ == Gesture::MoveGroup) {
         const int dTick = noteedit::snapDelta(tick - gestureStartTick_, snapTicks());
-        const int dPitch = juce::jlimit(0, 127, pitchAt(p.y)) - gestureStartPitch_;
+        const int dPitch = juce::jlimit(0, kMidiMax, pitchAt(p.y)) - gestureStartPitch_;
         gestureNotes_ = gestureBase_;
         for (int i : selection_) {
             if (i < 0 || i >= (int) gestureNotes_.size()) continue;
             auto& n = gestureNotes_[(size_t) i];
             n.tick = juce::jlimit(0, durationTicks() - 1, n.tick + dTick);
-            n.pitch = juce::jlimit(0, 127, n.pitch + dPitch);
+            n.pitch = juce::jlimit(0, kMidiMax, n.pitch + dPitch);
         }
         repaint();
         return;
@@ -208,11 +211,11 @@ void PianoRollEditor::mouseDrag(const juce::MouseEvent& e) {
             const int moved = noteedit::snapDelta(
                 (tick - gestureTickOffset_) - gestureStartTick_, snapTicks());
             n.tick = juce::jlimit(0, durationTicks() - 1, gestureStartTick_ + moved);
-            n.pitch = juce::jlimit(0, 127, pitchAt(p.y));
+            n.pitch = juce::jlimit(0, kMidiMax, pitchAt(p.y));
             break;
         }
         case Gesture::Velocity: {
-            n.velocity = juce::jlimit(1, 127, gestureStartVel_ + (dragStart_.y - p.y));
+            n.velocity = juce::jlimit(1, kMidiMax, gestureStartVel_ + (dragStart_.y - p.y));
             break;
         }
         default: break;
@@ -290,7 +293,7 @@ void PianoRollEditor::mouseWheelMove(const juce::MouseEvent& e,
     const int step = pitchWheel_.add(wheel.deltaY, 12.0f);
     if (step == 0) return;
     const int rows = (gridBottom() - gridTop()) / kRowH;
-    topPitch_ = juce::jlimit(juce::jmax(0, rows - 1), 127, topPitch_ + step);
+    topPitch_ = juce::jlimit(juce::jmax(0, rows - 1), kMidiMax, topPitch_ + step);
     pitchScrolled_ = true;
     repaint();
 }

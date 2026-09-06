@@ -33,32 +33,28 @@
           "min": 0.0,
           "max": 15.0,
           "def": 0.0,
-          "int": true,
-          "random": true
+          "int": true
         },
         {
           "name": "Decay",
           "min": 0.0,
           "max": 15.0,
           "def": 8.0,
-          "int": true,
-          "random": true
+          "int": true
         },
         {
           "name": "Sustain",
           "min": 0.0,
           "max": 15.0,
           "def": 10.0,
-          "int": true,
-          "random": true
+          "int": true
         },
         {
           "name": "Release",
           "min": 0.0,
           "max": 15.0,
           "def": 8.0,
-          "int": true,
-          "random": true
+          "int": true
         },
         {
           "name": "Cutoff",

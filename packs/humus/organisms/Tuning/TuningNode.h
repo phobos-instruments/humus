@@ -6,6 +6,8 @@
 #include "hum/Organism.h"
 #include "hum/Tuning.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class TuningNode : public Organism, public MidiNode, public TuningProvider, public FileLoader {
@@ -43,7 +45,7 @@ public:
         if (params.get("Preset", 0.0) != lastPreset_
             || params.get("Divisions", 12.0) != lastDivisions_
             || params.get("Root", 69.0) != lastRoot_
-            || params.get("RootHz", 440.0) != lastRootHz_
+            || params.get("RootHz", kA4Hz) != lastRootHz_
             || params.get("Map", 0.0) != lastMap_
             || params.get("Plugins", 0.0) != lastPlugins_)
             rebuild();

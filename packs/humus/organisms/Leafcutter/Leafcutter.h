@@ -14,6 +14,8 @@
 #include "hum/SliceEdits.h"
 #include "hum/dsp/SliceDetect.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Leafcutter : public Organism, public FileLoader, public MidiNode,
@@ -63,12 +65,12 @@ private:
     int activeCount() const { return (int) active_.size(); }
 
     juce::AudioBuffer<float> buf_;
-    double srcRate_ = 44100.0;
+    double srcRate_ = kDefaultSampleRate;
     std::vector<SliceOnset> onsets_;
     std::string uri_;
 
     juce::AudioBuffer<float> pendingBuf_;
-    double pendingRate_ = 44100.0;
+    double pendingRate_ = kDefaultSampleRate;
     std::vector<SliceOnset> pendingOnsets_;
     double fileBeats_ = 0.0;
     double pendingFileBeats_ = 0.0;

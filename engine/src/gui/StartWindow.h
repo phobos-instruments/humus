@@ -1,42 +1,22 @@
 #pragma once
 #include <functional>
+#include <memory>
+#include <utility>
 #include <vector>
 
-#include <BinaryData.h>
 #include <HumBuildId.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/AppSettings.h"
-#include "gui/RecentFiles.h"
+#include "gui/BrandPanel.h"
+#include "gui/DemoPatches.h"
 #include "gui/LicenseStore.h"
+#include "gui/RecentFiles.h"
+#include "gui/StartHereList.h"
 #include "io/AutosaveStore.h"
+#include "gui/Localisation.h"
 
 namespace hum {
-
-inline const juce::Image& humusLogo() {
-    static const juce::Image img = juce::ImageCache::getFromMemory(
-        BinaryData::logo_png, BinaryData::logo_pngSize);
-    return img;
-}
-
-inline constexpr float kBrandRadius = 12.0f;
-
-inline void paintBrandPanel(juce::Graphics& g, juce::Rectangle<int> bounds,
-                            juce::Colour fill, juce::Colour edge) {
-    juce::Graphics::ScopedSaveState keep(g);
-    const auto r = bounds.toFloat().reduced(0.5f);
-    g.setColour(fill);
-    g.fillRoundedRectangle(r, kBrandRadius);
-    g.setColour(edge.withAlpha(0.18f));
-    g.drawRoundedRectangle(r, kBrandRadius, 1.0f);
-}
-
-inline void drawHumusLogo(juce::Graphics& g, juce::Rectangle<float> bounds) {
-    juce::Graphics::ScopedSaveState keep(g);
-    g.setColour(juce::Colours::white);
-    g.setImageResamplingQuality(juce::Graphics::highResamplingQuality);
-    g.drawImage(humusLogo(), bounds, juce::RectanglePlacement::centred);
-}
 
 class StartWindow : public juce::Component {
 public:
@@ -47,11 +27,14 @@ public:
         std::function<void()> onDismiss;
         std::function<void(const AutosaveStore::Recovery&, bool restore)> onRecover;
         std::function<void()> onEnterLicense;
+        std::function<void()> onTour;
+        std::function<void()> onWizard;
+        std::function<void()> onHelp;
     };
 
-    explicit StartWindow(Actions actions, std::vector<AutosaveStore::Recovery> recover = {})
-        : actions_(std::move(actions)), recover_(std::move(recover)) {
-        recent_ = recents::get();
+    explicit StartWindow(Actions actions, std::vector<AutosaveStore::Recovery> recover = {},
+                         juce::StringArray recent = recents::get())
+        : actions_(std::move(actions)), recover_(std::move(recover)), recent_(std::move(recent)) {
         if (recent_.size() > kMaxRecents) recent_.removeRange(kMaxRecents, recent_.size());
 
         auto styleButton = [this](juce::TextButton& b, std::function<void()> fn) {
@@ -68,106 +51,43 @@ public:
             styleButton(quitBtn_, [] {
                 juce::JUCEApplication::getInstance()->systemRequestedQuit();
             });
+
+        startHere_ = std::make_unique<StartHereList>(juce::Colour(0xff33402a), startRows());
+        addAndMakeVisible(*startHere_);
+
         setWantsKeyboardFocus(true);
         setSize(kW, windowHeight());
     }
 
+    juce::String newButtonText() const { return newBtn_.getButtonText(); }
+    const StartHereList& startHere() const { return *startHere_; }
+    StartHereList& startHere() { return *startHere_; }
+
     void resized() override {
-        const int bx = 30, bw = kLeftW - 2 * bx;
-        newBtn_.setBounds(bx, 292, bw, 32);
-        openBtn_.setBounds(bx, 332, bw, 32);
-        (actions_.onDismiss ? closeBtn_ : quitBtn_).setBounds(bx, 372, bw, 32);
+        const int bx = 30, bw = kLeftW - 2 * bx, top = leftTop();
+        newBtn_.setBounds(bx, top + 270, bw, 32);
+        openBtn_.setBounds(bx, top + 310, bw, 32);
+        (actions_.onDismiss ? closeBtn_ : quitBtn_).setBounds(bx, top + 350, bw, 32);
+        const auto f = flow();
+        startHere_->setBounds(kRightX, f.startList, rightWidth(), startHere_->preferredHeight());
     }
 
     void paint(juce::Graphics& g) override {
         const juce::Colour bg(0xfff4ecdc), line(0xff33402a);
         paintBrandPanel(g, getLocalBounds(), bg, line);
-
-        drawHumusLogo(g, juce::Rectangle<float>(25.0f, 22.0f, (float) kLeftW - 50.0f, 218.0f));
-        g.setColour(line.withAlpha(0.6f));
-        g.setFont(juce::Font(juce::FontOptions(11.0f)));
-        juce::String ver;
-        if (auto* app = juce::JUCEApplication::getInstance())
-            ver << "v" << app->getApplicationVersion();
-        g.drawText(ver, 0, 244, kLeftW, 14, juce::Justification::centred);
-
-        if (const juce::String build(HUM_BUILD_ID); build != ver) {
-            g.setColour(line.withAlpha(0.4f));
-            g.setFont(juce::Font(juce::FontOptions(9.5f)));
-            g.drawText(build, 0, 258, kLeftW, 12, juce::Justification::centred);
-        }
-
-        {
-            const auto lic = LicenseStore::current();
-            g.setColour(line.withAlpha(lic.valid ? 0.6f : 0.8f));
-            g.setFont(juce::Font(juce::FontOptions(10.0f)));
-            juce::String text;
-            if (lic.valid)
-                text = "Registered to "
-                       + juce::String(lic.name.empty() ? lic.plan : lic.name);
-            else
-                text = actions_.onEnterLicense
-                           ? juce::String::fromUTF8("Unregistered \xc2\xb7 enter license\xe2\x80\xa6")
-                           : juce::String::fromUTF8("Unregistered \xc2\xb7 fully functional");
-            g.drawText(text, licenseLine(), juce::Justification::centred);
-        }
-
+        paintBrand(g, line);
         g.setColour(line.withAlpha(0.15f));
         g.fillRect(kLeftW, 16, 1, getHeight() - 32);
 
-        if (!recover_.empty()) {
-            const juce::Colour amber(0xffb07818);
-            g.setColour(amber);
-            g.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
-            g.drawText("RECOVERED SESSIONS", kRightX, kTop, rightWidth(), 16,
-                       juce::Justification::centredLeft);
-            for (int i = 0; i < (int) recover_.size(); ++i) {
-                const auto& rec = recover_[(size_t) i];
-                const auto r = recoverRowBounds(i);
-                g.setColour(amber.withAlpha(i == hoverRecover_ ? 0.25f : 0.12f));
-                g.fillRoundedRectangle(r.toFloat(), 4.0f);
-                g.setColour(line);
-                g.setFont(juce::Font(juce::FontOptions(14.0f)));
-                const juce::String nm = rec.originalPath.isEmpty()
-                    ? "Untitled" : juce::File(rec.originalPath).getFileNameWithoutExtension();
-                g.drawText(nm + "  (unsaved changes)", r.getX() + 8, r.getY(),
-                           r.getWidth() - 90, r.getHeight(), juce::Justification::centredLeft, true);
-                g.setColour(line.withAlpha(0.55f));
-                g.setFont(juce::Font(juce::FontOptions(11.0f)));
-                g.drawText("discard", r.getRight() - 70, r.getY(), 62, r.getHeight(),
-                           juce::Justification::centredRight);
-            }
-        }
-
-        g.setColour(line.withAlpha(0.5f));
-        g.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
-        g.drawText("RECENT PATCHES", kRightX, gridTop() - 22, rightWidth(), 16,
-                   juce::Justification::centredLeft);
-        if (recent_.isEmpty()) {
+        const auto f = flow();
+        if (!recover_.empty()) paintRecovered(g, f);
+        if (!recent_.isEmpty()) paintRecents(g, line, f);
+        if (startHere_->rowCount() > 0) heading(g, line, tr("start.start-here", "START HERE"), f.startHead);
+        if (recent_.isEmpty() && startHere_->rowCount() == 0) {
             g.setColour(line.withAlpha(0.4f));
             g.setFont(juce::Font(juce::FontOptions(13.0f)));
-            g.drawText(juce::String("nothing yet - make some noise"),
-                   kRightX, gridTop(), rightWidth(),
+            g.drawText(tr("start.nothing-yet-make-some-noise", "nothing yet - make some noise"), kRightX, f.recentGrid, rightWidth(),
                        kCellH, juce::Justification::centredLeft);
-            return;
-        }
-        for (int i = 0; i < recent_.size(); ++i) {
-            const juce::File f(recent_[i]);
-            const auto r = cellBounds(i);
-            if (i == hover_) {
-                g.setColour(line.withAlpha(0.12f));
-                g.fillRoundedRectangle(r.toFloat(), 4.0f);
-            }
-            const auto inner = r.reduced(8, 4);
-            g.setColour(line);
-            g.setFont(juce::Font(juce::FontOptions(14.0f)));
-            g.drawText(f.getFileNameWithoutExtension(), inner.getX(), inner.getY(),
-                       inner.getWidth(), 18, juce::Justification::centredLeft, true);
-            g.setColour(line.withAlpha(0.45f));
-            g.setFont(juce::Font(juce::FontOptions(10.0f)));
-            g.drawText(f.getParentDirectory().getFullPathName(), inner.getX(),
-                       inner.getY() + 18, inner.getWidth(), 13,
-                       juce::Justification::centredLeft, true);
         }
     }
 
@@ -211,25 +131,147 @@ public:
         return false;
     }
 
-    static juce::Rectangle<int> licenseLine() { return {0, 272, kLeftW, 14}; }
+    juce::Rectangle<int> licenseLine() const { return {0, leftTop() + 250, kLeftW, 14}; }
+
+    juce::Rectangle<int> cellBoundsForTest(int i) const { return cellBounds(i); }
+    juce::Rectangle<int> leftBlockForTest() const { return {0, leftTop(), kLeftW, kLeftBlockH}; }
+    int recentCountForTest() const { return recent_.size(); }
 
 private:
     static constexpr int kW = 720, kLeftW = 220, kRightX = kLeftW + 22;
     static constexpr int kTop = 26, kRowH = 26, kCellH = 42, kCellGap = 8;
-    static constexpr int kMaxRecents = 10;
+    static constexpr int kMaxRecents = 6, kMaxDemos = 4, kHeadH = 22;
+    static constexpr int kLeftBlockH = 382;
+
+    struct Flow { int recentHead, recentGrid, startHead, startList, bottom; };
+
+    std::vector<StartHereList::Row> startRows() const {
+        std::vector<StartHereList::Row> rows;
+        if (actions_.onTour)
+            rows.push_back({tr("start.meet-humus", "Meet Humus"), tr("start.enter-the-guided-tour", "enter the guided tour"), actions_.onTour});
+        if (actions_.onWizard)
+            rows.push_back({tr("start.setup-wizard", "Setup Wizard"), tr("start.choose-your-audio-and-midi", "choose your audio and MIDI devices"),
+                            actions_.onWizard});
+        if (actions_.onOpenFile) {
+            const auto demos = demoPatches();
+            for (int i = 0; i < demos.size() && i < kMaxDemos; ++i) {
+                const auto f = demos[i];
+                rows.push_back({demoPatchTitle(f), demoPatchBlurb(f),
+                                [this, f] { actions_.onOpenFile(f); }});
+            }
+        }
+        if (actions_.onHelp)
+            rows.push_back({tr("start.help", "Help"), tr("start.explore-the-full-documentation", "explore the full documentation"), actions_.onHelp});
+        return rows;
+    }
+
+    Flow flow() const {
+        Flow f{};
+        int y = kTop;
+        if (!recover_.empty()) y += 20 + (int) recover_.size() * kRowH + 30;
+        f.startHead = y;
+        f.startList = y + kHeadH;
+        const int listH = startHere_ != nullptr ? startHere_->preferredHeight() : 0;
+        if (listH > 0) y = f.startList + listH + 18;
+        f.recentHead = y;
+        f.recentGrid = y + kHeadH;
+        if (!recent_.isEmpty()) y = f.recentGrid + recentRows() * (kCellH + kCellGap);
+        f.bottom = y + 20;
+        return f;
+    }
+
+    void paintBrand(juce::Graphics& g, juce::Colour line) const {
+        const int top = leftTop();
+        drawHumusLogo(g, juce::Rectangle<float>(25.0f, (float) top, (float) kLeftW - 50.0f,
+                                                218.0f));
+        g.setColour(line.withAlpha(0.6f));
+        g.setFont(juce::Font(juce::FontOptions(11.0f)));
+        juce::String ver;
+        if (auto* app = juce::JUCEApplication::getInstance())
+            ver << "v" << app->getApplicationVersion();
+        g.drawText(ver, 0, top + 222, kLeftW, 14, juce::Justification::centred);
+
+        if (const juce::String build(HUM_BUILD_ID); build != ver) {
+            g.setColour(line.withAlpha(0.4f));
+            g.setFont(juce::Font(juce::FontOptions(9.5f)));
+            g.drawText(build, 0, top + 236, kLeftW, 12, juce::Justification::centred);
+        }
+
+        const auto lic = LicenseStore::current();
+        g.setColour(line.withAlpha(lic.valid ? 0.6f : 0.8f));
+        g.setFont(juce::Font(juce::FontOptions(10.0f)));
+        juce::String text;
+        if (lic.valid)
+            text = tr("start.registered-to", "Registered to") + " " + juce::String(lic.name.empty() ? lic.plan : lic.name);
+        else
+            text = tr("start.unregistered", "Unregistered") + juce::String::fromUTF8(" \xc2\xb7 ")
+                   + (actions_.onEnterLicense
+                          ? tr("start.enter-license", "enter license") + juce::String::fromUTF8("\xe2\x80\xa6")
+                          : tr("start.fully-functional", "fully functional"));
+        g.drawText(text, licenseLine(), juce::Justification::centred);
+    }
+
+    void heading(juce::Graphics& g, juce::Colour line, const juce::String& text, int y) const {
+        g.setColour(line.withAlpha(0.5f));
+        g.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
+        g.drawText(text, kRightX, y, rightWidth(), 16, juce::Justification::centredLeft);
+    }
+
+    void paintRecovered(juce::Graphics& g, const Flow&) const {
+        const juce::Colour amber(0xffb07818), line(0xff33402a);
+        g.setColour(amber);
+        g.setFont(juce::Font(juce::FontOptions(11.0f, juce::Font::bold)));
+        g.drawText(tr("start.recovered-sessions", "RECOVERED SESSIONS"), kRightX, kTop, rightWidth(), 16,
+                   juce::Justification::centredLeft);
+        for (int i = 0; i < (int) recover_.size(); ++i) {
+            const auto& rec = recover_[(size_t) i];
+            const auto r = recoverRowBounds(i);
+            g.setColour(amber.withAlpha(i == hoverRecover_ ? 0.25f : 0.12f));
+            g.fillRoundedRectangle(r.toFloat(), 4.0f);
+            g.setColour(line);
+            g.setFont(juce::Font(juce::FontOptions(14.0f)));
+            const juce::String nm = rec.originalPath.isEmpty()
+                ? tr("start.untitled", "Untitled") : juce::File(rec.originalPath).getFileNameWithoutExtension();
+            g.drawText(nm + "  " + tr("start.unsaved-changes", "(unsaved changes)"), r.getX() + 8, r.getY(),
+                       r.getWidth() - 90, r.getHeight(), juce::Justification::centredLeft, true);
+            g.setColour(line.withAlpha(0.55f));
+            g.setFont(juce::Font(juce::FontOptions(11.0f)));
+            g.drawText(tr("start.discard", "discard"), r.getRight() - 70, r.getY(), 62, r.getHeight(),
+                       juce::Justification::centredRight);
+        }
+    }
+
+    void paintRecents(juce::Graphics& g, juce::Colour line, const Flow& f) const {
+        heading(g, line, tr("start.recent-patches", "RECENT PATCHES"), f.recentHead);
+        for (int i = 0; i < recent_.size(); ++i) {
+            const juce::File file(recent_[i]);
+            const auto r = cellBounds(i);
+            if (i == hover_) {
+                g.setColour(line.withAlpha(0.12f));
+                g.fillRoundedRectangle(r.toFloat(), 4.0f);
+            }
+            const auto inner = r.reduced(8, 4);
+            g.setColour(line);
+            g.setFont(juce::Font(juce::FontOptions(14.0f)));
+            g.drawText(file.getFileNameWithoutExtension(), inner.getX(), inner.getY(),
+                       inner.getWidth(), 18, juce::Justification::centredLeft, true);
+            g.setColour(line.withAlpha(0.45f));
+            g.setFont(juce::Font(juce::FontOptions(10.0f)));
+            g.drawText(file.getParentDirectory().getFullPathName(), inner.getX(),
+                       inner.getY() + 18, inner.getWidth(), 13,
+                       juce::Justification::centredLeft, true);
+        }
+    }
 
     int rightWidth() const { return getWidth() - kRightX - 22; }
     int cellWidth() const { return (rightWidth() - kCellGap) / 2; }
+    int recentRows() const { return juce::jmax(0, (recent_.size() + 1) / 2); }
 
-    int gridTop() const {
-        return recover_.empty() ? kTop + 22
-                                : kTop + 20 + (int) recover_.size() * kRowH + 30;
+    int leftTop() const {
+        return juce::jmax(22, (getHeight() - kLeftBlockH) / 2);
     }
     int windowHeight() const {
-        const int rows = juce::jmax(1, (recent_.size() + 1) / 2);
-        const int rightH = gridTop() + rows * (kCellH + kCellGap) + 16;
-        const int leftH = 372 + 32 + 24;
-        return juce::jmax(juce::jmax(leftH, rightH), 428);
+        return juce::jmax(juce::jmax(kLeftBlockH + 44, flow().bottom), 428);
     }
     juce::Rectangle<int> recoverRowBounds(int i) const {
         return {kRightX, kTop + 20 + i * kRowH, rightWidth(), kRowH};
@@ -242,7 +284,7 @@ private:
     juce::Rectangle<int> cellBounds(int i) const {
         const int col = i % 2, row = i / 2;
         return {kRightX + col * (cellWidth() + kCellGap),
-                gridTop() + row * (kCellH + kCellGap), cellWidth(), kCellH};
+                flow().recentGrid + row * (kCellH + kCellGap), cellWidth(), kCellH};
     }
     int cellAt(juce::Point<int> p) const {
         for (int i = 0; i < recent_.size(); ++i)
@@ -253,10 +295,11 @@ private:
     Actions actions_;
     std::vector<AutosaveStore::Recovery> recover_;
     juce::StringArray recent_;
+    std::unique_ptr<StartHereList> startHere_;
     int hover_ = -1;
     int hoverRecover_ = -1;
-    juce::TextButton newBtn_{"New Session"}, openBtn_{"Open..."}, closeBtn_{"Close"},
-                     quitBtn_{"Quit"};
+    juce::TextButton newBtn_{tr("start.new-session", "New Session")}, openBtn_{tr("start.open", "Open...")},
+                     closeBtn_{tr("start.close", "Close")}, quitBtn_{tr("start.quit", "Quit")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StartWindow)
 };

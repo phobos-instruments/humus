@@ -58,7 +58,7 @@ void Verbatim::loadFromFile(const std::string& uri) {
 
 void Verbatim::process(const float* const* in, int numIn, float* const* out, int numOut,
                      int numSamples, const Transport&) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double mix = std::clamp(params.get("Mix", 0.35), 0.0, 1.0);
     const float preSamps =
         (float) (std::clamp(params.get("Predelay", 0.0), 0.0, kMaxPredelayMs) * 0.001 * sr);
@@ -82,8 +82,8 @@ void Verbatim::process(const float* const* in, int numIn, float* const* out, int
         scratch_.clear(0, numSamples);
     }
 
-    const double aLp = 1.0 - std::exp(-2.0 * M_PI * damp / sr);
-    const double aHp = 1.0 - std::exp(-2.0 * M_PI * lowCut / sr);
+    const double aLp = 1.0 - std::exp(-2.0 * kPi * damp / sr);
+    const double aHp = 1.0 - std::exp(-2.0 * kPi * lowCut / sr);
     const double aMix = smoothCoeff(10.0, sr);
     const double aPre = smoothCoeff(50.0, sr);
     if (smSnap_) { mixSm_ = mix; preSm_ = preSamps; smSnap_ = false; }

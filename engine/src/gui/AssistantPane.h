@@ -8,6 +8,7 @@
 #include "gui/EngineHost.h"
 #include "gui/FreeWindow.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -35,7 +36,7 @@ public:
             appendLine(role, text);
         };
         engine_.onBusy = [this](bool b) {
-            send_.setButtonText(b ? "..." : "Send");
+            send_.setButtonText(b ? "..." : tr("assistant-pane.send", "Send"));
             send_.setEnabled(!b);
             input_.setEnabled(!b);
         };
@@ -72,12 +73,13 @@ private:
     }
 
     void askForKey(const juce::String& pendingText) {
-        auto* w = new juce::AlertWindow("AI Assistant",
-                                        "Paste your Claude API key (stored for next time).",
+        auto* w = new juce::AlertWindow(tr("assistant-pane.ai-assistant", "AI Assistant"),
+                                        tr("assistant-pane.paste-your-key",
+                                           "Paste your Claude API key (stored for next time)."),
                                         juce::MessageBoxIconType::NoIcon);
-        w->addTextEditor("key", "", "API key:");
-        w->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        w->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        w->addTextEditor("key", "", tr("assistant-pane.api-key", "API key:"));
+        w->addButton(tr("assistant-pane.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+        w->addButton(tr("assistant-pane.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
         w->enterModalState(true, juce::ModalCallbackFunction::create(
             [w, sp = juce::Component::SafePointer<AssistantPane>(this), pendingText](int r) {
                 const auto key = w->getTextEditorContents("key").trim();
@@ -110,7 +112,7 @@ private:
 class AssistantWindow : public juce::DocumentWindow {
 public:
     AssistantWindow(EngineHost& host, std::function<void()> onPatchEdited)
-        : juce::DocumentWindow("AI Assistant", Palette::panel,
+        : juce::DocumentWindow(tr("assistant-pane.ai-assistant", "AI Assistant"), Palette::panel,
                                juce::DocumentWindow::closeButton) {
         setUsingNativeTitleBar(true);
         pane_ = new AssistantPane(host, std::move(onPatchEdited));

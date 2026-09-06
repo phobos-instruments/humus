@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void TestGen::prepare(double sampleRate, int) {
@@ -34,9 +36,9 @@ void TestGen::process(const float* const*, int,
                       float* const* out, int numOut,
                       int numSamples, const Transport&) {
     const double amp = params.get("Amplitude", 1.0);
-    const double freq = params.get("Frequency", 440.0);
+    const double freq = params.get("Frequency", kA4Hz);
     const int shape = (int) std::lround(params.get("Waveform", 0.0));
-    const double inc = 2.0 * M_PI * freq / sampleRate_;
+    const double inc = 2.0 * kPi * freq / sampleRate_;
 
     for (int n = 0; n < numSamples; ++n) {
         float s = 0.0f;
@@ -47,7 +49,7 @@ void TestGen::process(const float* const*, int,
             default:
                 s = (float) (std::sin(phase_) * amp);
                 phase_ += inc;
-                if (phase_ >= 2.0 * M_PI) phase_ -= 2.0 * M_PI;
+                if (phase_ >= 2.0 * kPi) phase_ -= 2.0 * kPi;
                 break;
         }
         for (int c = 0; c < numOut; ++c) out[c][n] = s;

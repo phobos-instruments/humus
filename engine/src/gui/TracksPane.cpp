@@ -10,6 +10,7 @@
 
 #include "gui/EnvelopePainter.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -29,6 +30,11 @@ void TracksPane::rebuild() {
     for (const auto& n : host_.arrangeableNodes()) {
         rows_.push_back(n);
         arrangeable_.insert(n);
+    }
+    if (!trackNode_.empty() && arrangeable_.count(trackNode_) == 0
+        && host_.model().byName(trackNode_) != nullptr) {
+        rows_.push_back(trackNode_);
+        arrangeable_.insert(trackNode_);
     }
     for (const auto& cm : host_.model().organisms) {
         if (arrangeable_.count(cm.name)) continue;
@@ -249,11 +255,24 @@ TracksPane::AutoGrip TracksPane::nearerRangeEdge(const trackslayout::Slot& s,
 }
 
 void TracksPane::setPlaybackBeat(double beat) {
+    const bool located = host_.locateStamp() != lastLocate_;
+    lastLocate_ = host_.locateStamp();
+    if (located && isVisible() && drag_ == Drag::None) {
+        const double target = host_.locateBeat();
+        if (beatToX(target) > (float) getWidth() || target < scrollBeats_) {
+            traceView("locate-jump");
+            scrollBeats_ = std::max(0.0, target - 4.0);
+            playBeat_ = beat;
+            repaint();
+            return;
+        }
+    }
     if (std::abs(beat - playBeat_) < 1e-4) return;
     const float oldX = beatToX(playBeat_);
     playBeat_ = beat;
     if (!isVisible()) return;
-    if (follow_ && drag_ == Drag::None && beatToX(beat) > (float) getWidth()) {
+    const bool offScreen = beatToX(beat) > (float) getWidth() || beat < scrollBeats_;
+    if (offScreen && drag_ == Drag::None && (follow_ || !host_.isPlaying())) {
         traceView("follow-jump");
         scrollBeats_ = std::max(0.0, beat - 4.0);
         repaint();
@@ -337,13 +356,19 @@ void TracksPane::setNodeMuted(const std::string& node, bool muted) {
 
 void TracksPane::showSnapMenu(juce::Point<int> sp) {
     const double bar = juce::jmax(1, host_.automation().timeSigNumerator());
-    struct Item { const char* name; double beats; };
-    const Item items[] = {{"Auto (follows the zoom)", 0.0}, {"Free", -1.0}, {"Bar", bar},
-                          {"1/2", 2.0}, {"1/4", 1.0}, {"1/8", 0.5}, {"1/16", 0.25},
-                          {"1/32", 0.125}, {"1/64", 0.0625}};
+    struct Item { const char* key; const char* name; double beats; };
+    const Item items[] = {{"tracks-pane.snap-auto", "Auto (follows the zoom)", 0.0},
+                          {"tracks-pane.snap-free", "Free", -1.0},
+                          {"tracks-pane.snap-bar", "Bar", bar},
+                          {"tracks-pane.snap-half", "1/2", 2.0},
+                          {"tracks-pane.snap-quarter", "1/4", 1.0},
+                          {"tracks-pane.snap-eighth", "1/8", 0.5},
+                          {"tracks-pane.snap-sixteenth", "1/16", 0.25},
+                          {"tracks-pane.snap-thirty-second", "1/32", 0.125},
+                          {"tracks-pane.snap-sixty-fourth", "1/64", 0.0625}};
     juce::PopupMenu m;
     for (int i = 0; i < (int) std::size(items); ++i)
-        m.addItem(i + 1, items[i].name, true, std::abs(snapChoice_ - items[i].beats) < 1e-9);
+        m.addItem(i + 1, tr(items[i].key, items[i].name), true, std::abs(snapChoice_ - items[i].beats) < 1e-9);
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
                     [this, bar](int r) {
         const double beats[] = {0.0, -1.0, bar, 2.0, 1.0, 0.5, 0.25, 0.125, 0.0625};

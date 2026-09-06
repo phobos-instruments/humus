@@ -4,10 +4,12 @@
 #include <cmath>
 #include <string>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
-constexpr double kQButter = 0.70710678118654752;
+constexpr double kQButter = kSqrtHalf;
 constexpr double kQ8a = 0.54119610014620261, kQ8b = 1.3065629648763764;
 constexpr double kDefaults[4][4] = {
     {1000, 0, 0, 0}, {300, 3000, 0, 0}, {150, 800, 5000, 0}, {100, 500, 2000, 8000}};

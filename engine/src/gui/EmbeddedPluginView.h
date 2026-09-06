@@ -14,6 +14,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/PluginEditorTeardown.h"
 #include "gui/PluginParamMirror.h"
+#include "gui/Localisation.h"
 
 #if JUCE_MAC
 namespace hum {
@@ -100,7 +101,7 @@ public:
             g, host_, name_, getLocalBounds(),
             windowed_
                 ? (floatOwns
-                       ? juce::String("UI open in its own window")
+                       ? juce::String(tr("embedded-plugin.ui-open-in-its-own", "UI open in its own window"))
                        : juce::String("This plugin brings its own window  -  click to open it"))
                 : floatOwns
                     ? juce::String("UI in Float window  -  close it to embed here")

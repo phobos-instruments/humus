@@ -8,7 +8,9 @@
 
 namespace hum {
 
-static bool hidden(const OrganismModel& c) { return isHiddenOrganism(c.displayClass); }
+static bool hidden(const OrganismModel& c) {
+    return c.internal || isHiddenOrganism(c.displayClass);
+}
 
 std::vector<PatcherCanvas::DisplayNode> PatcherCanvas::displayNodes() const {
     std::vector<DisplayNode> out;
@@ -63,6 +65,11 @@ void PatcherCanvas::videoPortCounts(const std::string& name, int& ins, int& outs
     auto& h = const_cast<EngineHost&>(host_);
     ins = h.videoInletsOf(name);
     outs = h.videoOutletsOf(name);
+    if (!scope_.empty() && pods::parentOf(name) == scope_)
+        if (const auto* cm = host_.model().byName(name)) {
+            if (pods::isInletClass(cm->displayClass)) ins = 0;
+            else if (pods::isOutletClass(cm->displayClass)) outs = 0;
+        }
 }
 
 bool PatcherCanvas::mapEndpoint(const std::string& node, int port, bool isDstSide,

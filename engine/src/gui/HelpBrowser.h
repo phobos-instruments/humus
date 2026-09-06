@@ -21,6 +21,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/OrganismEditorFactory.h"
 #include "gui/PatcherCanvas.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -144,8 +145,27 @@ private:
         int score = 0;
     };
 
+    static constexpr const char* kTopics[] = {"Families"};
+
     void buildOutline() {
         std::set<std::string> seenDisplay;
+        {
+            Row oh;
+            oh.kind = Row::Header;
+            oh.level = 0;
+            oh.id = (int) outline_.size();
+            oh.label = tr("help-browser.reading-humus", "Reading Humus");
+            outline_.push_back(std::move(oh));
+            for (const char* topic : kTopics) {
+                Row e;
+                e.display = topic;
+                e.level = 1;
+                e.label = juce::String(topic);
+                e.tag = tr("help-browser.reading-humus", "Reading Humus");
+                seenDisplay.insert(e.display);
+                outline_.push_back(std::move(e));
+            }
+        }
         for (const auto& origin : classPickerGroups()) {
             if (origin.first == "Plugins") continue;
             Row oh;
@@ -350,7 +370,7 @@ private:
         if (shown_.empty()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
-            g.drawText("no matches", 10, 0, w - 20, h, juce::Justification::centredLeft);
+            g.drawText(tr("help-browser.no-matches", "no matches"), 10, 0, w - 20, h, juce::Justification::centredLeft);
             return;
         }
         if (row < 0 || row >= (int) shown_.size()) return;

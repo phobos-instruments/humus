@@ -3,6 +3,8 @@
 #include <cmath>
 #include <vector>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 namespace ssd {
 
@@ -114,7 +116,7 @@ struct Crop { float cx, cy, size, angle; };
 
 inline Crop cropFor(const Det& p, float scale = 2.6f, float shift = 0.0f) {
     const float dx = p.kp[2][0] - p.kp[0][0], dy = p.kp[2][1] - p.kp[0][1];
-    const float angle = 3.14159265358979f * 0.5f - std::atan2(-dy, dx);
+    const float angle = kPiF * 0.5f - std::atan2(-dy, dx);
     const float size = std::max(p.w, p.h) * scale;
     return {p.cx - std::sin(angle) * size * shift,
             p.cy + std::cos(angle) * size * shift, size, angle};

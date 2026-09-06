@@ -11,6 +11,7 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -147,8 +148,8 @@ private:
 
 public:
     void primePreview() {
-        const double sr = 44100.0;
-        const double pi2 = 2.0 * 3.14159265358979;
+        const double sr = kDefaultSampleRate;
+        const double pi2 = 2.0 * kPi;
         std::uint32_t rng = 0xC0FFEEu;
         for (int f = 0; f < kRows - 16; ++f) {
             float frame[kFftSize];

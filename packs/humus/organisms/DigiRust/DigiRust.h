@@ -5,6 +5,8 @@
 #include "hum/dsp/DcBlock.h"
 #include "hum/dsp/EnvelopeFollower.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class DigiRust : public Organism {
@@ -22,7 +24,7 @@ private:
         return (float) (rng_ & 0xFFFFFF) / (float) 0xFFFFFF;
     }
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     double phase_ = 0.0;
     double period_ = 1.0;
     float hold_[2] = {};

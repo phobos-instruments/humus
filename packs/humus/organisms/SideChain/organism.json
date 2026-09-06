@@ -39,22 +39,19 @@
           "name": "Attack",
           "min": 0.01,
           "max": 200.0,
-          "def": 1.0,
-          "random": true
+          "def": 1.0
         },
         {
           "name": "Hold",
           "min": 0.0,
           "max": 500.0,
-          "def": 0.0,
-          "random": true
+          "def": 0.0
         },
         {
           "name": "Release",
           "min": 5.0,
           "max": 3000.0,
-          "def": 120.0,
-          "random": true
+          "def": 120.0
         },
         {
           "name": "Makeup",
@@ -119,22 +116,19 @@
           "name": "Attack",
           "min": 0.01,
           "max": 200.0,
-          "def": 1.0,
-          "random": true
+          "def": 1.0
         },
         {
           "name": "Hold",
           "min": 0.0,
           "max": 500.0,
-          "def": 0.0,
-          "random": true
+          "def": 0.0
         },
         {
           "name": "Release",
           "min": 5.0,
           "max": 3000.0,
-          "def": 120.0,
-          "random": true
+          "def": 120.0
         },
         {
           "name": "Makeup",
@@ -199,22 +193,19 @@
           "name": "Attack",
           "min": 0.01,
           "max": 200.0,
-          "def": 1.0,
-          "random": true
+          "def": 1.0
         },
         {
           "name": "Hold",
           "min": 0.0,
           "max": 500.0,
-          "def": 0.0,
-          "random": true
+          "def": 0.0
         },
         {
           "name": "Release",
           "min": 5.0,
           "max": 3000.0,
-          "def": 120.0,
-          "random": true
+          "def": 120.0
         },
         {
           "name": "Makeup",

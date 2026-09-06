@@ -14,7 +14,7 @@ enum Shed {
 
 inline constexpr int kIcon = 31;
 inline constexpr int kSep  = 16;
-inline constexpr int kTempoW = 136;
+inline constexpr int kTempoW = 156;
 inline constexpr int kTsigW = 40;
 inline constexpr int kPlayW = 34;
 inline constexpr int kNavW  = 24;

@@ -1,0 +1,138 @@
+[
+  {
+    "name": "Bare Box",
+    "values": {
+      "Wave": 0.0,
+      "Cutoff": 1000.0,
+      "Resonance": 0.5,
+      "EnvMod": 0.25,
+      "Decay": 1000.0,
+      "Accent": 0.0,
+      "Glide": 60.0,
+      "Drive": 0.0,
+      "AmpDecay": 1230.0,
+      "AccentDecay": 200.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoDepth": 0.0,
+      "Level": 0.8
+    }
+  },
+  {
+    "name": "Bare Box Square",
+    "values": {
+      "Wave": 1.0,
+      "Cutoff": 1000.0,
+      "Resonance": 0.5,
+      "EnvMod": 0.25,
+      "Decay": 1000.0,
+      "Accent": 0.0,
+      "Glide": 60.0,
+      "Drive": 0.0,
+      "AmpDecay": 1230.0,
+      "AccentDecay": 200.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoDepth": 0.0,
+      "Level": 0.8
+    }
+  },
+  {
+    "name": "Classic Squelch",
+    "values": {
+      "Wave": 0.0,
+      "Cutoff": 520.0,
+      "Resonance": 9.12,
+      "EnvMod": 0.7,
+      "Decay": 400.0,
+      "Accent": 0.8,
+      "Glide": 60.0,
+      "Drive": 0.2,
+      "AmpDecay": 1230.0,
+      "AccentDecay": 200.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoDepth": 0.0,
+      "Level": 0.8
+    }
+  },
+  {
+    "name": "Rubber Bass",
+    "values": {
+      "Wave": 1.0,
+      "Cutoff": 314.0,
+      "Resonance": 3.95,
+      "EnvMod": 0.35,
+      "Decay": 250.0,
+      "Accent": 0.4,
+      "Glide": 60.0,
+      "Drive": 0.1,
+      "AmpDecay": 1230.0,
+      "AccentDecay": 200.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoDepth": 0.0,
+      "Level": 0.9
+    }
+  },
+  {
+    "name": "Screamer",
+    "values": {
+      "Wave": 0.0,
+      "Cutoff": 2394.0,
+      "Resonance": 11.42,
+      "EnvMod": 0.9,
+      "Decay": 800.0,
+      "Accent": 1.0,
+      "Glide": 60.0,
+      "Drive": 0.5,
+      "AmpDecay": 1230.0,
+      "AccentDecay": 200.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoDepth": 0.0,
+      "Level": 0.7
+    }
+  },
+  {
+    "name": "Slow Sweep",
+    "values": {
+      "Wave": 0.0,
+      "Cutoff": 600.0,
+      "Resonance": 7.4,
+      "EnvMod": 0.85,
+      "Decay": 2000.0,
+      "Accent": 0.3,
+      "Glide": 120.0,
+      "Drive": 0.15,
+      "AmpDecay": 3000.0,
+      "AccentDecay": 300.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoDepth": 0.0,
+      "Level": 0.8
+    }
+  },
+  {
+    "name": "Wobble",
+    "values": {
+      "Wave": 0.0,
+      "Cutoff": 700.0,
+      "Resonance": 8.55,
+      "EnvMod": 0.5,
+      "Decay": 500.0,
+      "Accent": 0.6,
+      "Glide": 60.0,
+      "Drive": 0.25,
+      "AmpDecay": 1230.0,
+      "AccentDecay": 200.0,
+      "FilterFM": 0.0,
+      "Track": 0.0,
+      "LfoWave": 0.0,
+      "LfoSync": 1.0,
+      "LfoBeats": 0.5,
+      "LfoDepth": 0.35,
+      "Level": 0.8
+    }
+  }
+]

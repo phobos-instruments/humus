@@ -192,6 +192,14 @@
           "max": 127.0,
           "def": 45.0,
           "int": true
+        },
+        {
+          "name": "Bank",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 0.0,
+          "int": true,
+          "enum": true
         }
       ]
     }

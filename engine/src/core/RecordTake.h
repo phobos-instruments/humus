@@ -9,12 +9,12 @@
 namespace hum::rec {
 
 inline std::string nextTakeName(const std::vector<std::string>& existing,
-                                const std::string& track) {
+                                const std::string& track, const std::string& ext = ".wav") {
     const std::string prefix = track + "-";
     int maxN = 0;
     for (const auto& f : existing) {
         if (f.rfind(prefix, 0) != 0) continue;
-        const auto dot = f.rfind(".wav");
+        const auto dot = f.rfind(ext);
         if (dot == std::string::npos || dot <= prefix.size()) continue;
         const std::string digits = f.substr(prefix.size(), dot - prefix.size());
         if (digits.empty() || digits.find_first_not_of("0123456789") != std::string::npos)
@@ -23,7 +23,7 @@ inline std::string nextTakeName(const std::vector<std::string>& existing,
     }
     char buf[16];
     std::snprintf(buf, sizeof(buf), "%03d", maxN + 1);
-    return prefix + buf + ".wav";
+    return prefix + buf + ext;
 }
 
 struct Lap {

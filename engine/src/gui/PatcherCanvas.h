@@ -65,6 +65,7 @@ public:
 
     const std::string& scope() const { return scope_; }
     void enterPod(const std::string& pod);
+    void videoPortCounts(const std::string& name, int& ins, int& outs) const;
     void exitToScope(const std::string& scope);
 
     void autoArrange();
@@ -148,7 +149,6 @@ private:
     void midiPortCounts(const std::string& name, int& ins, int& outs) const;
     juce::Point<int> videoInletPos(const std::string& name, int port);
     juce::Point<int> videoOutletPos(const std::string& name, int port);
-    void videoPortCounts(const std::string& name, int& ins, int& outs) const;
     bool hitPort(juce::Point<int> p, std::string& node, int& port, bool& isOutlet, bool& isMidi,
                  bool& isVideo);
     std::string hitNode(juce::Point<int> p);

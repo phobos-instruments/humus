@@ -11,6 +11,8 @@
 #include "core/GraphMidi.h"
 #include "io/PatchDocument.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class HumusProcessor : public juce::AudioProcessor {
@@ -88,7 +90,7 @@ private:
     std::string docText_;
     std::unique_ptr<juce::XmlElement> docXml_;
     juce::String patchName_;
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     int blockSize_ = 512;
     double lastPpq_ = -1.0;
     bool hostWasPlaying_ = false;

@@ -51,6 +51,7 @@ private:
 
     Pattern pattern_;
     bool stepsDirty_ = true;
+    int bank_ = 0;
     std::vector<BasslineStep> steps_;
     double stepsPerBeat_ = 4.0;
 

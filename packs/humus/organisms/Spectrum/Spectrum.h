@@ -4,6 +4,8 @@
 #include "hum/Capabilities.h"
 #include "hum/Organism.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Spectrum : public Organism, public ScopeSource {
@@ -31,7 +33,7 @@ public:
         return n;
     }
     unsigned scopeStamp() const override { return stamp_.load(std::memory_order_relaxed); }
-    double scopeRate() const override { return sampleRate_ > 0.0 ? sampleRate_ : 44100.0; }
+    double scopeRate() const override { return sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate; }
 
 private:
     float ring_[kScopeSamples] = {};

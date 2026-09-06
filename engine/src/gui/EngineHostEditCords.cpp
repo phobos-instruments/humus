@@ -17,7 +17,7 @@ static bool bypassesPodBoundary(const PatchDocumentModel& m, const std::string& 
             if (pods::isUnder(outer, pod) || outer == pod) break;
             const auto declared = dom == pods::Domain::Midi
                                       ? pods::midiDeclaredRefs(m, pod, isDst)
-                                  : dom == pods::Domain::Video ? std::vector<pods::PortRef>{}
+                                  : dom == pods::Domain::Video ? pods::videoDeclaredRefs(m, pod, isDst)
                                                                : pods::declaredRefs(m, pod, isDst);
             if (pods::indexOfRef(declared, inner, chan) < 0) return true;
         }
@@ -323,10 +323,12 @@ int EngineHost::midiOutletsOf(const std::string& name) {
 void EngineHost::connectVideo(const std::string& src, int srcPort,
                               const std::string& dst, int dstPort) {
     if (src == dst) return;
-    if (cordWouldStray(src, srcPort, dst, dstPort, pods::Domain::Video)) return;
-    if (isVideoConnected(src, srcPort, dst, dstPort)) return;
+    ConnectionModel c{src, srcPort, dst, dstPort};
+    pods::resolvePodVideoCord(model_, c);
+    if (cordWouldStray(c.src, c.srcOutlet, c.dst, c.dstInlet, pods::Domain::Video)) return;
+    if (isVideoConnected(c.src, c.srcOutlet, c.dst, c.dstInlet)) return;
     pushUndo();
-    model_.videoConnections.push_back({src, srcPort, dst, dstPort});
+    model_.videoConnections.push_back(c);
     rebuild();
 }
 
@@ -349,8 +351,18 @@ bool EngineHost::isVideoConnected(const std::string& src, int srcPort,
 }
 
 std::string EngineHost::videoSourceInto(const std::string& dst, int dstPort) const {
+    int outlet = 0;
+    return videoSourceInto(dst, dstPort, outlet);
+}
+
+std::string EngineHost::videoSourceInto(const std::string& dst, int dstPort,
+                                        int& srcOutlet) const {
     for (auto& c : model_.videoConnections)
-        if (c.dst == dst && c.dstInlet == dstPort) return c.src;
+        if (c.dst == dst && c.dstInlet == dstPort) {
+            srcOutlet = c.srcOutlet;
+            return c.src;
+        }
+    srcOutlet = 0;
     return {};
 }
 

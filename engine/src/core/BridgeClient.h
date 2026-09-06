@@ -10,6 +10,8 @@
 #include "core/BridgeProtocol.h"
 #include "core/BridgeRing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class BridgeClient : private juce::ChildProcessCoordinator {
@@ -60,7 +62,7 @@ private:
     juce::File shmFile_;
     std::string classRaw_;
     juce::String descXml_;
-    double pendingSr_ = 44100.0;
+    double pendingSr_ = kDefaultSampleRate;
     int pendingBlock_ = 512;
 
     BridgeHello hello_;

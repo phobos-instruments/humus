@@ -38,8 +38,7 @@
           "name": "Decay",
           "min": 5.0,
           "max": 6000.0,
-          "def": 900.0,
-          "random": true
+          "def": 900.0
         },
         {
           "name": "Strike",

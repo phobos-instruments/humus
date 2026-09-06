@@ -5,13 +5,14 @@
 
 #include "gui/IconGlyph.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
 class ViewSwitch : public juce::Component, public juce::SettableTooltipClient {
 public:
     explicit ViewSwitch(bool knobsUi = true) : knobsUi_(knobsUi) {
-        if (knobsUi_) setTooltip("View: generic knobs / the plugin's own UI");
+        if (knobsUi_) setTooltip(tr("switch.view-generic-knobs-the-plugin", "View: generic knobs / the plugin's own UI"));
     }
 
     std::function<void(bool second)> onChange;
@@ -59,8 +60,8 @@ public:
 
     void setCollapsed(bool c) {
         collapsed_ = c;
-        setTooltip(c ? "Expand to the full editor"
-                     : "Collapse to a compact device strip");
+        setTooltip(c ? tr("switch.expand-to-the-full-editor", "Expand to the full editor")
+                     : tr("switch.collapse-to-a-compact-device", "Collapse to a compact device strip"));
         repaint();
     }
 
@@ -90,7 +91,7 @@ private:
 class FloatButton : public juce::Button {
 public:
     FloatButton() : juce::Button({}) {
-        setTooltip("Float: open the plugin's UI in its own window");
+        setTooltip(tr("switch.float-open-the-plugin-s", "Float: open the plugin's UI in its own window"));
     }
 
     void paintButton(juce::Graphics& g, bool over, bool) override {

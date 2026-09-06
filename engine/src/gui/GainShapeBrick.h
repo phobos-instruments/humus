@@ -1,17 +1,21 @@
 #pragma once
 #include <cmath>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/UiTicker.h"
+#include "hum/Capabilities.h"
 #include "hum/dsp/GainShape.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
-class GainShapeBrick : public juce::Component {
+class GainShapeBrick : public juce::Component, public juce::SettableTooltipClient {
 public:
     GainShapeBrick(EngineHost& host, std::string organism, std::string param)
         : host_(host), cn_(std::move(organism)), pn_(std::move(param)) {
@@ -19,34 +23,94 @@ public:
             shape_ = gainShapePreset(0);
         for (int i = 0; i < kGainShapePresets; ++i)
             if (encodeGainShape(shape_) == encodeGainShape(gainShapePreset(i))) activePreset_ = i;
+        tickerId_ = UiTicker::instance().add([this] { pollPlayhead(); });
+    }
+    ~GainShapeBrick() override { UiTicker::instance().remove(tickerId_); }
+
+    bool playheadShowing() const { return playhead_ >= 0.0f; }
+    float playheadPhase() const { return playhead_; }
+
+    void pollPlayhead() {
+        float phase = -1.0f, gain = playGain_;
+        if (auto* cs = dynamic_cast<ControlSource*>(host_.liveOrganism(cn_)); cs != nullptr
+                                                                             && host_.isPlaying()) {
+            ControlSource::ControlVal vals[4];
+            const int n = cs->controlValues(vals, 4);
+            for (int i = 0; i < n; ++i) {
+                if (juce::String(vals[i].name) == "phase") phase = vals[i].value;
+                if (juce::String(vals[i].name) == "gain") gain = vals[i].value;
+            }
+        }
+        const int w = juce::jmax(1, curveArea().getWidth());
+        if ((int) (phase * w) == (int) (playhead_ * w) && std::abs(gain - playGain_) < 0.004f)
+            return;
+        playhead_ = phase;
+        playGain_ = gain;
+        repaint(curveArea());
     }
 
     void paint(juce::Graphics& g) override {
         const auto area = curveArea().toFloat();
         g.setColour(Palette::background);
         g.fillRoundedRectangle(area, 4.0f);
+        const auto plot = plotArea();
+        auto xOf = [&plot](double ph) { return plot.getX() + (float) ph * plot.getWidth(); };
+        auto yOf = [&plot](double v) { return plot.getBottom() - (float) v * plot.getHeight(); };
         g.setColour(Palette::border.withAlpha(0.35f));
-        for (int q = 1; q < 4; ++q) {
-            const float x = area.getX() + area.getWidth() * (float) q / 4.0f;
-            const float y = area.getY() + area.getHeight() * (float) q / 4.0f;
-            g.drawVerticalLine((int) x, area.getY() + 2, area.getBottom() - 2);
-            g.drawHorizontalLine((int) y, area.getX() + 2, area.getRight() - 2);
+        for (int q = 1; q < 4; ++q)
+            g.drawVerticalLine((int) xOf(q / 4.0), area.getY() + 2, area.getBottom() - 2);
+        g.setFont(juce::FontOptions(10.0f));
+        for (const auto& [db, label] : kAxis) {
+            const float y = yOf(std::pow(10.0, db / 20.0));
+            g.setColour(Palette::border.withAlpha(0.35f));
+            if (db < 0.0) g.drawHorizontalLine((int) y, area.getX() + 2, area.getRight() - 2);
+            g.setColour(Palette::textDim);
+            const int ly = juce::jlimit((int) area.getY(), (int) area.getBottom() - 12, (int) y - 6);
+            g.drawText(label, 0, ly, kAxisW - 4, 12, juce::Justification::centredRight);
         }
-        juce::Path p;
-        p.startNewSubPath(area.getX(), area.getBottom());
+        for (int i = 0; i < kTools; ++i) {
+            const auto b = toolRect(i).toFloat();
+            g.setColour(Palette::panelLight);
+            g.fillRoundedRectangle(b, 3.0f);
+            g.setColour(Palette::textDim);
+            if (i >= 2) {
+                g.setFont(juce::FontOptions(9.0f));
+                g.drawText(i == 2 ? tr("gain-shape.rev", "REV") : tr("gain-shape.inv", "INV"), b.toNearestInt(), juce::Justification::centred);
+                continue;
+            }
+            juce::Path arrow;
+            const auto c = b.getCentre();
+            const float dx = i == 0 ? -2.5f : 2.5f;
+            arrow.addTriangle(c.x + dx, c.y, c.x - dx, c.y - 4.0f, c.x - dx, c.y + 4.0f);
+            g.fillPath(arrow);
+        }
+        juce::Path curve;
         const int steps = juce::jmax(64, (int) area.getWidth() / 2);
         for (int i = 0; i <= steps; ++i) {
             const double ph = (double) i / steps;
             const double v = drawing_ ? slotValue(ph) : shape_.eval(ph);
-            p.lineTo(area.getX() + (float) ph * area.getWidth(),
-                     area.getBottom() - (float) v * area.getHeight());
+            if (i == 0) curve.startNewSubPath(xOf(ph), yOf(v)); else curve.lineTo(xOf(ph), yOf(v));
         }
-        p.lineTo(area.getRight(), area.getBottom());
-        p.closeSubPath();
+        juce::Path fill(curve);
+        fill.lineTo(xOf(1.0), area.getBottom());
+        fill.lineTo(xOf(0.0), area.getBottom());
+        fill.closeSubPath();
+        juce::Path frame;
+        frame.addRoundedRectangle(area, 4.0f);
+        g.saveState();
+        g.reduceClipRegion(frame);
         g.setColour(Palette::accent.withAlpha(0.45f));
-        g.fillPath(p);
+        g.fillPath(fill);
         g.setColour(Palette::accent);
-        g.strokePath(p, juce::PathStrokeType(2.0f));
+        g.strokePath(curve, juce::PathStrokeType(kStroke));
+        if (playhead_ >= 0.0f) {
+            const float x = xOf(playhead_);
+            g.setColour(Palette::text.withAlpha(0.55f));
+            g.drawVerticalLine((int) x, area.getY() + 2, area.getBottom() - 2);
+            g.setColour(Palette::text);
+            g.fillEllipse(x - 3.0f, yOf(playGain_) - 3.0f, 6.0f, 6.0f);
+        }
+        g.restoreState();
         g.setColour(Palette::border);
         g.drawRoundedRectangle(area, 4.0f, 1.0f);
 
@@ -71,7 +135,23 @@ public:
         }
     }
 
+    juce::Rectangle<int> curveArea() const {
+        auto r = getLocalBounds();
+        r.removeFromLeft(kAxisW);
+        r.removeFromBottom(kTileRows * kTileH + kTileRows * kTileGap);
+        return r;
+    }
+
+    void reverse() { replace(reversedGainShape(shape_)); }
+    void invert() { replace(invertedGainShape(shape_)); }
+    void nudge(double delta) { replace(rotatedGainShape(shape_, delta)); }
+
     void mouseDown(const juce::MouseEvent& e) override {
+        const double step = e.mods.isShiftDown() ? kBigNudge : kNudge;
+        if (toolRect(0).contains(e.getPosition())) { nudge(-step); return; }
+        if (toolRect(1).contains(e.getPosition())) { nudge(step); return; }
+        if (toolRect(2).contains(e.getPosition())) { reverse(); return; }
+        if (toolRect(3).contains(e.getPosition())) { invert(); return; }
         for (int i = 0; i < kGainShapePresets; ++i)
             if (tileRect(i).contains(e.getPosition())) {
                 shape_ = gainShapePreset(i);
@@ -103,21 +183,53 @@ public:
         setMouseCursor(curveArea().contains(e.getPosition())
                            ? juce::MouseCursor::CrosshairCursor
                            : juce::MouseCursor::NormalCursor);
+        const juce::String tip = toolRect(0).contains(e.getPosition())
+                                     ? "Earlier: slide the shape back by 1/32 of the cycle (Shift: 1/8)"
+                                 : toolRect(1).contains(e.getPosition())
+                                     ? "Later: slide the shape on by 1/32 of the cycle (Shift: 1/8)"
+                                 : toolRect(2).contains(e.getPosition())
+                                     ? "Reverse: play the shape backwards in time"
+                                 : toolRect(3).contains(e.getPosition())
+                                     ? "Invert: flip the gain, so dips become peaks"
+                                     : juce::String();
+        if (tip != getTooltip()) setTooltip(tip);
     }
 
 private:
     static constexpr int kSlots = 129;
     static constexpr int kTileRows = 2, kTileCols = 5, kTileH = 26, kTileGap = 4;
 
-    juce::Rectangle<int> curveArea() const {
-        auto r = getLocalBounds();
-        r.removeFromBottom(kTileRows * kTileH + kTileRows * kTileGap);
-        return r;
+    static constexpr float kStroke = 2.0f;
+    static constexpr int kAxisW = 34;
+    static constexpr std::pair<double, const char*> kAxis[] = {
+        {0.0, "0 dB"}, {-3.0, "-3"}, {-6.0, "-6"}, {-12.0, "-12"}, {-24.0, "-24"}};
+    static constexpr double kNudge = 1.0 / 32.0;
+    static constexpr double kBigNudge = 1.0 / 8.0;
+
+    juce::Rectangle<float> plotArea() const {
+        return curveArea().toFloat().reduced(kStroke, kStroke);
+    }
+    static constexpr int kTools = 4;
+
+    juce::Rectangle<int> toolRect(int i) const {
+        const int top = curveArea().getBottom() + kTileGap + 2;
+        const int w = kAxisW - 8;
+        if (i < 2) return {2 + i * (w / 2 + 1), top, w / 2 - 1, 16};
+        return {2, top + (i - 1) * 19, w, 16};
+    }
+    void replace(const GainShape& next) {
+        shape_ = next;
+        activePreset_ = -1;
+        for (int i = 0; i < kGainShapePresets; ++i)
+            if (encodeGainShape(shape_) == encodeGainShape(gainShapePreset(i))) activePreset_ = i;
+        push();
+        repaint();
     }
     juce::Rectangle<int> tileRect(int i) const {
         const int row = i / kTileCols, col = i % kTileCols;
-        const int w = (getWidth() - (kTileCols - 1) * kTileGap) / kTileCols;
-        return {col * (w + kTileGap),
+        const int span = getWidth() - kAxisW;
+        const int w = (span - (kTileCols - 1) * kTileGap) / kTileCols;
+        return {kAxisW + col * (w + kTileGap),
                 getHeight() - (kTileRows - row) * (kTileH + kTileGap) + kTileGap, w, kTileH};
     }
 
@@ -192,6 +304,9 @@ private:
     float slots_[kSlots] = {};
     int lastSlot_ = -1;
     float lastVal_ = 0.0f;
+    int tickerId_ = 0;
+    float playhead_ = -1.0f;
+    float playGain_ = 1.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GainShapeBrick)
 };

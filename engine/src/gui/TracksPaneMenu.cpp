@@ -1,5 +1,7 @@
 #include "hum/dsp/FadeLaw.h"
 #include "hum/dsp/MelodyTrace.h"
+#include "gui/MediaInfo.h"
+#include "gui/VideoProbe.h"
 #include "gui/TracksPane.h"
 
 #include "core/BeatDetector.h"
@@ -9,22 +11,26 @@
 
 #include "gui/ClipColors.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
 namespace {
 constexpr const char* kDefaultInstrument = "Rhizome";
-enum { kMenuOpen = 1, kMenuSplit, kMenuLoop, kMenuRename, kMenuDuplicate, kMenuDelete,
+enum { kMenuOpen = 1, kMenuSplit, kMenuCutAll, kMenuLoop, kMenuRename, kMenuDuplicate, kMenuDelete,
        kMenuSetBpm, kMenuQuantise, kMenuUp, kMenuDown, kMenuOctUp, kMenuOctDown,
-       kMenuLouder, kMenuSofter, kMenuMerge, kMenuToMidi,
+       kMenuLouder, kMenuSofter, kMenuMerge, kMenuToMidi, kMenuInfo,
        kMenuColor0 = 100, kMenuWarp0 = 200, kMenuQuant0 = 300, kMenuStretch0 = 400,
        kMenuFadeIn0 = 400, kMenuFadeOut0 = 410 };
 
-struct FadeShape { const char* name; double curve; };
-constexpr FadeShape kFadeShapes[] = {{"Linear", hum::kFadeLinear},
-                                     {"Equal Power", hum::kFadeEqualPower},
-                                     {"Logarithmic", hum::kFadeLog},
-                                     {"Exponential", hum::kFadeExp}};
+struct FadeShape { const char* key; const char* name; double curve; };
+constexpr FadeShape kFadeShapes[] = {
+    {"tracks-pane-menu.fade-linear", "Linear", hum::kFadeLinear},
+    {"tracks-pane-menu.fade-equal-power", "Equal Power", hum::kFadeEqualPower},
+    {"tracks-pane-menu.fade-logarithmic", "Logarithmic", hum::kFadeLog},
+    {"tracks-pane-menu.fade-exponential", "Exponential", hum::kFadeExp}};
 constexpr int kFadeShapeCount = (int) (sizeof(kFadeShapes) / sizeof(kFadeShapes[0]));
 
 inline int fadeShapeIndex(double curve) {
@@ -72,16 +78,16 @@ void TracksPane::showNoteMenu(juce::Point<int> screenPos) {
     juce::PopupMenu m;
     const int n = (int) selNotes_.size();
     const auto count = n == 1 ? juce::String("note") : juce::String(n) + " notes";
-    m.addSectionHeader(n > 0 ? count : juce::String("No notes selected"));
-    m.addItem(kNoteSelectAll, "Select All", true);
+    m.addSectionHeader(n > 0 ? count : juce::String(tr("tracks-pane-menu.no-notes-selected", "No notes selected")));
+    m.addItem(kNoteSelectAll, tr("tracks-pane-menu.select-all", "Select All"), true);
     if (n > 0) {
         m.addSeparator();
-        m.addSubMenu("Quantise to", quantiseMenu(gridBeats()));
+        m.addSubMenu(tr("tracks-pane-menu.quantise-to", "Quantise to"), quantiseMenu(gridBeats()));
         m.addSeparator();
-        m.addItem(kNoteLouder, "Louder");
-        m.addItem(kNoteSofter, "Softer");
+        m.addItem(kNoteLouder, tr("tracks-pane-menu.louder", "Louder"));
+        m.addItem(kNoteSofter, tr("tracks-pane-menu.softer", "Softer"));
         m.addSeparator();
-        m.addItem(kNoteDelete, "Delete");
+        m.addItem(kNoteDelete, tr("tracks-pane-menu.delete", "Delete"));
     }
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screenPos, screenPos}),
                     [this](int res) {
@@ -104,14 +110,20 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
     const auto ci = clips[(size_t) clip];
 
     juce::PopupMenu menu;
-    menu.addItem(kMenuOpen, "Edit in Organism", !ci.isAudio);
+    menu.addItem(kMenuOpen,
+                 ci.isCompound ? tr("tracks-pane-menu.open-reel", "Open Reel")
+                               : tr("tracks-pane-menu.edit-in-organism", "Edit in Organism"),
+                 ci.isCompound || !ci.hasMedia());
     menu.addSeparator();
-    menu.addItem(kMenuSplit, "Split Here",
+    menu.addItem(kMenuSplit, tr("tracks-pane-menu.split-here", "Split Here"),
                  atTick > ci.startTick && atTick < ci.startTick + ci.lengthTicks);
-    menu.addItem(kMenuLoop, "Loop", true, ci.looped);
-    menu.addItem(kMenuDuplicate, "Duplicate After");
-    menu.addItem(kMenuMerge, "Merge", sel_.size() > 1);
-    menu.addItem(kMenuRename, "Rename...");
+    menu.addItem(kMenuCutAll, tr("tracks-pane-menu.cut-at-playhead", "Cut at Playhead"), clipsUnderPlayhead() > 0);
+    menu.addItem(kMenuLoop, tr("tracks-pane-menu.loop", "Loop"), true, ci.looped);
+    menu.addItem(kMenuDuplicate, tr("tracks-pane-menu.duplicate-after", "Duplicate After"));
+    menu.addItem(kMenuMerge, tr("tracks-pane-menu.merge", "Merge"), sel_.size() > 1);
+    menu.addItem(kMenuRename, tr("tracks-pane-menu.rename", "Rename..."));
+    menu.addItem(kMenuInfo, tr("tracks-pane-menu.media-info", "Media Info..."),
+                 ci.hasMedia() && !ci.isCompound);
     juce::PopupMenu colors;
     for (int i = 0; i <= kNumClipColors; ++i) {
         juce::PopupMenu::Item it(clipColourName(i));
@@ -120,24 +132,24 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
         it.isTicked = ci.color == i;
         colors.addItem(std::move(it));
     }
-    menu.addSubMenu("Color", colors);
-    if (!ci.isAudio) {
+    menu.addSubMenu(tr("tracks-pane-menu.color", "Color"), colors);
+    if (!ci.hasMedia()) {
         const int oct = noteedit::octaveSteps(host_.model());
         juce::PopupMenu notes;
-        notes.addItem(kMenuUp, "Up");
-        notes.addItem(kMenuDown, "Down");
+        notes.addItem(kMenuUp, tr("tracks-pane-menu.up", "Up"));
+        notes.addItem(kMenuDown, tr("tracks-pane-menu.down", "Down"));
         if (oct > 0) {
-            notes.addItem(kMenuOctUp, "Up an Octave");
-            notes.addItem(kMenuOctDown, "Down an Octave");
+            notes.addItem(kMenuOctUp, tr("tracks-pane-menu.up-an-octave", "Up an Octave"));
+            notes.addItem(kMenuOctDown, tr("tracks-pane-menu.down-an-octave", "Down an Octave"));
         }
         notes.addSeparator();
-        notes.addSubMenu("Quantise to", quantiseMenu(gridBeats()));
+        notes.addSubMenu(tr("tracks-pane-menu.quantise-to", "Quantise to"), quantiseMenu(gridBeats()));
         notes.addSeparator();
-        notes.addItem(kMenuLouder, "Louder");
-        notes.addItem(kMenuSofter, "Softer");
-        menu.addSubMenu("Notes", notes);
+        notes.addItem(kMenuLouder, tr("tracks-pane-menu.louder", "Louder"));
+        notes.addItem(kMenuSofter, tr("tracks-pane-menu.softer", "Softer"));
+        menu.addSubMenu(tr("tracks-pane-menu.notes", "Notes"), notes);
     }
-    if (ci.isAudio) {
+    if (ci.hasMedia()) {
         juce::PopupMenu warp;
         const char* names[] = {"Off", "Beats", "Tone"};
         for (int i = 0; i < 3; ++i)
@@ -146,29 +158,32 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
         warp.addItem(kMenuSetBpm, ci.sourceBpm > 0.0
                                       ? "Source Tempo: " + juce::String(ci.sourceBpm, 1) + "..."
                                       : juce::String("Source Tempo..."));
-        menu.addSubMenu("Warp", warp);
+        menu.addSubMenu(tr("tracks-pane-menu.warp", "Warp"), warp);
 
         juce::PopupMenu fades;
         const int inAt = fadeShapeIndex(ci.fadeInCurve);
         const int outAt = fadeShapeIndex(ci.fadeOutCurve);
         juce::PopupMenu fadeIn, fadeOut;
         for (int i = 0; i < kFadeShapeCount; ++i) {
-            fadeIn.addItem(kMenuFadeIn0 + i, kFadeShapes[i].name, ci.fadeInTicks > 0, i == inAt);
-            fadeOut.addItem(kMenuFadeOut0 + i, kFadeShapes[i].name, ci.fadeOutTicks > 0, i == outAt);
+            fadeIn.addItem(kMenuFadeIn0 + i, tr(kFadeShapes[i].key, kFadeShapes[i].name),
+                           ci.fadeInTicks > 0, i == inAt);
+            fadeOut.addItem(kMenuFadeOut0 + i, tr(kFadeShapes[i].key, kFadeShapes[i].name), ci.fadeOutTicks > 0, i == outAt);
         }
-        fades.addSubMenu("In", fadeIn, ci.fadeInTicks > 0);
-        fades.addSubMenu("Out", fadeOut, ci.fadeOutTicks > 0);
-        menu.addSubMenu("Fade Shape", fades, ci.fadeInTicks > 0 || ci.fadeOutTicks > 0);
-        menu.addItem(kMenuToMidi, "Convert to MIDI Track");
+        fades.addSubMenu(tr("tracks-pane-menu.in", "In"), fadeIn, ci.fadeInTicks > 0);
+        fades.addSubMenu(tr("tracks-pane-menu.out", "Out"), fadeOut, ci.fadeOutTicks > 0);
+        menu.addSubMenu(tr("tracks-pane-menu.fade-shape", "Fade Shape"), fades, ci.fadeInTicks > 0 || ci.fadeOutTicks > 0);
+    }
+    if (ci.isAudio) {
+        menu.addItem(kMenuToMidi, tr("tracks-pane-menu.convert-to-midi-track", "Convert to MIDI Track"));
         juce::PopupMenu stretch;
         static const int kStretchFactors[] = {4, 8, 16, 50};
         for (int i = 0; i < 4; ++i)
             stretch.addItem(kMenuStretch0 + i,
                             juce::String(kStretchFactors[i]) + "x to New Track");
-        menu.addSubMenu("Paulstretch", stretch);
+        menu.addSubMenu(tr("tracks-pane-menu.paulstretch", "Paulstretch"), stretch);
     }
     menu.addSeparator();
-    menu.addItem(kMenuDelete, "Delete");
+    menu.addItem(kMenuDelete, tr("tracks-pane-menu.delete", "Delete"));
 
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
@@ -198,6 +213,10 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
             convertClipToMidi(node, ci);
             return;
         }
+        if (res == kMenuInfo) {
+            mediainfo::show(host_, node, ci);
+            return;
+        }
         if (res >= kMenuStretch0 && res < kMenuStretch0 + 4) {
             static const double kFactors[] = {4.0, 8.0, 16.0, 50.0};
             stretchClip(node, clip, ci, kFactors[res - kMenuStretch0]);
@@ -208,8 +227,8 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
                                              "What does this material run at? (0 = unknown)",
                                              juce::MessageBoxIconType::NoIcon);
             aw->addTextEditor("bpm", juce::String(ci.sourceBpm > 0.0 ? ci.sourceBpm : 0.0, 2));
-            aw->addButton("Set", 1, juce::KeyPress(juce::KeyPress::returnKey));
-            aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+            aw->addButton(tr("tracks-pane-menu.set", "Set"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+            aw->addButton(tr("tracks-pane-menu.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
             aw->enterModalState(true, juce::ModalCallbackFunction::create(
                 [this, aw, node, clip](int r) {
                     if (r != 1) return;
@@ -249,19 +268,28 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
         }
         switch (res) {
             case kMenuOpen:
-                if (onOpenClip) onOpenClip(node, clip);
+                if (const auto reel = host_.clips().compoundReel(node, clip); !reel.empty()) {
+                    enterTrackMode(reel);
+                    rebuild();
+                } else if (onOpenClip) {
+                    onOpenClip(node, clip);
+                }
                 break;
             case kMenuSplit:
                 host_.pushUndo();
                 host_.clips().split(node, clip, atTick);
                 break;
-            case kMenuMerge:
+            case kMenuCutAll:
+                cutAtPlayhead();
+                break;
+            case kMenuMerge: {
+                const auto why = mergeRefusal();
                 if (mergeSelection() == 0)
                     juce::AlertWindow::showMessageBoxAsync(
-                        juce::MessageBoxIconType::InfoIcon, "Merge",
-                        "Nothing here could be merged: select two or more clips on one "
-                        "row, or two or more automation boxes.");
+                        juce::MessageBoxIconType::InfoIcon,
+                        tr("tracks-pane-menu.merge-title", "Merge"), why);
                 break;
+            }
             case kMenuLoop:
                 host_.pushUndo();
                 host_.clips().setLooped(node, clip, !ci.looped);
@@ -275,11 +303,11 @@ void TracksPane::showClipMenu(int row, int clip, juce::Point<int> screenPos, int
                 host_.clips().remove(node, clip);
                 break;
             case kMenuRename: {
-                auto* aw = new juce::AlertWindow("Rename Clip", "New clip name:",
+                auto* aw = new juce::AlertWindow(tr("tracks-pane-menu.rename-clip", "Rename Clip"), tr("tracks-pane-menu.new-clip-name", "New clip name:"),
                                                  juce::MessageBoxIconType::NoIcon);
                 aw->addTextEditor("name", juce::String(ci.name));
-                aw->addButton("OK", 1, juce::KeyPress(juce::KeyPress::returnKey));
-                aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+                aw->addButton(tr("tracks-pane-menu.ok", "OK"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+                aw->addButton(tr("tracks-pane-menu.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
                 aw->enterModalState(true, juce::ModalCallbackFunction::create(
                     [this, aw, node, clip](int r2) {
                         if (r2 == 1) {
@@ -343,7 +371,7 @@ int TracksPane::placeAudioFile(const std::string& node, int atTick, const juce::
     const double seconds = (double) reader->lengthInSamples / reader->sampleRate;
     const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
     const int ticks = std::max(1, (int) std::llround(
-        seconds * (bpm / 60.0) * Pattern::kTicksPerBeat));
+        seconds * (bpm / kSecondsPerMinute) * Pattern::kTicksPerBeat));
     const int clip = host_.clips().addAudio(node, atTick, ticks, f.getFullPathName().toStdString());
 
     if (clip >= 0 && seconds >= 2.0) {
@@ -360,42 +388,69 @@ int TracksPane::placeAudioFile(const std::string& node, int atTick, const juce::
     return clip;
 }
 
-void TracksPane::convertClipToMidi(const std::string& node,
-                                   const ClipEditor::ClipInfo& ci) {
-    std::string uri = ci.audioFile;
-    if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-    juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
-    juce::AudioFormatManager fm;
-    fm.registerBasicFormats();
-    std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
-    if (!rd || rd->lengthInSamples <= 0) return;
-
-    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
-    const double ticksPerSecond = bpm / 60.0 * Pattern::kTicksPerBeat;
-    const double hostSr = host_.sampleRate() > 0.0 ? host_.sampleRate() : 44100.0;
-    const double seconds = std::min(600.0, (double) ci.lengthTicks / ticksPerSecond);
-    const auto from = (juce::int64) ((double) ci.audioOffset * rd->sampleRate / hostSr);
-    const int want = (int) std::min<juce::int64>(
-        (juce::int64) std::llround(seconds * rd->sampleRate),
-        rd->lengthInSamples - from);
-    if (want <= 0) return;
-
-    juce::AudioBuffer<float> buf((int) rd->numChannels, want);
-    if (!rd->read(&buf, 0, want, from, true, true)) return;
-    std::vector<float> mono((size_t) want, 0.0f);
-    for (int c = 0; c < buf.getNumChannels(); ++c) {
-        const float* src = buf.getReadPointer(c);
-        for (int i = 0; i < want; ++i) mono[(size_t) i] += src[i];
+namespace {
+class MelodyTraceJob : public juce::ThreadWithProgressWindow {
+public:
+    MelodyTraceJob(std::unique_ptr<juce::AudioFormatReader> reader, juce::int64 from, int want,
+                   double ticksPerSecond, juce::Component::SafePointer<TracksPane> pane,
+                   ClipEditor::ClipInfo clip)
+        : juce::ThreadWithProgressWindow(tr("tracks-pane-menu.convert-to-midi-track-2", "Convert to MIDI Track"), true, true),
+          reader_(std::move(reader)), from_(from), want_(want),
+          ticksPerSecond_(ticksPerSecond), pane_(pane), clip_(std::move(clip)) {
+        setStatusMessage(tr("tracks-pane-menu.reading-the-take", "Reading the take..."));
     }
-    const float norm = 1.0f / (float) std::max(1, buf.getNumChannels());
-    for (auto& v : mono) v *= norm;
 
-    const auto notes = melodytrace::trace(mono.data(), want, rd->sampleRate,
-                                          ticksPerSecond);
-    if (notes.empty()) return;
+    void run() override {
+        std::vector<float> mono((size_t) want_, 0.0f);
+        const int channels = std::max(1, (int) reader_->numChannels);
+        juce::AudioBuffer<float> block(channels, std::min(want_, 1 << 16));
+        for (int at = 0; at < want_ && !threadShouldExit();) {
+            const int take = std::min(block.getNumSamples(), want_ - at);
+            if (!reader_->read(&block, 0, take, from_ + at, true, true)) return;
+            for (int c = 0; c < channels; ++c) {
+                const float* src = block.getReadPointer(std::min(c, block.getNumChannels() - 1));
+                for (int i = 0; i < take; ++i) mono[(size_t) (at + i)] += src[i];
+            }
+            at += take;
+            setProgress(0.2 * (double) at / (double) want_);
+        }
+        if (threadShouldExit()) return;
+        const float norm = 1.0f / (float) channels;
+        for (auto& v : mono) v *= norm;
 
+        setStatusMessage(tr("tracks-pane-menu.listening-for-the-melody", "Listening for the melody..."));
+        notes_ = melodytrace::trace(mono.data(), want_, reader_->sampleRate, ticksPerSecond_,
+                                    [this](double at) {
+            setProgress(0.2 + 0.8 * at);
+            return !threadShouldExit();
+        });
+    }
+
+    void threadComplete(bool userPressedCancel) override {
+        if (!userPressedCancel && pane_ != nullptr && !notes_.empty())
+            pane_->placeTracedMelody(clip_, notes_);
+        else if (!userPressedCancel && notes_.empty())
+            juce::AlertWindow::showMessageBoxAsync(
+                juce::MessageBoxIconType::InfoIcon, "Convert to MIDI Track",
+                "No melody came out of that clip - it may be percussive, noisy or silent.");
+        delete this;
+    }
+
+private:
+    std::unique_ptr<juce::AudioFormatReader> reader_;
+    juce::int64 from_ = 0;
+    int want_ = 0;
+    double ticksPerSecond_ = 1.0;
+    juce::Component::SafePointer<TracksPane> pane_;
+    ClipEditor::ClipInfo clip_;
+    std::vector<NoteEvent> notes_;
+};
+}
+
+void TracksPane::placeTracedMelody(const ClipEditor::ClipInfo& ci,
+                                   const std::vector<NoteEvent>& notes) {
     host_.pushUndo();
-    const auto midiNode = addTrack(false, {});
+    const auto midiNode = addMidiTrack();
     if (midiNode.empty()) return;
     const int clip = host_.clips().add(midiNode, ci.startTick, ci.lengthTicks);
     if (clip < 0) return;
@@ -403,6 +458,30 @@ void TracksPane::convertClipToMidi(const std::string& node,
     if (!ci.name.empty()) host_.clips().rename(midiNode, clip, ci.name + " melody");
     rebuild();
     repaint();
+    if (onPatchChanged) onPatchChanged();
+}
+
+void TracksPane::convertClipToMidi(const std::string&,
+                                   const ClipEditor::ClipInfo& ci) {
+    std::string uri = ci.audioFile;
+    if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
+    juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+    juce::AudioFormatManager fm;
+    fm.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
+    if (!rd || rd->lengthInSamples <= 0 || rd->sampleRate <= 0.0) return;
+
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    const double ticksPerSecond = bpm / kSecondsPerMinute * Pattern::kTicksPerBeat;
+    const double hostSr = host_.sampleRate() > 0.0 ? host_.sampleRate() : kDefaultSampleRate;
+    const double seconds = std::min(600.0, (double) ci.lengthTicks / ticksPerSecond);
+    const auto from = (juce::int64) ((double) ci.audioOffset * rd->sampleRate / hostSr);
+    const int want = (int) std::min<juce::int64>(
+        (juce::int64) std::llround(seconds * rd->sampleRate),
+        rd->lengthInSamples - from);
+    if (want <= 0) return;
+
+    (new MelodyTraceJob(std::move(rd), from, want, ticksPerSecond, this, ci))->launchThread();
 }
 
 void TracksPane::stretchClip(const std::string& node, int clip,
@@ -416,7 +495,7 @@ void TracksPane::stretchClip(const std::string& node, int clip,
     if (!rd || rd->sampleRate <= 0.0) return;
     const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
     const int ticks = std::max(1, (int) std::llround((double) rd->lengthInSamples
-                                                     / rd->sampleRate * bpm / 60.0
+                                                     / rd->sampleRate * bpm / kSecondsPerMinute
                                                      * Pattern::kTicksPerBeat));
     host_.pushUndo();
     const auto dest = addTrack(true, {});
@@ -430,13 +509,15 @@ void TracksPane::stretchClip(const std::string& node, int clip,
     repaint();
 }
 
+std::string TracksPane::addMidiTrack() {
+    const auto node = host_.addOrganism("MidiTrack", host_.spotBelowPatch());
+    if (!node.empty()) host_.patterns().ensureNote(node);
+    return node;
+}
+
 std::string TracksPane::addTrack(bool audio, const std::string& target) {
     clearTimeSelection();
-    if (audio) {
-        const auto node = host_.addOrganism("AudioTrack", host_.spotBelowPatch());
-        if (!node.empty()) host_.connectToMaster(node);
-        return node;
-    }
+    if (audio) return host_.addOrganism("AudioTrack", host_.spotBelowPatch());
     if (!target.empty()) {
         host_.patterns().ensureNote(target);
         return target;
@@ -448,10 +529,42 @@ std::string TracksPane::addTrack(bool audio, const std::string& target) {
     return node;
 }
 
+int TracksPane::clipsUnderPlayhead() const {
+    const int at = (int) std::llround(playBeat_ * Pattern::kTicksPerBeat);
+    int found = 0;
+    for (const auto& node : rows_)
+        for (const auto& ci : host_.clips().list(node))
+            if (!ci.looped && at > ci.startTick && at < ci.startTick + ci.lengthTicks) ++found;
+    return found;
+}
+
+int TracksPane::cutAtPlayhead() {
+    const int at = (int) std::llround(playBeat_ * Pattern::kTicksPerBeat);
+    std::vector<std::pair<std::string, int>> victims;
+    for (const auto& node : rows_)
+        for (const auto& ci : host_.clips().list(node))
+            if (!ci.looped && at > ci.startTick && at < ci.startTick + ci.lengthTicks)
+                victims.emplace_back(node, ci.id);
+    if (victims.empty()) return 0;
+    host_.beginTransaction();
+    host_.pushUndo();
+    int cuts = 0;
+    for (const auto& [node, id] : victims) {
+        const int idx = clipIndexOfId(node, id);
+        if (idx >= 0 && host_.clips().split(node, idx, at) >= 0) ++cuts;
+    }
+    host_.endTransaction();
+    clearClipSel();
+    rebuild();
+    repaint();
+    return cuts;
+}
+
 void TracksPane::showAddTrackMenu(juce::Point<int> screenPos) {
     juce::PopupMenu m;
-    m.addItem(1, "Audio Track");
-    m.addItem(3, "MIDI Track");
+    m.addItem(1, tr("tracks-pane-menu.audio-track", "Audio Track"));
+    m.addItem(3, tr("tracks-pane-menu.midi-track", "MIDI Track"));
+    m.addItem(4, tr("tracks-pane-menu.video-track", "Video Track"));
 
     m.showMenuAsync(juce::PopupMenu::Options()
                         .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
@@ -459,10 +572,8 @@ void TracksPane::showAddTrackMenu(juce::Point<int> screenPos) {
         if (res == 0) return;
         host_.pushUndo();
         if (res == 1) addTrack(true, {});
-        else if (res == 3) {
-            const auto node = host_.addOrganism("MidiTrack", host_.spotBelowPatch());
-            if (!node.empty()) host_.patterns().ensureNote(node);
-        }
+        else if (res == 4) host_.addOrganism("VideoTrack", host_.spotBelowPatch());
+        else if (res == 3) addMidiTrack();
         rebuild();
         repaint();
         if (onPatchChanged) onPatchChanged();
@@ -481,20 +592,25 @@ static const juce::String& audioWildcard() {
 bool TracksPane::isInterestedInFileDrag(const juce::StringArray& files) {
     static const juce::String exts = audioWildcard().replace("*.", "").replace(";*", ";");
     for (const auto& f : files)
-        if (juce::File(f).hasFileExtension(exts)) return true;
+        if (juce::File(f).hasFileExtension(exts) || isVideoFile(juce::File(f))) return true;
     return false;
 }
 
-std::string TracksPane::dropTargetNode(int y) {
+std::string TracksPane::dropTargetNode(int y, bool video) {
     if (const int row = rowAt(y); row >= 0) {
         const auto& node = rows_[(size_t) row];
-        if (host_.nodeRecordsAudio(node)) return node;
+        if (video ? host_.nodeArrangesVideo(node) : host_.nodeRecordsAudio(node)) return node;
     }
-    const int n = (int) host_.arrangeableNodes().size();
-    const auto node = host_.addOrganism("AudioTrack", host_.spotBelowPatch());
-    if (node.empty()) return node;
-    host_.connectToMaster(node);
-    return node;
+    return host_.addOrganism(video ? "VideoTrack" : "AudioTrack", host_.spotBelowPatch());
+}
+
+int TracksPane::placeVideoFile(const std::string& node, int atTick, const juce::File& f) {
+    const double seconds = probeVideoSeconds(f);
+    if (seconds <= 0.0) return -1;
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    const int ticks = std::max(1, (int) std::llround(
+        seconds * (bpm / kSecondsPerMinute) * Pattern::kTicksPerBeat));
+    return host_.clips().addVideo(node, atTick, ticks, f.getFullPathName().toStdString());
 }
 
 void TracksPane::filesDropped(const juce::StringArray& files, int x, int y) {
@@ -507,9 +623,10 @@ void TracksPane::filesDropped(const juce::StringArray& files, int x, int y) {
     for (const auto& path : files) {
         const juce::File f(path);
         if (!f.existsAsFile() || !isInterestedInFileDrag({path})) continue;
-        const auto node = dropTargetNode(y);
+        const bool video = isVideoFile(f);
+        const auto node = dropTargetNode(y, video);
         if (node.empty()) continue;
-        const int clip = placeAudioFile(node, tick, f);
+        const int clip = video ? placeVideoFile(node, tick, f) : placeAudioFile(node, tick, f);
         if (clip < 0) continue;
         ++placed;
         for (const auto& ci : host_.clips().list(node))
@@ -517,16 +634,21 @@ void TracksPane::filesDropped(const juce::StringArray& files, int x, int y) {
     }
     host_.endTransaction();
     if (placed > 0) { rebuild(); repaint(); return; }
+    const juce::File first(files[0]);
+    const auto kind = isVideoFile(first) ? tr("tracks-pane-menu.as-video", "as video")
+                                         : tr("tracks-pane-menu.as-audio", "as audio");
     juce::AlertWindow::showMessageBoxAsync(
-        juce::MessageBoxIconType::WarningIcon, "Import",
+        juce::MessageBoxIconType::WarningIcon, tr("tracks-pane-menu.import", "Import"),
         files.size() == 1
-            ? juce::File(files[0]).getFileName() + " could not be read as audio."
-            : juce::String("None of those files could be read as audio."));
+            ? first.getFileName() + " " + tr("tracks-pane-menu.could-not-be-read", "could not be read")
+                  + " " + kind + "."
+            : tr("tracks-pane-menu.none-readable",
+                 "None of those files could be read as audio or video."));
 }
 
 void TracksPane::importAudioInto(const std::string& node, int atTick) {
     chooser_ = std::make_unique<juce::FileChooser>(
-        "Import Audio File",
+        tr("tracks-pane-menu.import-audio-file", "Import Audio File"),
         juce::File::getSpecialLocation(juce::File::userMusicDirectory),
         audioWildcard());
     chooser_->launchAsync(juce::FileBrowserComponent::openMode

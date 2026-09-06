@@ -5,6 +5,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Ph::prepare(double sampleRate, int) {
@@ -269,7 +271,7 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
     }
     stagedCount_ = 0;
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double ratio = (voice_ == Voice::SixOp ? PhSixOp::kRate
                           : voice_ == Voice::Opm  ? PhOpm::kRate
                           : voice_ == Voice::Opl  ? PhOpl::kRate

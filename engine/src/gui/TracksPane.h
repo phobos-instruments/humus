@@ -19,6 +19,8 @@
 #include "gui/TimelineItems.h"
 #include "gui/TracksLayout.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class TracksPane : public juce::Component,
@@ -48,10 +50,16 @@ public:
         repaint();
     }
     std::string addTrack(bool audio, const std::string& target);
+    std::string addMidiTrack();
+    void placeTracedMelody(const ClipEditor::ClipInfo& ci,
+                           const std::vector<NoteEvent>& notes);
     void convertClipToMidi(const std::string& node, const ClipEditor::ClipInfo& ci);
     void stretchClip(const std::string& node, int clip, const ClipEditor::ClipInfo& ci,
                      double factor);
     juce::Rectangle<int> clipBounds(int row, const ClipEditor::ClipInfo& ci) const;
+    static bool showsFilmstrip(const ClipEditor::ClipInfo& ci) {
+        return ci.isVideo || ci.isCompound;
+    }
     const std::vector<trackslayout::Slot>& slotsForTest() const { return slots_; }
     juce::Rectangle<float> noteBoundsForTest(int clipStart, const NoteEvent& n) const {
         return noteBounds(clipStart, n);
@@ -60,6 +68,8 @@ public:
     int selectedClipCountForTest() const { return (int) selectedClipList().size(); }
     juce::Rectangle<int> rollFieldForTest() const { return rollField(); }
     void selectClipForTest(int row, int clip) { selectClip(row, clip); }
+    int mergeSelectionForTest() { return mergeSelection(); }
+    juce::String mergeRefusalForTest() const { return mergeRefusal(); }
     int rollTopPitchForTest() const { return rollPlot().topPitch; }
     void selectNoteForTest(int clip, int index) { selNotes_ = {{clip, index}}; }
     bool nodeHasMuteParamForTest(const std::string& n) const { return nodeHasMuteParam(n); }
@@ -71,6 +81,12 @@ public:
     }
 
     bool timeSelection(double& from, double& to) const;
+    int loopLaneYForTest() const { return loopTop() + kLoopH / 2; }
+    void deleteRow(const std::string& node);
+    int cutAtPlayhead();
+    int clipsUnderPlayhead() const;
+    bool ownsRow(const std::string& node) const;
+    float beatToXForTest(double beat) const { return beatToX(beat); }
     void clearTimeSelection() { hasSel_ = false; repaint(); }
     bool followPlayback() const { return follow_; }
     double scrollBeats() const { return scrollBeats_; }
@@ -147,9 +163,9 @@ public:
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
 
 private:
-    static constexpr int kTopH = 18;
-    static constexpr int kStripW = 200, kLoopH = 11, kRulerH = 24, kLaneH = 32;
-    static constexpr int kLoopGrip = 5;
+    static constexpr int kTopH = 21;
+    static constexpr int kStripW = 200, kLoopH = 14, kRulerH = 24, kLaneH = 32;
+    static constexpr int kLoopGrip = 7, kLoopHit = 8;
     static constexpr int kRowHMin = 22, kRowHMax = 180, kRowHDefault = 68;
     int kRowH = kRowHDefault;
     void zoomBy(int axis, double factor);
@@ -276,7 +292,7 @@ private:
     double selFrom_ = 0.0, selTo_ = 0.0, selAnchor_ = 0.0;
     bool follow_ = false;
     bool liveRec_ = false;
-    juce::Rectangle<int> followBox() const { return {kStripW - 68, 1, 64, kTopH - 2}; }
+    juce::Rectangle<int> followBox() const { return {kStripW - 88, 1, 84, kTopH - 2}; }
 
     Mode mode_ = Mode::Song;
     std::string trackNode_;
@@ -301,9 +317,9 @@ private:
     void rollPitchRange(int& lo, int& hi) const;
     std::vector<std::string> noteRows() const;
     void stepTrack(int dir);
-    juce::Rectangle<int> crumbSongBox() const { return {kStripW + 6, 1, 34, kTopH - 2}; }
-    juce::Rectangle<int> crumbNameBox() const { return {kStripW + 44, 1, 150, kTopH - 2}; }
-    juce::Rectangle<int> crumbBackBox() const { return {kStripW + 6, 1, 104, kTopH - 2}; }
+    juce::Rectangle<int> crumbSongBox() const { return {kStripW + 6, 1, 42, kTopH - 2}; }
+    juce::Rectangle<int> crumbNameBox() const { return {kStripW + 52, 1, 176, kTopH - 2}; }
+    juce::Rectangle<int> crumbBackBox() const { return {kStripW + 6, 1, 126, kTopH - 2}; }
     int hoverPtSlot_ = -1, hoverPt_ = -1;
     struct PointCopy { double beat, value, valueMax, curve; };
     std::vector<PointCopy> pointClipboard_;
@@ -331,7 +347,7 @@ private:
     int velAtY(int y) const {
         const int laneTop = fieldBottom() - velH_;
         const double f = 1.0 - (double) (y - laneTop - 3) / (double) (velH_ - 6);
-        return juce::jlimit(1, 127, (int) std::lround(f * 127.0));
+        return juce::jlimit(1, kMidiMax, (int) std::lround(f * kMidiMaxD));
     }
     std::set<std::string> selTracks_;
     juce::Point<int> velAnchor_;
@@ -419,7 +435,8 @@ private:
 
     bool dropHot_ = false;
     int placeAudioFile(const std::string& node, int atTick, const juce::File& f);
-    std::string dropTargetNode(int y);
+    int placeVideoFile(const std::string& node, int atTick, const juce::File& f);
+    std::string dropTargetNode(int y, bool video);
 
     juce::Rectangle<int> destBox(int row, const std::string& node) const {
         return timelinechrome::midiDestChipRect(
@@ -435,6 +452,14 @@ private:
     void paintRow(juce::Graphics&, int row);
     void paintRowHeader(juce::Graphics&, int row, int y);
     void paintAutoLane(juce::Graphics&, const trackslayout::Slot& slot);
+    bool paintTapeTiles(juce::Graphics&, juce::Rectangle<int>, const ClipEditor::ClipInfo&);
+    static constexpr int kMaxReelPaintDepth = 4;
+    bool paintReelTiles(juce::Graphics&, juce::Rectangle<int>, const ClipEditor::ClipInfo&,
+                        int depth = 0);
+    void paintFilmstrip(juce::Graphics&, juce::Rectangle<int> b,
+                        const ClipEditor::ClipInfo& ci, juce::Colour ink);
+    double clipSecondsAtX(const ClipEditor::ClipInfo& ci, int x) const;
+    void dropPad(const std::string& pad, int index, juce::Point<int> at);
     void paintWaveform(juce::Graphics&, juce::Rectangle<int> b, int clipLeft,
                        const ClipEditor::ClipInfo& ci, juce::Colour accent);
     void paintNotes(juce::Graphics&, juce::Rectangle<int> b, int clipLeft,
@@ -459,6 +484,7 @@ private:
     double ppb_ = 26.0;
     double scrollBeats_ = 0.0;
     double playBeat_ = 0.0;
+    unsigned lastLocate_ = 0;
     int vScroll_ = 0;
     void applyVScroll(int v);
     void mouseMagnify(const juce::MouseEvent&, float scaleFactor) override;
@@ -471,7 +497,7 @@ private:
     Tool tool_ = Tool::Pointer;
     Tool effectiveTool() const;
     juce::Rectangle<int> toolBox(int i) const { return {6 + i * 24, rulerTop() + 1, 22, kRulerH - 3}; }
-    juce::Rectangle<int> snapBox() const { return {kStripW - 34, rulerTop() + 1, 32, kRulerH - 3}; }
+    juce::Rectangle<int> snapBox() const { return {kStripW - 44, rulerTop() + 1, 40, kRulerH - 3}; }
     juce::Rectangle<int> addTrackBox() const {
         return {6 + kToolCount * 24, rulerTop() + 1, 22, kRulerH - 3};
     }
@@ -553,6 +579,7 @@ private:
     bool deleteSelection();
     bool duplicateSelection();
     int mergeSelection();
+    juce::String mergeRefusal() const;
     void selectAll();
     juce::Rectangle<int> clipMarquee_;
     void updateClipMarquee(juce::Point<int> p);
@@ -600,6 +627,11 @@ private:
     double boxTrimL_ = 0.0, boxTrimR_ = 0.0;
     double boxOrigS_ = 0.0, boxOrigE_ = 0.0;
     double loopAnchor_ = 0.0;
+    bool loopDrawn_ = false;
+    void showLoopMenu(juce::Point<int> at);
+    bool overLoopLane(juce::Point<int> p) const {
+        return p.x >= kStripW && p.y >= loopTop() && p.y < rulerTop();
+    }
     double loopOrigStart_ = 0.0, loopOrigEnd_ = 0.0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TracksPane)

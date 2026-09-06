@@ -6,6 +6,7 @@
 #include "hum/Capabilities.h"
 #include "hum/HeldNotes.h"
 #include "hum/Organism.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -24,7 +25,7 @@ struct Wander {
             rng ^= rng << 5;
             v1 = (double) rng / 2147483648.0 - 1.0;
         }
-        const double s = 0.5 - 0.5 * std::cos(3.14159265358979 * pos);
+        const double s = 0.5 - 0.5 * std::cos(kPi * pos);
         value = v0 + (v1 - v0) * s;
         return value;
     }

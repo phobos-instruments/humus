@@ -8,14 +8,14 @@ namespace hum::clipops {
 
 inline bool slipClip(Pattern& p, int clip, std::int64_t deltaSamples) {
     auto* ch = clipChannel(p, clip);
-    if (!ch || !isAudioClip(*ch)) return false;
+    if (!ch || !isMediaClip(*ch)) return false;
     ch->audioOffset = std::max<std::int64_t>(0, ch->audioOffset + deltaSamples);
     return true;
 }
 
 inline bool setClipGain(Pattern& p, int clip, double gain) {
     auto* ch = clipChannel(p, clip);
-    if (!ch || !isAudioClip(*ch)) return false;
+    if (!ch || !isMediaClip(*ch)) return false;
     ch->audioGain = std::max(0.0, gain);
     return true;
 }
@@ -65,7 +65,7 @@ inline PatternChannel clipRangeCopy(const Pattern& p, int clip, int fromAbs, int
 
 inline bool stretchClip(Pattern& p, int clip, int newLengthTicks, double projectBpm) {
     auto* ch = clipChannel(p, clip);
-    if (!ch || !isAudioClip(*ch) || newLengthTicks <= 0 || projectBpm <= 0.0) return false;
+    if (!ch || !isMediaClip(*ch) || newLengthTicks <= 0 || projectBpm <= 0.0) return false;
     const int oldLen = clipLength(p, clip);
     const double bpm = ch->sourceBpm > 0.0 ? ch->sourceBpm : projectBpm;
     ch->sourceBpm = bpm * (double) oldLen / (double) newLengthTicks;

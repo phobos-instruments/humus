@@ -5,6 +5,9 @@
 #include "Skeleton/Skeleton.h"
 #include "Lumen/Lumen.h"
 #include "VideoPlayer/VideoPlayer.h"
+#include "VideoTrack/VideoTrack.h"
+#include "VideoPad/VideoPad.h"
+#include "VideoFX/VideoFX.h"
 #include "VideoMix/VideoMix.h"
 #include "VideoOut/VideoOut.h"
 
@@ -19,6 +22,9 @@ void hum_register_pack_av(Registry& r) {
     r.registerClass("Lumen", [] { return std::make_unique<Lumen>(); });
     r.registerClass("VideoPlayer", [] { return std::make_unique<VideoPlayer>(); });
     r.registerClass("VHS", [] { return std::make_unique<VideoPlayer>(); });
+    r.registerClass("VideoPad", [] { return std::make_unique<VideoPad>(); });
+    r.registerClass("VideoTrack", [] { return std::make_unique<VideoTrack>(); });
+    r.registerClass("VideoFX", [] { return std::make_unique<VideoFX>(); });
     r.registerClass("VideoMix", [] { return std::make_unique<VideoMix>(); });
     r.registerClass("VideoOut", [] { return std::make_unique<VideoOut>(); });
 }

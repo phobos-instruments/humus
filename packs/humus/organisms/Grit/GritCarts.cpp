@@ -3,6 +3,8 @@
 #include <cmath>
 #include <cstdint>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -13,14 +15,14 @@ int waveSample(int wave, int i, int steps, int peak) {
     const double t = (double) i / (double) steps;
     double v = 0.0;
     switch (wave) {
-        case 0: v = std::sin(2.0 * 3.14159265358979 * t); break;
+        case 0: v = std::sin(2.0 * kPi * t); break;
         case 1: v = t < 0.5 ? 4.0 * t - 1.0 : 3.0 - 4.0 * t; break;
         case 2: v = 2.0 * t - 1.0; break;
         case 3: v = t < 0.5 ? 1.0 : -1.0; break;
         default:
-            v = 0.6 * std::sin(2.0 * 3.14159265358979 * t)
-              + 0.3 * std::sin(4.0 * 3.14159265358979 * t)
-              + 0.1 * std::sin(8.0 * 3.14159265358979 * t);
+            v = 0.6 * std::sin(2.0 * kPi * t)
+              + 0.3 * std::sin(4.0 * kPi * t)
+              + 0.1 * std::sin(8.0 * kPi * t);
             break;
     }
     return std::clamp((int) std::lround((v * 0.5 + 0.5) * peak), 0, peak);
@@ -324,9 +326,9 @@ std::vector<std::uint8_t> Grit::encodeDpcm(const float* mono, int count,
         const int i1 = std::min(i0 + 1, count - 1);
         const double fr = pos - i0;
         const float s = (float) (mono[i0] * (1.0 - fr) + mono[i1] * fr);
-        const int want = std::clamp((int) std::lround((s * 0.5 + 0.5) * 127.0), 0, 127);
+        const int want = std::clamp((int) std::lround((s * 0.5 + 0.5) * (double) kSevenBitMax), 0, kSevenBitMax);
         const int bit = want > state ? 1 : 0;
-        state = std::clamp(state + (bit != 0 ? 2 : -2), 0, 127);
+        state = std::clamp(state + (bit != 0 ? 2 : -2), 0, kSevenBitMax);
         byte = (std::uint8_t) (byte | (bit << (i & 7)));
         if ((i & 7) == 7) {
             out.push_back(byte);
@@ -353,7 +355,7 @@ void Grit::loadSample() {
             mono[(size_t) i] += src[i] / (float) buf.getNumChannels();
     }
     impl_->rom.bytes = encodeDpcm(mono.data(), (int) mono.size(),
-                            info.sampleRate > 0.0 ? info.sampleRate : 44100.0);
+                            info.sampleRate > 0.0 ? info.sampleRate : kDefaultSampleRate);
 }
 
 }

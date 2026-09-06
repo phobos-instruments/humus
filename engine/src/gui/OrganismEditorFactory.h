@@ -11,6 +11,7 @@
 #include "gui/BankSlotSpec.h"
 #include "gui/LayoutLoader.h"
 #include "gui/ParameterPanel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -18,10 +19,10 @@ class PodPortEditor : public OrganismEditor {
 public:
     PodPortEditor(EngineHost& host, std::string name, bool inlet, int kind)
         : host_(host), name_(std::move(name)), inlet_(inlet) {
-        mode_.addItem("Mono", 1);
-        mode_.addItem("Stereo", 2);
-        mode_.addItem("MIDI", 3);
-        mode_.addItem("Video", 4);
+        mode_.addItem(tr("organism-editor-factory.mono", "Mono"), 1);
+        mode_.addItem(tr("organism-editor-factory.stereo", "Stereo"), 2);
+        mode_.addItem(tr("organism-editor-factory.midi", "MIDI"), 3);
+        mode_.addItem(tr("organism-editor-factory.video", "Video"), 4);
         mode_.setSelectedId(kind, juce::dontSendNotification);
         mode_.setColour(juce::ComboBox::textColourId, Palette::text);
         mode_.onChange = [this] {

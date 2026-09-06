@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void StereoTool::process(const float* const* in, int numIn, float* const* out, int numOut,
@@ -23,7 +25,7 @@ void StereoTool::process(const float* const* in, int numIn, float* const* out, i
 
     const float gL = balance > 0.0f ? 1.0f - balance : 1.0f;
     const float gR = balance < 0.0f ? 1.0f + balance : 1.0f;
-    const double rot = rotDeg * M_PI / 180.0;
+    const double rot = rotDeg * kPi / 180.0;
     const float cr = (float) std::cos(rot), sr = (float) std::sin(rot);
     const bool monoBass = monoHz > 0.0;
     if (monoBass && monoHz != monoBassHz_) {

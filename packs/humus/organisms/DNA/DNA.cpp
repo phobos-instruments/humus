@@ -6,6 +6,8 @@
 
 #include "hum/Swing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -39,7 +41,7 @@ void DNA::emit(int offset, bool on, int note, int vel) {
     if (outCount_ >= (int) outEvents_.size()) return;
     MidiEvent e;
     e.data[0] = on ? 0x90 : 0x80;
-    e.data[1] = (unsigned char) std::clamp(note, 0, 127);
+    e.data[1] = (unsigned char) std::clamp(note, 0, kMidiMax);
     e.data[2] = (unsigned char) (on ? vel : 0);
     e.size = 3;
     e.sampleOffset = offset;
@@ -48,7 +50,7 @@ void DNA::emit(int offset, bool on, int note, int vel) {
 
 void DNA::process(const float* const*, int, float* const*, int,
                   int numSamples, const Transport& transport) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int seed = (int) params.get("Seed", 1.0);
     if (seed != lastSeed_) grow(seed);
 
@@ -88,7 +90,7 @@ void DNA::process(const float* const*, int, float* const*, int,
             genome_[(size_t) (rnd() % kBases)] = (int) (rnd() & 3u);
     }
 
-    const double stepsPerSec = transport.tempo() / 60.0 * stepsPerBeat;
+    const double stepsPerSec = transport.tempo() / kSecondsPerMinute * stepsPerBeat;
     const double step0 = transport.beats() * stepsPerBeat;
     const long stepLen = (long) (sr / stepsPerSec);
     const double ticksPerStep = (double) Pattern::kTicksPerBeat / stepsPerBeat;

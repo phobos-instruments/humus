@@ -23,15 +23,13 @@
           "name": "PitchDecay",
           "min": 5.0,
           "max": 200.0,
-          "def": 40.0,
-          "random": true
+          "def": 40.0
         },
         {
           "name": "Decay",
           "min": 50.0,
           "max": 2000.0,
-          "def": 420.0,
-          "random": true
+          "def": 420.0
         },
         {
           "name": "Click",

@@ -42,6 +42,8 @@
 #include "gui/EngineHostPresets.h"
 #include "gui/EngineHostRecord.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class HostedPlugin;
@@ -59,6 +61,8 @@ public:
     bool saveCopy(const std::string& path, std::string& error);
     juce::uint64 changeStamp() const { return changeStamp_; }
     unsigned laneStamp() const { return laneStamp_; }
+    unsigned locateStamp() const { return locateStamp_; }
+    double locateBeat() const { return locateBeat_; }
     unsigned textStamp() const { return textStamp_; }
     void markDirty() { dirty_ = true; ++changeStamp_; }
 
@@ -158,6 +162,7 @@ public:
     void removeVideoConnection(const std::string& src, int srcPort, const std::string& dst, int dstPort);
     bool isVideoConnected(const std::string& src, int srcPort, const std::string& dst, int dstPort) const;
     std::string videoSourceInto(const std::string& dst, int dstPort) const;
+    std::string videoSourceInto(const std::string& dst, int dstPort, int& srcOutlet) const;
 
     void setParam(const std::string& organism, const std::string& param, double value);
     bool rollLocked(const std::string& organism, const std::string& param) const {
@@ -244,6 +249,7 @@ public:
 
     std::function<void(const std::string& organism, const std::string& param)>
         openParameterControl;
+    std::function<void(const std::string& organism)> openVisuals;
 
     std::function<void(const std::string& organism)> onNodeRolled;
 
@@ -270,7 +276,7 @@ public:
     double songEndBeat() const;
     double songEndSeconds() const {
         const double bpm = tempo() > 0.0 ? tempo() : 120.0;
-        return songEndBeat() * 60.0 / bpm;
+        return songEndBeat() * kSecondsPerMinute / bpm;
     }
     void goToEnd() { setPositionBeats(songEndBeat()); }
 
@@ -360,6 +366,14 @@ public:
     const float* nodeCaptureData(const std::string& name);
 
     bool nodeIsNoteTrack(const std::string& name);
+    bool nodeIsInternal(const std::string& name) const {
+        const auto* c = model_.byName(name);
+        return c != nullptr && c->internal;
+    }
+    void setNodeInternal(const std::string& name, bool internal) {
+        if (auto* c = mutableByName(name)) c->internal = internal;
+    }
+    bool nodeArrangesVideo(const std::string& name);
     void syncNodeTrack(const std::string& name);
 
     int inletsOf(const std::string& name);
@@ -373,6 +387,11 @@ public:
     int connectToMaster(const std::string& node);
     std::vector<std::string> arrangeableNodes();
     bool nodeRecordsAudio(const std::string& name);
+    bool nodeRecordsVideo(const std::string& name);
+    bool nodeRecordsMedia(const std::string& name) {
+        return nodeRecordsAudio(name) || nodeRecordsVideo(name);
+    }
+    static int reconcilePropertyTypes(PatchDocumentModel& doc);
 
     void startAudioAsync(std::function<void(bool ok, std::string error)> done = {});
     bool ensureAudio();
@@ -388,6 +407,7 @@ public:
         if (auto* c = graph_ ? graph_->find(name) : nullptr)
             c->process(nullptr, 0, out, numOut, n, graph_->transport());
     }
+    void injectMidiForTest(const juce::MidiMessage& m) { handleIncomingMidiMessage(nullptr, m); }
     void renderBlockForTest(float* const* out, int numOut, int numSamples) {
         fadeTarget_.store(1.0f);
         audioDeviceIOCallbackWithContext(nullptr, 0, out, numOut, numSamples, {});
@@ -441,6 +461,7 @@ public:
 
     void pumpOscOut();
     double sampleRate() const { return sampleRate_; }
+    int blockSize() const { return block_; }
 
     void play();
     void playFromStart();
@@ -476,12 +497,28 @@ public:
     std::vector<std::string> noteTargets(const std::string& node);
 
     bool renderToFile(const std::string& path, double seconds, std::string& error);
+    using SoundSink = std::function<bool(const float* const*, int, int)>;
+    struct OfflineSound {
+        std::unique_ptr<AudioGraph> graph;
+        MasterTap* tap = nullptr;
+    };
+    bool openOfflineSound(OfflineSound& made, std::string& error);
+    bool renderOfflineSound(OfflineSound& made, double fromSeconds, double toSeconds,
+                            const SoundSink& sink, std::string& error);
+    bool renderRange(double fromSeconds, double toSeconds, const SoundSink& sink,
+                     std::string& error);
+    void primeNoteTracks(AudioGraph& g) const;
 
     bool startMixRecording(const std::string& path, std::string& error);
     void stopMixRecording();
     bool isMixRecording() const { return mixRecording_.load(); }
 
     void primeOffline(int blocks);
+    void takeTransportRequests();
+    void advanceModulation(double dt);
+    void holdAudio(bool held);
+    bool audioHeld() const { return audioHeld_; }
+    bool graphSelfDriven() const { return audioRunning_ && !audioHeld_; }
 
 private:
     friend class MetaEditor;
@@ -508,7 +545,7 @@ private:
     std::string docPath_;
 
     void onFileNodeChanged(const std::string& organism, const std::string& filePath,
-                           bool sourceMoved = true);
+                           bool sourceMoved = true, const std::string& fileParam = "File");
     void autoDetectDeckGrid(const std::string& organism, const std::string& filePath);
     void applyGroove();
     void rebuild();
@@ -543,7 +580,11 @@ private:
                         double lo, double hi, bool isRange, double beat);
     void noteTouch(const std::string& organism, const std::string& param);
     void clearTouches();
-    struct CapturePass { double firstBeat, lastBeat; double lo = 0.0, hi = 0.0; bool isRange = false; };
+    struct CapturePass {
+        double firstBeat, lastBeat, highBeat;
+        double lo = 0.0, hi = 0.0;
+        bool isRange = false;
+    };
     bool latch_ = false;
     std::map<std::pair<std::string, std::string>, CapturePass> capturePass_;
     void endCapturePasses();
@@ -554,6 +595,8 @@ public:
     bool latchMode() const { return latch_; }
 private:
     unsigned laneStamp_ = 0;
+    unsigned locateStamp_ = 0;
+    double locateBeat_ = 0.0;
 
     struct PerfGesture {
         double beat;
@@ -661,7 +704,7 @@ private:
     bool paramDragActive_ = false;
     bool paramDragPushed_ = false;
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     int block_ = 512;
     bool monoFold_ = false;
     std::atomic<int> refusedBlocks_{0};
@@ -671,6 +714,7 @@ private:
     int preparedBlock_ = 0;
 
     juce::AudioDeviceManager devices_;
+    bool audioHeld_ = false;
     bool audioRunning_ = false;
     bool audioStarting_ = false;
     bool cancelStart_ = false;

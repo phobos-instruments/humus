@@ -3,6 +3,8 @@
 #include <array>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct BodyLandmarks {
@@ -56,7 +58,7 @@ inline float jointAngle(const BodyLandmarks& b, int root, int pivot, int tip) {
     const float la = std::hypot(ax, ay), lb = std::hypot(bx, by);
     if (la < 1e-5f || lb < 1e-5f) return 0.0f;
     const float c = std::clamp((ax * bx + ay * by) / (la * lb), -1.0f, 1.0f);
-    return std::acos(c) / 3.14159265358979f;
+    return std::acos(c) / kPiF;
 }
 
 struct Torso {

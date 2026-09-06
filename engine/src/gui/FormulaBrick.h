@@ -10,6 +10,8 @@
 #include "gui/PolledBrick.h"
 #include "hum/dsp/Formula.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class FormulaBrick : public PolledBrick {
@@ -17,7 +19,7 @@ public:
     static double plotSpanSeconds(const FormulaProgram& p, double freq, double bpm) {
         const auto sh = formulaShape(p);
         const bool cycles = sh.role == FormulaRole::Voice || (sh.role == FormulaRole::Effect && !sh.timed);
-        return cycles ? 4.0 / std::max(20.0, freq) : 60.0 / std::max(1.0, bpm);
+        return cycles ? 4.0 / std::max(20.0, freq) : kSecondsPerMinute / std::max(1.0, bpm);
     }
 
     FormulaBrick(EngineHost& host, std::string organism, std::string param)
@@ -156,7 +158,7 @@ private:
         env.dt = (float) (span / kPlotN);
         const auto sh = formulaShape(prog_);
         const double probeHz = sh.role == FormulaRole::Effect && sh.timed ? 8.0 / span : 2.5 * kx_[4];
-        env.v[fvNote] = (float) (69.0 + 12.0 * std::log2(std::max(20.0, kx_[4]) / 440.0));
+        env.v[fvNote] = (float) hzToMidi(std::max(20.0, kx_[4]));
         env.v[fvFreq] = (float) kx_[4];
         env.v[fvGate] = 1.0f;
         env.v[fvVel] = 1.0f;
@@ -172,7 +174,7 @@ private:
         for (int i = 0; i < kPlotN; ++i) {
             const float t = (float) (span * i / (kPlotN - 1));
             env.v[fvT] = t;
-            env.v[fvBeat] = t * (float) (std::max(1.0, bpm) / 60.0);
+            env.v[fvBeat] = t * (float) (std::max(1.0, bpm) / kSecondsPerMinute);
             if (sh.role == FormulaRole::Effect) {
                 inSlots_[i] = 0.8f * std::sin((float) (juce::MathConstants<double>::twoPi * probeHz * t));
                 env.v[fvA] = inSlots_[i];

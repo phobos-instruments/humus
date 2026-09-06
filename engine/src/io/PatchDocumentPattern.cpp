@@ -1,3 +1,4 @@
+#include "core/MidiSource.h"
 #include "io/PatchParseInternal.h"
 
 namespace hum {
@@ -43,7 +44,7 @@ void parsePattern(juce::XmlElement& pe, Pattern& pat) {
         ch.fadeOutTicks = ce->getIntAttribute("fade-out", 0);
         ch.fadeInCurve = ce->getDoubleAttribute("fade-in-curve", 0.0);
         ch.fadeOutCurve = ce->getDoubleAttribute("fade-out-curve", 0.0);
-        if (ch.type == "audio-clip") {
+        if (ch.type == "audio-clip" || ch.type == "video-clip") {
             ch.audioFile = ce->getStringAttribute("file", "").toStdString();
             ch.audioOffset = ce->getStringAttribute("offset", "0").getLargeIntValue();
             ch.audioGain = ce->getDoubleAttribute("clip-gain", 1.0);
@@ -105,6 +106,9 @@ void parseModulationSources(juce::XmlElement& mod, OrganismModel& c) {
             }
             if (auto* spec = mc->getChildByName("midi-message-spec")) {
                 src.cc = spec->getIntAttribute("number", 0);
+                for (auto* h : spec->getChildIterator())
+                    if (h->hasTagName("held")) src.held.push_back(h->getIntAttribute("number", -1));
+                src.held = normalizedHeld(std::move(src.held), src.cc);
                 src.port = spec->getIntAttribute("port", 0);
                 src.channel = spec->getIntAttribute("channel", 0);
                 src.specType = spec->getStringAttribute("type", "7-bit-control-change").toStdString();

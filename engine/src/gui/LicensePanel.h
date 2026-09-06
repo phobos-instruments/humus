@@ -7,6 +7,7 @@
 #include "gui/LicenseStore.h"
 #include "gui/LookAndFeel.h"
 #include "gui/Telemetry.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -29,22 +30,22 @@ public:
         feedback_.setFont(juce::FontOptions(12.0f));
         addAndMakeVisible(feedback_);
 
-        activate_.setButtonText("Activate");
+        activate_.setButtonText(tr("license.activate", "Activate"));
         activate_.onClick = [this] { doActivate(); };
         addAndMakeVisible(activate_);
 
-        remove_.setButtonText("Remove License");
+        remove_.setButtonText(tr("license.remove-license", "Remove License"));
         remove_.onClick = [this] {
             LicenseStore::remove();
             refresh();
         };
         addChildComponent(remove_);
 
-        privacyTitle_.setText("Privacy", juce::dontSendNotification);
+        privacyTitle_.setText(tr("license.privacy", "Privacy"), juce::dontSendNotification);
         privacyTitle_.setFont(juce::FontOptions(15.0f).withStyle("Bold"));
         addAndMakeVisible(privacyTitle_);
 
-        consent_.setButtonText("Share anonymous usage data");
+        consent_.setButtonText(tr("license.share-anonymous-usage-data", "Share anonymous usage data"));
         consent_.setToggleState(
             AppSettings::instance().getInt("telemetry.enabled", 0) != 0,
             juce::dontSendNotification);
@@ -55,7 +56,7 @@ public:
         };
         addAndMakeVisible(consent_);
 
-        updates_.setButtonText("Check for updates at startup");
+        updates_.setButtonText(tr("license.check-for-updates-at-startup", "Check for updates at startup"));
         updates_.setToggleState(
             AppSettings::instance().getInt("updates.auto", 0) != 0,
             juce::dontSendNotification);
@@ -65,13 +66,14 @@ public:
         };
         addAndMakeVisible(updates_);
 
-        recap_.setText("Sharing sends anonymous usage counts (like which "
-                       "organisms you plant or how often you save) and whether "
-                       "the last session crashed. The startup update check asks "
-                       "our server once per launch. Both are tied to a random "
-                       "ID, not to you - no names, no emails, no patch "
-                       "contents, ever. With both off, Humus never touches the "
-                       "network except when you ask it to.",
+        recap_.setText(tr("license.sharing-sends-anonymous-usage-counts",
+           "Sharing sends anonymous usage counts (like which "
+           "organisms you plant or how often you save) and whether "
+           "the last session crashed. The startup update check asks "
+           "our server once per launch. Both are tied to a random "
+           "ID, not to you - no names, no emails, no patch "
+           "contents, ever. With both off, Humus never touches the "
+           "network except when you ask it to."),
                        juce::dontSendNotification);
         recap_.setFont(juce::FontOptions(12.0f));
         recap_.setColour(juce::Label::textColourId, Palette::textDim);
@@ -85,18 +87,19 @@ public:
         const auto lic = LicenseStore::current();
         if (lic.valid) {
             const auto who = lic.name.empty() ? lic.plan : lic.name;
-            status_.setText("Registered to " + juce::String(who),
+            status_.setText(tr("license.registered-to", "Registered to ") + juce::String(who),
                             juce::dontSendNotification);
             status_.setColour(juce::Label::textColourId, Palette::accent);
-            detail_.setText(juce::String(lic.plan) + "  -  activated "
+            detail_.setText(juce::String(lic.plan) + tr("license.activated", "  -  activated ")
                                 + juce::String(lic.issuedAt).upToFirstOccurrenceOf(
                                     "T", false, false),
                             juce::dontSendNotification);
         } else {
-            status_.setText("Unregistered", juce::dontSendNotification);
+            status_.setText(tr("license.unregistered", "Unregistered"), juce::dontSendNotification);
             status_.setColour(juce::Label::textColourId, Palette::text);
-            detail_.setText("Humus is fully functional either way. Got a code? "
-                            "Make it official below.",
+            detail_.setText(tr("license.humus-is-fully-functional-either",
+               "Humus is fully functional either way. Got a code? "
+               "Make it official below."),
                             juce::dontSendNotification);
         }
         code_.setVisible(!lic.valid);
@@ -134,7 +137,7 @@ private:
         }
         const bool ok = licensecheck::checksumOk(raw);
         activate_.setEnabled(ok);
-        feedback_.setText(ok ? "code looks good" : "keep typing - that doesn't scan yet",
+        feedback_.setText(ok ? tr("license.code-looks-good", "code looks good") : tr("license.keep-typing-that-doesn-t", "keep typing - that doesn't scan yet"),
                           juce::dontSendNotification);
         feedback_.setColour(juce::Label::textColourId,
                             ok ? Palette::accent : Palette::textDim);

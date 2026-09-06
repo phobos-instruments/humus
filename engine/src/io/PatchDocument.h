@@ -49,6 +49,7 @@ struct MidiControllerSource {
     std::string propertyName;
     int propertyIndex = -1;
     int cc = 0;
+    std::vector<int> held;
     int port = 0;
     int channel = 0;
     std::string specType = "7-bit-control-change";
@@ -127,6 +128,7 @@ struct OrganismModel {
     std::vector<OscControllerSource> oscSources;
     std::vector<ModControllerSource> modSources;
     Pattern pattern;
+    bool internal = false;
     enum MidiReceive { kMidiOmni = 0, kMidiCordsOnly = 1, kMidiChannel = 2 };
     int midiReceiveMode = kMidiCordsOnly;
     int midiReceiveChannel = 1;
@@ -339,8 +341,15 @@ struct MetapadModel {
     std::vector<MorphPathPoint> morphPath;
 };
 
+struct MidiModifierModel {
+    int source = -1;
+    bool latching = false;
+    bool ownAction = false;
+};
+
 struct PatchDocumentModel {
     std::string version;
+    std::vector<MidiModifierModel> midiModifiers;
     std::string applicationPath;
     std::string documentPath;
     ClockModel clock;

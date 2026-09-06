@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct SvfTpt {
@@ -22,7 +24,7 @@ struct SvfTpt {
     }
 
     static double gFor(double fc, double sampleRate) {
-        return std::tan(3.14159265358979323846 * fc / sampleRate);
+        return std::tan(kPi * fc / sampleRate);
     }
 };
 

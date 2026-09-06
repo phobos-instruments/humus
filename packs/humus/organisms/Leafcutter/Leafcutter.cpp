@@ -7,6 +7,8 @@
 #include "hum/dsp/RexFile.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -198,7 +200,7 @@ void Leafcutter::handleEvent(const MidiEvent& e) {
     const double end = slice + 1 < activeCount() ? (double) active_[(size_t) slice + 1].pos
                                                  : (double) buf_.getNumSamples();
     const double sliceOut = (end - start) / srcRate_ * sampleRate_;
-    triggerVoice(*pick, slice, sliceOut, (float) vel / 127.0f);
+    triggerVoice(*pick, slice, sliceOut, (float) vel / kMidiMaxF);
     pick->note = note;
     lastMidiSlice_ = slice;
 }
@@ -282,16 +284,16 @@ void Leafcutter::process(const float* const*, int, float* const* out, int numOut
     const int len = buf_.getNumSamples();
     const bool play = params.get("Play", 1.0) >= 0.5 && len > 0 && activeCount() > 0;
     const double tempo = transport.tempo();
-    const double bps = tempo / 60.0 / sampleRate_;
+    const double bps = tempo / kSecondsPerMinute / sampleRate_;
     double beat = transport.playing() ? transport.beats() : beat_;
 
     double beatsTotal = params.get("Beats", 0.0);
     if (beatsTotal < 0.5 && fileBeats_ > 0.5)
         beatsTotal = fileBeats_;
     else if (beatsTotal < 0.5 && len > 0)
-        beatsTotal = std::round((double) len / srcRate_ * tempo / 60.0);
+        beatsTotal = std::round((double) len / srcRate_ * tempo / kSecondsPerMinute);
     beatsTotal = std::clamp(beatsTotal, 1.0, 64.0);
-    const double spb = sampleRate_ * 60.0 / tempo;
+    const double spb = sampleRate_ * kSecondsPerMinute / tempo;
 
     if (play) {
         int done = 0;

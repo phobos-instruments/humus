@@ -10,6 +10,8 @@
 #include "hum/dsp/BeatGrid.h"
 #include "core/KeyDetector.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 std::int64_t DeckHost::position(const std::string& name) {
@@ -94,7 +96,7 @@ void DeckHost::clearHotCue(const std::string& name, int index) {
 }
 void DeckHost::setBeatLoop(const std::string& name, double beats) {
     const double bpm = std::max(1.0, host_.liveParamValue(name, "BPM"));
-    const double spb = 60.0 / bpm * sampleRate(name);
+    const double spb = kSecondsPerMinute / bpm * sampleRate(name);
     const std::int64_t in = quantizeToGrid(name, position(name));
     host_.setParam(name, "LoopBeats", beats);
     host_.setParam(name, "LoopIn", (double) in);
@@ -125,7 +127,7 @@ void DeckHost::endLoopRoll(const std::string& name) {
 }
 
 void EngineHost::onFileNodeChanged(const std::string& organism, const std::string& text,
-                                   bool sourceMoved) {
+                                   bool sourceMoved, const std::string& fileParam) {
     Organism* c = graph_ ? graph_->find(organism) : nullptr;
     const auto* cm = model_.byName(organism);
     const auto path = cm != nullptr ? banks::resolve(text, cm->displayClass) : text;
@@ -135,7 +137,8 @@ void EngineHost::onFileNodeChanged(const std::string& organism, const std::strin
         std::vector<std::pair<std::string, double>> restarts;
         for (const auto& p : cm->properties) {
             double lo = 0.0, hi = 0.0;
-            if (live->liveParamRange(p.name, lo, hi)) restarts.emplace_back(p.name, lo);
+            if (live->liveParamRange(p.name, lo, hi) && live->rangeFollowsFile(p.name, fileParam))
+                restarts.emplace_back(p.name, lo);
         }
         for (const auto& [n, v] : restarts) setParam(organism, n, v);
     }

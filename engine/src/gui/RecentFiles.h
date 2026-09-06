@@ -23,7 +23,7 @@ inline void push(const juce::File& f) {
 }
 inline void clear() { AppSettings::instance().set("recentFiles", ""); }
 
-inline constexpr int kMenuIdBase = 60;
+inline constexpr int kMenuIdBase = 200;
 
 inline juce::File resolve(const juce::StringArray& shown, int id) {
     const int i = id - kMenuIdBase;

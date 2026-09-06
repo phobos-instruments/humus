@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Substrate::prepare(double sampleRate, int) {
@@ -39,7 +41,7 @@ void Substrate::process(const float* const*, int, float* const* out, int numOut,
     float* L = out[0];
     float* R = out[numOut > 1 ? 1 : 0];
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
     {
         std::lock_guard<std::mutex> g(liveLock_);

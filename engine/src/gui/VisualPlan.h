@@ -1,12 +1,16 @@
 #pragma once
+#include <algorithm>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/VisualUniforms.h"
 #include "gui/VideoLayer.h"
+#include "gui/VideoTakeSink.h"
+#include "hum/dsp/FadeLaw.h"
 
 namespace hum::visual {
 
@@ -56,10 +60,19 @@ struct Tap {
     int w = 0, h = 0;
     float fade = 1.0f;
     bool everyOther = false;
+    std::shared_ptr<VideoTakeSink> sink;
+};
+
+struct FxParams {
+    float posX = 0.0f, posY = 0.0f;
+    float scale = 1.0f, rotate = 0.0f;
+    float brightness = 1.0f, contrast = 1.0f, saturation = 1.0f, hue = 0.0f;
+    float invert = 0.0f, pixelate = 0.0f;
+    int mirror = 0;
 };
 
 struct Step {
-    enum Kind { Black, Deck, Scene, Mix } kind = Black;
+    enum Kind { Black, Deck, Scene, Mix, Fx } kind = Black;
     std::string node;
     std::shared_ptr<const VideoLayer::Frame> frame;
     bool active = false;
@@ -79,13 +92,24 @@ struct Step {
     int sceneBlend = 0;
     int mixA = -1, mixB = -1;
     float mixFade = 0.0f;
+    float mixCurve = 0.0f;
+    bool mixSum = false;
+    FxParams fx;
 };
+inline std::pair<float, float> mixGains(const Step& s) {
+    const float fade = std::min(1.0f, std::max(0.0f, s.mixFade));
+    if (s.mixSum) return {1.0f, fade};
+    return {fadeGain(1.0f - fade, s.mixCurve), fadeGain(fade, s.mixCurve)};
+}
+
 struct Plan {
     std::vector<Step> steps;
     std::vector<Tap> taps;
     int root = -1;
     float masterFade = 1.0f;
     bool noSignal = false;
+    double beat = 0.0, tempo = 120.0;
+    bool rolling = false;
 };
 
 }

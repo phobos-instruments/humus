@@ -12,6 +12,7 @@
 #include "gui/AiClient.h"
 #include "gui/EngineHost.h"
 #include "gui/NodeRandomize.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -63,11 +64,11 @@ inline void showGenie(EngineHost& host, const std::string& node,
         juce::String("Preset Genie - ") + juce::String(node),
         "Describe the sound; the model sets " + display + "'s parameters (one undo step).",
         juce::MessageBoxIconType::NoIcon);
-    w->addTextEditor("prompt", "", "Describe it:");
+    w->addTextEditor("prompt", "", tr("preset-actions.describe-it", "Describe it:"));
     if (AiClient::needsApiKey())
-        w->addTextEditor("key", "", "Claude API key (stored for next time):");
-    w->addButton("Generate", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    w->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        w->addTextEditor("key", "", tr("preset-actions.claude-api-key-stored-for", "Claude API key (stored for next time):"));
+    w->addButton(tr("preset-actions.generate", "Generate"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    w->addButton(tr("preset-actions.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
     w->enterModalState(true, juce::ModalCallbackFunction::create(
         [w, hostPtr, node, schemaCopy, onChanged, onBusy](int result) {
             const juce::String prompt = w->getTextEditorContents("prompt").trim();
@@ -90,7 +91,7 @@ inline void showGenie(EngineHost& host, const std::string& node,
                     if (onBusy) onBusy(false);
                     if (error.isNotEmpty()) {
                         juce::AlertWindow::showMessageBoxAsync(
-                            juce::MessageBoxIconType::WarningIcon, "Preset Genie", error);
+                            juce::MessageBoxIconType::WarningIcon, tr("preset-actions.preset-genie", "Preset Genie"), error);
                         return;
                     }
                     const auto vals = parseGenieReply(text, schemaCopy);

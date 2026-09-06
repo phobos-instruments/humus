@@ -7,12 +7,15 @@
 
 #include "sid.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Silt : public Organism, public MidiNode, public LiveMidiIn {
 public:
     static constexpr double kClock = 985248.0;
     static constexpr int kPerChip = 3;
+    static constexpr float kTwinBleed = 0.35f;
 
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 2; }
@@ -52,7 +55,7 @@ private:
     void renderChunk(float* l, float* r, int n, float level);
 
     std::array<reSID::SID, 2> sid_;
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     std::array<int, 2> model_{-1, -1};
     std::array<float, 2> declick_{1.0f, 1.0f};
 

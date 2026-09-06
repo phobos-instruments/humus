@@ -5,6 +5,7 @@
 
 #include "core/PerfBox.h"
 #include "gui/EngineHost.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -72,7 +73,13 @@ int TracksPane::ClipItems::merge(const std::vector<timeline::ItemRef>& refs) {
             if (left.size() >= 2) {
                 std::vector<int> ords;
                 for (int id : left) if (ordinalOf(id) >= 0) ords.push_back(ordinalOf(id));
-                if (host_.clips().mergeAudio(node, ords) >= 0) joined += (int) ords.size() - 1;
+                const auto all = host_.clips().list(node);
+                const bool picture = std::all_of(ords.begin(), ords.end(), [&](int o) {
+                    return o < (int) all.size() && (all[(size_t) o].isVideo || all[(size_t) o].isCompound);
+                });
+                const int made = picture ? host_.clips().makeCompound(node, ords)
+                                         : host_.clips().mergeAudio(node, ords);
+                if (made >= 0) joined += (int) ords.size() - 1;
             }
         }
     }
@@ -194,6 +201,37 @@ bool TracksPane::duplicateSelection() {
     }
     rebuild();
     return true;
+}
+
+juce::String TracksPane::mergeRefusal() const {
+    std::map<int, std::vector<int>> perRow;
+    for (const auto& r : sel_)
+        if (r.kind == timeline::ItemRef::Kind::Clip) perRow[r.row].push_back(r.key);
+    int row = -1;
+    for (const auto& [r, ids] : perRow)
+        if (ids.size() >= 2 && row < 0) row = r;
+    if (row < 0 || row >= (int) rows_.size())
+        return tr("tracks-pane-menu.merge-one-row",
+                  "Select two or more clips on one row, or two or more automation boxes.");
+
+    const auto& node = rows_[(size_t) row];
+    const auto all = host_.clips().list(node);
+    std::vector<ClipEditor::ClipInfo> chosen;
+    for (const int id : perRow[row])
+        if (const int at = clipIndexOfId(node, id); at >= 0 && at < (int) all.size())
+            chosen.push_back(all[(size_t) at]);
+    std::sort(chosen.begin(), chosen.end(),
+              [](const auto& a, const auto& b) { return a.startTick < b.startTick; });
+    if (chosen.size() < 2)
+        return tr("tracks-pane-menu.merge-one-row",
+                  "Select two or more clips on one row, or two or more automation boxes.");
+
+    if (!std::any_of(chosen.begin(), chosen.end(),
+                     [](const auto& c) { return c.isVideo || c.isCompound; }))
+        return tr("tracks-pane-menu.merge-failed",
+                  "Those clips could not be merged into one take.");
+    return tr("tracks-pane-menu.merge-failed-video",
+              "Those clips could not be made into a reel.");
 }
 
 int TracksPane::mergeSelection() {

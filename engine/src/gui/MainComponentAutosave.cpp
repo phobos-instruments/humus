@@ -1,6 +1,7 @@
 #include "gui/MainComponent.h"
 
 #include "gui/AppSettings.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -31,7 +32,7 @@ void MainComponent::clearAutosave() {
 void MainComponent::restoreAutosave(const AutosaveStore::Recovery& r) {
     std::string err;
     if (!host_.loadFile(r.autosave.getFullPathName().toStdString(), err)) {
-        setStatus("recovery failed: " + juce::String(err));
+        setStatus(tr("main-autosave.recovery-failed", "recovery failed: ") + juce::String(err));
         return;
     }
     currentFile_ = r.originalPath;
@@ -42,7 +43,7 @@ void MainComponent::restoreAutosave(const AutosaveStore::Recovery& r) {
     propsPane_->syncFromModel();
     refreshTimelinePanes();
     canvas_->refresh();
-    setStatus("recovered unsaved session"
+    setStatus(tr("main-autosave.recovered-unsaved-session", "recovered unsaved session")
               + (r.originalPath.isEmpty() ? juce::String()
                                           : " (" + juce::File(r.originalPath).getFileName() + ")"));
 }

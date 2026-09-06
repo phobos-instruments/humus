@@ -15,6 +15,7 @@
 #include "gui/ParamGrouping.h"
 #include "gui/ParamSlider.h"
 #include "gui/PluginTreeGroups.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -242,7 +243,7 @@ private:
     }
 
     void updateFoldAllButton() {
-        foldAll_.setButtonText(allFolded() ? "Open all" : "Fold all");
+        foldAll_.setButtonText(allFolded() ? tr("plugin-param-table.open-all", "Open all") : tr("plugin-param-table.fold-all", "Fold all"));
     }
 
     void buildRows() {

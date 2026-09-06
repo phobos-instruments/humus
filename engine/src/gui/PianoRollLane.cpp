@@ -2,25 +2,34 @@
 
 #include "gui/PianoRollEditor.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
 namespace {
-struct NamedCC { int cc; const char* name; };
+struct NamedCC { int cc; const char* key; const char* name; };
 constexpr NamedCC kCommonCCs[] = {
-    {1, "Mod Wheel"}, {2, "Breath"}, {7, "Volume"}, {10, "Pan"},
-    {11, "Expression"}, {64, "Sustain"}, {71, "Resonance"}, {74, "Cutoff"},
+    {1, "piano-roll-lane.cc-mod-wheel", "Mod Wheel"},
+    {2, "piano-roll-lane.cc-breath", "Breath"},
+    {7, "piano-roll-lane.cc-volume", "Volume"},
+    {10, "piano-roll-lane.cc-pan", "Pan"},
+    {11, "piano-roll-lane.cc-expression", "Expression"},
+    {64, "piano-roll-lane.cc-sustain", "Sustain"},
+    {71, "piano-roll-lane.cc-resonance", "Resonance"},
+    {74, "piano-roll-lane.cc-cutoff", "Cutoff"},
 };
 juce::String ccLabel(int cc) {
     for (const auto& c : kCommonCCs)
-        if (c.cc == cc) return "CC" + juce::String(cc) + " " + c.name;
+        if (c.cc == cc) return "CC" + juce::String(cc) + " " + tr(c.key, c.name);
     return "CC" + juce::String(cc);
 }
 }
 
 void PianoRollEditor::applyVelocityLane(juce::Point<int> p) {
-    const int vel = juce::jlimit(1, 127, juce::roundToInt(
-        127.0 * ((gridBottom() + kVelH - 3) - p.y) / (double) (kVelH - 6)));
+    const int vel = juce::jlimit(1, kMidiMax, juce::roundToInt(
+        kMidiMaxD * ((gridBottom() + kVelH - 3) - p.y) / (double) (kVelH - 6)));
     bool changed = false;
     for (size_t i = 0; i < gestureNotes_.size(); ++i) {
         if (!selection_.empty()) {
@@ -35,8 +44,8 @@ void PianoRollEditor::applyVelocityLane(juce::Point<int> p) {
 }
 
 void PianoRollEditor::applyCCLane(juce::Point<int> p) {
-    const int value = juce::jlimit(0, 127, juce::roundToInt(
-        127.0 * ((gridBottom() + kVelH - 3) - p.y) / (double) (kVelH - 6)));
+    const int value = juce::jlimit(0, kMidiMax, juce::roundToInt(
+        kMidiMaxD * ((gridBottom() + kVelH - 3) - p.y) / (double) (kVelH - 6)));
     const int tick = snapTick(juce::jlimit(0, durationTicks() - 1, xToTick((float) p.x)));
     bool placed = false;
     for (auto& c : gestureCCs_)
@@ -47,7 +56,7 @@ void PianoRollEditor::applyCCLane(juce::Point<int> p) {
 
 void PianoRollEditor::showLaneMenu() {
     juce::PopupMenu m;
-    m.addItem(1, "Velocity", true, laneCC_ < 0);
+    m.addItem(1, tr("piano-roll-lane.velocity", "Velocity"), true, laneCC_ < 0);
     m.addSeparator();
     std::vector<int> offered;
     for (const auto& c : kCommonCCs) offered.push_back(c.cc);
@@ -57,7 +66,7 @@ void PianoRollEditor::showLaneMenu() {
     for (int cc : offered) m.addItem(100 + cc, ccLabel(cc), true, laneCC_ == cc);
     if (laneCC_ >= 0) {
         m.addSeparator();
-        m.addItem(2, "Clear " + ccLabel(laneCC_) + " events");
+        m.addItem(2, tr("piano-roll-lane.clear", "Clear ") + ccLabel(laneCC_) + tr("piano-roll-lane.events", " events"));
     }
     m.showMenuAsync({}, [this](int r) {
         if (r == 0) return;
@@ -79,7 +88,7 @@ void PianoRollEditor::showLaneMenu() {
 void PianoRollEditor::paintCCLane(juce::Graphics& g, int top, int h) {
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(9.0f));
-    g.drawText("CC" + juce::String(laneCC_), 4, top + 3, kKeyW - 8, 10,
+    g.drawText(tr("piano-roll-lane.cc", "CC") + juce::String(laneCC_), 4, top + 3, kKeyW - 8, 10,
                juce::Justification::centredLeft, false);
 
     const auto ccs = gesture_ == Gesture::CCLane ? gestureCCs_ : host_.clips().ccs(name_, clip_);
@@ -88,7 +97,7 @@ void PianoRollEditor::paintCCLane(juce::Graphics& g, int top, int h) {
     std::sort(lane.begin(), lane.end(),
               [](const CCEvent* a, const CCEvent* b) { return a->tick < b->tick; });
 
-    const auto yFor = [&](int v) { return (float) (top + h - 3) - (float) (h - 6) * v / 127.0f; };
+    const auto yFor = [&](int v) { return (float) (top + h - 3) - (float) (h - 6) * v / kMidiMaxF; };
     g.setColour(Palette::accent.withAlpha(0.7f));
     for (size_t i = 0; i < lane.size(); ++i) {
         const float x = tickToX(lane[i]->tick);

@@ -8,6 +8,8 @@
 #include "core/PluginNode.h"
 #include "gui/LooperFlow.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -237,7 +239,7 @@ void EngineHost::pollMidiOut() {
         if (blocks[p].isEmpty()) continue;
         midiOuts_[p]->sendBlockOfMessages(blocks[p],
                                           juce::Time::getMillisecondCounterHiRes() + 1.0,
-                                          sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
+                                          sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
     }
 }
 

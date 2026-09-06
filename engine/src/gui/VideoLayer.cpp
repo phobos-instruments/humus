@@ -9,18 +9,34 @@ namespace hum {
 std::unique_ptr<VideoLayer> VideoLayer::createPlatform() { return nullptr; }
 #endif
 
+#if !JUCE_MAC
+double VideoLayer::probeLengthSeconds(const juce::File&) { return 0.0; }
+std::unique_ptr<VideoLayer> VideoLayer::createOffline() { return createPlatform(); }
+#endif
+
 namespace {
 
 class SwitchingLayer : public VideoLayer {
 public:
+    explicit SwitchingLayer(bool offline) : offline_(offline) {}
+
     void load(const juce::String& path) override {
         const bool wantHap = hap::open(juce::File(path)).ok;
         if (wantHap != isHap_ || inner_ == nullptr) {
-            inner_ = wantHap ? std::make_unique<HapVideoLayer>()
-                             : VideoLayer::createPlatform();
+            inner_ = wantHap    ? std::make_unique<HapVideoLayer>()
+                     : offline_ ? VideoLayer::createOffline()
+                                : VideoLayer::createPlatform();
             isHap_ = wantHap;
         }
-        if (inner_ != nullptr) inner_->load(path);
+        if (inner_ != nullptr) {
+            inner_->setLoopRange(range_);
+            inner_->load(path);
+        }
+    }
+
+    void setLoopRange(const LoopRange& range) override {
+        range_ = range;
+        if (inner_ != nullptr) inner_->setLoopRange(range);
     }
 
     void setRate(float rate) override {
@@ -53,15 +69,21 @@ public:
         if (inner_ != nullptr) inner_->seekSeconds(t);
     }
 
+    void chase(double seconds, double rate) override {
+        if (inner_ != nullptr) inner_->chase(seconds, rate);
+    }
+
 private:
     std::unique_ptr<VideoLayer> inner_;
+    LoopRange range_;
     bool isHap_ = false;
+    const bool offline_;
 };
 
 }
 
-std::unique_ptr<VideoLayer> VideoLayer::create() {
-    return std::make_unique<SwitchingLayer>();
+std::unique_ptr<VideoLayer> VideoLayer::create(bool offline) {
+    return std::make_unique<SwitchingLayer>(offline);
 }
 
 }

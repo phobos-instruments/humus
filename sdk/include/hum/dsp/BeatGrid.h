@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstdint>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct BeatGrid {
@@ -9,7 +11,7 @@ struct BeatGrid {
     int64_t offsetSamples = 0;
 
     double samplesPerBeat(double fileSampleRate) const {
-        return (bpm > 0.0 ? 60.0 / bpm : 0.5) * fileSampleRate;
+        return (bpm > 0.0 ? kSecondsPerMinute / bpm : 0.5) * fileSampleRate;
     }
     double beatToSample(double beat, double fileSampleRate) const {
         return (double) offsetSamples + beat * samplesPerBeat(fileSampleRate);

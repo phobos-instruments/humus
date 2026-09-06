@@ -4,6 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -32,12 +33,12 @@ public:
 
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(13.0f, juce::Font::bold));
-        g.drawText(modern ? "Modern cards" : "Classic menus",
+        g.drawText(modern ? tr("menu-style-preview.modern-cards", "Modern cards") : tr("menu-style-preview.classic-menus", "Classic menus"),
                    caption.removeFromTop(17), juce::Justification::centredLeft);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(11.0f));
-        g.drawText(modern ? "Cards with breadcrumbs and search"
-                          : "Nested submenus, classic-style",
+        g.drawText(modern ? tr("menu-style-preview.cards-with-breadcrumbs-and-search", "Cards with breadcrumbs and search")
+                          : tr("menu-style-preview.nested-submenus-classic-style", "Nested submenus, classic-style"),
                    caption, juce::Justification::centredLeft);
     }
 

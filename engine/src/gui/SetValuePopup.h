@@ -7,13 +7,15 @@
 #include "core/ParamUnit.h"
 #include "gui/LookAndFeel.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class SetValuePopup : public juce::Component {
 public:
     static juce::String pitchName(double hz) {
         if (hz < 8.0 || hz > 20000.0) return {};
-        const double n = 69.0 + 12.0 * std::log2(hz / 440.0);
+        const double n = hzToMidi(hz);
         const int note = (int) std::lround(n);
         if (note < 0 || note > 135) return {};
         static const char* kNames[12] = {"C",  "C#", "D",  "D#", "E",  "F",

@@ -34,7 +34,6 @@
           "max": 15.0,
           "def": 0.0,
           "int": true,
-          "random": true,
           "unit": "none"
         },
         {
@@ -43,7 +42,6 @@
           "max": 15.0,
           "def": 4.0,
           "int": true,
-          "random": true,
           "unit": "none"
         },
         {
@@ -51,8 +49,7 @@
           "min": 0.0,
           "max": 15.0,
           "def": 12.0,
-          "int": true,
-          "random": true
+          "int": true
         },
         {
           "name": "Release",
@@ -60,7 +57,6 @@
           "max": 15.0,
           "def": 4.0,
           "int": true,
-          "random": true,
           "unit": "none"
         },
         {

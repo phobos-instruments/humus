@@ -6,6 +6,8 @@
 #include "hum/Organism.h"
 #include "hum/dsp/PitchTrack.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Decomposer : public Organism, public MidiNode, public PitchDetectSource {
@@ -38,7 +40,7 @@ private:
     void allNotesOff(int offset);
     int medianNote(int raw);
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     int channel_ = 1;
     int loNote_ = 12, hiNote_ = 108;
     int confirmFrames_ = 2, releaseFrames_ = 3;

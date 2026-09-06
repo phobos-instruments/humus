@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <string>
 #include <vector>
 
@@ -22,6 +23,9 @@ public:
         bool legacy = false;
         int color = 0;
         bool isAudio = false;
+        bool isVideo = false;
+        bool isCompound = false;
+        bool hasMedia() const { return isAudio || isVideo || isCompound; }
         std::string audioFile;
         long long audioOffset = 0;
         int id = 0;
@@ -37,6 +41,10 @@ public:
     void upgradeLegacy(const std::string& node);
     int  add(const std::string& node, int startTick, int lengthTicks);
     int  addAudio(const std::string& node, int startTick, int lengthTicks,
+                  const std::string& file, long long offsetSamples = 0);
+    int  makeCompound(const std::string& node, const std::vector<int>& ordinals);
+    std::string compoundReel(const std::string& node, int clip) const;
+    int  addVideo(const std::string& node, int startTick, int lengthTicks,
                   const std::string& file, long long offsetSamples = 0);
     void setWarp(const std::string& node, int clip, int mode);
     void setSourceBpm(const std::string& node, int clip, double bpm);
@@ -54,6 +62,20 @@ public:
     void remove(const std::string& node, int clip);
     void move(const std::string& node, int clip, int newStartTick);
     void resize(const std::string& node, int clip, int newLengthTicks, bool fromLeft);
+    struct Tape {
+        double seconds = 0.0;
+        double sampleRate = 0.0;
+    };
+    Tape tape(const std::string& file) const;
+    int tailTicks(const PatternChannel& clip) const;
+    struct MediaRange {
+        std::string file;
+        double inSeconds = 0.0;
+        double outSeconds = 0.0;
+        bool looped = false;
+    };
+    MediaRange rangeOf(const std::string& node, int clipId) const;
+    int addVideoRange(const std::string& node, int atTick, const MediaRange& range);
     void setLooped(const std::string& node, int clip, bool looped);
     void rename(const std::string& node, int clip, const std::string& name);
     void setColor(const std::string& node, int clip, int color);
@@ -68,6 +90,8 @@ public:
     int  pasteClip(const std::string& node, const PatternChannel& data, int atTick);
     int  moveToNode(const std::string& node, int clip, const std::string& toNode);
     bool accepts(const std::string& node, bool audio);
+    bool accepts(const std::string& node, const ClipInfo& clip);
+    bool accepts(const std::string& node, const PatternChannel& clip);
     void transpose(const std::string& node, int clip, int steps);
     void quantise(const std::string& node, int clip, int gridTicks);
     void nudgeVelocity(const std::string& node, int clip, int delta);
@@ -83,6 +107,7 @@ public:
 
 private:
     EngineHost& host_;
+    mutable std::map<std::string, Tape> tapes_;
 };
 
 }

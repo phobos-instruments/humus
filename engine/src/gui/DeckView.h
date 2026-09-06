@@ -9,6 +9,7 @@
 #include "hum/dsp/BeatGrid.h"
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -20,14 +21,14 @@ public:
     static constexpr double kViewSeconds = 6.0;
 
     DeckView(EngineHost& host, std::string organism)
-        : host_(host), name_(std::move(organism)), grid_("Set Grid"), x2_("x2"), half_("/2") {
+        : host_(host), name_(std::move(organism)), grid_(tr("deck.set-grid", "Set Grid")), x2_("x2"), half_("/2") {
         for (auto* b : { &grid_, &x2_, &half_ }) {
             b->setColour(juce::TextButton::buttonColourId, Palette::panelLight);
             b->setColour(juce::TextButton::textColourOffId, Palette::text);
             addAndMakeVisible(*b);
         }
-        grid_.setTooltip("Anchor the beatgrid (beat 1) at the playhead");
-        x2_.setTooltip("Double the detected BPM (grid x2)");
+        grid_.setTooltip(tr("deck.anchor-the-beatgrid-beat-1", "Anchor the beatgrid (beat 1) at the playhead"));
+        x2_.setTooltip(tr("deck.double-the-detected-bpm-grid", "Double the detected BPM (grid x2)"));
         half_.setTooltip(juce::String::fromUTF8("Halve the detected BPM (grid \xc3\xb7""2)"));
         grid_.onClick = [this] { host_.setParam(name_, "GridOffset", (double) host_.decks().position(name_)); repaint(); };
         x2_.onClick   = [this] { scaleBpm(2.0); };
@@ -56,7 +57,7 @@ public:
         if (peaks.empty() || len <= 0) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
-            g.drawText("Drop a track here", getLocalBounds(), juce::Justification::centred);
+            g.drawText(tr("deck.drop-a-track-here", "Drop a track here"), getLocalBounds(), juce::Justification::centred);
             return;
         }
 
@@ -117,7 +118,7 @@ public:
         const double eff = host_.decks().effectiveBpm(name_);
         g.setColour(Palette::accent);
         g.setFont(juce::FontOptions(13.0f, juce::Font::bold));
-        if (eff > 0.0) g.drawText(juce::String(eff, 1) + " BPM", main_.reduced(6, 4), juce::Justification::topLeft);
+        if (eff > 0.0) g.drawText(juce::String(eff, 1) + tr("deck.bpm", " BPM"), main_.reduced(6, 4), juce::Justification::topLeft);
         juce::String info = host_.liveParamText(name_, "Key");
         if (host_.liveParamValue(name_, "Quantize") >= 0.5) info += "  Q";
         if (host_.liveParamValue(name_, "HQ") >= 0.5) info += "  HQ";

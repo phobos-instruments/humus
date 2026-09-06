@@ -9,7 +9,7 @@ namespace hum {
 void LfoGen::process(const float* const* in, int numIn, float* const* out, int numOut,
                      int numSamples, const Transport& transport) {
     if (numOut < 1) return;
-    const double rate = std::clamp(params.get("Rate", 1.0), 0.01, 100.0);
+    const double rate = std::clamp(params.get("Rate", 1.0), 0.01, 1000.0);
     const int wave = std::clamp((int) params.get("Waveform", 0.0), 0, 5);
     const double amp = std::clamp(params.get("Amplitude", 1.0), 0.0, 1.0);
     const double off = std::clamp(params.get("Offset", 0.0), -1.0, 1.0);

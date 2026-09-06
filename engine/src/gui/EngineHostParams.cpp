@@ -39,7 +39,7 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
     if (param == kSoloParam) { setSoloed(organism, value >= 0.5); return; }
     if (param == kArmParam) {
         const bool on = value >= 0.5;
-        if (nodeRecordsAudio(organism)) setParam(organism, "Record", on ? 1.0 : 0.0);
+        if (nodeRecordsMedia(organism)) setParam(organism, "Record", on ? 1.0 : 0.0);
         else midi().setRecordTarget(organism, on, 0, 0);
         ++changeStamp_;
         return;
@@ -343,7 +343,7 @@ void EngineHost::setParamText(const std::string& organism, const std::string& pa
             if (auto* c = graph_->find(organism))
                 if (auto* p = c->params.byName(param)) p->text = text;
     }
-    if (param.rfind("File", 0) == 0) onFileNodeChanged(organism, text);
+    if (param.rfind("File", 0) == 0) onFileNodeChanged(organism, text, true, param);
     if (!audioRunning_) primeOffline(1);
 }
 

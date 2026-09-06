@@ -13,6 +13,9 @@
 #include "gui/LookAndFeel.h"
 #include "gui/TimelineChrome.h"
 #include "gui/WaveformCache.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -35,8 +38,8 @@ void TracksPane::paintToolbar(juce::Graphics& g) {
     g.setColour(follow_ ? Palette::accent : Palette::panelLight);
     g.fillRoundedRectangle(fb.toFloat(), 3.0f);
     g.setColour(follow_ ? Palette::background : Palette::textDim);
-    g.setFont(juce::FontOptions(9.5f));
-    g.drawText("Follow Play", fb, juce::Justification::centred);
+    g.setFont(juce::FontOptions(timelinechrome::kChipFont));
+    g.drawText(tr("tracks-pane-paint.follow-play", "Follow Play"), fb, juce::Justification::centred);
 
     if (hasSel_ && selTo_ > selFrom_) {
         const float x0 = juce::jmax((float) kStripW, beatToX(selFrom_));
@@ -84,7 +87,7 @@ void TracksPane::paintRuler(juce::Graphics& g) {
     g.drawHorizontalLine(rulerTop(), (float) kStripW, (float) getWidth());
 
     const int bpb = host_.automation().timeSigNumerator();
-    g.setFont(juce::FontOptions(juce::Font::getDefaultMonospacedFontName(), 9.5f,
+    g.setFont(juce::FontOptions(juce::Font::getDefaultMonospacedFontName(), 10.5f,
                                 juce::Font::plain));
     const auto cb = g.getClipBounds();
     const float barPixels = (float) (bpb * ppb_);
@@ -158,8 +161,9 @@ void TracksPane::paintRow(juce::Graphics& g, int row) {
                              || clipSelected(row, ci.id);
             g.setColour(sel ? cFill(ci.color).brighter(0.4f) : cFill(ci.color));
             g.fillRoundedRectangle(b.toFloat(), 3.0f);
-            if (ci.isAudio) paintWaveform(g, b, unclampedLeft, ci, cCol(ci.color));
-            else            paintNotes(g, b, unclampedLeft, node, ci, cCol(ci.color));
+            if (ci.isAudio)      paintWaveform(g, b, unclampedLeft, ci, cCol(ci.color));
+            else if (showsFilmstrip(ci)) paintFilmstrip(g, b, ci, cCol(ci.color));
+            else                 paintNotes(g, b, unclampedLeft, node, ci, cCol(ci.color));
             if (sel) {
                 g.setColour(Palette::text.withAlpha(0.16f));
                 g.fillRoundedRectangle(b.toFloat(), 3.0f);
@@ -177,7 +181,7 @@ void TracksPane::paintRow(juce::Graphics& g, int row) {
             if (b.getWidth() > 30)
                 g.drawText(label, b.reduced(4, 2).withTrimmedLeft(marks ? kFadeGrip : 0),
                            juce::Justification::topLeft, true);
-            if (ci.isAudio) {
+            if (ci.hasMedia()) {
                 timelinechrome::paintFades(g, b, ci.fadeInTicks, ci.fadeOutTicks,
                                            ci.lengthTicks, cCol(ci.color),
                                            ci.fadeInCurve, ci.fadeOutCurve);
@@ -190,7 +194,7 @@ void TracksPane::paintRow(juce::Graphics& g, int row) {
             }
             if (!ci.looped)
                 timelinechrome::paintRepeatGrip(g, b, kFadeGrip, cCol(ci.color), sel);
-            if (ci.isAudio)
+            if (ci.hasMedia())
                 timelinechrome::paintWarpBadge(g, b, ci.sourceBpm, host_.tempo(),
                                                ci.warpMode, cCol(ci.color));
         }
@@ -222,17 +226,20 @@ void TracksPane::paintRow(juce::Graphics& g, int row) {
 
     if (!wantsBoxRow(row)) paintBoxes(g, row);
 
+    double takeStart = host_.record().videoTakeStartBeat(node);
     if (auto* cr = dynamic_cast<ClipRecorder*>(host_.liveOrganism(node));
-        cr != nullptr && cr->takeActive() && cr->takeLengthSamples() > 0) {
-        const float x0 = std::max(beatToX(cr->takeStartBeat()), (float) kStripW);
+        cr != nullptr && cr->takeActive() && cr->takeLengthSamples() > 0)
+        takeStart = cr->takeStartBeat();
+    if (takeStart >= 0.0) {
+        const float x0 = std::max(beatToX(takeStart), (float) kStripW);
         const float x1 = std::max(beatToX(playBeat_), x0 + 4.0f);
         const juce::Rectangle<float> r(x0, (float) y + 2.0f, x1 - x0, (float) kRowH - 5.0f);
         g.setColour(juce::Colour(0xffb04040).withAlpha(0.35f));
         g.fillRoundedRectangle(r, 3.0f);
         g.setColour(juce::Colour(0xffb04040));
         g.drawRoundedRectangle(r, 3.0f, 1.0f);
-        g.setFont(juce::FontOptions(10.0f));
-        g.drawText("REC", r.reduced(4.0f, 0.0f).toNearestInt(), juce::Justification::centredLeft);
+        g.setFont(juce::FontOptions(11.0f));
+        g.drawText(tr("tracks-pane-paint.rec", "REC"), r.reduced(4.0f, 0.0f).toNearestInt(), juce::Justification::centredLeft);
     }
 }
 
@@ -291,7 +298,7 @@ void TracksPane::paintBoxes(juce::Graphics& g, int row) {
             int nLanes = 0;
             for (const auto& l : cm->automation) if (!l.points.empty()) ++nLanes;
             if (b.getWidth() > 40)
-                g.drawText(juce::String(nLanes) + (nLanes == 1 ? " param" : " params"),
+                g.drawText(juce::String(nLanes) + (nLanes == 1 ? tr("tracks-pane-paint.param", " param") : tr("tracks-pane-paint.params", " params")),
                            b.reduced(4, 1), juce::Justification::topLeft, false);
         }
     }
@@ -310,8 +317,8 @@ void TracksPane::paintBoxRow(juce::Graphics& g, const trackslayout::Slot& s) {
                               fb.getRight() - 3, fb.getCentreY());
     g.setColour(Palette::textDim);
     g.fillPath(tri);
-    g.setFont(juce::FontOptions(10.0f));
-    g.drawText("Automation", 20, s.y, kStripW - 24, s.h - 1, juce::Justification::centredLeft, false);
+    g.setFont(juce::FontOptions(11.0f));
+    g.drawText(tr("tracks-pane-paint.automation", "Automation"), 20, s.y, kStripW - 24, s.h - 1, juce::Justification::centredLeft, false);
     g.setColour(Palette::background.brighter(0.035f));
     g.fillRect(kStripW, s.y, getWidth() - kStripW, s.h - 1);
     timelinechrome::paintTimeGrid(g, {kStripW, s.y, getWidth() - kStripW, s.h - 1}, kStripW,
@@ -322,7 +329,7 @@ void TracksPane::paintBoxRow(juce::Graphics& g, const trackslayout::Slot& s) {
 
 void TracksPane::paintBackCrumb(juce::Graphics& g) {
     const auto back = crumbBackBox();
-    g.setFont(juce::FontOptions(10.0f));
+    g.setFont(juce::FontOptions(timelinechrome::kCrumbFont));
     g.setColour(Palette::panelLight);
     g.fillRoundedRectangle(back.toFloat(), 3.0f);
     g.setColour(Palette::textDim);
@@ -353,7 +360,7 @@ void TracksPane::paintCutGuide(juce::Graphics& g) {
 void TracksPane::paintBoxCrumb(juce::Graphics& g) {
     paintBackCrumb(g);
     const auto back = crumbBackBox();
-    g.setFont(juce::FontOptions(10.0f));
+    g.setFont(juce::FontOptions(timelinechrome::kCrumbFont));
     const juce::Rectangle<int> name(back.getRight() + 10, 1, 300, kTopH - 2);
     g.setColour(timelinechrome::laneAccent(host_.model(), boxNode_));
     g.fillEllipse((float) name.getX(), (float) name.getCentreY() - 3.0f, 6.0f, 6.0f);
@@ -425,7 +432,7 @@ void TracksPane::paintRowHeader(juce::Graphics& g, int row, int y) {
     if (const auto* cm = host_.model().byName(node))
         for (const auto& p : cm->properties)
             if (p.name == "Record") { recParam = p.value >= 0.5; break; }
-    const bool armed = host_.nodeRecordsAudio(node) ? recParam
+    const bool armed = host_.nodeRecordsMedia(node) ? recParam
                                                     : host_.midi().isRecordTarget(node);
     auto box = [&](juce::Rectangle<int> r, const char* t, bool on, juce::Colour onCol) {
         g.setColour(on ? onCol : Palette::panelLight);
@@ -456,7 +463,7 @@ void TracksPane::paintAutoLane(juce::Graphics& g, const trackslayout::Slot& slot
     g.setColour(Palette::border.withAlpha(0.4f));
     g.drawHorizontalLine(y, 0.0f, (float) getWidth());
     g.setColour(Palette::textDim);
-    g.setFont(juce::FontOptions(10.0f));
+    g.setFont(juce::FontOptions(11.0f));
     g.drawText(juce::String::fromUTF8("\xe2\x86\xb3 ") + slot.param, 20, y, kStripW - 76, h,
                juce::Justification::centredLeft, true);
     const bool muted = lane && lane->mute;
@@ -519,7 +526,7 @@ void TracksPane::paintPodHeader(juce::Graphics& g, const trackslayout::Slot& slo
     g.setFont(juce::FontOptions(9.5f));
     const int n = trackslayout::podRowCount((int) rows_.size(),
                                             [this](int t) { return podOfRow(t); }, slot.param);
-    g.drawText(juce::String(n) + (n == 1 ? " lane" : " lanes"),
+    g.drawText(juce::String(n) + (n == 1 ? tr("tracks-pane-paint.lane", " lane") : tr("tracks-pane-paint.lanes", " lanes")),
                kStripW - 60, y, 54, h, juce::Justification::centredRight);
 
     if (folded) {
@@ -562,7 +569,7 @@ void TracksPane::paintWaveform(juce::Graphics& g, juce::Rectangle<int> b, int cl
     }
     if (!peaks || !peaks->ready || peaks->binSamples <= 0 || peaks->sourceSamples <= 0) return;
 
-    const double spb = (host_.tempo() > 0.0 ? 60.0 / host_.tempo() : 0.5) * host_.sampleRate();
+    const double spb = (host_.tempo() > 0.0 ? kSecondsPerMinute / host_.tempo() : 0.5) * host_.sampleRate();
     const double clipSrcLen = (double) ci.lengthTicks / Pattern::kTicksPerBeat * spb;
     const int fullW = b.getRight() - clipLeft;
     if (fullW <= 0 || clipSrcLen <= 0.0) return;
@@ -606,7 +613,7 @@ void TracksPane::paintNotes(juce::Graphics& g, juce::Rectangle<int> b, int clipL
                             juce::Colour accent) {
     const auto notes = host_.clips().notes(node, ci.index);
     if (notes.empty()) return;
-    int lo = 127, hi = 0;
+    int lo = kMidiMax, hi = 0;
     for (const auto& n : notes) { lo = std::min(lo, n.pitch); hi = std::max(hi, n.pitch); }
     const auto np = timelinechrome::notePlot(b, b.getRight() - clipLeft, ci.lengthTicks,
                                              lo, hi, Pattern::kTicksPerBeat);
@@ -686,11 +693,11 @@ void TracksPane::paintField(juce::Graphics& g) {
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(14.0f));
         auto r = getLocalBounds().withTrimmedTop(headerH());
-        g.drawText("Drop a sound file here", r.removeFromTop(r.getHeight() / 2 + 10),
+        g.drawText(tr("tracks-pane-paint.drop-media-files-here", "Drop media files here"), r.removeFromTop(r.getHeight() / 2 + 10),
                    juce::Justification::centredBottom);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.0f));
-        g.drawText("... or press + to add an audio or MIDI track",
+        g.drawText(tr("tracks-pane-paint.or-press-to-add-an", "... or press + to add an audio, MIDI or video track"),
                    r, juce::Justification::centredTop);
         if (dropHot_) paintDropHint(g);
     } else {

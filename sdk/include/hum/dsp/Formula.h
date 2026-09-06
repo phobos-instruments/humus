@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "hum/Number.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -174,7 +175,7 @@ inline float evalFormula(const FormulaProgram& p, const FormulaEnv& env) {
                     const float amp = std::pow((float) k, -tilt) * std::min(1.0f, nf - (float) (k - 1));
                     norm += amp * amp;
                     if ((float) k * std::abs(hz) < nyquist)
-                        sum += amp * std::sin(6.28318530717958647692f * (float) k * ph);
+                        sum += amp * std::sin(kTwoPiF * (float) k * ph);
                 }
                 st[sp - 1] = norm > 0.0f ? sum / std::sqrt(norm) : 0.0f;
                 break;
@@ -232,8 +233,8 @@ inline const Var* variables(int& count) {
 struct Konst { const char* name; float k; };
 inline const Konst* constants(int& count) {
     static const Konst k[] = {
-        {"pi", 3.14159265358979323846f},
-        {"tau", 6.28318530717958647692f},
+        {"pi", kPiF},
+        {"tau", kTwoPiF},
         {"e", 2.71828182845904523536f},
     };
     count = (int) (sizeof(k) / sizeof(k[0]));

@@ -6,6 +6,7 @@
 #include <juce_core/juce_core.h>
 
 #include "io/PatchDocument.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -43,7 +44,7 @@ inline juce::String stripSourceTip(const std::string& param,
                 break;
             }
     }
-    if (names.isEmpty()) return "Nothing connected";
+    if (names.isEmpty()) return tr("strip-hover.nothing-connected", "Nothing connected");
     return names.joinIntoString(" + ");
 }
 

@@ -5,7 +5,10 @@
     { "type": "knob", "param": "TrimA", "label": "1 & 2", "x": 12, "y": 14, "w": 64, "h": 74, "decimals": 2 },
     { "type": "knob", "param": "TrimB", "label": "3 & 4", "x": 217, "y": 14, "w": 64, "h": 74, "decimals": 2 },
     { "type": "label", "label": "Fade", "x": 126, "y": 72, "w": 41, "h": 14 },
-    { "type": "hslider", "param": "Fade", "label": "", "x": 10, "y": 94, "w": 273, "h": 44, "decimals": 2 },
+    { "type": "momentary", "param": "CutA", "label": "A", "x": 10, "y": 104, "w": 30, "h": 24, "hold": "true" },
+    { "type": "hslider", "param": "Fade", "label": "", "x": 46, "y": 94, "w": 201, "h": 44, "decimals": 2 },
+    { "type": "momentary", "param": "CutB", "label": "B", "x": 253, "y": 104, "w": 30, "h": 24, "hold": "true" },
+    { "type": "knob", "param": "CutTime", "label": "Cut", "x": 12, "y": 152, "w": 48, "h": 66, "decimals": 0 },
     { "type": "knob", "param": "Curve", "label": "Curve", "x": 85, "y": 152, "w": 48, "h": 66, "decimals": 2 },
     { "type": "knob", "param": "MasterGain", "label": "Master", "x": 158, "y": 150, "w": 58, "h": 68, "decimals": 2 }
   ]

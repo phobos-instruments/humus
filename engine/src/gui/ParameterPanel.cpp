@@ -8,6 +8,7 @@
 #include "core/ParamUnit.h"
 #include "gui/LookAndFeel.h"
 #include "gui/RootCollar.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -179,7 +180,7 @@ void ParameterPanel::paint(juce::Graphics& g) {
         g.fillAll(Palette::panel);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.0f));
-        g.drawText("(no selection)", getLocalBounds().reduced(8).removeFromTop(24),
+        g.drawText(tr("parameter.no-selection", "(no selection)"), getLocalBounds().reduced(8).removeFromTop(24),
                    juce::Justification::centredLeft, true);
         return;
     }

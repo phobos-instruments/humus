@@ -1,7 +1,9 @@
 #pragma once
+#include <iterator>
 #include <map>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "core/AppPaths.h"
 #include "gui/VideoLayer.h"
@@ -25,19 +27,28 @@ public:
         return p;
     }
 
+    std::vector<std::string> keysForTest() const {
+        std::vector<std::string> out;
+        for (const auto& [k, e] : decks_) if (!e.layer.expired()) out.push_back(k);
+        return out;
+    }
+
     std::shared_ptr<VideoLayer> peek(const std::string& node) const {
         const auto it = decks_.find(node);
         return it != decks_.end() ? it->second.layer.lock() : nullptr;
     }
 
-    std::shared_ptr<VideoLayer> open(const std::string& node, const juce::String& path) {
+    std::shared_ptr<VideoLayer> open(const std::string& node, const juce::String& path,
+                                     bool offline = false) {
+        if (decks_.size() > kPruneAbove) prune();
         auto& e = decks_[node];
         auto layer = e.layer.lock();
-        if (layer == nullptr) {
-            layer = VideoLayer::create();
+        if (layer == nullptr || e.offline != offline) {
+            layer = VideoLayer::create(offline);
             if (layer == nullptr) return nullptr;
             e.layer = layer;
             e.path = {};
+            e.offline = offline;
         }
         if (e.path != path) {
             e.path = path;
@@ -47,9 +58,17 @@ public:
     }
 
 private:
+    static constexpr size_t kPruneAbove = 64;
+
+    void prune() {
+        for (auto it = decks_.begin(); it != decks_.end();)
+            it = it->second.layer.expired() ? decks_.erase(it) : std::next(it);
+    }
+
     struct Entry {
         std::weak_ptr<VideoLayer> layer;
         juce::String path;
+        bool offline = false;
     };
 
     std::map<std::string, Entry> decks_;

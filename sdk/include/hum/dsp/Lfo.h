@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct Lfo {
@@ -31,7 +33,6 @@ struct Lfo {
     static double sawDown(double p) { return 1.0 - 2.0 * p; }
 
 private:
-    static constexpr double kPi = 3.14159265358979323846;
     double phase_ = 0.0, inc_ = 0.0;
 };
 

@@ -1,3 +1,4 @@
+#include "gui/AboutCredits.h"
 #include "gui/MainComponent.h"
 
 #include "gui/VisualPlanBuilder.h"
@@ -6,6 +7,7 @@
 #include "gui/SettingsComponent.h"
 
 #include "hum/Capabilities.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -17,18 +19,18 @@ static std::vector<std::string> videoOutNames(EngineHost& host) {
 }
 
 juce::StringArray MainComponent::getMenuBarNames() {
-    return {"File", "Edit", "Control", "Help"};
+    return {tr("menu.file", "File"), tr("menu.edit", "Edit"), tr("menu.control", "Control"), tr("menu.help", "Help")};
 }
 
 juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
     juce::PopupMenu m;
     if (index == 0) {
 #if JUCE_MAC
-        m.addItem(1, "New (Cmd+N)");
-        m.addItem(2, "Open... (Cmd+O)");
+        m.addItem(1, tr("menu.new-mac", "New (Cmd+N)"));
+        m.addItem(2, tr("menu.open-mac", "Open... (Cmd+O)"));
 #else
-        m.addItem(1, "New (Ctrl+N)");
-        m.addItem(2, "Open... (Ctrl+O)");
+        m.addItem(1, tr("menu.new-win", "New (Ctrl+N)"));
+        m.addItem(2, tr("menu.open-win", "Open... (Ctrl+O)"));
 #endif
         {
             juce::PopupMenu recent;
@@ -38,99 +40,101 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
             for (int i = 0; i < recentMenu_.size(); ++i)
                 recent.addItem(recents::kMenuIdBase + i, names[i]);
             recent.addSeparator();
-            recent.addItem(59, "Clear Menu", !recentMenu_.isEmpty());
-            m.addSubMenu("Open Recent", recent, !recentMenu_.isEmpty());
+            recent.addItem(59, tr("menu.clear-menu", "Clear Menu"), !recentMenu_.isEmpty());
+            m.addSubMenu(tr("menu.open-recent", "Open Recent"), recent, !recentMenu_.isEmpty());
         }
         m.addSeparator();
 #if JUCE_MAC
-        m.addItem(3, "Save (Cmd+S)", !currentFile_.isEmpty());
-        m.addItem(4, "Save As... (Cmd+Shift+S)");
+        m.addItem(3, tr("menu.save-mac", "Save (Cmd+S)"), !currentFile_.isEmpty());
+        m.addItem(4, tr("menu.save-as-mac", "Save As... (Cmd+Shift+S)"));
 #else
-        m.addItem(3, "Save (Ctrl+S)", !currentFile_.isEmpty());
-        m.addItem(4, "Save As... (Ctrl+Shift+S)");
+        m.addItem(3, tr("menu.save-win", "Save (Ctrl+S)"), !currentFile_.isEmpty());
+        m.addItem(4, tr("menu.save-as-win", "Save As... (Ctrl+Shift+S)"));
 #endif
-        m.addItem(5, "Export to Sound File...");
+        m.addItem(5, tr("menu.bounce", "Bounce..."));
         m.addSeparator();
-        m.addItem(6, "Revert", !currentFile_.isEmpty());
+        m.addItem(6, tr("menu.revert", "Revert"), !currentFile_.isEmpty());
 #if JUCE_MAC
-        m.addItem(8, "Close Project (Cmd+W)");
+        m.addItem(8, tr("menu.close-project-mac", "Close Project (Cmd+W)"));
 #else
-        m.addItem(8, "Close Project (Ctrl+W)");
+        m.addItem(8, tr("menu.close-project-win", "Close Project (Ctrl+W)"));
 #endif
 #if !JUCE_MAC
         m.addSeparator();
-        m.addItem(7, "Quit");
+        m.addItem(7, tr("menu.quit", "Quit"));
 #endif
     } else if (index == 1) {
-        m.addItem(15, "Undo", host_.canUndo());
-        m.addItem(17, "Redo", host_.canRedo());
+        m.addItem(15, tr("menu.undo", "Undo"), host_.canUndo());
+        m.addItem(17, tr("menu.redo", "Redo"), host_.canRedo());
         m.addSeparator();
-        m.addItem(14, "Cut");
-        m.addItem(10, "Copy");
-        m.addItem(11, "Paste");
-        m.addItem(12, "Duplicate");
-        m.addItem(13, "Clear");
-        m.addItem(18, "Select All");
-        m.addItem(34, "Rename Organism... (Cmd+R)", !canvas_->selected().empty());
+        m.addItem(14, tr("menu.cut", "Cut"));
+        m.addItem(10, tr("menu.copy", "Copy"));
+        m.addItem(11, tr("menu.paste", "Paste"));
+        m.addItem(12, tr("menu.duplicate", "Duplicate"));
+        m.addItem(13, tr("menu.clear", "Clear"));
+        m.addItem(18, tr("menu.select-all", "Select All"));
+        m.addItem(34, tr("menu.rename-organism-mac", "Rename Organism... (Cmd+R)"), !canvas_->selected().empty());
         m.addSeparator();
-        m.addItem(33, "Auto-arrange");
+        m.addItem(33, tr("menu.auto-arrange", "Auto-arrange"));
 #if !JUCE_MAC
         m.addSeparator();
-        m.addItem(16, "Settings...");
+        m.addItem(16, tr("menu.settings", "Settings..."));
 #endif
     } else if (index == 2) {
-        m.addItem(20, "Enable Audio", true, host_.audioRunning());
-        m.addItem(27, "Audio Settings...");
+        m.addItem(20, tr("menu.enable-audio", "Enable Audio"), true, host_.audioRunning());
+        m.addItem(27, tr("menu.audio-settings", "Audio Settings..."));
         {
             juce::PopupMenu vids;
             const auto outs = videoOutNames(host_);
             for (int i = 0; i < (int) outs.size() && i < 10; ++i)
                 vids.addItem(70 + i, juce::String(outs[(size_t) i]), true,
                              visualWindows_.count(outs[(size_t) i]) != 0);
-            m.addSubMenu("Video Outputs", vids, !outs.empty());
+            m.addSubMenu(tr("menu.video-outputs", "Video Outputs"), vids, !outs.empty());
         }
-        m.addItem(60, "Enable MIDI", true, host_.midi().enabled());
-        m.addItem(38, "Parameter Control... (F3)");
-        m.addItem(31, "Generate MIDI Clock", true,
+        m.addItem(60, tr("menu.enable-midi", "Enable MIDI"), true, host_.midi().enabled());
+        m.addItem(38, tr("menu.parameter-control", "Parameter Control... (F3)"));
+        m.addItem(31, tr("menu.generate-midi-clock", "Generate MIDI Clock"), true,
                   host_.midiSyncMode() == EngineHost::kSyncGenerate);
-        m.addItem(32, "Chase MIDI Clock", true,
+        m.addItem(32, tr("menu.chase-midi-clock", "Chase MIDI Clock"), true,
                   host_.midiSyncMode() == EngineHost::kSyncChase);
-        m.addItem(25, "Capture Performance", true, host_.record().armed());
-        m.addItem(37, "Keep Last 8 Bars (retroactive)", host_.isPlaying());
-        m.addItem(28, host_.isMixRecording() ? "Stop Recording Master Mix" : "Record Master Mix...",
+        m.addItem(25, tr("menu.capture-performance", "Capture Performance"), true, host_.record().armed());
+        m.addItem(37, tr("menu.keep-last-8-bars-retroactive", "Keep Last 8 Bars (retroactive)"), host_.isPlaying());
+        m.addItem(28, host_.isMixRecording() ? tr("menu.stop-recording-live-performance", "Stop Recording Live Performance") : tr("menu.record-live-performance", "Record Live Performance..."),
                   true, host_.isMixRecording());
         m.addSeparator();
-        m.addItem(21, "Play From Start");
-        m.addItem(22, host_.isPlaying() ? "Stop" : "Play");
-        m.addItem(24, "Go to Start");
+        m.addItem(21, tr("menu.play-from-start", "Play From Start"));
+        m.addItem(22, host_.isPlaying() ? tr("menu.stop", "Stop") : tr("menu.play", "Play"));
+        m.addItem(24, tr("menu.go-to-start", "Go to Start"));
         m.addSeparator();
         double f, t;
         const bool sel = tracksPane_ && tracksPane_->timeSelection(f, t);
-        m.addItem(40, "Loop Selection", sel);
-        m.addItem(26, host_.automation().loopEnabled() ? "Disable Loop" : "Enable Loop");
+        m.addItem(40, tr("menu.loop-selection", "Loop Selection"), sel);
+        m.addItem(26, host_.automation().loopEnabled() ? tr("menu.disable-loop", "Disable Loop") : tr("menu.enable-loop", "Enable Loop"));
         m.addSeparator();
         juce::PopupMenu autoEdit;
-        autoEdit.addItem(41, "Cut Time", sel);
-        autoEdit.addItem(42, "Copy Time", sel);
-        autoEdit.addItem(43, "Paste Time", host_.automation().hasClip());
-        autoEdit.addItem(44, "Insert Time", sel);
-        autoEdit.addItem(45, "Delete Time", sel);
-        autoEdit.addItem(46, "Clear", sel);
-        m.addSubMenu("Automation", autoEdit);
+        autoEdit.addItem(41, tr("menu.cut-time", "Cut Time"), sel);
+        autoEdit.addItem(42, tr("menu.copy-time", "Copy Time"), sel);
+        autoEdit.addItem(43, tr("menu.paste-time", "Paste Time"), host_.automation().hasClip());
+        autoEdit.addItem(44, tr("menu.insert-time", "Insert Time"), sel);
+        autoEdit.addItem(45, tr("menu.delete-time", "Delete Time"), sel);
+        autoEdit.addItem(46, tr("menu.clear", "Clear"), sel);
+        m.addSubMenu(tr("menu.automation", "Automation"), autoEdit);
         m.addSeparator();
         m.addSeparator();
-        m.addItem(29, "AI Assistant...");
-        m.addItem(30, "AI Sample Lab...");
+        m.addItem(29, tr("menu.ai-assistant", "AI Assistant..."));
+        m.addItem(30, tr("menu.ai-sample-lab", "AI Sample Lab..."));
     } else if (index == 3) {
-        m.addItem(55, "Humus Help");
-        m.addItem(52, "Meet Humus...");
-        m.addItem(51, "Setup Wizard...");
+        m.addItem(55, tr("menu.humus-help", "Humus Help"));
+        m.addItem(52, tr("menu.meet-humus", "Meet Humus..."));
+        m.addItem(51, tr("menu.setup-wizard", "Setup Wizard..."));
         m.addSeparator();
-        m.addItem(54, "Enter License...");
+        m.addItem(56, tr("menu.start-window", "Start Window..."));
+        m.addItem(57, tr("menu.report-a-bug", "Report a Bug..."));
+        m.addItem(54, tr("menu.enter-license", "Enter License..."));
 #if !JUCE_MAC
-        m.addItem(53, "Check for Updates...");
+        m.addItem(53, tr("menu.check-for-updates", "Check for Updates..."));
         m.addSeparator();
-        m.addItem(50, "About Humus...");
+        m.addItem(50, tr("menu.about-humus", "About Humus..."));
 #endif
     }
     return m;
@@ -151,7 +155,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 2: openPatch(); break;
         case 3: savePatch(); break;
         case 4: savePatchAs(); break;
-        case 5: exportSound(); break;
+        case 5: bounce(); break;
         case 6: revertPatch(); break;
         case 7: juce::JUCEApplication::getInstance()->systemRequestedQuit(); break;
         case 8: closeProject(); break;
@@ -163,6 +167,8 @@ void MainComponent::menuItemSelected(int id, int) {
         case 53: checkForUpdatesManually(); break;
         case 54: openSettings(SettingsComponent::kLicense); break;
         case 55: openHelpBrowser(); break;
+        case 56: showStartWindow(); break;
+        case 57: openBugReport(); break;
         case 10: canvas_->copySelection(); break;
         case 14: canvas_->cutSelection(); break;
         case 11: canvas_->pasteClipboard(); break;
@@ -172,7 +178,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 34: canvas_->renameSelection(); break;
         case 33:
             canvas_->autoArrange();
-            setStatus("arranged as a top-down flow (Undo restores the old layout)");
+            setStatus(tr("menu.arranged-as-a-top-down", "arranged as a top-down flow (Undo restores the old layout)"));
             break;
         case 20: toggleAudio(); break;
         case 27: openAudioSettings(); break;
@@ -182,13 +188,13 @@ void MainComponent::menuItemSelected(int id, int) {
             host_.setMidiSyncMode(host_.midiSyncMode() == EngineHost::kSyncGenerate
                                       ? EngineHost::kSyncOff : EngineHost::kSyncGenerate);
             setStatus(host_.midiSyncMode() == EngineHost::kSyncGenerate
-                          ? "sending MIDI clock" : "MIDI clock off");
+                          ? tr("menu.sending-midi-clock", "sending MIDI clock") : tr("menu.midi-clock-off", "MIDI clock off"));
             break;
         case 32:
             host_.setMidiSyncMode(host_.midiSyncMode() == EngineHost::kSyncChase
                                       ? EngineHost::kSyncOff : EngineHost::kSyncChase);
             setStatus(host_.midiSyncMode() == EngineHost::kSyncChase
-                          ? "chasing incoming MIDI clock" : "MIDI clock off");
+                          ? tr("menu.chasing-incoming-midi-clock", "chasing incoming MIDI clock") : tr("menu.midi-clock-off", "MIDI clock off"));
             break;
         case 21: ensureAudio(); host_.playFromStart(); break;
         case 22: togglePlay(); break;
@@ -236,6 +242,25 @@ void MainComponent::showAbout() {
         if (auto* w = aboutWin_.release())
             juce::MessageManager::callAsync([w] { delete w; });
     };
+    AboutWindow::Actions a;
+    a.onDismiss = dismiss;
+    a.onEnterLicense = [this, dismiss] {
+        dismiss();
+        openSettings(SettingsComponent::kLicense);
+    };
+    aboutWin_ = std::make_unique<AboutWindow>(std::move(a));
+    aboutWin_->addToDesktop(juce::ComponentPeer::windowHasDropShadow);
+    aboutWin_->setCentrePosition(getScreenBounds().getCentre());
+    aboutWin_->setVisible(true);
+    aboutWin_->toFront(true);
+}
+
+void MainComponent::showStartWindow() {
+    if (startWin_) { startWin_->toFront(true); return; }
+    auto dismiss = [this] {
+        if (auto* w = startWin_.release())
+            juce::MessageManager::callAsync([w] { delete w; });
+    };
     StartWindow::Actions a;
     a.onDismiss = dismiss;
     a.onEnterLicense = [this, dismiss] {
@@ -248,11 +273,40 @@ void MainComponent::showAbout() {
         confirmDiscardThenRun([this, f] { openFileAt(f); });
     };
     a.onOpenOther = [this, dismiss] { dismiss(); openPatch(); };
-    aboutWin_ = std::make_unique<StartWindow>(std::move(a));
-    aboutWin_->addToDesktop(juce::ComponentPeer::windowHasDropShadow);
-    aboutWin_->setCentrePosition(getScreenBounds().getCentre());
-    aboutWin_->setVisible(true);
-    aboutWin_->toFront(true);
+    a.onTour = [this, dismiss] { dismiss(); openGuide(false); };
+    a.onWizard = [this, dismiss] { dismiss(); openSetupWizard(false); };
+    a.onHelp = [this, dismiss] { dismiss(); openHelpBrowser(); };
+    startWin_ = std::make_unique<StartWindow>(std::move(a));
+    startWin_->addToDesktop(juce::ComponentPeer::windowHasDropShadow);
+    startWin_->setCentrePosition(getScreenBounds().getCentre());
+    startWin_->setVisible(true);
+    startWin_->toFront(true);
 }
+
+}
+
+namespace hum {
+namespace {
+juce::URL bugReportUrl() {
+#if JUCE_MAC && JUCE_ARM
+    const char* platform = "macos-arm";
+#elif JUCE_MAC
+    const char* platform = "macos-intel";
+#elif JUCE_WINDOWS
+    const char* platform = "win10+";
+#elif JUCE_LINUX
+    const char* platform = "linux";
+#else
+    const char* platform = "other";
+#endif
+    auto* app = juce::JUCEApplication::getInstance();
+    return juce::URL(juce::String(about::kSite) + "/report")
+        .withParameter("version", app != nullptr ? app->getApplicationVersion() : juce::String())
+        .withParameter("platform", platform)
+        .withParameter("os", juce::SystemStats::getOperatingSystemName());
+}
+}
+
+void MainComponent::openBugReport() { bugReportUrl().launchInDefaultBrowser(); }
 
 }

@@ -1,6 +1,6 @@
 # VideoPlayer
 
-The video deck. Load a tape (any .mp4/.mov/.m4v) into its File slot, cord the video outlet - the video-coloured pin - into one of Lumen's video inlets, and the tape plays there, looping. Video cords are the third cord domain beside audio and MIDI, drawn in their own colour.
+The video deck. Load a tape (any .mp4/.mov/.m4v) into its File slot, or drop a clip from the timeline on the slot to load that clip's tape, cord the video outlet - the video-coloured pin - into one of Lumen's video inlets, and the tape plays there, looping. Video cords are the third cord domain beside audio and MIDI, drawn in their own colour.
 
 Speed is the motor, read in percent (100% is the tape as recorded, 0% freezes the frame, 200% doubles it - saved in patches under its older name Rate), and Opacity and Blend (Normal, Add, Multiply, Screen) set how the layer composites at the display. All ordinary params - automatable and modulation-routable, so a Follower can drive the speed with the music. The deck plays the picture as it is; treatments belong to the shaders and the contraptions downstream.
 

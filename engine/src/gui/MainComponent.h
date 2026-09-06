@@ -3,6 +3,8 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
+#include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -20,6 +22,8 @@
 #include "gui/Mappable.h"
 #include "gui/PatcherCanvas.h"
 #include "gui/PluginEditorWindow.h"
+#include "gui/BounceJob.h"
+#include "gui/BounceWindow.h"
 #include "gui/VideoRenderService.h"
 #include "gui/VideoTrackerFeed.h"
 #include "gui/VisualWindow.h"
@@ -28,9 +32,11 @@
 #include "gui/UpdateNotice.h"
 #include "gui/PropertiesPane.h"
 #include "gui/SetupWizard.h"
+#include "gui/AboutWindow.h"
 #include "gui/StartWindow.h"
 #include "gui/TempoSlider.h"
 #include "gui/TransportWidgets.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -55,8 +61,13 @@ public:
     bool openFileAt(const juce::File& f);
     void openSetupWizard(bool firstBoot);
     void openGuide(bool firstBoot);
+    void openHelpBrowser();
     void promptOpen() { openPatch(); }
     void showAbout();
+    void showStartWindow();
+    void openBugReport();
+    juce::PopupMenu menuForTest(int index) { return getMenuForIndex(index, {}); }
+    juce::StringArray menuNamesForTest() { return getMenuBarNames(); }
     void startupCheckin();
     void checkForUpdatesManually();
     void restoreAutosave(const AutosaveStore::Recovery& r);
@@ -93,14 +104,15 @@ private:
     void openPatchImpl();
     void savePatch(std::function<void()> onSaved = nullptr);
     void savePatchAs(std::function<void()> onSaved = nullptr);
-    void exportSound();
+    void bounce();
+    void startBounce(const BounceWants& wants);
+    void closeBounceWindow();
     void toggleMixRecording();
     void revertPatch();
     void openSettings(int category = -1);
     void openAudioSettings();
     void openNotes();
     void openLibrary();
-    void openHelpBrowser();
     void openDocSwitcher();
     void openParameterControl(const std::string& organism = {},
                               const std::string& param = {});
@@ -137,8 +149,8 @@ private:
 
     IconButton undoBtn_{IconButton::Glyph::Undo, "Undo (Ctrl+Z) - takes back the last roll"};
     IconButton redoBtn_{IconButton::Glyph::Redo, "Redo (Ctrl+Shift+Z)"};
-    Mappable<IconButton> playFromStartBtn_{IconButton::Glyph::PlayFromStart, "Play From Start"};
-    Mappable<IconButton> playBtn_{IconButton::Glyph::Play, "Play (Space)"};
+    Mappable<IconButton> playFromStartBtn_{IconButton::Glyph::PlayFromStart, tr("main.play-from-start", "Play From Start")};
+    Mappable<IconButton> playBtn_{IconButton::Glyph::Play, tr("main.play-space", "Play (Space)")};
     Mappable<IconButton> stopBtn_{IconButton::Glyph::Stop, "Stop"};
     Mappable<IconButton> recordBtn_{IconButton::Glyph::Record,
                                     "Record the performance (every knob move, morph & MIDI in one "
@@ -146,11 +158,11 @@ private:
     IconButton keepBtn_{IconButton::Glyph::Keep,
                         "Keep the last 8 bars (retroactive: what you just played "
                         "becomes lanes + audio - no arming needed, the soil remembers)"};
-    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, "Go to Start (reset clock to 1-1.00)"};
+    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, tr("main.go-to-start-reset-clock", "Go to Start (reset clock to 1-1.00)")};
     Mappable<IconButton> goEndBtn_{IconButton::Glyph::GoToEnd,
                          "Go to End (song-end marker, or the end of the content)"};
-    Mappable<IconButton> loopBtn_{IconButton::Glyph::Loop, "Enable Automation Loop"};
-    IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, "Enable Audio (real-time engine on/off)"};
+    Mappable<IconButton> loopBtn_{IconButton::Glyph::Loop, tr("main.enable-automation-loop", "Enable Automation Loop")};
+    IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, tr("main.enable-audio-real-time-engine", "Enable Audio (real-time engine on/off)")};
     IconButton enableMidiBtn_{IconButton::Glyph::EnableMidi,
                               "Enable MIDI (open the MIDI devices for control, notes and sync)"};
     IconButton qwertyBtn_{IconButton::Glyph::QwertyPiano,
@@ -211,10 +223,10 @@ private:
                                 "Metapad (morph the whole patch between snapshots)"};
     IconButton viewParamControl_{IconButton::Glyph::ParameterControl,
                                  "Parameter Control (MIDI / OSC / modulation and follow routes, F3)"};
-    IconButton viewNotes_{IconButton::Glyph::Notes, "Notes (free text, saved with the patch)"};
+    IconButton viewNotes_{IconButton::Glyph::Notes, tr("main.notes-free-text-saved-with", "Notes (free text, saved with the patch)")};
     IconButton viewDocSwitcher_{IconButton::Glyph::DocumentSwitcher,
                                 "Document Switcher (a set of patches for live switching, F9)"};
-    IconButton viewHelp_{IconButton::Glyph::Help, "Help (browse every organism's reference)"};
+    IconButton viewHelp_{IconButton::Glyph::Help, tr("main.help-browse-every-organism-s", "Help (browse every organism's reference)")};
     IconButton viewLibrary_{IconButton::Glyph::Library,
                             "Library (your samples and impulses - drag onto file slots)"};
     IconButton settingsBtn_{IconButton::Glyph::Gear, "Settings"};
@@ -223,7 +235,8 @@ private:
     std::unique_ptr<TracksPane> tracksPane_;
     std::unique_ptr<MetapadWindow> metaWindow_;
     std::unique_ptr<juce::DocumentWindow> assistantWin_;
-    std::unique_ptr<StartWindow> aboutWin_;
+    std::unique_ptr<AboutWindow> aboutWin_;
+    std::unique_ptr<StartWindow> startWin_;
     std::unique_ptr<SetupWizard> wizard_;
     std::unique_ptr<GuideView> guide_;
     std::unique_ptr<UpdateNotice> updateNotice_;
@@ -278,6 +291,8 @@ private:
     unsigned lastLaneStamp_ = 0;
     unsigned recBlink_ = 0;
     std::unique_ptr<juce::FileChooser> chooser_;
+    std::unique_ptr<BounceJob> bounce_;
+    std::unique_ptr<juce::Component> bounceWindow_;
     juce::StringArray recentMenu_;
     juce::Component::SafePointer<juce::DialogWindow> settingsWindow_;
     std::unique_ptr<FreeWindow> paramControlWindow_;

@@ -60,6 +60,18 @@ this note records provenance because a sound file cannot carry its own.
 The patches the app ships, offered by the welcome tour under **Load a Demo
 Patch...**. Each one is described in `assets/patches/README.md`.
 
+## Translations/
+
+One `.txt` per language, in the format `juce::LocalisedStrings` reads: a
+`language:` and `countries:` header, then one `"source" = "translation"` line
+per string. `template.txt` is generated from the strings the app marks for translation; it
+is the file a translator copies to `<code>.txt` and fills in. The app lists every catalogue it finds on the search
+path, so a translation dropped into your own `Documents/Humus/assets/
+Translations` shows up in Settings > Appearance beside the shipped ones.
+A patch names an organism and its parameters by their written names, so those
+are identifiers rather than prose: they are never translated, and a catalogue
+that tries only breaks the patches that use them.
+
 ## Scales/
 
 Scala `.scl` files, the format the Tuning organism reads, in five collections:

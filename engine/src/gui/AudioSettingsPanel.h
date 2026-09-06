@@ -9,13 +9,14 @@
 
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
 class AudioSettingsPanel : public juce::Component, private juce::Timer {
 public:
     explicit AudioSettingsPanel(EngineHost* host) : host_(host) {
-        title_.setText("Audio", juce::dontSendNotification);
+        title_.setText(tr("audio-settings.audio", "Audio"), juce::dontSendNotification);
         title_.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
         addAndMakeVisible(title_);
 
@@ -35,7 +36,7 @@ public:
             addAndMakeVisible(selViewport_);
             startTimer(1000);
         } else {
-            hint_.setText("No engine in this preview.", juce::dontSendNotification);
+            hint_.setText(tr("audio-settings.no-engine-in-this-preview", "No engine in this preview."), juce::dontSendNotification);
         }
     }
 
@@ -86,7 +87,7 @@ private:
         const double rate = dev->getCurrentSampleRate();
         combo->clear(juce::dontSendNotification);
         for (int bs : wanted)
-            combo->addItem(juce::String(bs) + " samples ("
+            combo->addItem(juce::String(bs) + tr("audio-settings.samples", " samples (")
                                + juce::String(bs * 1000.0 / rate, 1) + " ms)", bs);
         combo->setSelectedId(current, juce::dontSendNotification);
     }

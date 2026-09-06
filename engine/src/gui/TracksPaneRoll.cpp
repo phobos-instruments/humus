@@ -9,6 +9,9 @@
 #include "gui/ClipColors.h"
 #include "gui/LookAndFeel.h"
 #include "hum/ClipStack.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -52,7 +55,7 @@ void TracksPane::stepTrack(int dir) {
 }
 
 void TracksPane::rollPitchRange(int& lo, int& hi) const {
-    lo = 127; hi = 0;
+    lo = kMidiMax; hi = 0;
     bool any = false;
     for (int c = 0; c < (int) host_.clips().list(trackNode_).size(); ++c)
         for (const auto& n : host_.clips().notes(trackNode_, c)) {
@@ -75,7 +78,7 @@ timelinechrome::RollPlot TracksPane::rollPlot() const {
     rp.rowH = rollRowH_;
     rp.top = (float) f.getY() + rollScrollAcc_ * rp.rowH;
     rp.h = (float) f.getHeight();
-    rp.topPitch = juce::jlimit(0, 127, rollTopPitch_ + rollScrollSemis_);
+    rp.topPitch = juce::jlimit(0, kMidiMax, rollTopPitch_ + rollScrollSemis_);
     rp.usable = f.getHeight() >= 12;
     return rp;
 }
@@ -101,7 +104,7 @@ void TracksPane::fitRoll() {
 void TracksPane::paintRollCrumb(juce::Graphics& g) {
     paintBackCrumb(g);
     const juce::Rectangle<int> name(crumbBackBox().getRight() + 10, 1, 300, kTopH - 2);
-    g.setFont(juce::FontOptions(10.0f));
+    g.setFont(juce::FontOptions(timelinechrome::kCrumbFont));
     g.setColour(timelinechrome::laneAccent(host_.model(), trackNode_));
     g.fillEllipse((float) name.getX(), (float) name.getCentreY() - 3.0f, 6.0f, 6.0f);
     g.setColour(Palette::text);
@@ -141,7 +144,7 @@ void TracksPane::paintRoll(juce::Graphics& g) {
     if (rp.rowH >= 4.0f) {
         for (int i = 0; i <= rp.rows(); ++i) {
             const int pitch = rp.topPitch - i;
-            if (pitch < 0 || pitch > 127) continue;
+            if (pitch < 0 || pitch > kMidiMax) continue;
             const float y = rp.yFor(pitch);
             g.setColour(timelinechrome::isBlackKey(pitch) ? Palette::background.brighter(0.02f)
                                                           : Palette::background.brighter(0.055f));
@@ -187,7 +190,7 @@ void TracksPane::paintRoll(juce::Graphics& g) {
             w > 40.0f && sx < (float) getWidth()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(9.5f));
-            g.drawText(ci.name.empty() ? "clip " + juce::String(ci.index + 1)
+            g.drawText(ci.name.empty() ? tr("tracks-pane-roll.clip", "clip ") + juce::String(ci.index + 1)
                                        : juce::String(ci.name),
                        (int) std::max(sx + 3.0f, (float) kStripW + 3.0f),
                        ribbonY - 12, 120, 11, juce::Justification::centredLeft, false);
@@ -208,7 +211,7 @@ void TracksPane::paintRoll(juce::Graphics& g) {
             const float x0 = std::max(x, (float) kStripW);
             const float w0 = std::min(x + w, (float) getWidth()) - x0;
             g.setColour(showVel ? col.withBrightness(juce::jlimit(
-                                      0.25f, 1.0f, 0.45f + 0.55f * n.velocity / 127.0f))
+                                      0.25f, 1.0f, 0.45f + 0.55f * n.velocity / kMidiMaxF))
                                 : col.withAlpha(0.8f));
             if (rp.rowH >= 5.0f)
                 g.fillRoundedRectangle(x0, y, w0, std::max(2.0f, nh - 1.0f), 2.0f);
@@ -241,7 +244,7 @@ void TracksPane::paintRoll(juce::Graphics& g) {
     if (rp.rowH >= 2.5f)
         for (int i = 0; i <= rp.rows(); ++i) {
             const int pitch = rp.topPitch - i;
-            if (pitch < 0 || pitch > 127) continue;
+            if (pitch < 0 || pitch > kMidiMax) continue;
             const float y = rp.yFor(pitch);
             const float kh = rp.hFor(pitch);
             if (y + kh < (float) f.getY() || y > (float) f.getBottom()) continue;
@@ -275,7 +278,7 @@ void TracksPane::paintRoll(juce::Graphics& g) {
             for (const auto& n : host_.clips().notes(trackNode_, ci.index)) {
                 const float x = tickToX(ci.startTick + n.tick);
                 if (x < (float) kStripW || x > (float) getWidth()) continue;
-                const float h = ((float) velH_ - 6.0f) * n.velocity / 127.0f;
+                const float h = ((float) velH_ - 6.0f) * n.velocity / kMidiMaxF;
                 const float barTop = (float) (top + velH_ - 3) - h;
                 g.setColour(col.withAlpha(0.45f));
                 g.fillRect(x, barTop, 3.0f, h);
@@ -298,11 +301,11 @@ void TracksPane::paintRoll(juce::Graphics& g) {
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(14.0f));
         auto r = f.reduced(0, f.getHeight() / 3);
-        g.drawText("No clips on this track yet", r.removeFromTop(r.getHeight() / 2),
+        g.drawText(tr("tracks-pane-roll.no-clips-on-this-track", "No clips on this track yet"), r.removeFromTop(r.getHeight() / 2),
                    juce::Justification::centredBottom);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.0f));
-        g.drawText("Drag one in, or arm R and play", r, juce::Justification::centredTop);
+        g.drawText(tr("tracks-pane-roll.drag-one-in-or-arm", "Drag one in, or arm R and play"), r, juce::Justification::centredTop);
     }
 }
 
@@ -337,7 +340,7 @@ bool TracksPane::mouseDownRoll(const juce::MouseEvent& e, juce::Point<int> p) {
 }
 
 void TracksPane::soundRollKey(int pitch) {
-    pitch = juce::jlimit(0, 127, pitch);
+    pitch = juce::jlimit(0, kMidiMax, pitch);
     if (pitch == rollKeyNote_) return;
     if (rollKeyNote_ >= 0)
         host_.injectLiveMidi(juce::MidiMessage::noteOff(1, rollKeyNote_));
@@ -358,59 +361,63 @@ juce::String TracksPane::getTooltip() {
         };
         for (int i = 0; i < kToolCount; ++i)
             if (toolBox(i).contains(p)) return names[i];
-        if (addTrackBox().contains(p)) return "Add a track, wired";
+        if (addTrackBox().contains(p)) return tr("tracks-pane-roll.add-a-track-wired", "Add a track, wired");
         if (snapBox().contains(p))
             return snapChoice_ < 0.0 ? "Snap: free - click to choose a grid"
                  : snapChoice_ > 0.0 ? "Snap: chosen - click to change or follow the zoom"
                                      : "Snap follows the zoom - click to choose one";
-        if (followBox().contains(p)) return "Follow the playhead while it plays";
+        if (followBox().contains(p)) return tr("tracks-pane-roll.follow-the-playhead-while-it", "Follow the playhead while it plays");
     }
+    if (overLoopLane(p))
+        return host_.automation().loopEnabled()
+            ? "Loop - drag the ends to trim, the body to move; click outside or double-click to remove"
+            : "Drag to set a loop - right-click to loop the selection";
     if (mode_ == Mode::Track && p.y < kTopH) {
-        if (crumbBackBox().contains(p)) return "Back to the timeline (Esc)";
+        if (crumbBackBox().contains(p)) return tr("tracks-pane-roll.back-to-the-timeline-esc", "Back to the timeline (Esc)");
         if (crumbNameBox().contains(p)) return "Choose a track (Alt+Up / Alt+Down)";
     }
     if (mode_ == Mode::Track && rollPlot().usable && rollField().contains(p)) {
-        if (effectiveTool() == Tool::Draw) return "Draw a note - drag to set its length";
-        if (effectiveTool() == Tool::Scissors) return "Split the note at the click";
-        if (effectiveTool() == Tool::Eraser) return "Sweep to delete notes";
+        if (effectiveTool() == Tool::Draw) return tr("tracks-pane-roll.draw-a-note-drag-to", "Draw a note - drag to set its length");
+        if (effectiveTool() == Tool::Scissors) return tr("tracks-pane-roll.split-the-note-at-the", "Split the note at the click");
+        if (effectiveTool() == Tool::Eraser) return tr("tracks-pane-roll.sweep-to-delete-notes", "Sweep to delete notes");
         int clip = -1, index = -1;
         bool nl = false, nr = false;
         noteAt(p, clip, index, nl, nr);
-        if (index < 0) return "Drag to marquee - right-click for the note menu";
-        if (nl || nr) return "Drag the edge to resize - Alt-drag the body for velocity";
-        return "Drag to move - Alt-drag for velocity, right-click for the menu";
+        if (index < 0) return tr("tracks-pane-roll.drag-to-marquee-right-click", "Drag to marquee - right-click for the note menu");
+        if (nl || nr) return tr("tracks-pane-roll.drag-the-edge-to-resize", "Drag the edge to resize - Alt-drag the body for velocity");
+        return tr("tracks-pane-roll.drag-to-move-alt-drag", "Drag to move - Alt-drag for velocity, right-click for the menu");
     }
-    const auto handleTip = [](ClipHit h) -> const char* {
+    const auto handleTip = [](ClipHit h) -> juce::String {
         switch (h) {
-            case ClipHit::FadeL:  return "Fade in - drag to set how long it takes";
-            case ClipHit::FadeR:  return "Fade out - drag to set how long it takes";
+            case ClipHit::FadeL:  return tr("tracks-pane-roll.fade-in-drag-to-set", "Fade in - drag to set how long it takes");
+            case ClipHit::FadeR:  return tr("tracks-pane-roll.fade-out-drag-to-set", "Fade out - drag to set how long it takes");
             case ClipHit::CurveL:
             case ClipHit::CurveR:
-                return "Fade shape - drag up or down to bend it, double-click to straighten";
-            case ClipHit::EdgeL:  return "Drag to trim the start - Cmd-drag to stretch";
-            case ClipHit::EdgeR:  return "Drag to trim the end - Cmd-drag to stretch";
-            default:              return nullptr;
+                return tr("tracks-pane-roll.fade-shape-drag-up-or", "Fade shape - drag up or down to bend it, double-click to straighten");
+            case ClipHit::EdgeL:  return tr("tracks-pane-roll.drag-to-trim-the-start-mac", "Drag to trim the start - Cmd-drag to stretch");
+            case ClipHit::EdgeR:  return tr("tracks-pane-roll.drag-to-trim-the-end-mac", "Drag to trim the end - Cmd-drag to stretch");
+            default:              return {};
         }
     };
     if (mode_ == Mode::Clip && effectiveTool() == Tool::Pointer) {
         const auto h = clipEditorHit(p);
-        if (const char* t = handleTip(h)) return t;
-        if (h == ClipHit::Body) return "Drag to select a range - Alt-drag to slip the audio";
+        if (const auto t = handleTip(h); t.isNotEmpty()) return t;
+        if (h == ClipHit::Body) return tr("tracks-pane-roll.drag-to-select-a-range", "Drag to select a range - Alt-drag to slip the audio");
     }
     if ((mode_ == Mode::Song || mode_ == Mode::Track) && p.x >= kStripW
         && effectiveTool() == Tool::Pointer) {
         if (const int row = rowAt(p.y); row >= 0) {
             const auto h = rowClipHit(row, p);
-            if (const char* t = handleTip(h)) return t;
+            if (const auto t = handleTip(h); t.isNotEmpty()) return t;
             if (h == ClipHit::Body) {
                 bool l = false, r = false;
                 const int c = clipAt(row, p, l, r);
                 const auto clips = host_.clips().list(rows_[(size_t) row]);
                 if (c >= 0 && c < (int) clips.size() && !clips[(size_t) c].looped
                     && overRepeatGrip(clipBounds(row, clips[(size_t) c]), p))
-                    return "Drag to repeat the clip";
+                    return tr("tracks-pane-roll.drag-to-repeat-the-clip", "Drag to repeat the clip");
                 return mode_ == Mode::Song
-                    ? "Drag to move - Cmd-drag to duplicate, double-click to edit"
+                    ? tr("tracks-pane-roll.drag-to-move-cmd-drag-mac", "Drag to move - Cmd-drag to duplicate, double-click to edit")
                     : "Drag to move - Cmd-drag to duplicate";
             }
         }
@@ -420,8 +427,8 @@ juce::String TracksPane::getTooltip() {
             if (muteBox(row).contains(p)) return "Mute";
             if (soloBox(row).contains(p)) return "Solo";
             if (recBox(row).contains(p)) return "Arm";
-            if (heldBox(row).contains(p)) return "A hand is holding this lane - click to let go";
-            if (foldBox(row).contains(p)) return "Show what is folded under this track";
+            if (heldBox(row).contains(p)) return tr("tracks-pane-roll.a-hand-is-holding-this", "A hand is holding this lane - click to let go");
+            if (foldBox(row).contains(p)) return tr("tracks-pane-roll.show-what-is-folded-under", "Show what is folded under this track");
         }
     }
     return {};

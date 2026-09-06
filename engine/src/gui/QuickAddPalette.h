@@ -10,6 +10,7 @@
 #include "gui/ClassPickerMenu.h"
 #include "gui/LookAndFeel.h"
 #include "gui/TextHighlight.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -139,7 +140,7 @@ private:
         if (shown_.empty()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
-            g.drawText(juce::String("no matches - Esc to close"),
+            g.drawText(juce::String(tr("quick-add-palette.no-matches-esc-to-close", "no matches - Esc to close")),
                        10, 0, w - 20, h, juce::Justification::centredLeft);
             return;
         }

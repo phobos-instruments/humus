@@ -139,6 +139,33 @@
       "h": 84
     },
     {
+      "type": "knob",
+      "param": "Sustain",
+      "label": "Sustain",
+      "x": 366,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Squelch",
+      "label": "Squelch",
+      "x": 430,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Punch",
+      "label": "Punch",
+      "x": 494,
+      "y": 128,
+      "w": 60,
+      "h": 84
+    },
+    {
       "type": "label",
       "label": "LFO \u2192 Cutoff",
       "x": 46,
@@ -203,6 +230,24 @@
       "h": 22,
       "decimals": 2,
       "dim-when": "!LfoSync"
+    },
+    {
+      "type": "knob",
+      "param": "Velocity",
+      "label": "Velocity",
+      "x": 366,
+      "y": 246,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Muffler",
+      "label": "Muffler",
+      "x": 430,
+      "y": 246,
+      "w": 60,
+      "h": 84
     }
   ]
 }

@@ -15,6 +15,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/ParamSlider.h"
 #include "gui/PolledBrick.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -30,7 +31,7 @@ public:
             const auto param = prefix_ + std::to_string(r) + "_On";
             auto t = std::make_unique<juce::TextButton>(prefix_ + std::to_string(r));
             t->setClickingTogglesState(true);
-            t->setTooltip("Mute this operator");
+            t->setTooltip(tr("knob-grid.mute-this-operator", "Mute this operator"));
             t->setColour(juce::TextButton::buttonOnColourId, Palette::accent.withAlpha(0.35f));
             t->setToggleState(host_.liveParamValue(name_, param) >= 0.5,
                               juce::dontSendNotification);

@@ -12,6 +12,10 @@ Two sounds crossing over do not add up the way you expect. Two unrelated signals
 
 **Curve at 1** a fast cut. Both sides stay near full through most of the middle and drop away only at the very ends, so a small movement near either edge swaps the sound outright. The scratch setting.
 
+## The cut buttons
+
+A and B, one at each end of the fader, are transform buttons. Hold A and the mix slams to the A side no matter where the fader sits; hold B and it slams to B; let go and it snaps back to the fader. Hold both and both sides open. They are made for the short cut, the stab and the scratch: leave the fader parked on the beat and chop the other source in with a finger, or map them to two pads and play the mixer like a drum. Cut sets how fast the slam lands, in milliseconds - zero is instant, a few milliseconds takes the click out of a bass drone.
+
 The fader as a control Fade can also move other knobs, so one hand does more than trade the two signals. Right-click the parameter you want it to reach - a filter's cutoff, a delay's feedback, anything with a number - choose Follow, then Pick a control, and click the fader. Now the sweep opens the filter as it crosses. Any parameter in the patch works this way, in either direction; the range and the response curve are set in Parameter Control, and the driven knob wears the ring that says something else is holding it.
 
 ## Parameters
@@ -25,6 +29,10 @@ The fader as a control Fade can also move other knobs, so one hand does more tha
 **TrimB** the same for B.
 
 **MasterGain** the output level, after everything.
+
+**CutA / CutB** the transform buttons. Held, the mix jumps to that side; released, it returns to Fade. Both held opens both sides.
+
+**CutTime** how long a cut takes to land, in milliseconds. Zero snaps.
 
 ## Notes
 

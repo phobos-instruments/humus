@@ -6,6 +6,7 @@
 
 #include "SoundSpace/SoundSpace.h"
 #include "hum/dsp/SoundFileBuffer.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -140,7 +141,7 @@ std::shared_ptr<SoundSpace::Corpus> SoundSpace::analyzeCorpus(
         const std::string& uri = uris[(size_t) f];
         if (uri.empty()) continue;
         juce::AudioBuffer<float>& buf = corpus->files[(size_t) f];
-        double sr = 44100.0;
+        double sr = kDefaultSampleRate;
         if (!loadSoundFile(uri, buf, sr) || buf.getNumSamples() < kWin) { buf.setSize(0, 0); continue; }
         corpus->rates[(size_t) f] = sr;
 
@@ -153,7 +154,7 @@ std::shared_ptr<SoundSpace::Corpus> SoundSpace::analyzeCorpus(
                 float s = 0.0f;
                 for (int c = 0; c < chans; ++c) s += buf.getSample(c, start + i);
                 s /= (float) chans;
-                const float w = 0.5f - 0.5f * std::cos(6.2831853f * i / (kWin - 1));
+                const float w = 0.5f - 0.5f * std::cos(kTwoPiF * i / (kWin - 1));
                 window[(size_t) i] = s;
                 fftBuf[(size_t) i] = s * w;
             }

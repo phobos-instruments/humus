@@ -5,6 +5,7 @@
 #include "core/AutoWire.h"
 #include "core/Categories.h"
 #include "core/PodModel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -168,7 +169,11 @@ void PatcherCanvas::mouseUp(const juce::MouseEvent& e) {
             && !isOutlet && node != dragNode_
             && isMidi == cordMidi_ && isVideo == cordVideo_) {
             if (cordVideo_) {
-                host_.connectVideo(dragNode_, cordOutlet_, node, port);
+                std::string rs, rd;
+                int rsp, rdp;
+                realPort(dragNode_, cordOutlet_, true, pods::Domain::Video, rs, rsp);
+                realPort(node, port, false, pods::Domain::Video, rd, rdp);
+                host_.connectVideo(rs, rsp, rd, rdp);
             } else if (cordMidi_) {
                 std::string rs, rd;
                 int rsp, rdp;
@@ -287,7 +292,7 @@ juce::String PatcherCanvas::getTooltip() {
     }
     if (cordHovered_) {
         const auto& c = hoverCord_;
-        juce::String t = juce::String(c.midi ? "MIDI cord" : c.video ? "video cord" : "audio cord") + "\n"
+        juce::String t = juce::String(c.midi ? tr("patcher-canvas-mouse.midi-cord", "MIDI cord") : c.video ? "video cord" : "audio cord") + "\n"
                        + juce::String(c.src) + "  out " + juce::String(c.srcOutlet + 1)
                        + "  " + arrowTo()
                        + juce::String(c.dst) + "  in " + juce::String(c.dstInlet + 1);

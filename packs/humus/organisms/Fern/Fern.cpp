@@ -14,7 +14,7 @@ constexpr float kMaxRate = 0.25f;
 constexpr double kEaseMs = 60.0;
 constexpr double kDampHi = 18000.0, kDampLo = 700.0;
 constexpr double kBodyLo = 20.0,    kBodyHi = 700.0;
-constexpr double kQ = 0.7071;
+constexpr double kQ = kSqrtHalf;
 }
 
 void Fern::prepare(double sampleRate, int) {

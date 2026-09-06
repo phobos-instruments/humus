@@ -23,9 +23,14 @@ public:
     void beginBatch() { ++batch_; }
     void endBatch();
 
+    static juce::File& fileForTesting() {
+        static juce::File f;
+        return f;
+    }
+    static juce::File file();
+
 private:
     AppSettings();
-    static juce::File file();
     void save();
 
     std::unique_ptr<juce::XmlElement> root_;

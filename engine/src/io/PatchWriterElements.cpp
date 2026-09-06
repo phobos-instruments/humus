@@ -56,7 +56,7 @@ void writePattern(juce::XmlElement& propEl, const Pattern& pat) {
             if (ch.fadeInCurve != 0.0) ce->setAttribute("fade-in-curve", ch.fadeInCurve);
             if (ch.fadeOutCurve != 0.0) ce->setAttribute("fade-out-curve", ch.fadeOutCurve);
         }
-        if (ch.type == "audio-clip") {
+        if (ch.type == "audio-clip" || ch.type == "video-clip") {
             ce->setAttribute("file", juce::String(ch.audioFile));
             if (ch.audioOffset != 0)
                 ce->setAttribute("offset", juce::String((juce::int64) ch.audioOffset));
@@ -152,6 +152,7 @@ void writeMidiSources(juce::XmlElement& mod, const OrganismModel& c) {
         spec->setAttribute("port", s.port);
         spec->setAttribute("channel", s.channel);
         spec->setAttribute("number", s.cc);
+        for (int h : s.held) spec->createNewChildElement("held")->setAttribute("number", h);
         if (!s.isSwitch) {
             auto* curve = mc->createNewChildElement("midi-mapping-curve");
             const std::vector<std::pair<double, double>> pts =
@@ -249,6 +250,7 @@ void writeMidiSettings(juce::XmlElement& ce, const OrganismModel& c) {
 void writeOrganism(juce::XmlElement& ce, const OrganismModel& c) {
     ce.setAttribute("class", juce::String(c.classRaw.empty() ? c.displayClass : c.classRaw));
     ce.setAttribute("name", juce::String(c.name));
+    if (c.internal) ce.setAttribute("internal", 1);
     auto* props = ce.createNewChildElement("properties");
     for (const auto& p : c.properties) {
         if (p.type == "pattern" && c.pattern.present) {

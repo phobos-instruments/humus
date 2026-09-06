@@ -1,6 +1,7 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <cstring>
 #include <cstdio>
 #include <map>
 #include <set>
@@ -22,6 +23,7 @@
 #include "gui/SceneCompile.h"
 #include "gui/VideoPreviewStore.h"
 #include "gui/VisualPlan.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -39,6 +41,12 @@ public:
     void setPlan(const visual::Plan& p) {
         const juce::SpinLock::ScopedLockType sl(lock_);
         plan_ = p;
+        ++planStamp_;
+    }
+
+    std::uint64_t planStamp() const {
+        const juce::SpinLock::ScopedLockType sl(lock_);
+        return planStamp_;
     }
     juce::String compileError() const {
         const juce::SpinLock::ScopedLockType sl(lock_);
@@ -52,6 +60,29 @@ public:
     }
 
     void pump() { ctx_.triggerRepaint(); }
+
+    void requestGrab(int w, int h) {
+        const auto asked = planStamp();
+        const juce::SpinLock::ScopedLockType sl(grabLock_);
+        grabW_ = w;
+        grabH_ = h;
+        grabReady_ = false;
+        grabStamp_ = asked;
+        grabWanted_ = w > 0 && h > 0;
+    }
+
+    bool wouldServeForTest(std::uint64_t stamp) const {
+        const juce::SpinLock::ScopedLockType sl(grabLock_);
+        return grabAwaits(stamp);
+    }
+
+    bool takeGrab(std::vector<std::uint8_t>& rgba) {
+        const juce::SpinLock::ScopedLockType sl(grabLock_);
+        if (!grabReady_) return false;
+        rgba = std::move(grabbed_);
+        grabReady_ = false;
+        return true;
+    }
 
     static const char* humPreamble() { return sceneHumPreamble(); }
 
@@ -91,6 +122,7 @@ public:
         deckYCoCgProgram_.reset();
         layerProgram_.reset();
         mixProgram_.reset();
+        fxProgram_.reset();
         presentProgram_.reset();
         for (auto& [n, sp] : scenePrograms_) releaseSceneTextures(sp);
         scenePrograms_.clear();
@@ -106,15 +138,18 @@ public:
             if (*t != 0) { glDeleteTextures(1, t); *t = 0; }
         for (auto& [n, rb] : taps_) releaseTap(rb);
         taps_.clear();
+        releaseTap(grabTarget_);
     }
 
     void renderOpenGL() override {
         using namespace juce::gl;
         renders_.fetch_add(1);
         visual::Plan p;
+        std::uint64_t stamp = 0;
         {
             const juce::SpinLock::ScopedLockType sl(lock_);
             p = plan_;
+            stamp = planStamp_;
         }
         const float scale = (float) ctx_.getRenderingScale();
         const int w = juce::roundToInt(scale * (float) getWidth());
@@ -134,6 +169,7 @@ public:
                 case visual::Step::Deck: renderDeck(s); break;
                 case visual::Step::Scene: renderScene(s, w, h, firstError); break;
                 case visual::Step::Mix: renderMix(s); break;
+                case visual::Step::Fx: renderFx(s, w, h); break;
                 case visual::Step::Black: break;
             }
         }
@@ -153,10 +189,51 @@ public:
         }
         if (p.noSignal) drawNoSignal(w, h);
         publishTaps(p);
+        serveGrab(p, stamp);
         {
             const juce::SpinLock::ScopedLockType sl(lock_);
             error_ = firstError;
         }
+    }
+
+    bool grabAwaits(std::uint64_t stamp) const { return grabWanted_ && stamp >= grabStamp_; }
+
+    void serveGrab(const visual::Plan& p, std::uint64_t stamp) {
+        using namespace juce::gl;
+        int want = 0, wantH = 0;
+        {
+            const juce::SpinLock::ScopedLockType sl(grabLock_);
+            if (!grabAwaits(stamp)) return;
+            want = grabW_;
+            wantH = grabH_;
+            grabWanted_ = false;
+        }
+        ensureTapTarget(grabTarget_, want, wantH);
+        glBindFramebuffer(GL_FRAMEBUFFER, grabTarget_.fbo);
+        glViewport(0, 0, want, wantH);
+        juce::OpenGLHelpers::clear(juce::Colours::black);
+        if (p.root >= 0 && p.root < (int) fbos_.size() && presentProgram_ != nullptr) {
+            presentProgram_->use();
+            const auto pid = presentProgram_->getProgramID();
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, fbos_[(size_t) p.root].tex);
+            glUniform1i(glGetUniformLocation(pid, "tex"), 0);
+            glUniform1f(glGetUniformLocation(pid, "fade"),
+                        juce::jlimit(0.0f, 1.0f, p.masterFade));
+            drawQuad(pid);
+        }
+        std::vector<std::uint8_t> upside((size_t) want * (size_t) wantH * 4u);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, want, wantH, GL_RGBA, GL_UNSIGNED_BYTE, upside.data());
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        const size_t row = (size_t) want * 4u;
+        std::vector<std::uint8_t> right(upside.size());
+        for (int y = 0; y < wantH; ++y)
+            std::memcpy(right.data() + (size_t) y * row,
+                        upside.data() + (size_t) (wantH - 1 - y) * row, row);
+        const juce::SpinLock::ScopedLockType sl(grabLock_);
+        grabbed_ = std::move(right);
+        grabReady_ = true;
     }
 
     void publishTaps(const visual::Plan& p) {
@@ -176,10 +253,11 @@ public:
         previewTick_ ^= 1;
         std::set<std::string> live;
         for (const auto& t : taps) {
-            if (t.w <= 0 || t.h <= 0 || !store.wanted(t.node)) continue;
-            live.insert(t.node);
+            if (t.w <= 0 || t.h <= 0 || (t.sink == nullptr && !store.wanted(t.node))) continue;
+            const auto key = t.sink != nullptr ? t.node + "/take" : t.node;
+            live.insert(key);
             if (t.everyOther && previewTick_ == 0) continue;
-            auto& rb = taps_[t.node];
+            auto& rb = taps_[key];
             ensureTapTarget(rb, t.w, t.h);
             glBindFramebuffer(GL_FRAMEBUFFER, rb.fbo);
             glViewport(0, 0, t.w, t.h);
@@ -204,16 +282,19 @@ public:
                 rb.pboBytes[rb.next] = bytes;
             }
             glReadPixels(0, 0, t.w, t.h, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-            rb.pending[rb.next] = {t.w, t.h};
+            rb.pending[rb.next] = {t.w, t.h, p.beat, p.tempo, p.rolling};
             rb.next ^= 1;
             const auto ready = rb.pending[rb.next];
-            if (ready.first > 0
-                && rb.pboBytes[rb.next]
-                       == (size_t) ready.first * (size_t) ready.second * 4u) {
+            if (ready.w > 0
+                && rb.pboBytes[rb.next] == (size_t) ready.w * (size_t) ready.h * 4u) {
                 glBindBuffer(GL_PIXEL_PACK_BUFFER, rb.pbo[rb.next]);
                 if (const auto* mapped = (const std::uint8_t*) glMapBuffer(
                         GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)) {
-                    store.publishFlipped(t.node, ready.first, ready.second, mapped);
+                    if (t.sink != nullptr)
+                        t.sink->pushFrame(mapped, ready.w, ready.h, ready.beat, ready.tempo,
+                                          ready.rolling);
+                    else
+                        store.publishFlipped(t.node, ready.w, ready.h, mapped);
                     glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
                 }
             }
@@ -225,11 +306,23 @@ public:
                                                           taps_.erase(it));
     }
 
+    juce::SpinLock grabLock_;
+    std::vector<std::uint8_t> grabbed_;
+    int grabW_ = 0, grabH_ = 0;
+    std::uint64_t grabStamp_ = 0;
+    bool grabWanted_ = false, grabReady_ = false;
+
+    struct PendingRead {
+        int w = 0, h = 0;
+        double beat = 0.0, tempo = 120.0;
+        bool rolling = false;
+    };
+
     struct TapTarget {
         unsigned int fbo = 0, tex = 0, pbo[2] = {0, 0};
         int w = 0, h = 0, next = 0;
         size_t pboBytes[2] = {0, 0};
-        std::pair<int, int> pending[2] = {{0, 0}, {0, 0}};
+        PendingRead pending[2];
     };
 
     void ensureTapTarget(TapTarget& rb, int w, int h) {
@@ -252,7 +345,7 @@ public:
                                GL_TEXTURE_2D, rb.tex, 0);
         rb.w = w;
         rb.h = h;
-        rb.pending[0] = rb.pending[1] = {0, 0};
+        rb.pending[0] = rb.pending[1] = {};
     }
 
     void releaseTap(TapTarget& rb) {
@@ -367,10 +460,10 @@ private:
         const float unit = (float) juce::jmin(w, h);
         g.setColour(juce::Colours::white.withAlpha(0.55f));
         g.setFont(juce::Font(juce::FontOptions(unit * 0.075f).withStyle("Bold")));
-        g.drawText("NO SIGNAL", r, juce::Justification::centred, false);
+        g.drawText(tr("visual-gl-canvas.no-signal", "NO SIGNAL"), r, juce::Justification::centred, false);
         g.setColour(juce::Colours::white.withAlpha(0.30f));
         g.setFont(juce::Font(juce::FontOptions(unit * 0.032f)));
-        g.drawText("this output is bypassed",
+        g.drawText(tr("visual-gl-canvas.this-output-is-bypassed", "this output is bypassed"),
                    r.translated(0, (int) (unit * 0.075f)),
                    juce::Justification::centred, false);
     }
@@ -451,10 +544,47 @@ private:
             mixProgram_ = build(
                 "varying vec2 uv;\n"
                 "uniform sampler2D texA, texB;\n"
-                "uniform float fade;\n"
+                "uniform float gainA, gainB;\n"
                 "void main() {\n"
-                "    gl_FragColor = vec4(mix(texture2D(texA, uv).rgb,\n"
-                "                            texture2D(texB, uv).rgb, fade), 1.0);\n"
+                "    gl_FragColor = vec4(clamp(texture2D(texA, uv).rgb * gainA\n"
+                "                              + texture2D(texB, uv).rgb * gainB,\n"
+                "                              0.0, 1.0), 1.0);\n"
+                "}\n", nullptr);
+        if (fxProgram_ == nullptr)
+            fxProgram_ = build(
+                "varying vec2 uv;\n"
+                "uniform sampler2D tex;\n"
+                "uniform vec2 pos;\n"
+                "uniform float scale, rotate, aspect;\n"
+                "uniform float brightness, contrast, saturation, hue, invert, pixelate;\n"
+                "uniform int mirror;\n"
+                "vec3 hueShift(vec3 c, float a) {\n"
+                "    const vec3 k = vec3(0.57735);\n"
+                "    float s = sin(a), co = cos(a);\n"
+                "    return c * co + cross(k, c) * s + k * dot(k, c) * (1.0 - co);\n"
+                "}\n"
+                "void main() {\n"
+                "    vec2 p = uv - 0.5 - pos * 0.5;\n"
+                "    p.x *= aspect;\n"
+                "    float s = sin(rotate), c = cos(rotate);\n"
+                "    p = mat2(c, -s, s, c) * p;\n"
+                "    p.x /= aspect;\n"
+                "    p = p / max(scale, 1.0e-4) + 0.5;\n"
+                "    if (mirror == 1 || mirror == 3) p.x = p.x < 0.5 ? p.x : 1.0 - p.x;\n"
+                "    if (mirror == 2 || mirror == 3) p.y = p.y < 0.5 ? p.y : 1.0 - p.y;\n"
+                "    if (pixelate > 0.0) {\n"
+                "        float n = mix(512.0, 8.0, pixelate);\n"
+                "        p = (floor(p * vec2(n, n / aspect)) + 0.5) / vec2(n, n / aspect);\n"
+                "    }\n"
+                "    bool inside = p.x >= 0.0 && p.x <= 1.0 && p.y >= 0.0 && p.y <= 1.0;\n"
+                "    vec3 col = inside ? texture2D(tex, p).rgb : vec3(0.0);\n"
+                "    col = (col - 0.5) * contrast + 0.5;\n"
+                "    col *= brightness;\n"
+                "    float l = dot(col, vec3(0.299, 0.587, 0.114));\n"
+                "    col = mix(vec3(l), col, saturation);\n"
+                "    col = hueShift(col, hue);\n"
+                "    col = mix(col, 1.0 - col, invert);\n"
+                "    gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n"
                 "}\n", nullptr);
         if (presentProgram_ == nullptr)
             presentProgram_ = build(
@@ -641,10 +771,34 @@ private:
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, stepTex(s.mixB));
         glUniform1i(glGetUniformLocation(pid, "texB"), 1);
-        glUniform1f(glGetUniformLocation(pid, "fade"),
-                    juce::jlimit(0.0f, 1.0f, s.mixFade));
+        const auto gains = visual::mixGains(s);
+        glUniform1f(glGetUniformLocation(pid, "gainA"), gains.first);
+        glUniform1f(glGetUniformLocation(pid, "gainB"), gains.second);
         drawQuad(pid);
         glActiveTexture(GL_TEXTURE0);
+    }
+
+    void renderFx(const visual::Step& s, int w, int h) {
+        using namespace juce::gl;
+        if (fxProgram_ == nullptr) return;
+        fxProgram_->use();
+        const auto pid = fxProgram_->getProgramID();
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, stepTex(s.mixA));
+        glUniform1i(glGetUniformLocation(pid, "tex"), 0);
+        const auto& f = s.fx;
+        glUniform2f(glGetUniformLocation(pid, "pos"), f.posX, f.posY);
+        glUniform1f(glGetUniformLocation(pid, "scale"), f.scale);
+        glUniform1f(glGetUniformLocation(pid, "rotate"), f.rotate);
+        glUniform1f(glGetUniformLocation(pid, "aspect"), h > 0 ? (float) w / (float) h : 1.0f);
+        glUniform1f(glGetUniformLocation(pid, "brightness"), f.brightness);
+        glUniform1f(glGetUniformLocation(pid, "contrast"), f.contrast);
+        glUniform1f(glGetUniformLocation(pid, "saturation"), f.saturation);
+        glUniform1f(glGetUniformLocation(pid, "hue"), f.hue);
+        glUniform1f(glGetUniformLocation(pid, "invert"), f.invert);
+        glUniform1f(glGetUniformLocation(pid, "pixelate"), juce::jlimit(0.0f, 1.0f, f.pixelate));
+        glUniform1i(glGetUniformLocation(pid, "mirror"), f.mirror);
+        drawQuad(pid);
     }
 
     void renderScene(const visual::Step& s, int w, int h, juce::String& firstError) {
@@ -877,7 +1031,7 @@ private:
     juce::OpenGLContext ctx_;
     std::unique_ptr<juce::OpenGLShaderProgram> deckProgram_, deckRectProgram_,
         deckYCoCgProgram_, layerProgram_,
-        mixProgram_, presentProgram_;
+        mixProgram_, fxProgram_, presentProgram_;
     std::map<std::string, SceneProg> scenePrograms_;
     std::map<std::string, DeckTex> deckTex_;
     std::vector<Fbo> fbos_;
@@ -888,6 +1042,7 @@ private:
     int prevW_ = 160, prevH_ = 90;
     std::string previewNode_;
     std::map<std::string, TapTarget> taps_;
+    TapTarget grabTarget_;
     std::atomic<unsigned> renders_{0};
     int previewTick_ = 0;
 
@@ -895,6 +1050,7 @@ private:
 
     juce::SpinLock lock_;
     visual::Plan plan_;
+    std::uint64_t planStamp_ = 0;
     juce::String error_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GlCanvas)

@@ -10,6 +10,8 @@
 #include "hum/Organism.h"
 #include "hum/dsp/PaulstretchCore.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Paulstretch : public Organism, public FileTransportCap {
@@ -41,7 +43,7 @@ private:
     std::atomic<int64_t> playPos_{0};
     std::atomic<int64_t> fileLen_{0};
     std::atomic<int64_t> seekReq_{-1};
-    std::atomic<double> fileSr_{44100.0};
+    std::atomic<double> fileSr_{kDefaultSampleRate};
 
     std::array<PaulstretchFrame, 2> frame_;
     std::array<std::vector<float>, 2> outQ_;

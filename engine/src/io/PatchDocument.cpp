@@ -198,6 +198,15 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
         const auto u = gr->getStringAttribute("unit", "1/16");
         if (u.isNotEmpty()) out.grooveUnit = u.toStdString();
     }
+    if (auto* mods = root->getChildByName("midi-modifiers"))
+        for (auto* me : mods->getChildIterator()) {
+            if (!me->hasTagName("modifier")) continue;
+            MidiModifierModel m;
+            m.source = me->getIntAttribute("number", -1);
+            m.latching = me->getIntAttribute("latching", 0) != 0;
+            m.ownAction = me->getIntAttribute("own-action", 0) != 0;
+            if (m.source >= 0) out.midiModifiers.push_back(m);
+        }
 
     auto* patch = root->getChildByName("patch");
     if (!patch) { error = "no <patch>"; return false; }
@@ -216,6 +225,7 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
         if (el->hasTagName("contraption")) {
             OrganismModel c;
             c.name = el->getStringAttribute("name").toStdString();
+            c.internal = el->getIntAttribute("internal", 0) != 0;
             parseClass(el->getStringAttribute("class"), c);
             if (auto* props = el->getChildByName("properties")) {
                 for (auto* p : props->getChildIterator()) {

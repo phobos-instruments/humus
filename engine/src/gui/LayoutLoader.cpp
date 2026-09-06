@@ -64,6 +64,7 @@ LayoutSpec loadLayoutSpec(const std::string& jsonText) {
     spec.width = getInt(parsed, "width", 280);
     spec.height = getInt(parsed, "height", 220);
     if (getString(parsed, "resize") == "stretch") spec.resize = LayoutSpec::Resize::Stretch;
+    if (getString(parsed, "resize") == "grow") spec.resize = LayoutSpec::Resize::Grow;
 
     auto controlsVar = root->getProperty("controls");
     if (auto* arr = controlsVar.getArray()) {

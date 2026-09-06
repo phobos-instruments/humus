@@ -68,9 +68,9 @@ void PropertiesPane::Surface::mouseDown(const juce::MouseEvent& e) {
 }
 
 void PropertiesPane::buildModeStrip() {
-    modeSwitch_.setTooltip(juce::String::fromUTF8(
-        "Layout - Rack: stacked units, right edge snaps full/half."
-        "  Free: place and resize boxes anywhere"));
+    modeSwitch_.setTooltip(tr("properties.layout-modes",
+                              "Layout - Rack: stacked units, right edge snaps full/half."
+                              "  Free: place and resize boxes anywhere"));
     modeSwitch_.onChange = [this](bool second) {
         setLayoutMode(second ? LayoutMode::Blocks : LayoutMode::Rack);
     };

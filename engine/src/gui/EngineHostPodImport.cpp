@@ -12,6 +12,7 @@ std::string EngineHost::importPatchAsPod(const std::string& path, juce::Point<in
                                          const std::string& scope, std::string& error) {
     PatchDocumentModel doc;
     if (!parsePatchFile(path, doc, error, nullptr)) return {};
+    reconcilePropertyTypes(doc);
 
     std::string leaf;
     for (const auto ch : juce::File(juce::String(path)).getFileNameWithoutExtension()) {

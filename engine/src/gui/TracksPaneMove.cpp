@@ -51,7 +51,7 @@ bool TracksPane::rowShiftFits(int deltaRows) {
         const auto clips = host_.clips().list(rows_[(size_t) m.curRow]);
         const int at = clipIndexOfId(rows_[(size_t) m.curRow], m.id);
         if (at < 0 || at >= (int) clips.size()) return false;
-        if (!host_.clips().accepts(rows_[(size_t) want], clips[(size_t) at].isAudio)) return false;
+        if (!host_.clips().accepts(rows_[(size_t) want], clips[(size_t) at])) return false;
     }
     return true;
 }

@@ -5,11 +5,17 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/MidiFormat.h"
+#include "core/Randomize.h"
 #include "gui/EngineHost.h"
 #include "gui/FineDrag.h"
 #include "gui/LookAndFeel.h"
 #include "gui/PianoNotePicker.h"
 #include "hum/Pattern.h"
+#include "hum/PatternMatrix.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -19,7 +25,7 @@ public:
 
     SequenceGridBrick(EngineHost& host, std::string organism)
         : host_(host), cn_(std::move(organism)) {
-        host_.patterns().ensure(cn_, kRows);
+        host_.patterns().ensureBanks(cn_, kRows, kPatternBanks);
         for (int r = 0; r < kRows; ++r) {
             auto& k = vel_[(size_t) r];
             k.setSliderStyle(juce::Slider::RotaryVerticalDrag);
@@ -56,7 +62,7 @@ public:
                        juce::Justification::centredLeft);
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(9.5f));
-            g.drawText(noteName((int) host_.liveParamValue(cn_, param("Note_", r))),
+            g.drawText(midiNoteName((int) host_.liveParamValue(cn_, param("Note_", r))),
                        plate.reduced(5.0f, 0.0f).toNearestInt(),
                        juce::Justification::centredRight);
             const auto ticks = rowTriggers(r);
@@ -93,12 +99,13 @@ public:
             }
             if (plateRect(r).contains(e.getPosition())) {
                 auto anchor = localAreaToGlobal(plateRect(r));
-                showNotePicker(host_, cn_, param("Note_", r), anchor, 0, 127,
+                showNotePicker(host_, cn_, param("Note_", r), anchor, 0, kMidiMax,
                                [this] { repaint(); });
                 return;
             }
             const int s = stepAt(r, e.getPosition());
             if (s >= 0) {
+                if (e.mods.isRightButtonDown()) { bankMenu(); return; }
                 host_.pushUndo();
                 const auto ticks = rowTriggers(r);
                 painting_ = true;
@@ -121,7 +128,7 @@ public:
         for (int r = 0; r < kRows; ++r)
             if (plateRect(r).contains(e.getPosition())) {
                 const int note = (int) host_.liveParamValue(cn_, param("Note_", r));
-                const int next = juce::jlimit(0, 127, note + (wheel.deltaY > 0 ? 1 : -1));
+                const int next = juce::jlimit(0, kMidiMax, note + (wheel.deltaY > 0 ? 1 : -1));
                 if (next != note) host_.editParam(cn_, param("Note_", r), (double) next);
                 repaint();
                 return;
@@ -162,11 +169,39 @@ private:
     }
 
     std::vector<int> rowTriggers(int r) const {
-        if (const auto* cm = host_.model().byName(cn_)) {
-            const auto chans = cm->pattern.triggerChannels();
-            if (r < (int) chans.size()) return chans[(size_t) r]->triggers;
-        }
-        return {};
+        const auto lanes = host_.patterns().triggerLanes(cn_);
+        return r < (int) lanes.size() ? lanes[(size_t) r]->triggers : std::vector<int>{};
+    }
+
+    static juce::String bankLetter(int bank) { return juce::String::charToString((juce::juce_wchar) ('A' + bank)); }
+
+    void bankMenu() {
+        const int cur = host_.patterns().bank(cn_);
+        juce::PopupMenu m;
+        m.addItem(1, tr("pattern-step-grid.random", "Random"));
+        m.addItem(2, tr("pattern-step-grid.clear", "Clear"));
+        m.addSeparator();
+        for (int b = 0; b < kPatternBanks; ++b)
+            if (b != cur)
+                m.addItem(10 + b, tr("pattern-step-grid.copy-to-bank", "Copy to bank") + " " + bankLetter(b));
+        m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(this),
+                        [this, cur](int r) {
+            if (r == 0) return;
+            host_.pushUndo();
+            EngineHost::PatternSyncBatch batch(host_);
+            auto& rng = juce::Random::getSystemRandom();
+            for (int row = 0; row < kRows; ++row) {
+                std::vector<int> ticks;
+                if (r == 1) {
+                    const auto cells = randomTriggerRow(kSteps, 0.10 + rng.nextDouble() * 0.35, rng);
+                    for (int s = 0; s < kSteps; ++s) if (cells[(size_t) s]) ticks.push_back(s * kStepTicks);
+                } else if (r >= 10) {
+                    ticks = rowTriggers(row);
+                }
+                host_.patterns().setLaneTriggers(cn_, r >= 10 ? r - 10 : cur, row, ticks);
+            }
+            repaint();
+        });
     }
 
     void applyCell(int r, int s) {
@@ -189,12 +224,6 @@ private:
         return name.empty() ? "(row " + std::to_string(r + 1) + ")" : name;
     }
 
-    static std::string noteName(int note) {
-        static const char* kNames[] = {"C", "C#", "D", "D#", "E", "F",
-                                       "F#", "G", "G#", "A", "A#", "B"};
-        return std::string(kNames[note % 12]) + std::to_string(note / 12 - 1);
-    }
-
     void timerCallback() override {
         int step = -1;
         if (host_.isPlaying()) {
@@ -206,8 +235,10 @@ private:
                 step = (int) (tick / kStepTicks) % kSteps;
             }
         }
-        if (step != playStep_) {
+        const int bank = host_.patterns().bank(cn_);
+        if (step != playStep_ || bank != bank_) {
             playStep_ = step;
+            bank_ = bank;
             repaint();
         }
     }
@@ -218,6 +249,7 @@ private:
     bool painting_ = false;
     bool paintOn_ = true;
     int playStep_ = -1;
+    int bank_ = -1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SequenceGridBrick)
 };

@@ -6,6 +6,8 @@
 #include "hum/dsp/PitchShifter.h"
 #include "hum/dsp/PitchTrack.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Trellis : public Organism {
@@ -20,7 +22,7 @@ public:
 private:
     double snapMidi(double midi, const Tuning& tuning) const;
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     PitchTracker tracker_;
     PitchShifter shifter_;
 

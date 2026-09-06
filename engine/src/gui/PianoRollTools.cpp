@@ -5,6 +5,8 @@
 #include <climits>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 std::vector<NoteEvent> PianoRollEditor::sharedClipboard_;
@@ -51,8 +53,8 @@ void PianoRollEditor::nudgeSelection(int dTicks, int dSemis, int dVel) {
         if (i < 0 || i >= (int) n.size()) continue;
         auto& e = n[(size_t) i];
         e.tick = juce::jlimit(0, juce::jmax(0, span - 1), e.tick + dTicks);
-        e.pitch = juce::jlimit(0, 127, e.pitch + dSemis);
-        e.velocity = juce::jlimit(1, 127, e.velocity + dVel);
+        e.pitch = juce::jlimit(0, kMidiMax, e.pitch + dSemis);
+        e.velocity = juce::jlimit(1, kMidiMax, e.velocity + dVel);
     }
     commit(n);
 }

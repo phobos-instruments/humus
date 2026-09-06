@@ -13,6 +13,7 @@
 #include "gui/Telemetry.h"
 #include "gui/TelemetryEvents.h"
 #include "hum/PackEntry.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -21,16 +22,16 @@ public:
     std::function<void()> onPacksChanged;
 
     OrganismManagerView() {
-        title_.setText("Installed organism packs", juce::dontSendNotification);
+        title_.setText(tr("organism-manager.installed-organism-packs", "Installed organism packs"), juce::dontSendNotification);
         title_.setColour(juce::Label::textColourId, Palette::text);
         title_.setFont(juce::FontOptions(14.0f).withStyle("Bold"));
         addAndMakeVisible(title_);
 
-        installBtn_.setButtonText("Install pack...");
+        installBtn_.setButtonText(tr("organism-manager.install-pack", "Install pack..."));
         installBtn_.onClick = [this] { chooseAndInstall(); };
         addAndMakeVisible(installBtn_);
 
-        checkBtn_.setButtonText("Check for updates");
+        checkBtn_.setButtonText(tr("organism-manager.check-for-updates", "Check for updates"));
         checkBtn_.onClick = [this] { checkForUpdates(); };
         addAndMakeVisible(checkBtn_);
 
@@ -80,7 +81,7 @@ public:
             }
             for (const auto& u : updates_)
                 if (u.id == pack.manifest.id) {
-                    row->update = std::make_unique<juce::TextButton>("Update to v"
+                    row->update = std::make_unique<juce::TextButton>(tr("organism-manager.update-to-v", "Update to v")
                                                                     + juce::String(u.version));
                     row->update->setColour(juce::TextButton::buttonColourId, Palette::accent);
                     row->update->onClick = [this, u] { applyUpdate(u); };
@@ -128,7 +129,7 @@ private:
     }
 
     void chooseAndInstall() {
-        chooser_ = std::make_unique<juce::FileChooser>("Install organism pack",
+        chooser_ = std::make_unique<juce::FileChooser>(tr("organism-manager.install-organism-pack", "Install organism pack"),
                                                        juce::File(), "*.humpack");
         chooser_->launchAsync(juce::FileBrowserComponent::openMode
                                   | juce::FileBrowserComponent::canSelectFiles,
@@ -137,12 +138,12 @@ private:
                                   if (f == juce::File{}) return;
                                   std::string err;
                                   if (PackLoader::instance().installHumpack(f, err)) {
-                                      status_.setText("Installed " + f.getFileNameWithoutExtension(),
+                                      status_.setText(tr("organism-manager.installed", "Installed ") + f.getFileNameWithoutExtension(),
                                                       juce::dontSendNotification);
                                       rebuildRows();
                                       changed();
                                   } else {
-                                      status_.setText("Install failed: " + juce::String(err),
+                                      status_.setText(tr("organism-manager.install-failed", "Install failed: ") + juce::String(err),
                                                       juce::dontSendNotification);
                                   }
                               });
@@ -157,7 +158,7 @@ private:
 
     void checkForUpdates() {
         checkBtn_.setEnabled(false);
-        status_.setText("Checking for updates...", juce::dontSendNotification);
+        status_.setText(tr("organism-manager.checking-for-updates", "Checking for updates..."), juce::dontSendNotification);
         std::vector<InstalledPack> installed;
         for (const auto& p : PackRegistry::instance().packs())
             installed.push_back({p.manifest.id, p.manifest.version});
@@ -178,19 +179,19 @@ private:
         checkBtn_.setEnabled(true);
         updates_ = std::move(ups);
         if (!reached)
-            status_.setText("Could not reach " + juce::URL(kPackManifestUrl).getDomain(),
+            status_.setText(tr("organism-manager.could-not-reach", "Could not reach ") + juce::URL(kPackManifestUrl).getDomain(),
                             juce::dontSendNotification);
         else if (updates_.empty())
-            status_.setText("Everything is up to date", juce::dontSendNotification);
+            status_.setText(tr("organism-manager.everything-is-up-to-date", "Everything is up to date"), juce::dontSendNotification);
         else
-            status_.setText(juce::String((int) updates_.size()) + " update"
+            status_.setText(juce::String((int) updates_.size()) + tr("organism-manager.update", " update")
                                 + (updates_.size() == 1 ? "" : "s") + " available",
                             juce::dontSendNotification);
         rebuildRows();
     }
 
     void applyUpdate(PackUpdate u) {
-        status_.setText("Downloading " + juce::String(u.id) + " v" + juce::String(u.version)
+        status_.setText(tr("organism-manager.downloading", "Downloading ") + juce::String(u.id) + " v" + juce::String(u.version)
                             + "...", juce::dontSendNotification);
         juce::Component::SafePointer<OrganismManagerView> safe(this);
         juce::Thread::launch([safe, u] {
@@ -213,7 +214,7 @@ private:
 
     void finishUpdate(const PackUpdate& u, juce::File tmp, bool downloaded) {
         if (!downloaded) {
-            status_.setText("Download failed for " + juce::String(u.id),
+            status_.setText(tr("organism-manager.download-failed-for", "Download failed for ") + juce::String(u.id),
                             juce::dontSendNotification);
             tmp.deleteFile();
             return;
@@ -222,7 +223,7 @@ private:
         const bool ok = PackLoader::instance().installHumpack(tmp, err);
         tmp.deleteFile();
         if (ok) {
-            status_.setText("Updated " + juce::String(u.id) + " to v" + juce::String(u.version),
+            status_.setText(tr("organism-manager.updated", "Updated ") + juce::String(u.id) + tr("organism-manager.to-v", " to v") + juce::String(u.version),
                             juce::dontSendNotification);
             updates_.erase(std::remove_if(updates_.begin(), updates_.end(),
                                           [&](const PackUpdate& x) { return x.id == u.id; }),
@@ -230,18 +231,18 @@ private:
             rebuildRows();
             changed();
         } else {
-            status_.setText("Update failed: " + juce::String(err), juce::dontSendNotification);
+            status_.setText(tr("organism-manager.update-failed", "Update failed: ") + juce::String(err), juce::dontSendNotification);
         }
     }
 
     void uninstall(const std::string& id) {
         std::string err;
         if (PackLoader::instance().uninstallPack(id, err)) {
-            status_.setText("Uninstalled " + juce::String(id), juce::dontSendNotification);
+            status_.setText(tr("organism-manager.uninstalled", "Uninstalled ") + juce::String(id), juce::dontSendNotification);
             rebuildRows();
             changed();
         } else {
-            status_.setText("Uninstall failed: " + juce::String(err), juce::dontSendNotification);
+            status_.setText(tr("organism-manager.uninstall-failed", "Uninstall failed: ") + juce::String(err), juce::dontSendNotification);
         }
     }
 

@@ -1,4 +1,5 @@
 #include "gui/VideoLayer.h"
+#include "gui/VideoLog.h"
 
 #include <algorithm>
 #include <atomic>
@@ -104,6 +105,18 @@ public:
 
     void seekSeconds(double t) override { seekTo_.store(std::max(0.0, t)); }
 
+    void chase(double seconds, double rate) override {
+        chaseTo_.store(std::max(0.0, seconds));
+        chaseRate_.store(rate);
+        chaseStamp_.fetch_add(1);
+    }
+
+    void setLoopRange(const LoopRange& r) override {
+        loopIn_.store(std::max(0.0, r.in));
+        loopOut_.store(r.out);
+        loop_.store(r.loop);
+    }
+
     std::shared_ptr<const Frame> latestFrame() override {
         const juce::ScopedLock sl(lock_);
         return current_;
@@ -150,12 +163,12 @@ private:
         attrs->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
         if (FAILED(MFCreateSourceReaderFromURL(path_.toWideCharPointer(), attrs.get(),
                                                r.reader.put()))) {
-            std::cout << "[video] " << leaf << ": not a tape this build can open" << std::endl;
+            videoLog(leaf + ": not a tape this build can open");
             return false;
         }
         r.reader->SetStreamSelection((DWORD) MF_SOURCE_READER_ALL_STREAMS, FALSE);
         if (FAILED(r.reader->SetStreamSelection(kVideoStream, TRUE))) {
-            std::cout << "[video] " << leaf << ": no video stream" << std::endl;
+            videoLog(leaf + ": no video stream");
             return false;
         }
         r.codec = codecName(r);
@@ -164,8 +177,7 @@ private:
         want->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
         want->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB32);
         if (FAILED(r.reader->SetCurrentMediaType(kVideoStream, nullptr, want.get()))) {
-            std::cout << "[video] " << leaf << ": no decoder for " << r.codec
-                      << " on this system" << std::endl;
+            videoLog(leaf + ": no decoder for " + r.codec + " on this system");
             return false;
         }
         if (!readShape(r)) return false;
@@ -176,8 +188,7 @@ private:
             if (v.vt == VT_UI8) r.span = (double) v.uhVal.QuadPart / kTicksPerSecond;
             PropVariantClear(&v);
         }
-        std::cout << "[video] " << leaf << ": " << r.codec << " through Media Foundation"
-                  << std::endl;
+        videoLog(leaf + ": " + r.codec + " through Media Foundation");
         return true;
     }
 
@@ -214,7 +225,7 @@ private:
         return false;
     }
 
-    void present(Reader& r) {
+    void present(Reader& r, double pts) {
         if (!pending_) return;
         const int w = r.width, h = r.height;
         if (w <= 0 || h <= 0) return;
@@ -251,6 +262,7 @@ private:
             buf->Unlock();
         }
         if (!copied) return;
+        out->pts = pts;
         const juce::ScopedLock sl(lock_);
         current_ = std::move(out);
     }
@@ -273,25 +285,44 @@ private:
         pendingValid_ = false;
         atEof_ = false;
         double pendingPts = 0.0;
+        unsigned chaseSeen = 0;
+        bool chasing = false;
 
         while (!threadShouldExit()) {
             const auto nowMs = juce::Time::getMillisecondCounterHiRes();
+            const auto range = loopWindow(loopIn_.load(), loopOut_.load(), d.span);
             bool jumped = false;
             if (rewind_.exchange(false)) {
-                position = 0.0;
+                position = range.first;
                 jumped = true;
+                chasing = false;
             }
             if (const double target = seekTo_.exchange(-1.0); target >= 0.0) {
                 position = d.span > 0.0 ? std::min(target, d.span) : target;
                 jumped = true;
+                chasing = false;
             }
-            const float rate = rate_.load();
-            if (!paused_.load() && rate > 0.0f)
+            if (const unsigned stamp = chaseStamp_.load(); stamp != chaseSeen) {
+                chaseSeen = stamp;
+                chasing = true;
+                position = chaseTo_.load();
+                if (lastPresented >= 0.0 && position > lastPresented + 1.0) jumped = true;
+            } else if (chasing) {
+                position += (nowMs - lastMs) * 0.001 * chaseRate_.load();
+            } else if (const float rate = rate_.load(); !paused_.load() && rate > 0.0f) {
                 position += (nowMs - lastMs) * 0.001 * (double) rate;
+            }
             lastMs = nowMs;
-            if (d.span > 0.0 && position >= d.span) {
-                position -= d.span * std::floor(position / d.span);
-                jumped = true;
+            if (chasing) {
+                if (d.span > 0.0) position = std::min(position, d.span);
+            } else if (range.second > range.first && position >= range.second) {
+                if (loop_.load()) {
+                    position = range.first
+                             + std::fmod(position - range.first, range.second - range.first);
+                    jumped = true;
+                } else {
+                    position = range.second;
+                }
             }
             shownPosition_.store(position);
 
@@ -307,8 +338,12 @@ private:
                     pendingValid_ = true;
                 } else if (atEof_) {
                     if (d.span <= 0.0) d.span = std::max(lastPresented, 0.0);
-                    seekReader(d, 0.0);
-                    position = 0.0;
+                    if (!loop_.load() || chasing) {
+                        wait(chasing ? 10 : 2);
+                        continue;
+                    }
+                    seekReader(d, range.first);
+                    position = range.first;
                     lastPresented = -1.0;
                     wait(2);
                     continue;
@@ -316,21 +351,27 @@ private:
             }
             if (pendingValid_ && pendingPts <= position + 0.001) {
                 if (pendingPts >= position - 0.5 || lastPresented < 0.0) {
-                    present(d);
+                    present(d, pendingPts);
                     lastPresented = pendingPts;
                 }
                 pending_.reset();
                 pendingValid_ = false;
                 continue;
             }
-            wait(2);
+            wait(paused_.load() ? 20 : 2);
         }
     }
 
     juce::String path_;
     std::atomic<float> rate_{1.0f};
     std::atomic<bool> rewind_{false};
+    std::atomic<double> loopIn_{0.0};
+    std::atomic<double> loopOut_{0.0};
+    std::atomic<bool> loop_{true};
     std::atomic<bool> paused_{false};
+    std::atomic<double> chaseTo_{0.0};
+    std::atomic<double> chaseRate_{0.0};
+    std::atomic<unsigned> chaseStamp_{0};
     std::atomic<double> seekTo_{-1.0};
     std::atomic<double> shownPosition_{0.0};
     std::atomic<double> length_{0.0};

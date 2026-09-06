@@ -6,6 +6,8 @@
 
 #include "gui/LookAndFeel.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -51,7 +53,7 @@ void PianoRollEditor::paintKeys(juce::Graphics& g) {
     g.saveState();
     g.reduceClipRegion(0, gridTop(), kKeyW, bottom - gridTop());
     for (int y = gridTop(), pitch = topPitch_; y < bottom && pitch >= 0; y += kRowH, --pitch) {
-        if (pitch > 127) continue;
+        if (pitch > kMidiMax) continue;
         noteedit::paintPianoKey(g, {0.0f, (float) y, (float) (kKeyW - 1), (float) kRowH},
                                 pitch, lit.count(pitch) != 0, Palette::accent);
         if (((pitch % 12) + 12) % 12 == 0) {
@@ -87,7 +89,7 @@ void PianoRollEditor::paintGrid(juce::Graphics& g) {
     const int bottom = gridBottom();
 
     for (int y = gridTop(), pitch = topPitch_; y < bottom && pitch >= 0; y += kRowH, --pitch) {
-        if (pitch > 127) continue;
+        if (pitch > kMidiMax) continue;
         g.setColour(isBlackKey(pitch) ? Palette::background.brighter(0.03f)
                                       : Palette::background.brighter(0.07f));
         g.fillRect(kKeyW, y, getWidth() - kKeyW, kRowH);
@@ -114,7 +116,7 @@ void PianoRollEditor::paintNotes(juce::Graphics& g) {
         const float x = tickToX(e.tick);
         const float w = juce::jmax(3.0f, tickToX(e.tick + e.lengthTicks) - x - 1.0f);
         const float y = pitchToY(e.pitch);
-        const float bright = 0.35f + 0.65f * (float) e.velocity / 127.0f;
+        const float bright = 0.35f + 0.65f * (float) e.velocity / kMidiMaxF;
         auto col = Palette::accent.withMultipliedBrightness(bright);
         const bool sel = selection_.count(i) > 0
                       || (gesture_ != Gesture::None && i == gestureIndex_);
@@ -154,7 +156,7 @@ void PianoRollEditor::paintVelocity(juce::Graphics& g) {
     for (size_t i = 0; i < ns.size(); ++i) {
         const float x = tickToX(ns[i].tick);
         if (x < (float) gridLeft() || x > (float) getWidth()) continue;
-        const float bh = (float) (h - 6) * (float) ns[i].velocity / 127.0f;
+        const float bh = (float) (h - 6) * (float) ns[i].velocity / kMidiMaxF;
         const bool sel = selection_.count((int) i) > 0;
         g.setColour(sel ? Palette::accent : Palette::accent.withAlpha(0.45f));
         g.fillRect(x, (float) (top + h - 3) - bh, 3.0f, bh);

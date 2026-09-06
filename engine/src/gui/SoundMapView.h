@@ -9,6 +9,7 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -138,11 +139,11 @@ private:
 
     void showMenu(juce::Point<int> screen) {
         juce::PopupMenu m;
-        m.addSectionHeader("Cursor");
-        m.addItem(1, "MIDI Learn X, then Y...");
+        m.addSectionHeader(tr("sound-map.cursor", "Cursor"));
+        m.addItem(1, tr("sound-map.midi-learn-x-then-y", "MIDI Learn X, then Y..."));
         m.addSeparator();
-        m.addItem(2, "Automate / MIDI for X...");
-        m.addItem(3, "Automate / MIDI for Y...");
+        m.addItem(2, tr("sound-map.automate-midi-for-x", "Automate / MIDI for X..."));
+        m.addItem(3, tr("sound-map.automate-midi-for-y", "Automate / MIDI for Y..."));
         m.showMenuAsync(juce::PopupMenu::Options()
                             .withTargetScreenArea({screen.x, screen.y, 1, 1}),
                         [this, screen](int r) {

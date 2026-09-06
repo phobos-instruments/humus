@@ -9,6 +9,7 @@
 #include "gui/NotesView.h"
 #include "gui/ParameterControlView.h"
 #include "gui/SettingsComponent.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -101,7 +102,7 @@ void MainComponent::wireGlobalKeys(FreeWindow& w) {
 void MainComponent::openParameterControl(const std::string& organism,
                                          const std::string& param) {
     if (!paramControlWindow_) {
-        paramControlWindow_ = std::make_unique<FreeWindow>("Parameter Control",
+        paramControlWindow_ = std::make_unique<FreeWindow>(tr("main-windows.parameter-control", "Parameter Control"),
                                                            new ParameterControlView(host_));
         paramControlWindow_->onClose = [this] { paramControlWindow_.reset(); };
         wireGlobalKeys(*paramControlWindow_);
@@ -153,7 +154,7 @@ void MainComponent::openDocSwitcher() {
             confirmDiscardThenRun([this, f] { openFileAt(f); });
         };
         a.currentPath = [this] { return currentFile_; };
-        docSwitcherWindow_ = std::make_unique<FreeWindow>("Document Switcher",
+        docSwitcherWindow_ = std::make_unique<FreeWindow>(tr("main-windows.document-switcher", "Document Switcher"),
                                                           new DocSwitcherView(std::move(a)));
         docSwitcherWindow_->onClose = [this] { docSwitcherWindow_.reset(); };
         wireGlobalKeys(*docSwitcherWindow_);
@@ -170,7 +171,7 @@ void MainComponent::openAssistant() {
             canvas_->refresh();
             propsPane_->reload();
             refreshTimelinePanes();
-            setStatus("Assistant edited the patch (one undo step)");
+            setStatus(tr("main-windows.assistant-edited-the-patch-one", "Assistant edited the patch (one undo step)"));
         });
     }
     assistantWin_->setVisible(true);

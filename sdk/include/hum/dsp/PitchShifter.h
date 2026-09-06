@@ -3,6 +3,8 @@
 #include <cmath>
 #include <vector>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class PitchShifter {
@@ -32,7 +34,7 @@ public:
         const float d1 = phase_;
         float d2 = phase_ + half;
         if (d2 >= window_) d2 -= window_;
-        const float pi = 3.14159265358979323846f;
+        const float pi = kPiF;
         const float g1 = std::sin(pi * d1 / window_);
         const float g2 = std::sin(pi * d2 / window_);
         const float out = g1 * read(writePos_ - d1) + g2 * read(writePos_ - d2);

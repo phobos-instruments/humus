@@ -21,29 +21,25 @@
           "name": "Attack",
           "min": 0.5,
           "max": 2000.0,
-          "def": 2.0,
-          "random": true
+          "def": 2.0
         },
         {
           "name": "Decay",
           "min": 1.0,
           "max": 4000.0,
-          "def": 120.0,
-          "random": true
+          "def": 120.0
         },
         {
           "name": "Sustain",
           "min": 0.0,
           "max": 1.0,
-          "def": 1.0,
-          "random": true
+          "def": 1.0
         },
         {
           "name": "Release",
           "min": 1.0,
           "max": 4000.0,
-          "def": 150.0,
-          "random": true
+          "def": 150.0
         },
         {
           "name": "Polyphony",

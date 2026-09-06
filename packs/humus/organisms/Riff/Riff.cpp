@@ -5,13 +5,15 @@
 
 #include "hum/Swing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Riff::emit(int offset, bool on, int note, int vel) {
     if (outCount_ >= (int) outEvents_.size()) return;
     MidiEvent e;
     e.data[0] = on ? 0x90 : 0x80;
-    e.data[1] = (unsigned char) std::clamp(note, 0, 127);
+    e.data[1] = (unsigned char) std::clamp(note, 0, kMidiMax);
     e.data[2] = (unsigned char) (on ? vel : 0);
     e.size = 3;
     e.sampleOffset = offset;
@@ -20,11 +22,16 @@ void Riff::emit(int offset, bool on, int note, int vel) {
 
 void Riff::process(const float* const*, int, float* const*, int,
                    int numSamples, const Transport& transport) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
+    const int bank = std::clamp((int) params.get("Bank", 0.0), 0, kPatternBanks - 1);
+    if (bank != bank_) {
+        bank_ = bank;
+        stepsDirty_ = true;
+    }
     if (stepsDirty_) {
         steps_.clear();
-        for (const auto& ch : pattern_.channels)
-            if (ch.type == "bassline-pattern-matrix") { steps_ = decodeBassline(ch.matrix); break; }
+        if (const auto* ch = matrixChannel(pattern_, "bassline-pattern-matrix", bank_))
+            steps_ = decodeBassline(ch->matrix);
         stepsPerBeat_ = (double) Pattern::kTicksPerBeat
                       / (double) stepTicksFor(pattern_.matrixResolution);
         stepsDirty_ = false;
@@ -47,7 +54,7 @@ void Riff::process(const float* const*, int, float* const*, int,
     const double gate = std::clamp(params.get("Gate", 0.55), 0.05, 1.0);
     const int vel = (int) params.get("Velocity", 96.0);
 
-    const double stepsPerSec = transport.tempo() / 60.0 * stepsPerBeat_;
+    const double stepsPerSec = transport.tempo() / kSecondsPerMinute * stepsPerBeat_;
     const long stepLen = (long) (sr / stepsPerSec);
     const double ticksPerStep = (double) Pattern::kTicksPerBeat / stepsPerBeat_;
     const auto groove = swing::resolve(params, transport, (int) std::lround(ticksPerStep));
@@ -61,7 +68,7 @@ void Riff::process(const float* const*, int, float* const*, int,
         const auto& s = steps_[(size_t) (k % (long) steps_.size())];
         if (!s.gate) continue;
         const int at = std::min(numSamples - 1, (int) ((pos - step0) / stepsPerSec * sr));
-        const int note = std::clamp(s.note + transpose, 0, 127);
+        const int note = std::clamp(s.note + transpose, 0, kMidiMax);
         emit(at, true, note, s.accent ? 118 : vel);
         if (offCount_ < (int) offs_.size()) {
             const long len = s.slide ? stepLen + (long) (0.003 * sr)

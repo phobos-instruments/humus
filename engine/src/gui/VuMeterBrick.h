@@ -8,6 +8,7 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -94,7 +95,7 @@ private:
         }
         g.setColour(ink);
         g.setFont(juce::FontOptions(8.0f).withStyle("Bold"));
-        g.drawText("dB", r.withTrimmedTop((int) (rf.getHeight() * 0.66f)),
+        g.drawText(tr("vu-meter.db", "dB"), r.withTrimmedTop((int) (rf.getHeight() * 0.66f)),
                    juce::Justification::centredTop, false);
         g.setFont(juce::FontOptions(7.0f));
         g.drawText(letter, r.getX() + 7, r.getY() + 6, 12, 9, juce::Justification::left);

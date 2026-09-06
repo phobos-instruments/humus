@@ -12,6 +12,8 @@
 #include "hum/dsp/LevelMeter.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Sampler : public Organism, public MidiNode, public FileLoader, public LiveMidiIn,
@@ -73,7 +75,7 @@ public:
 private:
     struct SampleData {
         juce::AudioBuffer<float> buf;
-        double srcRate = 44100.0;
+        double srcRate = kDefaultSampleRate;
         std::string uri;
     };
 
@@ -81,7 +83,7 @@ private:
         int sample = -1;
         int slot = -1, preset = -1;
         int rootKey = 60;
-        int keyLo = 0, keyHi = 127, velLo = 0, velHi = 127;
+        int keyLo = 0, keyHi = kMidiMax, velLo = 0, velHi = kMidiMax;
         double tuneCents = 0.0;
         int loopStart = 0, loopEnd = 0;
         int loopMode = -1;

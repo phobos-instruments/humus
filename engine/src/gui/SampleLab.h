@@ -9,6 +9,9 @@
 #include "gui/AiClient.h"
 #include "gui/EngineHost.h"
 #include "io/WavWriter.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -26,16 +29,16 @@ inline juce::String sanitize(const std::string& name) {
 
 inline juce::String applyRecipes(EngineHost& host, const std::string& targetSampler,
                                  const std::vector<Recipe>& recipes) {
-    if (recipes.empty()) return "The reply contained no usable sounds.";
+    if (recipes.empty()) return tr("sample-lab.the-reply-contained-no-usable", "The reply contained no usable sounds.");
     const auto stamp = juce::Time::getCurrentTime().formatted("%H%M%S");
     std::vector<juce::String> paths;
     for (const auto& r : recipes) {
-        const auto mono = renderRecipe(r, 44100.0);
+        const auto mono = renderRecipe(r, kDefaultSampleRate);
         const auto f = sampleFolder().getChildFile(sanitize(r.name) + "-" + stamp + ".wav");
-        if (writeWav(f.getFullPathName().toStdString(), {mono}, 44100))
+        if (writeWav(f.getFullPathName().toStdString(), {mono}, kDefaultSampleRate))
             paths.push_back(f.getFullPathName());
     }
-    if (paths.empty()) return "Could not write the sample files.";
+    if (paths.empty()) return tr("sample-lab.could-not-write-the-sample", "Could not write the sample files.");
 
     host.pushUndo();
     std::string sampler = targetSampler;
@@ -63,15 +66,15 @@ inline void open(EngineHost& host, std::function<void(juce::String status)> onSt
         "The model designs them, Humus renders them, and they land on a Sampler as a kit "
         "(one undo step).",
         juce::MessageBoxIconType::NoIcon);
-    w->addTextEditor("prompt", "", "Describe the sounds:");
+    w->addTextEditor("prompt", "", tr("sample-lab.describe-the-sounds", "Describe the sounds:"));
     juce::StringArray choices = samplers;
-    choices.add("New Sampler");
+    choices.add(tr("sample-lab.new-sampler", "New Sampler"));
     w->addComboBox("target", choices, "Onto:");
     w->getComboBoxComponent("target")->setSelectedItemIndex(choices.size() - 1);
     if (AiClient::needsApiKey())
-        w->addTextEditor("key", "", "Claude API key (stored for next time):");
-    w->addButton("Generate", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    w->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        w->addTextEditor("key", "", tr("sample-lab.claude-api-key-stored-for", "Claude API key (stored for next time):"));
+    w->addButton(tr("sample-lab.generate", "Generate"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    w->addButton(tr("sample-lab.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
 
     auto* hostPtr = &host;
     w->enterModalState(true, juce::ModalCallbackFunction::create(
@@ -87,7 +90,7 @@ inline void open(EngineHost& host, std::function<void(juce::String status)> onSt
             const std::string targetName =
                 target >= 0 && target < samplers.size()
                     ? samplers[target].toStdString() : std::string();
-            if (onStatus) onStatus("Sample Lab: designing sounds...");
+            if (onStatus) onStatus(tr("sample-lab.sample-lab-designing-sounds", "Sample Lab: designing sounds..."));
 
             AiClient::Request req;
             req.system = recipeSystemPrompt();

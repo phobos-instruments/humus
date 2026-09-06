@@ -7,6 +7,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -27,6 +28,9 @@ public:
 
     void setCountdown(int seconds) {
         if (auto* c = dynamic_cast<Content*>(getContentComponent())) c->setCountdown(seconds);
+    }
+    void setMessage(const juce::String& what) {
+        if (auto* c = dynamic_cast<Content*>(getContentComponent())) c->setMessage(what);
     }
 
     void closeButtonPressed() override {
@@ -49,12 +53,15 @@ private:
             wait_.setColour(juce::Label::textColourId, Palette::textDim);
             wait_.setFont(juce::FontOptions(12.0f));
             addAndMakeVisible(wait_);
-            cancelBtn_.setButtonText("Cancel");
+            cancelBtn_.setButtonText(tr("quick-map.cancel", "Cancel"));
             cancelBtn_.onClick = [this] { cancel(); };
             addAndMakeVisible(cancelBtn_);
         }
+        void setMessage(const juce::String& what) {
+            text_.setText(what, juce::dontSendNotification);
+        }
         void setCountdown(int seconds) {
-            wait_.setText("waiting " + juce::String(seconds) + "s "
+            wait_.setText(tr("quick-map.waiting", "waiting ") + juce::String(seconds) + "s "
                               + juce::String("-") + " Esc to cancel",
                           juce::dontSendNotification);
         }
@@ -96,7 +103,8 @@ inline void ask(const juce::String& kind, const juce::String& source, const juce
         juce::MessageBoxIconType::QuestionIcon, source + " is already assigned",
         source + " already controls " + list + ".\n\nReassign it to " + target
             + ", or add " + target + " so they move together?",
-        "Reassign", "Add both", "Cancel", nullptr,
+        tr("quick-map.reassign", "Reassign"), tr("quick-map.add-both", "Add both"),
+        tr("quick-map.cancel", "Cancel"), nullptr,
         juce::ModalCallbackFunction::create([onResolve](int r) {
             if (r == 1) onResolve(true);
             else if (r == 2) onResolve(false);

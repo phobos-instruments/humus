@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace sv
 {
 
@@ -73,7 +75,7 @@ namespace
 
 void ShimmerEngine::prepare (double newSampleRate, int )
 {
-    sampleRate = newSampleRate > 0.0 ? newSampleRate : 44100.0;
+    sampleRate = newSampleRate > 0.0 ? newSampleRate : hum::kDefaultSampleRate;
 
     const int maxComb    = msToSamples (kMaxCombMs, sampleRate);
     const int maxAllpass = msToSamples (kMaxAllpassMs, sampleRate);
@@ -204,7 +206,7 @@ void ShimmerEngine::updateDerivedParameters()
 
     const float highCutHz = clampf (params.highCutHz * kColorHighCutScale[colorModeIndex],
                                     200.0f, static_cast<float> (sampleRate) * 0.49f);
-    dampingCoefficient.setTarget (std::exp (-kTwoPi * highCutHz / static_cast<float> (sampleRate)));
+    dampingCoefficient.setTarget (std::exp (-hum::kTwoPi * highCutHz / static_cast<float> (sampleRate)));
 
     for (int ch = 0; ch < kNumChannels; ++ch)
     {

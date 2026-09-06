@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "hum/Swing.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -13,7 +14,7 @@ void Cicada::process(const float* const*, int, float* const* out, int numOut,
     float* o = out[0];
     for (int c = 1; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double ratio = std::exp2(params.get("Tune", 0.0) / 12.0);
     const double metal = params.get("Metal", 0.7);
     const double tone = params.get("Tone", 0.5);
@@ -43,7 +44,7 @@ void Cicada::process(const float* const*, int, float* const* out, int numOut,
     }
     stagedCount_ = 0;
     if (params.get("OffBeat", 0.0) >= 0.5 && transport.playing()) {
-        const double bps = transport.tempo() / 60.0;
+        const double bps = transport.tempo() / kSecondsPerMinute;
         const auto groove = swing::resolve(params, transport, Pattern::kTicksPerBeat / 2);
         double next = std::ceil(transport.beats() - 0.5 - 1e-9) - 0.5;
         while (nT < 24) {
@@ -73,14 +74,14 @@ void Cicada::process(const float* const*, int, float* const* out, int numOut,
     const double fhp = std::min(nyq, 3500.0 + 5500.0 * tone);
     double b0b, b1b, b2b, a1b, a2b, b0h, b1h, b2h, a1h, a2h;
     {
-        const double w = 2.0 * 3.14159265358979 * fbp / sr;
+        const double w = 2.0 * kPi * fbp / sr;
         const double al = std::sin(w) / (2.0 * 1.0);
         const double a0 = 1.0 + al;
         b0b = al / a0; b1b = 0.0; b2b = -al / a0;
         a1b = -2.0 * std::cos(w) / a0; a2b = (1.0 - al) / a0;
     }
     {
-        const double w = 2.0 * 3.14159265358979 * fhp / sr;
+        const double w = 2.0 * kPi * fhp / sr;
         const double al = std::sin(w) / (2.0 * 0.707);
         const double a0 = 1.0 + al;
         const double cw = std::cos(w);

@@ -33,6 +33,8 @@ public:
     int indexOf(const std::string& name) const;
 
     void prepare(double sampleRate, int maxBlock, double tempoBpm);
+    void prepare(double sampleRate, int maxBlock, double tempoBpm, const AudioGraph& handover);
+    int adoptableFrom(int node, const AudioGraph& old) const;
     int preparedBlock() const { return maxBlock_; }
     int maxTrackHeld() const { return maxTrackHeld_; }
     void resetMaxTrackHeld() { maxTrackHeld_ = 0; }
@@ -128,6 +130,7 @@ private:
         std::vector<int> midiOutCount;
     };
 
+    void prepareNodes(double sampleRate, int maxBlock, const AudioGraph* handover);
     void computeOrder();
     void computeLatencyCompensation();
     void resolveTunings();

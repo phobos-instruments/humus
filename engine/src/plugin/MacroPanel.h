@@ -4,13 +4,14 @@
 #include "core/ParamSchema.h"
 #include "plugin/FxLook.h"
 #include "plugin/HumusProcessor.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
 class MacroPanel : public juce::Component {
 public:
     explicit MacroPanel(HumusProcessor& p) : proc_(p) {
-        header_.setText("DAW automation: map a Macro, automate it from the host",
+        header_.setText(tr("macro.daw-automation-map-a-macro", "DAW automation: map a Macro, automate it from the host"),
                         juce::dontSendNotification);
         header_.setFont(juce::FontOptions(11.0f));
         header_.setColour(juce::Label::textColourId, fxlook::dim());

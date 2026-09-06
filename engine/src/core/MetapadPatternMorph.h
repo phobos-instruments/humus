@@ -10,6 +10,8 @@
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace patternmorph {
@@ -27,13 +29,7 @@ inline size_t dominantIndex(const std::vector<Contributor>& src) {
 }
 
 inline const PatternChannel* channelOfType(const Pattern& p, const std::string& type, int ordinal) {
-    int idx = 0;
-    for (const auto& ch : p.channels) {
-        if (ch.type != type) continue;
-        if (idx == ordinal) return &ch;
-        ++idx;
-    }
-    return nullptr;
+    return matrixChannel(p, type, ordinal);
 }
 
 inline void voteTriggers(std::vector<int>& out,
@@ -153,7 +149,7 @@ inline PatternChannel morphChannel(const std::vector<Contributor>& src, size_t d
             if (cell.w >= 0.5 * wsum - 1e-9)
                 notes.push_back({key.first, key.second,
                                  std::max(1, (int) std::lround(cell.len / cell.w)),
-                                 std::clamp((int) std::lround(cell.vel / cell.w), 1, 127)});
+                                 std::clamp((int) std::lround(cell.vel / cell.w), 1, kMidiMax)});
         out.matrix = encodeNoteEvents(notes)
                    + encodeCCEvents(decodeCCEvents(out.matrix));
         return out;

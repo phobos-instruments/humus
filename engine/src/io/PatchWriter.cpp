@@ -38,6 +38,18 @@ void writeMasterLimiter(juce::XmlElement& root, const PatchDocumentModel& doc) {
     root.createNewChildElement("master-limiter")->setAttribute("value", 1);
 }
 
+void writeMidiModifiers(juce::XmlElement& root, const PatchDocumentModel& doc) {
+    if (auto* old = root.getChildByName("midi-modifiers")) root.removeChildElement(old, true);
+    if (doc.midiModifiers.empty()) return;
+    auto* mods = root.createNewChildElement("midi-modifiers");
+    for (const auto& m : doc.midiModifiers) {
+        auto* me = mods->createNewChildElement("modifier");
+        me->setAttribute("number", m.source);
+        me->setAttribute("latching", m.latching ? 1 : 0);
+        me->setAttribute("own-action", m.ownAction ? 1 : 0);
+    }
+}
+
 void writeGroove(juce::XmlElement& root, const PatchDocumentModel& doc) {
     if (auto* old = root.getChildByName("groove")) root.removeChildElement(old, true);
     if (doc.groove <= 0.0) return;
@@ -96,6 +108,7 @@ void buildFresh(juce::XmlElement& root, const PatchDocumentModel& doc) {
     writeMasterLevel(root, doc);
     writeMasterLimiter(root, doc);
     writeGroove(root, doc);
+    writeMidiModifiers(root, doc);
 }
 
 void patchExisting(juce::XmlElement& root, const PatchDocumentModel& doc) {
@@ -264,6 +277,7 @@ void patchExisting(juce::XmlElement& root, const PatchDocumentModel& doc) {
     writeMasterLevel(root, doc);
     writeMasterLimiter(root, doc);
     writeGroove(root, doc);
+    writeMidiModifiers(root, doc);
 }
 
 void relativizeAudioClipPaths(juce::XmlElement& el, const juce::File& docDir) {

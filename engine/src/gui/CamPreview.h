@@ -8,6 +8,7 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -36,11 +37,11 @@ public:
         if (!src || blocked.isNotEmpty() || !src->camActive() || stalled()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(13.0f));
-            g.drawText(src == nullptr ? juce::String("No live instance")
+            g.drawText(src == nullptr ? juce::String(tr("cam-preview.no-live-instance", "No live instance"))
                        : blocked.isNotEmpty() ? blocked
                        : stalled()
                            ? juce::String("no picture arriving - is the source on?")
-                           : juce::String("Camera off - turn on Enabled below"),
+                           : juce::String(tr("cam-preview.camera-off-turn-on-enabled", "Camera off - turn on Enabled below")),
                        getLocalBounds().reduced(8), juce::Justification::centred, true);
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
@@ -76,7 +77,7 @@ public:
             } else {
                 g.setColour(juce::Colours::white.withAlpha(0.75f));
                 g.setFont(juce::FontOptions(12.0f));
-                g.drawText("show a hand to the camera",
+                g.drawText(tr("cam-preview.show-a-hand-to-the", "show a hand to the camera"),
                            getLocalBounds().reduced(6).removeFromBottom(16),
                            juce::Justification::centredLeft, false);
             }
@@ -107,7 +108,7 @@ public:
 
         g.setColour(juce::Colours::white.withAlpha(0.85f));
         g.setFont(juce::FontOptions(11.0f));
-        g.drawText("motion " + juce::String(motion, 2) + "   bright " + juce::String(bright, 2),
+        g.drawText(tr("cam-preview.motion", "motion ") + juce::String(motion, 2) + tr("cam-preview.bright", "   bright ") + juce::String(bright, 2),
                    getLocalBounds().reduced(6).removeFromBottom(14),
                    juce::Justification::centredLeft, false);
         paintRate(g);

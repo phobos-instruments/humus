@@ -7,6 +7,7 @@
 #include "gui/SettingsComponent.h"
 #include "gui/Telemetry.h"
 #include "gui/TelemetryEvents.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -65,10 +66,12 @@ void MainComponent::startupCheckin() {
             if (r.licenseStatus == hubproto::LicenseStatus::Revoked) {
                 LicenseStore::remove();
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::MessageBoxIconType::InfoIcon, "License deactivated",
-                    "This install's license was deactivated on the hub, so "
-                    "Humus is back to unregistered - which locks nothing. "
-                    "If this is a surprise, get in touch.");
+                    juce::MessageBoxIconType::InfoIcon,
+                    tr("main-lifecycle.license-deactivated", "License deactivated"),
+                    tr("main-lifecycle.license-deactivated-body",
+                       "This install's license was deactivated on the hub, so "
+                       "Humus is back to unregistered - which locks nothing. "
+                       "If this is a surprise, get in touch."));
             }
             if (!r.hasUpdate) return;
             if (AppSettings::instance().getString("app.skipVersion", "")
@@ -119,18 +122,18 @@ void MainComponent::flushTelemetry() {
 
 void MainComponent::checkForUpdatesManually() {
     if (juce::JUCEApplication::getInstance() == nullptr) return;
-    setStatus("checking for updates...");
+    setStatus(tr("main-lifecycle.checking-for-updates", "checking for updates..."));
     HubClient::checkin("",
         [safe = juce::Component::SafePointer<MainComponent>(this)](
             bool ok, hubproto::CheckinResult r) {
             if (safe == nullptr) return;
-            if (!ok) { safe->setStatus("could not reach the update server"); return; }
+            if (!ok) { safe->setStatus(tr("main-lifecycle.could-not-reach-the-update", "could not reach the update server")); return; }
             if (r.hasUpdate) {
                 safe->setStatus({});
                 safe->showUpdateNotice(r.updateVersion, r.updateUrl, r.updateNotes,
                                    r.updateSha256);
             } else {
-                safe->setStatus("Humus " + juce::String(HubClient::appVersion())
+                safe->setStatus(tr("main-lifecycle.humus", "Humus ") + juce::String(HubClient::appVersion())
                                 + " is up to date");
             }
         });
@@ -158,7 +161,7 @@ void MainComponent::showUpdateNotice(const std::string& version,
             safe->updateNotice_->setOutcome(ok ? message + " to "
                                                      + file.getParentDirectory().getFileName()
                                                : message,
-                                            ok ? AppUpdater::revealVerb() : "Try again");
+                                            ok ? AppUpdater::revealVerb() : tr("main-lifecycle.try-again", "Try again"));
         };
         updateNotice_->setProgress(0.0);
         updater_->start(juce::String(url), juce::String(sha256), juce::String(version));

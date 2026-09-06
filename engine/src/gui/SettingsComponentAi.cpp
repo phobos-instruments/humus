@@ -2,19 +2,20 @@
 
 #include "gui/AiClient.h"
 #include "gui/AppSettings.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
 void SettingsComponent::buildAiPanel() {
     auto& s = AppSettings::instance();
-    aiTitle_.setText("AI", juce::dontSendNotification);
+    aiTitle_.setText(tr("settings-ai.ai", "AI"), juce::dontSendNotification);
     aiTitle_.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
     addAndMakeVisible(aiTitle_);
 
-    providerLabel_.setText("Provider", juce::dontSendNotification);
+    providerLabel_.setText(tr("settings-ai.provider", "Provider"), juce::dontSendNotification);
     addAndMakeVisible(providerLabel_);
-    providerCombo_.addItem("Ollama (local server)", 1);
-    providerCombo_.addItem("Claude API", 2);
+    providerCombo_.addItem(tr("settings-ai.ollama-local-server", "Ollama (local server)"), 1);
+    providerCombo_.addItem(tr("settings-ai.claude-api", "Claude API"), 2);
     providerCombo_.setSelectedId(s.getString("ai.provider", "ollama") == "claude" ? 2 : 1,
                                  juce::dontSendNotification);
     providerCombo_.onChange = [this] {
@@ -39,22 +40,23 @@ void SettingsComponent::buildAiPanel() {
         ed.onReturnKey = commit;
         addAndMakeVisible(ed);
     };
-    setupText(endpointEdit_, endpointLabel_, "Ollama endpoint",
+    setupText(endpointEdit_, endpointLabel_, tr("settings-ai.ollama-endpoint", "Ollama endpoint"),
               AppSettings::instance().getString("ai.endpoint", kDefaultAiEndpoint),
               "http://host:11434", "ai.endpoint");
     setupText(modelEdit_, modelLabel_, "Model",
               AppSettings::instance().getString("ai.model"),
               "empty = llama3.1 (Ollama) / claude-sonnet-5 (Claude)", "ai.model");
-    setupText(keyEdit_, keyLabel_, "Claude API key",
+    setupText(keyEdit_, keyLabel_, tr("settings-ai.claude-api-key", "Claude API key"),
               AppSettings::instance().getString("ai.apiKey"), "sk-ant-...", "ai.apiKey");
     keyEdit_.setPasswordCharacter(0x2022);
 
     aiHint_.setFont(juce::FontOptions(12.0f));
     aiHint_.setColour(juce::Label::textColourId, Palette::textDim);
     aiHint_.setJustificationType(juce::Justification::topLeft);
-    aiHint_.setText("Used by the Preset genie, the AI Assistant, and the Sample Lab. "
-                    "Ollama needs a model with tool support pulled on the server "
-                    "(llama3.1, qwen2.5, mistral-nemo...). Changes apply to the next request.",
+    aiHint_.setText(tr("settings-ai.used-by-the-preset-genie",
+       "Used by the Preset genie, the AI Assistant, and the Sample Lab. "
+       "Ollama needs a model with tool support pulled on the server "
+       "(llama3.1, qwen2.5, mistral-nemo...). Changes apply to the next request."),
                     juce::dontSendNotification);
     addAndMakeVisible(aiHint_);
 
@@ -64,7 +66,7 @@ void SettingsComponent::buildAiPanel() {
             auto e = endpointEdit_.getText().trim();
             return e.endsWithChar('/') ? e.dropLastCharacters(1) : e;
         }();
-        aiHint_.setText("Testing " + base + juce::String::fromUTF8("\xe2\x80\xa6"), juce::dontSendNotification);
+        aiHint_.setText(tr("settings-ai.testing", "Testing ") + base + juce::String::fromUTF8("\xe2\x80\xa6"), juce::dontSendNotification);
         const juce::Component::SafePointer<SettingsComponent> safe(this);
         juce::Thread::launch(
             [base, safe] {

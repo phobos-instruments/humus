@@ -4,10 +4,11 @@
 #include <cmath>
 #include <cstdint>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 namespace {
 
-constexpr double kTwoPi = 6.28318530717958647692;
 constexpr float kSizeF = (float) Halogen::kSize;
 
 constexpr float kPartial = 0.05f;
@@ -18,7 +19,7 @@ float lerp(float a, float b, float t) { return a + (b - a) * t; }
 }
 
 void Halogen::prepare(double sampleRate, int) {
-    sampleRate_ = sampleRate > 0.0 ? sampleRate : 44100.0;
+    sampleRate_ = sampleRate > 0.0 ? sampleRate : kDefaultSampleRate;
     fft_ = std::make_unique<juce::dsp::FFT>(kOrder);
     window_.resize((size_t) kSize);
     for (int i = 0; i < kSize; ++i)

@@ -6,6 +6,8 @@
 #include "core/BridgedPlugin.h"
 #include "core/PluginHost.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 HostedPlugin::HostedPlugin(std::unique_ptr<juce::AudioPluginInstance> instance,
@@ -141,7 +143,7 @@ OrganismPtr PluginHost::createOrganism(const std::string& classRaw) {
         if (bp->launched()) return bp;
     }
     std::string err;
-    auto inst = instance().createInstance(*desc, 44100.0, 512, err);
+    auto inst = instance().createInstance(*desc, kDefaultSampleRate, 512, err);
     if (!inst) return nullptr;
     return std::make_unique<HostedPlugin>(std::move(inst), classRaw);
 }

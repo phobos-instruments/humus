@@ -1,6 +1,7 @@
 {
   "width": 293,
   "height": 224,
+  "resize": "grow",
   "controls": [
     {
       "type": "video-preview",
@@ -34,6 +35,15 @@
         "Display 2",
         "Display 3"
       ]
+    },
+    {
+      "type": "screen-button",
+      "param": "",
+      "label": "",
+      "x": 259,
+      "y": 165,
+      "w": 22,
+      "h": 22
     },
     {
       "type": "hslider",

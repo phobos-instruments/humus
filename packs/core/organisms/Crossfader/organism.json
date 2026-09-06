@@ -33,6 +33,27 @@
      "min": 0.0,
      "max": 1.0,
      "def": 0.0
+    },
+    {
+     "name": "CutA",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "CutB",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "CutTime",
+     "min": 0.0,
+     "max": 50.0,
+     "def": 0.0,
+     "unit": "ms"
     }
    ],
    "editor": "layout:editor.json"

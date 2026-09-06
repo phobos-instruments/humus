@@ -15,6 +15,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/PluginBridgePolicy.h"
 #include "gui/PluginQuarantine.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -25,7 +26,7 @@ public:
     std::function<void()> onPluginsChanged;
 
     PluginManagerView() {
-        pathsLabel_.setText(juce::String("Extra search paths (one per line - format defaults always scanned):"),
+        pathsLabel_.setText(juce::String(tr("plugin-manager.extra-search-paths-one-per", "Extra search paths (one per line - format defaults always scanned):")),
                             juce::dontSendNotification);
         pathsLabel_.setColour(juce::Label::textColourId, Palette::textDim);
         pathsLabel_.setFont(juce::FontOptions(11.5f));
@@ -33,11 +34,11 @@ public:
 
         paths_.setMultiLine(true);
         paths_.setReturnKeyStartsNewLine(true);
-        paths_.setText(AppSettings::instance().getString("plugins.searchPaths"),
+        paths_.setText(AppSettings::instance().getString(tr("plugin-manager.plugins-searchpaths", "plugins.searchPaths")),
                        juce::dontSendNotification);
         addAndMakeVisible(paths_);
 
-        scanBtn_.setButtonText("Scan for plugins");
+        scanBtn_.setButtonText(tr("plugin-manager.scan-for-plugins", "Scan for plugins"));
         scanBtn_.onClick = [this] { startScan(); };
         addAndMakeVisible(scanBtn_);
 
@@ -48,13 +49,13 @@ public:
         sandbox_.setColour(juce::ToggleButton::textColourId, Palette::text);
         sandbox_.setToggleState(bridgePolicy::sandboxEnabled(), juce::dontSendNotification);
 #if JUCE_LINUX
-        sandbox_.setButtonText("Run plugins in separate processes (recommended)");
+        sandbox_.setButtonText(tr("plugin-manager.run-plugins-in-separate-processes", "Run plugins in separate processes (recommended)"));
         sandbox_.onClick = [this] {
             bridgePolicy::setSandboxEnabled(sandbox_.getToggleState());
             list_.updateContent();
         };
 #else
-        sandbox_.setButtonText("Run plugins in separate processes (Linux only)");
+        sandbox_.setButtonText(tr("plugin-manager.run-plugins-in-separate-processes-2", "Run plugins in separate processes (Linux only)"));
         sandbox_.setEnabled(false);
 #endif
         addAndMakeVisible(sandbox_);
@@ -145,7 +146,7 @@ private:
         if (!scanner_) { stopTimer(); return; }
         juce::String current;
         if (scanner_->pumpAsync(current)) {
-            status_.setText("Scanning: " + current, juce::dontSendNotification);
+            status_.setText(tr("plugin-manager.scanning", "Scanning: ") + current, juce::dontSendNotification);
             return;
         }
         stopTimer();
@@ -154,7 +155,7 @@ private:
         pluginListStore::save(PluginHost::instance().knownListToXml());
         AppSettings::instance().set("plugins.scanSkip",
                                     scanner_->failed().joinIntoString("\n"));
-        status_.setText(juce::String("Scan complete - ") +
+        status_.setText(juce::String(tr("plugin-manager.scan-complete", "Scan complete - ")) +
                             juce::String(PluginHost::instance().knownPlugins().getNumTypes())
                             + " plugins" + (failedCount > 0
                                 ? " (" + juce::String(failedCount) + " failed)" : juce::String()),
@@ -172,7 +173,7 @@ private:
 
     void refreshQuarantineBtn() {
         const int n = quarantine::list().size();
-        quarantineBtn_.setButtonText("Clear UI quarantine (" + juce::String(n) + ")");
+        quarantineBtn_.setButtonText(tr("plugin-manager.clear-ui-quarantine", "Clear UI quarantine (") + juce::String(n) + ")");
         quarantineBtn_.setVisible(n > 0);
     }
 

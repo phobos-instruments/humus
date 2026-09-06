@@ -7,6 +7,8 @@
 #include <cmath>
 #include <vector>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 namespace {
 
@@ -256,7 +258,7 @@ Unit unitInferred(const std::string& paramName, double min, double max) {
     if (is({"percent", "pitchpercent"})) return Unit::PercentRaw;
     if (is({"bitdepth", "bits"}) && max > 1.0) return Unit::Bits;
     if (is({"note", "root", "lownote", "highnote", "basenote"}))
-        if (min >= 0.0 && max <= 127.0 && max >= 24.0) return Unit::MidiNote;
+        if (min >= 0.0 && max <= kMidiMaxD && max >= 24.0) return Unit::MidiNote;
     if (is({"ratio", "compressionratio"}) && min >= 1.0 && max >= 4.0)
         return Unit::RatioTo1;
     if (is({"tune"}) && min >= 20.0) return Unit::Hertz;

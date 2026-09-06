@@ -6,16 +6,20 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/AppPaths.h"
+#include "core/ClipDrag.h"
 #include "core/Catalogue.h"
 #include "core/UserLibrary.h"
 #include "gui/EngineHost.h"
 #include "gui/IconButton.h"
 #include "gui/LookAndFeel.h"
 #include "gui/UiTicker.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
-class SoundFileSlot : public juce::Component, public juce::FileDragAndDropTarget {
+class SoundFileSlot : public juce::Component,
+                      public juce::FileDragAndDropTarget,
+                      public juce::DragAndDropTarget {
 public:
     SoundFileSlot(EngineHost& host, std::string organism, std::string param,
                   std::string wildcard = {}, std::string title = {},
@@ -24,7 +28,7 @@ public:
           wildcard_(std::move(wildcard)), title_(std::move(title)),
           kind_(std::move(kind)),
           chooseBtn_(IconButton::Glyph::Open,
-                     title_.empty() ? juce::String("Select a sound file...")
+                     title_.empty() ? juce::String(tr("sound-file-slot.select-a-sound-file", "Select a sound file..."))
                                     : juce::String(juce::CharPointer_UTF8(title_.c_str()))) {
         addAndMakeVisible(nameField_);
 
@@ -32,7 +36,7 @@ public:
         addAndMakeVisible(chooseBtn_);
 
         clearBtn_.setButtonText(juce::String::charToString(juce::juce_wchar(0x00d7)));
-        clearBtn_.setTooltip("Clear this slot");
+        clearBtn_.setTooltip(tr("sound-file-slot.clear-this-slot", "Clear this slot"));
         clearBtn_.onClick = [this] {
             host_.setParamText(name_, param_, "");
             refresh();
@@ -51,7 +55,7 @@ public:
         const juce::File f(cur);
         if (f.isAChildOf(library::root())) return;
         juce::PopupMenu m;
-        m.addItem(1, "Add to Library");
+        m.addItem(1, tr("sound-file-slot.add-to-library", "Add to Library"));
         m.showMenuAsync(juce::PopupMenu::Options(), [this, f](int r) {
             if (r != 1) return;
             const auto dir = kindDir();
@@ -115,6 +119,26 @@ public:
         if (files.isEmpty()) return;
         host_.setParamText(name_, param_, juce::File(files[0]).getFullPathName().toStdString());
         refresh();
+    }
+
+    bool isInterestedInDragSource(const SourceDetails& d) override {
+        return draggedClipFile(d).existsAsFile();
+    }
+    void itemDropped(const SourceDetails& d) override {
+        const auto f = draggedClipFile(d);
+        if (!f.existsAsFile()) return;
+        host_.setParamText(name_, param_, f.getFullPathName().toStdString());
+        refresh();
+    }
+    juce::File draggedClipFile(const SourceDetails& d) {
+        std::string track;
+        int clipId = 0;
+        if (!clipdrag::parseVideoClip(d.description.toString().toStdString(), track, clipId))
+            return {};
+        const auto r = host_.clips().rangeOf(track, clipId);
+        if (r.file.empty()) return {};
+        const juce::File f(juce::String(juce::CharPointer_UTF8(r.file.c_str())));
+        return isInterestedInFileDrag({f.getFullPathName()}) ? f : juce::File();
     }
 
     void resized() override {
@@ -199,7 +223,7 @@ private:
             wc = fm.getWildcardForAllFormats();
         }
         chooser_ = std::make_unique<juce::FileChooser>(
-            title_.empty() ? juce::String("Select a sound file")
+            title_.empty() ? juce::String(tr("sound-file-slot.select-a-sound-file-2", "Select a sound file"))
                            : juce::String(juce::CharPointer_UTF8(title_.c_str())),
             start, wc);
         auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;

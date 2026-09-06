@@ -65,6 +65,8 @@ struct LayoutSpec {
         PictureField,
         LfoScope,
         HelixStrands,
+        ClipGrid,
+        ScreenButton,
     };
 
     struct Control {
@@ -84,7 +86,7 @@ struct LayoutSpec {
         }
     };
 
-    enum class Resize { Scale, Stretch };
+    enum class Resize { Scale, Stretch, Grow };
 
     int width = 280;
     int height = 220;
@@ -135,6 +137,8 @@ inline const std::vector<ControlTypeName>& controlTypeNames() {
         {"slice-map", CT::SliceMap},        {"picture-field", CT::PictureField},          {"lfo-scope", CT::LfoScope},
         {"threshold-meter", CT::ThresholdMeter},
         {"helix-strands", CT::HelixStrands},
+        {"clip-grid", CT::ClipGrid},
+        {"screen-button", CT::ScreenButton},
     };
     return t;
 }
@@ -181,6 +185,7 @@ inline std::string toJson(const LayoutSpec& spec) {
     std::string o = "{\"width\":" + std::to_string(spec.width)
                   + ",\"height\":" + std::to_string(spec.height);
     if (spec.resize == LayoutSpec::Resize::Stretch) o += ",\"resize\":\"stretch\"";
+    if (spec.resize == LayoutSpec::Resize::Grow) o += ",\"resize\":\"grow\"";
     o += ",\"controls\":[";
     bool firstControl = true;
     for (const auto& c : spec.controls) {

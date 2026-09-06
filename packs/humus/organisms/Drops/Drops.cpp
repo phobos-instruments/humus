@@ -3,11 +3,13 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Drops::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
-    const double sr = sampleRate > 0.0 ? sampleRate : 44100.0;
+    const double sr = sampleRate > 0.0 ? sampleRate : kDefaultSampleRate;
     poolBufL_.assign((size_t) std::max(16.0, sr * 0.0071), 0.0f);
     poolBufR_.assign((size_t) std::max(16.0, sr * 0.0097), 0.0f);
     reset();
@@ -48,7 +50,7 @@ void Drops::process(const float* const*, int, float* const* out, int numOut,
     float* oR = numOut > 1 ? out[1] : nullptr;
     for (int c = 2; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double density = std::clamp(params.get("Density", 4.0), 0.0, 20.0);
     const double size = std::clamp(params.get("Size", 0.5), 0.0, 1.0);
     const double spread = std::clamp(params.get("Spread", 0.5), 0.0, 1.0);
@@ -89,7 +91,7 @@ void Drops::process(const float* const*, int, float* const* out, int numOut,
             if (v.phase >= 1.0) v.phase -= 1.0;
             double a = env;
             if (v.t < 24) a *= (double) v.t / 24.0;
-            const float s = (float) (std::sin(v.phase * 6.283185307179586) * a) * v.amp;
+            const float s = (float) (std::sin(v.phase * kTwoPi) * a) * v.amp;
             l += s * v.gainL;
             r += s * v.gainR;
             ++v.t;

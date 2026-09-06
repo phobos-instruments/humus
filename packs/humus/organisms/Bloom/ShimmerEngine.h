@@ -5,6 +5,8 @@
 #include "dsp/Modulator.h"
 #include "dsp/PitchShifter.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace sv
 {
 
@@ -52,7 +54,7 @@ public:
 private:
     void updateDerivedParameters();
 
-    double sampleRate = 44100.0;
+    double sampleRate = hum::kDefaultSampleRate;
     bool prepared = false;
 
     EngineParams params;

@@ -7,6 +7,8 @@
 
 #include <juce_dsp/juce_dsp.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -40,10 +42,10 @@ KeyEstimate detectKey(const juce::AudioBuffer<float>& buf, double sampleRate) {
     const int hop = N / 2;
     juce::dsp::FFT fft(order);
     std::vector<float> win((size_t) N), fd((size_t) N * 2);
-    for (int i = 0; i < N; ++i) win[(size_t) i] = 0.5f * (1.0f - std::cos(2.0f * 3.14159265f * i / (N - 1)));
+    for (int i = 0; i < N; ++i) win[(size_t) i] = 0.5f * (1.0f - std::cos(2.0f * kPiF * i / (N - 1)));
 
     std::vector<double> chroma(12, 0.0);
-    const double refA = 440.0;
+    const double refA = kA4Hz;
     for (int64_t s0 = 0; s0 + N <= len; s0 += hop) {
         std::fill(fd.begin(), fd.end(), 0.0f);
         for (int i = 0; i < N; ++i) {
@@ -55,7 +57,7 @@ KeyEstimate detectKey(const juce::AudioBuffer<float>& buf, double sampleRate) {
         for (int b = 1; b < N / 2; ++b) {
             const double freq = (double) b * sampleRate / N;
             if (freq < 50.0 || freq > 5000.0) continue;
-            const double midi = 69.0 + 12.0 * std::log2(freq / refA);
+            const double midi = hzToMidi(freq, refA);
             const int pc = ((int) std::lround(midi) % 12 + 12) % 12;
             chroma[(size_t) pc] += fd[(size_t) b];
         }

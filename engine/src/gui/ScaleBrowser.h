@@ -10,6 +10,7 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "gui/TextHighlight.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -206,7 +207,7 @@ public:
         addAndMakeVisible(browseBtn_);
 
         clearBtn_.setButtonText(juce::String::charToString(juce::juce_wchar(0x00d7)));
-        clearBtn_.setTooltip("Clear this scale");
+        clearBtn_.setTooltip(tr("scale-browser.clear-this-scale", "Clear this scale"));
         clearBtn_.onClick = [this] {
             host_.setParamText(name_, param_, "");
             refresh();
@@ -218,7 +219,7 @@ public:
     void refresh() {
         juce::String s(juce::CharPointer_UTF8(host_.liveParamText(name_, param_).c_str()));
         if (s.startsWith("file://")) s = s.substring(7);
-        pathLabel_.setText(s.isEmpty() ? "(no scale)" : juce::File(s).getFileNameWithoutExtension(),
+        pathLabel_.setText(s.isEmpty() ? tr("scale-browser.no-scale", "(no scale)") : juce::File(s).getFileNameWithoutExtension(),
                            juce::dontSendNotification);
         pathLabel_.setTooltip(s);
         const bool loaded = s.isNotEmpty();

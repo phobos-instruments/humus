@@ -7,6 +7,8 @@
 
 #include <juce_events/juce_events.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -49,7 +51,7 @@ void SoundSpace::prepare(double sampleRate, int) {
 void SoundSpace::captureTick() {
     const bool want = params.get("Record", 0.0) >= 0.5;
     if (!want) armLatch_ = false;
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const bool capped = writer_.active()
         && capturedSamples_.load() >= (std::int64_t) (kCaptureCapSeconds * sr);
 
@@ -165,7 +167,7 @@ void SoundSpace::spawnGrain() {
 
     const auto& file = corpus_->files[(size_t) best->file];
     if (file.getNumSamples() == 0) return;
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double semis = params.get("Pitch", 0.0);
     const double rate = std::pow(2.0, semis / 12.0)
                         * (corpus_->rates[(size_t) best->file] / sr);
@@ -203,7 +205,7 @@ void SoundSpace::renderAdd(float* left, float* right, int numSamples) {
             if (i0 >= len - 1) { v.remaining = 0; break; }
             const float frac = (float) (v.pos - i0);
             const float t = 1.0f - (float) v.remaining / (float) v.total;
-            const float w = 0.5f - 0.5f * std::cos(6.2831853f * t);
+            const float w = 0.5f - 0.5f * std::cos(kTwoPiF * t);
             const float sL = srcL[i0] + frac * (srcL[i0 + 1] - srcL[i0]);
             const float sR = srcR[i0] + frac * (srcR[i0 + 1] - srcR[i0]);
             const float g = w * master;
@@ -240,7 +242,7 @@ void SoundSpace::process(const float* const* in, int numIn, float* const* out, i
     if (!corpus_ || corpus_->grains.empty()) return;
     mute_ = params.get("Mute", 0.0) >= 0.5;
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double density = std::max(0.1, params.get("Density", 8.0));
     const double interval = sr / density;
 

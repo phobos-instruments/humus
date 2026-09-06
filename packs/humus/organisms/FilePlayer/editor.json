@@ -1,6 +1,6 @@
 {
   "width": 293,
-  "height": 140,
+  "height": 168,
   "controls": [
     {
       "type": "label",
@@ -25,14 +25,14 @@
       "x": 8,
       "y": 64,
       "w": 277,
-      "h": 24
+      "h": 52
     },
     {
       "type": "double-spinner",
       "param": "LoopDelay",
       "label": "Delay",
       "x": 160,
-      "y": 102,
+      "y": 130,
       "w": 125,
       "h": 24,
       "decimals": 2
@@ -42,7 +42,7 @@
       "param": "Loop",
       "label": "Loop",
       "x": 8,
-      "y": 102,
+      "y": 130,
       "w": 72,
       "h": 24
     },
@@ -51,7 +51,7 @@
       "param": "AutoRewind",
       "label": "Rewind",
       "x": 84,
-      "y": 102,
+      "y": 130,
       "w": 72,
       "h": 24
     }

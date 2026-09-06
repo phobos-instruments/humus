@@ -122,6 +122,7 @@ class LiveParamRange {
 public:
     virtual ~LiveParamRange() = default;
     virtual bool liveParamRange(const std::string& param, double& lo, double& hi) const = 0;
+    virtual bool rangeFollowsFile(const std::string&, const std::string&) const { return true; }
 };
 
 class PatchBank {
@@ -235,6 +236,58 @@ public:
     virtual int numVideoInputs() const = 0;
     virtual int numVideoOutputs() const = 0;
     virtual unsigned videoLaunchCount() const { return 0; }
+};
+
+class VideoFxNode {
+public:
+    virtual ~VideoFxNode() = default;
+};
+
+class VideoTimelineSource {
+public:
+    struct Cue {
+        int clip = -1;
+        double seconds = 0.0;
+        double rate = 1.0;
+        float level = 1.0f;
+        bool rolling = false;
+    };
+    virtual ~VideoTimelineSource() = default;
+    virtual Cue cue() const = 0;
+    virtual Cue upcoming() const = 0;
+    virtual std::string cueFile(int clip) const = 0;
+
+    virtual Cue cueAt(double beat, double tempo) const {
+        (void) beat;
+        (void) tempo;
+        return cue();
+    }
+    virtual Cue upcomingAt(double beat, double tempo) const {
+        (void) beat;
+        (void) tempo;
+        return upcoming();
+    }
+};
+
+class VideoPadSource {
+public:
+    static constexpr int kMaxClips = 8;
+    struct ClipState {
+        int active = -1;
+        int outgoing = -1;
+        float phase = 1.0f;
+        unsigned launches = 0;
+    };
+    virtual ~VideoPadSource() = default;
+    virtual int clipCount() const = 0;
+    virtual ClipState clipState() const = 0;
+    virtual void noteClipLength(int, double) {}
+};
+
+class RollListener {
+public:
+    virtual ~RollListener() = default;
+    virtual void rolled() = 0;
 };
 
 class VideoFrameSink {

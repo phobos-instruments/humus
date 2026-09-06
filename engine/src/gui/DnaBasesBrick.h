@@ -9,6 +9,7 @@
 #include "hum/Chord.h"
 #include "gui/LookAndFeel.h"
 #include "gui/PolledBrick.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 

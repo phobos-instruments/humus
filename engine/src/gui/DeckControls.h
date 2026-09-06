@@ -6,6 +6,7 @@
 
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -23,7 +24,7 @@ class DeckControls : public juce::Component, private juce::Timer {
 public:
     DeckControls(EngineHost& host, std::string organism)
         : host_(host), name_(std::move(organism)),
-          setCue_("Set Cue"), cue_("Cue"), loopTgl_("Loop"), half_("/2"), dbl_("x2") {
+          setCue_(tr("deck-controls.set-cue", "Set Cue")), cue_("Cue"), loopTgl_("Loop"), half_("/2"), dbl_("x2") {
         for (int i = 0; i < 8; ++i) {
             hot_[(size_t) i].setButtonText(juce::String(i + 1));
             styleBtn(hot_[(size_t) i]);
@@ -51,7 +52,7 @@ public:
             const double sz = loopSizes_[i];
             loopBtns_[i].onClick = [this, sz] { host_.decks().setBeatLoop(name_, sz); };
         }
-        rollLabel_.setText("Roll", juce::dontSendNotification);
+        rollLabel_.setText(tr("deck-controls.roll", "Roll"), juce::dontSendNotification);
         rollLabel_.setColour(juce::Label::textColourId, Palette::textDim);
         rollLabel_.setFont(juce::FontOptions(10.0f));
         addAndMakeVisible(rollLabel_);

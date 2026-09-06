@@ -3,6 +3,7 @@
 #include <string>
 
 #include "gui/LevelMeterView.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -65,7 +66,7 @@ private:
     }
 
     static juce::String readout(float t) {
-        if (t <= 0.0f) return juce::String::fromUTF8("Start at: any sound");
+        if (t <= 0.0f) return tr("threshold-meter.start-at-any-sound", "Start at: any sound");
         return juce::String::fromUTF8("Start at: ")
              + juce::String(20.0f * std::log10(t), 1) + " dB";
     }

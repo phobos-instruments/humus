@@ -7,6 +7,7 @@
 #include "gui/EngineHost.h"
 #include "gui/FineDrag.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -42,9 +43,9 @@ public:
             addAndMakeVisible(b);
         };
         styleBtn(bendUp_); styleBtn(bendDown_); styleBtn(range_);
-        bendUp_.setTooltip("Nudge tempo up (hold)");
-        bendDown_.setTooltip("Nudge tempo down (hold)");
-        range_.setTooltip("Pitch range");
+        bendUp_.setTooltip(tr("pitch-fader.nudge-tempo-up-hold", "Nudge tempo up (hold)"));
+        bendDown_.setTooltip(tr("pitch-fader.nudge-tempo-down-hold", "Nudge tempo down (hold)"));
+        range_.setTooltip(tr("pitch-fader.pitch-range", "Pitch range"));
         bendUp_.onHold   = [this](bool d) { host_.decks().setBend(name_, d ?  kBend : 0.0); };
         bendDown_.onHold = [this](bool d) { host_.decks().setBend(name_, d ? -kBend : 0.0); };
         range_.onClick = [this] {

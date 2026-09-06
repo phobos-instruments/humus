@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void FrequencyShifter::prepare(double sampleRate, int) {
@@ -11,8 +13,8 @@ void FrequencyShifter::prepare(double sampleRate, int) {
         const int k = j - kM;
         double v = 0.0;
         if (k % 2 != 0) {
-            const double w = 0.54 - 0.46 * std::cos(2.0 * M_PI * j / (kN - 1));
-            v = 2.0 / (M_PI * k) * w;
+            const double w = 0.54 - 0.46 * std::cos(2.0 * kPi * j / (kN - 1));
+            v = 2.0 / (kPi * k) * w;
         }
         h_[(size_t) j] = v;
     }
@@ -29,7 +31,7 @@ void FrequencyShifter::process(const float* const* in, int numIn, float* const* 
                                int numSamples, const Transport&) {
     const double shift = params.get("ShiftFrequency", 0.0);
     const float mix = (float) std::clamp(params.get("WetDryMix", 1.0), 0.0, 1.0);
-    const double inc = 2.0 * M_PI * shift / sampleRate_;
+    const double inc = 2.0 * kPi * shift / sampleRate_;
 
     for (int n = 0; n < numSamples; ++n) {
         for (int c = 0; c < numOut && c < 2; ++c)
@@ -37,8 +39,8 @@ void FrequencyShifter::process(const float* const* in, int numIn, float* const* 
 
         const double cosv = std::cos(phase_), sinv = std::sin(phase_);
         phase_ += inc;
-        if (phase_ >= 2.0 * M_PI) phase_ -= 2.0 * M_PI;
-        else if (phase_ < 0.0) phase_ += 2.0 * M_PI;
+        if (phase_ >= 2.0 * kPi) phase_ -= 2.0 * kPi;
+        else if (phase_ < 0.0) phase_ += 2.0 * kPi;
 
         for (int c = 0; c < numOut && c < 2; ++c) {
             auto& r = ring_[(size_t) c];

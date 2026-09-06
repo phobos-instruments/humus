@@ -11,6 +11,7 @@ set(HUM_GUI_SOURCES
     src/gui/EmbeddedPluginView.cpp
     src/gui/GamepadHost.cpp
     src/gui/VideoLayer.cpp
+    src/gui/VideoEncoder.cpp
     src/gui/MainComponentPluginUI.cpp
     src/gui/MainComponentLayout.cpp
     src/gui/PatcherCanvas.cpp
@@ -39,6 +40,7 @@ set(HUM_GUI_SOURCES
     src/gui/TracksPaneMove.cpp
     src/gui/TracksPaneSelect.cpp
     src/gui/TracksPaneItems.cpp
+    src/gui/TracksPaneFilmstrip.cpp
     src/gui/TracksPanePaint.cpp
     src/gui/ParameterPanel.cpp
     src/gui/PropertiesPane.cpp
@@ -87,20 +89,29 @@ set(HUM_GUI_SOURCES
 # Foundation), FFmpeg's LGPL libraries on Linux via pkg-config - the system's,
 # or the trimmed build packaging/linux/ffmpeg-lite.sh makes (HUM_FFMPEG_ROOT).
 # Without any, VideoPlayer plays HAP videos only; the configure says so.
+#
+# Video encode (what Bounce writes): the same OS frameworks, which is why
+# macOS and Windows ship no encoder of their own and nothing under the GPL -
+# HUM_MOVIE_NATIVE picks VideoEncoderMac.mm / VideoEncoderWin.cpp. Linux has
+# no system encoder, so it goes through the FFmpeg above, whose x264 is the
+# reason ffmpeg-lite.sh is a GPL build.
 option(HUM_FFMPEG "Play videos in VideoPlayer through FFmpeg on Linux" ON)
 set(HUM_FFMPEG_ROOT "" CACHE PATH
   "Prefix of a private FFmpeg build to link and bundle; empty = the system's")
 set(HUM_FFMPEG_FOUND OFF)
 add_library(hum_video INTERFACE)
 if(APPLE)
-  list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerMac.mm)
+  list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerMac.mm src/gui/VideoEncoderMac.mm)
   target_link_libraries(hum_video INTERFACE
     "-framework AVFoundation" "-framework CoreMedia" "-framework CoreVideo")
+  target_compile_definitions(hum_video INTERFACE HUM_MOVIE_NATIVE=1)
+  message(STATUS "video encode: AVFoundation (H.264 through the system encoder)")
 elseif(WIN32)
-  list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerMediaFoundation.cpp)
+  list(APPEND HUM_GUI_SOURCES src/gui/VideoLayerMediaFoundation.cpp src/gui/VideoEncoderWin.cpp)
   target_link_libraries(hum_video INTERFACE mfplat mfreadwrite mfuuid ole32)
-  target_compile_definitions(hum_video INTERFACE HUM_MEDIA_FOUNDATION=1)
+  target_compile_definitions(hum_video INTERFACE HUM_MEDIA_FOUNDATION=1 HUM_MOVIE_NATIVE=1)
   message(STATUS "video decode: Media Foundation")
+  message(STATUS "video encode: Media Foundation (H.264 through the system encoder)")
 elseif(HUM_FFMPEG)
   find_package(PkgConfig QUIET)
   if(PkgConfig_FOUND)

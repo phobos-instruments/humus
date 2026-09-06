@@ -17,7 +17,7 @@ constexpr double kGainSmMs = 10.0;
 constexpr int kNumB = Phono::kNumB;
 
 std::complex<double> analogRiaa(double f) {
-    const std::complex<double> jw(0.0, 2.0 * M_PI * f);
+    const std::complex<double> jw(0.0, 2.0 * kPi * f);
     return (1.0 + jw * kT2) / ((1.0 + jw * kT1) * (1.0 + jw * kT3));
 }
 
@@ -51,7 +51,7 @@ void fitNumerator(double sr, const double* a, double tau, double* b) {
     double ata[kNumB][kNumB] = {}, aty[kNumB] = {};
     for (int k = 0; k < kPts; ++k) {
         const double f = f0 * std::pow(f1 / f0, (double) k / (double) (kPts - 1));
-        const double w = 2.0 * M_PI * f / sr;
+        const double w = 2.0 * kPi * f / sr;
         const std::complex<double> d =
             analogRiaa(f) / m1k * std::polar(1.0, -w * tau);
         const std::complex<double> den = 1.0 + a[0] * std::polar(1.0, -w)
@@ -73,7 +73,7 @@ void fitNumerator(double sr, const double* a, double tau, double* b) {
 }
 
 double responseDb(double sr, const double* b, const double* a, double f) {
-    const double w = 2.0 * M_PI * f / sr;
+    const double w = 2.0 * kPi * f / sr;
     std::complex<double> num = 0.0;
     for (int i = 0; i < kNumB; ++i) num += b[i] * std::polar(1.0, -w * (double) i);
     const std::complex<double> den = 1.0 + a[0] * std::polar(1.0, -w)
@@ -116,7 +116,7 @@ void designRiaa(double sr, double* b, double* a) {
 }
 
 void Phono::OnePoleHp::set(double sr, double f) {
-    const double k = std::tan(M_PI * f / sr);
+    const double k = std::tan(kPi * f / sr);
     b0 = 1.0 / (1.0 + k);
     b1 = -b0;
     a1 = (k - 1.0) / (k + 1.0);
@@ -125,7 +125,7 @@ void Phono::OnePoleHp::set(double sr, double f) {
 void Phono::prepare(double sampleRate, int) {
     sr_ = sampleRate;
     designRiaa(sr_, riaaB_, riaaA_);
-    const double iecHz = 1.0 / (2.0 * M_PI * kIecT);
+    const double iecHz = 1.0 / (2.0 * kPi * kIecT);
     for (int c = 0; c < 2; ++c) {
         iecHp_[c].set(sr_, iecHz);
         rumble1_[c].set(sr_, kRumbleHz);

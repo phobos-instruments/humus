@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Kick::process(const float* const*, int, float* const* out, int numOut,
@@ -11,7 +13,7 @@ void Kick::process(const float* const*, int, float* const* out, int numOut,
     float* o = out[0];
     for (int c = 1; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const double tune = params.get("Tune", 48.0);
     const double punch = params.get("Punch", 4.0);
     const double tp = std::max(1.0, params.get("PitchDecay", 40.0)) * 0.001 * sr;
@@ -33,7 +35,7 @@ void Kick::process(const float* const*, int, float* const* out, int numOut,
     }
     stagedCount_ = 0;
     if (params.get("FourFloor", 0.0) >= 0.5 && transport.playing()) {
-        const double bps = transport.tempo() / 60.0;
+        const double bps = transport.tempo() / kSecondsPerMinute;
         double next = std::ceil(transport.beats() - 1e-9);
         while (nT < 16) {
             const double off = (next - transport.beats()) / bps * sr;
@@ -60,7 +62,7 @@ void Kick::process(const float* const*, int, float* const* out, int numOut,
             const double body = std::exp(-(double) t_ / td);
             double amp = body;
             if (t_ < 48) amp *= (double) t_ / 48.0;
-            double s = std::sin(2.0 * 3.14159265358979 * phase_) * amp;
+            double s = std::sin(2.0 * kPi * phase_) * amp;
             if (t_ < clickLen)
                 s += click * frand() * std::exp(-(double) t_ / (0.001 * sr)) * 0.8;
             if (wood > 0.0f) {
@@ -70,8 +72,8 @@ void Kick::process(const float* const*, int, float* const* out, int numOut,
                 wphase2_ += tune * 12.3 / sr;
                 if (wphase2_ >= 1.0) wphase2_ -= 1.0;
                 s += wood * 0.9 * kamp
-                     * (0.7 * std::sin(2.0 * 3.14159265358979 * wphase1_)
-                        + 0.3 * std::sin(2.0 * 3.14159265358979 * wphase2_));
+                     * (0.7 * std::sin(2.0 * kPi * wphase1_)
+                        + 0.3 * std::sin(2.0 * kPi * wphase2_));
             }
             v = (float) std::tanh(s * (1.0 + 5.0 * drive));
             ++t_;

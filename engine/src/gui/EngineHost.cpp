@@ -490,7 +490,9 @@ std::vector<std::string> EngineHost::arrangeableNodes() {
     for (int i = 0; i < graph_->nodeCount(); ++i) {
         auto* c = graph_->organism(i);
         if (c == nullptr) continue;
-        if (dynamic_cast<ClipRecorder*>(c) != nullptr || nodeIsNoteTrack(c->name()))
+        if (nodeIsInternal(c->name())) continue;
+        if (dynamic_cast<ClipRecorder*>(c) != nullptr || nodeIsNoteTrack(c->name())
+            || dynamic_cast<VideoTimelineSource*>(c) != nullptr)
             out.push_back(c->name());
     }
     return out;
@@ -499,6 +501,19 @@ std::vector<std::string> EngineHost::arrangeableNodes() {
 bool EngineHost::nodeRecordsAudio(const std::string& name) {
     if (!graph_) return false;
     return dynamic_cast<ClipRecorder*>(graph_->find(name)) != nullptr;
+}
+
+bool EngineHost::nodeArrangesVideo(const std::string& name) {
+    if (!graph_) return false;
+    return dynamic_cast<VideoTimelineSource*>(graph_->find(name)) != nullptr;
+}
+
+bool EngineHost::nodeRecordsVideo(const std::string& name) {
+    if (!graph_) return false;
+    auto* live = graph_->find(name);
+    auto* vn = dynamic_cast<VideoNode*>(live);
+    return dynamic_cast<VideoTimelineSource*>(live) != nullptr && vn != nullptr
+           && vn->numVideoInputs() > 0;
 }
 
 void EngineHost::applyGroove() {
@@ -543,7 +558,8 @@ void EngineHost::rebuild() {
     auto g = std::make_unique<AudioGraph>();
     std::string err;
     if (!buildGraph(model_, *g, err, reuse)) return;
-    g->prepare(sampleRate_, block_, model_.clock.tempo);
+    if (canAdopt) g->prepare(sampleRate_, block_, model_.clock.tempo, *graph_);
+    else g->prepare(sampleRate_, block_, model_.clock.tempo);
 
     const bool audible = audioRunning_ && fadeGainPub_.load() > 0.0005f;
     if (audible) {
@@ -659,6 +675,8 @@ bool EngineHost::loadFile(const std::string& path, std::string& error) {
     if (!parsePatchFile(path, m, error, &raw)) return false;
     discardLiveGraph();
     model_ = std::move(m);
+    reconcilePropertyTypes(model_);
+    pods::resolvePodVideoCords(model_);
     original_ = std::move(raw);
     docPath_ = path;
     positions_.clear();

@@ -10,6 +10,7 @@ AppSettings& AppSettings::instance() {
 }
 
 juce::File AppSettings::file() {
+    if (const auto& t = fileForTesting(); t != juce::File()) return t;
     return appDataDir().getChildFile("settings.xml");
 }
 

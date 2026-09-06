@@ -5,6 +5,8 @@
 
 #include "core/HostedPlugin.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void EngineHost::sendMidiOut(const std::string& organism, const std::string& param, double value) {
@@ -48,7 +50,7 @@ void EngineHost::handleIncomingMidiMessage(juce::MidiInput* source, const juce::
         const int note = m.getNoteNumber();
         if (note >= 0 && note < kNoteSourceBase) {
             const int src = sourceForNote(note);
-            ccValue_[src].store(m.isNoteOn() ? 127 : 0);
+            ccValue_[src].store(m.isNoteOn() ? kMidiMax : 0);
             if (m.isNoteOn()) lastCc_.store(src);
         }
     }

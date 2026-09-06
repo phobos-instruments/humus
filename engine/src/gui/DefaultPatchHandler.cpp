@@ -6,6 +6,7 @@
 
 #if JUCE_MAC
 #include <CoreServices/CoreServices.h>
+#include "gui/Localisation.h"
 #endif
 
 namespace hum {
@@ -63,12 +64,13 @@ void offerDefaultPatchHandlerOnce() {
     }
 
     auto* aw = new juce::AlertWindow(
-        "Open .hum patches with Humus?",
-        "Humus can open .hum patches when you double-click them.\n\n"
-        "You can change this later in Finder: Get Info on a patch, then Open With.",
+        tr("default-patch-handler.open-hum-patches", "Open .hum patches with Humus?"),
+        tr("default-patch-handler.double-click",
+           "Humus can open .hum patches when you double-click them.\n\n"
+           "You can change this later in Finder: Get Info on a patch, then Open With."),
         juce::MessageBoxIconType::QuestionIcon);
-    aw->addButton("Use Humus", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw->addButton("Not Now", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    aw->addButton(tr("default-patch-handler.use-humus", "Use Humus"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    aw->addButton(tr("default-patch-handler.not-now", "Not Now"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
     aw->enterModalState(true, juce::ModalCallbackFunction::create([us](int r) {
         AppSettings::instance().set(kAskedKey, 1);
         if (r == 1) claimType(us);

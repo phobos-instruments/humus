@@ -7,6 +7,9 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "hum/Capabilities.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -37,7 +40,7 @@ public:
                    noteBox.removeFromTop(38), juce::Justification::centred);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.0f));
-        g.drawText(hz_ > 0.0f ? juce::String(hz_, 1) + " Hz" : juce::String("no pitch"),
+        g.drawText(hz_ > 0.0f ? juce::String(hz_, 1) + tr("pitch-readout.hz", " Hz") : juce::String(tr("pitch-readout.no-pitch", "no pitch")),
                    noteBox, juce::Justification::centred);
 
         r.removeFromLeft(8);
@@ -68,7 +71,7 @@ private:
         g.fillRect(juce::Rectangle<float>(cx - 0.5f, (float) r.getY() + 2.0f, 1.0f,
                                           (float) r.getHeight() - 4.0f));
         if (hz_ <= 0.0f) return;
-        const double midi = 69.0 + 12.0 * std::log2((double) hz_ / 440.0);
+        const double midi = hzToMidi((double) hz_);
         const double cents = (midi - std::round(midi)) * 100.0;
         const float x = cx + (float) (std::clamp(cents, -50.0, 50.0) / 50.0)
                                  * (r.getWidth() * 0.5f - 6.0f);

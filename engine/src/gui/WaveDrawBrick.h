@@ -11,6 +11,7 @@
 #include "hum/dsp/SoundFileBuffer.h"
 #include "hum/dsp/WaveTable.h"
 #include "hum/dsp/WaveWarp.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -110,7 +111,7 @@ public:
             g.fillRoundedRectangle(r, 4.0f);
             g.setColour(Palette::text);
             g.setFont(juce::FontOptions(11.0f));
-            g.drawText(t == 0 ? "Random" : "Seed file...", r, juce::Justification::centred);
+            g.drawText(t == 0 ? tr("wave-draw.random", "Random") : tr("wave-draw.seed-file", "Seed file..."), r, juce::Justification::centred);
         }
         for (int t = 2; t < 4; ++t) {
             const auto r = tileRect(kWaveTablePresets + t).toFloat();
@@ -118,7 +119,7 @@ public:
             g.fillRoundedRectangle(r, 4.0f);
             g.setColour(frameCount_ >= (t == 2 ? kMaxFrames : 2) ? Palette::textDim : Palette::text);
             g.setFont(juce::FontOptions(15.0f));
-            g.drawText(t == 2 ? "+ frame" : "- frame", r, juce::Justification::centred);
+            g.drawText(t == 2 ? tr("wave-draw.frame", "+ frame") : tr("wave-draw.frame-2", "- frame"), r, juce::Justification::centred);
         }
     }
 
@@ -272,7 +273,7 @@ private:
         if (frameCount_ <= 1) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(10.0f));
-            g.drawText("one frame", s, juce::Justification::centred);
+            g.drawText(tr("wave-draw.one-frame", "one frame"), s, juce::Justification::centred);
             return;
         }
         const int cur = curFrame();

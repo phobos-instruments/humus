@@ -11,6 +11,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/PresetActions.h"
 #include "gui/PresetLibrary.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -151,17 +152,17 @@ public:
         addAndMakeVisible(next_);
         addAndMakeVisible(field_);
 
-        recall_.setTooltip(juce::String::fromUTF8(
-            "Recall - put the stored settings back, losing your changes"));
+        recall_.setTooltip(tr("preset.recall-tip",
+                              "Recall - put the stored settings back, losing your changes"));
         store_.setTooltip(juce::String::fromUTF8(
             "Store - keep the current settings in this preset "
             "(hold Alt to store a new one)"));
         evolve_.setTooltip(juce::String::fromUTF8(
             "Evolve - nudge the settings; press again to wander further "
             "(one undo step)"));
-        more_.setTooltip("More preset actions");
-        prev_.setTooltip("Previous preset");
-        next_.setTooltip("Next preset");
+        more_.setTooltip(tr("preset.more-preset-actions", "More preset actions"));
+        prev_.setTooltip(tr("preset.previous-preset", "Previous preset"));
+        next_.setTooltip(tr("preset.next-preset", "Next preset"));
         store_.setActiveColour(Palette::warnAmber());
 
         recall_.onClick = [this] {
@@ -214,13 +215,13 @@ public:
                          !has  ? Palette::textDim
                          : drift ? Palette::text
                                  : Palette::accent);
-        field_.setText(has ? (nm.isEmpty() ? juce::String("(Untitled)") : nm)
+        field_.setText(has ? (nm.isEmpty() ? juce::String(tr("preset.untitled", "(Untitled)")) : nm)
                            : juce::String("(no preset)"),
                        juce::dontSendNotification);
         field_.setTooltip(has
             ? juce::String::fromUTF8("Current preset - click to browse, "
                                      "double-click to rename")
-            : juce::String("No preset stored - click to store one"));
+            : juce::String(tr("preset.no-preset-stored-click-to", "No preset stored - click to store one")));
 
         recall_.setEnabled(has);
         store_.setOn(drift);
@@ -335,7 +336,7 @@ private:
         const auto cur = current();
         auto item = [&](juce::PopupMenu& into, size_t i) {
             const auto& e = all[i];
-            into.addItem((int) i + 1, e.name.empty() ? juce::String("(Untitled)") : juce::String(e.name),
+            into.addItem((int) i + 1, e.name.empty() ? juce::String(tr("preset.untitled", "(Untitled)")) : juce::String(e.name),
                          true, e.ref == cur);
         };
         auto sourceMenu = [&](juce::PopupMenu& into, presets::Source src) {
@@ -359,8 +360,8 @@ private:
         juce::PopupMenu m;
         sourceMenu(m, presets::Source::Shipped);
         juce::PopupMenu lib, mine;
-        if (sourceMenu(lib, presets::Source::Library)) m.addSubMenu("User Presets", lib);
-        if (sourceMenu(mine, presets::Source::Patch)) m.addSubMenu("This patch", mine);
+        if (sourceMenu(lib, presets::Source::Library)) m.addSubMenu(tr("preset.user-presets", "User Presets"), lib);
+        if (sourceMenu(mine, presets::Source::Patch)) m.addSubMenu(tr("preset.this-patch", "This patch"), mine);
         m.addSeparator();
         if (cur.valid() && cur.source != presets::Source::Patch)
             m.addItem(kPin, juce::String::fromUTF8("Copy \xe2\x80\x9c") + juce::String(cur.name)
@@ -453,9 +454,9 @@ private:
                     juce::JSON::parse(f.loadFileAsString()), def);
                 if (cls.empty() || parseClassString(cls).display != c->displayClass) {
                     juce::AlertWindow::showMessageBoxAsync(
-                        juce::MessageBoxIconType::WarningIcon, "Import preset",
+                        juce::MessageBoxIconType::WarningIcon, tr("preset.import-preset", "Import preset"),
                         cls.empty()
-                            ? juce::String("This is not a Humus preset file.")
+                            ? juce::String(tr("preset.this-is-not-a-humus", "This is not a Humus preset file."))
                             : "This preset belongs to "
                                   + juce::String(parseClassString(cls).display) + ", not "
                                   + juce::String(c->displayClass) + ".");
@@ -468,7 +469,7 @@ private:
     void promptSaveToLibrary() {
         const auto* c = host_.model().byName(node_);
         if (c == nullptr) return;
-        juce::String initial = "My Preset";
+        juce::String initial = tr("preset.my-preset", "My Preset");
         for (const auto& pm : c->presets)
             if (pm.number == c->currentPreset && !pm.name.empty())
                 initial = juce::String(pm.name);
@@ -479,8 +480,8 @@ private:
                 + ". Saving to an existing name replaces it.",
             juce::MessageBoxIconType::NoIcon);
         aw->addTextEditor("name", initial);
-        aw->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-        aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+        aw->addButton(tr("preset.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+        aw->addButton(tr("preset.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
         aw->enterModalState(true, juce::ModalCallbackFunction::create(
             [aw, sp = juce::Component::SafePointer<PresetRail>(this)](int r) {
                 const juce::String name = aw->getTextEditorContents("name").trim();
@@ -496,21 +497,21 @@ private:
         const bool has = cur.valid();
         const bool mine = has && cur.source == presets::Source::Patch;
         juce::PopupMenu m;
-        if (!evolve_.isVisible()) { m.addItem(kEvolve, "Evolve"); m.addSeparator(); }
+        if (!evolve_.isVisible()) { m.addItem(kEvolve, tr("preset.evolve", "Evolve")); m.addSeparator(); }
         m.addItem(kGenerate, juce::String::fromUTF8("Generate with AI\xe2\x80\xa6"));
         m.addSeparator();
-        m.addItem(kRecall, "Recall", has);
-        m.addItem(kStore, "Store", has);
-        m.addItem(kStoreNew, "Store as new");
+        m.addItem(kRecall, tr("preset.recall", "Recall"), has);
+        m.addItem(kStore, tr("preset.store", "Store"), has);
+        m.addItem(kStoreNew, tr("preset.store-as-new", "Store as new"));
         m.addItem(kSaveLib, juce::String::fromUTF8("Save as User Preset\xe2\x80\xa6"));
         m.addItem(kRename, juce::String::fromUTF8("Rename\xe2\x80\xa6"), has);
         m.addItem(kClear, juce::String::fromUTF8("Delete\xe2\x80\xa6"),
                   has && cur.source != presets::Source::Shipped);
-        m.addItem(kPin, "Pin to this patch", has && !mine);
+        m.addItem(kPin, tr("preset.pin-to-this-patch", "Pin to this patch"), has && !mine);
         m.addSeparator();
-        m.addItem(kCut, "Cut", mine);
-        m.addItem(kCopy, "Copy", has);
-        m.addItem(kPaste, "Paste", host_.presets().canPaste(node_));
+        m.addItem(kCut, tr("preset.cut", "Cut"), mine);
+        m.addItem(kCopy, tr("preset.copy", "Copy"), has);
+        m.addItem(kPaste, tr("preset.paste", "Paste"), host_.presets().canPaste(node_));
         m.addSeparator();
         m.addItem(kExport, juce::String::fromUTF8("Export\xe2\x80\xa6"));
         m.addItem(kImport, juce::String::fromUTF8("Import\xe2\x80\xa6"));

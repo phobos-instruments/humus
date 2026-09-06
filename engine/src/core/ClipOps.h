@@ -8,12 +8,20 @@
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum::clipops {
 
+inline bool isVideoClip(const PatternChannel& ch) { return ch.type == "video-clip"; }
+inline bool isCompoundClip(const PatternChannel& ch) { return ch.type == "compound-clip"; }
 inline bool isClipType(const PatternChannel& ch) {
-    return ch.type == "note-events" || ch.type == "audio-clip";
+    return ch.type == "note-events" || ch.type == "audio-clip" || isVideoClip(ch)
+        || isCompoundClip(ch);
 }
 inline bool isAudioClip(const PatternChannel& ch) { return ch.type == "audio-clip"; }
+inline bool isMediaClip(const PatternChannel& ch) {
+    return isAudioClip(ch) || isVideoClip(ch) || isCompoundClip(ch);
+}
 
 inline bool isSeedChannel(const PatternChannel& ch) {
     return ch.type == "note-events" && ch.startTick < 0 && ch.matrix.empty();
@@ -128,14 +136,14 @@ inline int addClip(Pattern& p, int startTick, int lengthTicks) {
     return clipCount(p) - 1;
 }
 
-inline int addAudioClip(Pattern& p, int startTick, int lengthTicks,
+inline int addMediaClip(Pattern& p, const char* type, int startTick, int lengthTicks,
                         const std::string& file, std::int64_t offsetFileSamples = 0,
                         double gain = 1.0) {
     p.present = true;
     if (p.duration <= 0) p.duration = 4 * 4 * Pattern::kTicksPerBeat;
     PatternChannel ch;
     ch.id = nextClipId(p);
-    ch.type = "audio-clip";
+    ch.type = type;
     ch.startTick = std::max(0, startTick);
     ch.lengthTicks = std::max(1, lengthTicks);
     ch.audioFile = file;
@@ -143,6 +151,22 @@ inline int addAudioClip(Pattern& p, int startTick, int lengthTicks,
     ch.audioGain = gain;
     p.channels.push_back(std::move(ch));
     return clipCount(p) - 1;
+}
+
+inline int addAudioClip(Pattern& p, int startTick, int lengthTicks,
+                        const std::string& file, std::int64_t offsetFileSamples = 0,
+                        double gain = 1.0) {
+    return addMediaClip(p, "audio-clip", startTick, lengthTicks, file, offsetFileSamples, gain);
+}
+
+inline int addVideoClip(Pattern& p, int startTick, int lengthTicks,
+                        const std::string& file, std::int64_t offsetFileSamples = 0) {
+    return addMediaClip(p, "video-clip", startTick, lengthTicks, file, offsetFileSamples, 1.0);
+}
+
+inline int addCompoundClip(Pattern& p, int startTick, int lengthTicks,
+                           const std::string& reelNode, std::int64_t offsetSamples = 0) {
+    return addMediaClip(p, "compound-clip", startTick, lengthTicks, reelNode, offsetSamples, 1.0);
 }
 
 inline bool removeClip(Pattern& p, int clip) {
@@ -162,16 +186,20 @@ inline bool moveClip(Pattern& p, int clip, int newStartTick) {
 }
 
 inline bool resizeClip(Pattern& p, int clip, int newLengthTicks, bool fromLeft,
-                       double samplesPerTick = 0.0) {
+                       double samplesPerTick = 0.0, int tailTicks = 0) {
     auto* ch = clipChannel(p, clip);
     if (!ch) return false;
     const int oldLen = clipLength(p, clip);
-    const int len = std::max(1, newLengthTicks);
+    int len = std::max(1, newLengthTicks);
+    if (isMediaClip(*ch) && samplesPerTick > 0.0 && fromLeft != ch->audioReverse)
+        len = std::min(len, oldLen + (int) ((double) ch->audioOffset / samplesPerTick));
+    if (isMediaClip(*ch) && tailTicks > 0 && !ch->loopClip && fromLeft == ch->audioReverse)
+        len = std::min(len, std::max(oldLen, tailTicks));
     if (len == oldLen && ch->lengthTicks == len) return false;
     if (fromLeft) {
         const int shift = oldLen - len;
         ch->startTick = std::max(0, clipStart(p, clip) + shift);
-        if (isAudioClip(*ch)) {
+        if (isMediaClip(*ch)) {
             if (!ch->audioReverse)
                 ch->audioOffset = std::max<std::int64_t>(
                     0, ch->audioOffset + (std::int64_t) ((double) shift * samplesPerTick));
@@ -191,7 +219,7 @@ inline bool resizeClip(Pattern& p, int clip, int newLengthTicks, bool fromLeft,
             ch->matrix = encodeNoteEvents(kept) + encodeCCEvents(keptCC);
         }
     }
-    if (!fromLeft && isAudioClip(*ch) && ch->audioReverse)
+    if (!fromLeft && isMediaClip(*ch) && ch->audioReverse)
         ch->audioOffset = std::max<std::int64_t>(
             0, ch->audioOffset + (std::int64_t) ((double) (oldLen - len) * samplesPerTick));
     ch->lengthTicks = len;
@@ -238,7 +266,7 @@ inline int splitClip(Pattern& p, int clip, int atAbsTick, double samplesPerTick 
     rch.fadeOutCurve = ch->fadeOutCurve;
     rch.fadeInCurve = ch->fadeInCurve;
     ch->fadeOutTicks = 0;
-    if (isAudioClip(*ch)) {
+    if (isMediaClip(*ch)) {
         rch.audioFile = ch->audioFile;
         rch.audioGain = ch->audioGain;
         rch.sourceBpm = ch->sourceBpm;
@@ -285,8 +313,9 @@ inline int joinClips(Pattern& p, int a, int b, double samplesPerTick = 0.0) {
     auto* cb = clipChannel(p, b);
     if (!ca || !cb || ca->type != cb->type) return -1;
     if (cb->startTick < ca->startTick) std::swap(ca, cb), std::swap(a, b);
-    if (isAudioClip(*ca) && (ca->loopClip || cb->loopClip)) return -1;
-    if (isAudioClip(*ca) && ca->startTick + ca->lengthTicks != cb->startTick) return -1;
+    if (isCompoundClip(*ca) || isCompoundClip(*cb)) return -1;
+    if (isMediaClip(*ca) && (ca->loopClip || cb->loopClip)) return -1;
+    if (isMediaClip(*ca) && ca->startTick + ca->lengthTicks != cb->startTick) return -1;
     auto unroll = [](PatternChannel& ch, int reach) {
         if (!ch.loopClip || ch.lengthTicks <= 0) return;
         const auto cycle = decodeNoteEvents(ch.matrix);
@@ -308,7 +337,7 @@ inline int joinClips(Pattern& p, int a, int b, double samplesPerTick = 0.0) {
     };
     if (ca->loopClip) unroll(*ca, std::max(1, cb->startTick - ca->startTick));
     if (cb->loopClip) unroll(*cb, cb->lengthTicks);
-    if (isAudioClip(*ca)) {
+    if (isMediaClip(*ca)) {
         if (ca->audioFile != cb->audioFile || ca->audioReverse != cb->audioReverse
             || std::abs(ca->audioPitch - cb->audioPitch) > 1e-9)
             return -1;
@@ -373,17 +402,17 @@ inline int raiseClip(Pattern& p, int clip) {
 
 inline bool transposeClip(Pattern& p, int clip, int steps) {
     auto* ch = clipChannel(p, clip);
-    if (ch == nullptr || isAudioClip(*ch) || steps == 0) return false;
+    if (ch == nullptr || isMediaClip(*ch) || steps == 0) return false;
     auto notes = decodeNoteEvents(ch->matrix);
     if (notes.empty()) return false;
-    for (auto& n : notes) n.pitch = std::max(0, std::min(127, n.pitch + steps));
+    for (auto& n : notes) n.pitch = std::max(0, std::min(kMidiMax, n.pitch + steps));
     ch->matrix = replaceNoteEvents(ch->matrix, notes);
     return true;
 }
 
 inline bool quantiseClip(Pattern& p, int clip, int gridTicks) {
     auto* ch = clipChannel(p, clip);
-    if (ch == nullptr || isAudioClip(*ch) || gridTicks <= 0) return false;
+    if (ch == nullptr || isMediaClip(*ch) || gridTicks <= 0) return false;
     auto notes = decodeNoteEvents(ch->matrix);
     if (notes.empty()) return false;
     for (auto& n : notes)
@@ -394,10 +423,10 @@ inline bool quantiseClip(Pattern& p, int clip, int gridTicks) {
 
 inline bool nudgeVelocity(Pattern& p, int clip, int delta) {
     auto* ch = clipChannel(p, clip);
-    if (ch == nullptr || isAudioClip(*ch) || delta == 0) return false;
+    if (ch == nullptr || isMediaClip(*ch) || delta == 0) return false;
     auto notes = decodeNoteEvents(ch->matrix);
     if (notes.empty()) return false;
-    for (auto& n : notes) n.velocity = std::max(1, std::min(127, n.velocity + delta));
+    for (auto& n : notes) n.velocity = std::max(1, std::min(kMidiMax, n.velocity + delta));
     ch->matrix = replaceNoteEvents(ch->matrix, notes);
     return true;
 }

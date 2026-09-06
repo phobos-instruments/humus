@@ -12,7 +12,7 @@ inline bool isCloseWindowKey(const juce::KeyPress& k) {
         && k.getKeyCode() == 'W';
 }
 
-class FreeWindow : public juce::DocumentWindow {
+class FreeWindow : public juce::DocumentWindow, public juce::DragAndDropContainer {
 public:
     FreeWindow(const juce::String& title, juce::Component* contentOwned)
         : juce::DocumentWindow(title, Palette::background, juce::DocumentWindow::closeButton) {

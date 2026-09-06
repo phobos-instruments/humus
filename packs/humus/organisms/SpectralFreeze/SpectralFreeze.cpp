@@ -3,11 +3,12 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
 constexpr int kOrder = 10;
-constexpr float kTwoPi = 6.28318530718f;
 }
 
 void SpectralFreeze::prepare(double sampleRate, int maxBlock) {
@@ -96,7 +97,7 @@ void SpectralFreeze::onFrame(Chan& c, float* reim, int fftSize) {
         c.inMag[(size_t) k] = mag;
         if (!frozen_) {
             float d = ph - c.prevPhase[(size_t) k];
-            d -= kTwoPi * std::round(d / kTwoPi);
+            d -= kTwoPiF * std::round(d / kTwoPiF);
             c.advance[(size_t) k] = d;
             c.heldMag[(size_t) k] += (1.0f - smearCoeff_) * (mag - c.heldMag[(size_t) k]);
         }
@@ -105,7 +106,7 @@ void SpectralFreeze::onFrame(Chan& c, float* reim, int fftSize) {
         float adv = c.advance[(size_t) k];
         if (diffusion_ > 0.0f) adv += diffusion_ * 0.15f * (nextRand() - 0.5f);
         float p = c.outPhase[(size_t) k] + adv;
-        if (p > kTwoPi) p -= kTwoPi; else if (p < -kTwoPi) p += kTwoPi;
+        if (p > kTwoPiF) p -= kTwoPiF; else if (p < -kTwoPiF) p += kTwoPiF;
         c.outPhase[(size_t) k] = p;
     }
 

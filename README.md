@@ -108,9 +108,7 @@ It is free software under the [GNU AGPLv3](LICENSE) - fork it, learn from it, gr
 own; anything built on it stays open under the same terms. That includes the official
 builds: there is no commercial edition, no dual license and no proprietary component. The
 **Humus** name and logo are trademarks and stay with the project
-([TRADEMARKS.md](TRADEMARKS.md)). Official signed builds, activation codes and updates are
-how the project sustains itself - the AGPL expressly allows charging for copies, and the
-code is not what you pay for. Contributions are AGPL, with a DCO sign-off on
+([TRADEMARKS.md](TRADEMARKS.md)). Contributions are AGPL, with a DCO sign-off on
 each commit.
 
 Fetched by the build, pinned to a commit: [Ableton Link](https://github.com/Ableton/link)

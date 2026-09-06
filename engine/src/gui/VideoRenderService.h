@@ -9,6 +9,7 @@
 #include "gui/EngineHost.h"
 #include "gui/UiTicker.h"
 #include "gui/VideoPreviewStore.h"
+#include "gui/VideoTakeSink.h"
 #include "gui/VisualGlCanvas.h"
 #include "gui/VisualPlanBuilder.h"
 
@@ -39,18 +40,23 @@ public:
         if (e.count <= 0) extra_.erase(node);
     }
 
+    static bool previewable(EngineHost& host, const std::string& node) {
+        auto* c = host.liveOrganism(node);
+        if (c == nullptr || c->params.get("Preview", 1.0) < 0.5) return false;
+        return isVideoOutputNode(host, node) || dynamic_cast<VideoNode*>(c) != nullptr;
+    }
+
     void tick() {
         std::vector<VisualPlanBuilder::Want> wants;
         for (const auto& n : VideoPreviewStore::instance().wantedNodes()) {
             if (suppressed_ && suppressed_(n)) continue;
-            if (!isVideoOutputNode(host_, n)) continue;
-            if (auto* c = host_.liveOrganism(n);
-                c == nullptr || c->params.get("Preview", 1.0) < 0.5)
-                continue;
-            wants.push_back({n, true, kBrickW, kBrickH, true});
+            if (!previewable(host_, n)) continue;
+            wants.push_back({n, isVideoOutputNode(host_, n), kBrickW, kBrickH, true});
         }
         for (const auto& [node, e] : extra_)
             wants.push_back({node, true, e.w, e.h, false});
+        for (const auto& e : VideoTakeStore::instance().entries())
+            wants.push_back({e.node, true, e.w, e.h, false, e.sink});
         lastTapCount_ = (int) wants.size();
         if (wants.empty()) {
             stage_.reset();
@@ -64,10 +70,12 @@ public:
         if (stage_ == nullptr || stage_->canvas.getWidth() != w
             || stage_->canvas.getHeight() != h)
             stage_ = std::make_unique<Stage>(w, h);
-        stage_->canvas.setPlan(builder_.buildAll(wants));
+        last_ = builder_.buildAll(wants);
+        stage_->canvas.setPlan(last_);
         stage_->canvas.pump();
     }
 
+    const visual::Plan& lastPlanForTest() const { return last_; }
     int lastTapCount() const { return lastTapCount_; }
     bool stageLit() const { return stage_ != nullptr; }
 
@@ -103,6 +111,7 @@ private:
     EngineHost& host_;
     VisualPlanBuilder builder_;
     std::unique_ptr<Stage> stage_;
+    visual::Plan last_;
     std::map<std::string, Extra> extra_;
     std::function<bool(const std::string&)> suppressed_;
     int tickerId_ = 0, lastTapCount_ = 0;

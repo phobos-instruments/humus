@@ -8,6 +8,7 @@
 #include "gui/EngineHost.h"
 #include "gui/IconGlyph.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -52,10 +53,10 @@ public:
         play_.onClick   = [this] { setActive(!isActive()); };
         stop_.onClick   = [this] { setActive(false); host_.files().seek(name_, 0); };
         loop_.onClick   = [this] { host_.setParam(name_, "Loop", isLoop() ? 0.0 : 1.0); refreshStates(); };
-        rewind_.setTooltip("Rewind to start");
-        play_.setTooltip("Play / Pause");
-        stop_.setTooltip("Stop (rewind to start)");
-        loop_.setTooltip("Loop");
+        rewind_.setTooltip(tr("file-transport.rewind-to-start", "Rewind to start"));
+        play_.setTooltip(tr("file-transport.play-pause", "Play / Pause"));
+        stop_.setTooltip(tr("file-transport.stop-rewind-to-start", "Stop (rewind to start)"));
+        loop_.setTooltip(tr("file-transport.loop", "Loop"));
         for (auto* b : { &rewind_, &play_, &stop_, &loop_ }) addAndMakeVisible(*b);
 
         slider_.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -77,9 +78,21 @@ public:
 
     void resized() override {
         auto r = getLocalBounds();
+        const int bw = 26;
+        if (r.getHeight() >= 44) {
+            auto row = r.removeFromTop(24);
+            rewind_.setBounds(row.removeFromLeft(bw));
+            play_.setBounds(row.removeFromLeft(bw));
+            stop_.setBounds(row.removeFromLeft(bw));
+            row.removeFromLeft(8);
+            loop_.setBounds(row.removeFromLeft(bw));
+            timeLabel_.setBounds(row);
+            r.removeFromTop(4);
+            slider_.setBounds(r.removeFromTop(24));
+            return;
+        }
         const int bh = juce::jmin(r.getHeight(), 24);
         auto row = r.withSizeKeepingCentre(r.getWidth(), bh);
-        const int bw = 26;
         rewind_.setBounds(row.removeFromLeft(bw));
         play_.setBounds(row.removeFromLeft(bw));
         stop_.setBounds(row.removeFromLeft(bw));

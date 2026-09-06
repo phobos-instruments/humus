@@ -1,0 +1,18 @@
+{
+  "width": 293,
+  "height": 196,
+  "controls": [
+    { "type": "momentary", "param": "Press", "label": "Press", "x": 12, "y": 12, "w": 269, "h": 48, "hold": "true" },
+    { "type": "minitoggle", "param": "Latch", "label": "Latch", "x": 12, "y": 70, "w": 90, "h": 22 },
+    { "type": "label", "label": "Off", "x": 14, "y": 102, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Off", "label": "", "x": 12, "y": 118, "w": 85, "h": 24 },
+    { "type": "label", "label": "On", "x": 105, "y": 102, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "On", "label": "", "x": 103, "y": 118, "w": 85, "h": 24 },
+    { "type": "label", "label": "Slew", "x": 198, "y": 102, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Slew", "label": "", "x": 196, "y": 118, "w": 85, "h": 24 },
+    { "type": "label", "label": "Note", "x": 14, "y": 150, "w": 80, "h": 13 },
+    { "type": "note-field", "param": "Note", "label": "", "x": 12, "y": 166, "w": 85, "h": 24 },
+    { "type": "label", "label": "Velocity", "x": 105, "y": 150, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Velocity", "label": "", "x": 103, "y": 166, "w": 85, "h": 24 }
+  ]
+}

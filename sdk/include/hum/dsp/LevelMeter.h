@@ -4,6 +4,8 @@
 #include <atomic>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class LevelMeter {
@@ -11,7 +13,7 @@ public:
     static constexpr int kMax = 32;
 
     void prepare(double sampleRate) {
-        sampleRate_ = sampleRate > 0.0 ? sampleRate : 44100.0;
+        sampleRate_ = sampleRate > 0.0 ? sampleRate : kDefaultSampleRate;
         reset();
     }
     void reset() {
@@ -38,7 +40,7 @@ public:
 
 private:
     std::array<std::atomic<float>, kMax> levels_{};
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
 };
 
 }

@@ -8,6 +8,7 @@
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
 #include "gui/PolledBrick.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -16,7 +17,7 @@ public:
     static constexpr int kSteps = 16;
 
     DnaStrandBrick(EngineHost& host, std::string cn) : PolledBrick(host, std::move(cn)) {
-        setTooltip("Click a step to silence it; drag to sweep. Right-click for the whole strip");
+        setTooltip(tr("dna-strand.click-a-step-to-silence", "Click a step to silence it; drag to sweep. Right-click for the whole strip"));
     }
 
     void reloadValues() override { repaint(); }
@@ -98,9 +99,9 @@ private:
 
     void stripMenu() {
         juce::PopupMenu m;
-        m.addItem(1, "Play every step", mask() != 0);
-        m.addItem(2, "Invert");
-        m.addItem(3, "Silence the off-beats");
+        m.addItem(1, tr("dna-strand.play-every-step", "Play every step"), mask() != 0);
+        m.addItem(2, tr("dna-strand.invert", "Invert"));
+        m.addItem(3, tr("dna-strand.silence-the-off-beats", "Silence the off-beats"));
         m.showMenuAsync(juce::PopupMenu::Options(),
                         [safe = juce::Component::SafePointer<DnaStrandBrick>(this)](int r) {
                             if (safe == nullptr || r == 0) return;

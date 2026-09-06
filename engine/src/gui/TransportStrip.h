@@ -10,6 +10,7 @@
 #include "gui/ToolbarLadder.h"
 #include "gui/TransportWidgets.h"
 #include "gui/UiTicker.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -54,7 +55,7 @@ public:
         g.drawHorizontalLine(getHeight() - 1, 0.0f, (float) getWidth());
     }
 
-    static constexpr int kTempoTextW = 84;
+    static constexpr int kTempoTextW = TempoSlider::kNumberW;
 
     void resized() override {
         auto r = getLocalBounds().reduced(4, 3);
@@ -92,11 +93,11 @@ private:
     }
 
     EngineHost& host_;
-    IconButton fromStart_{IconButton::Glyph::PlayFromStart, "Play From Start"};
-    IconButton play_{IconButton::Glyph::Play, "Play (Space)"};
+    IconButton fromStart_{IconButton::Glyph::PlayFromStart, tr("transport-strip.play-from-start", "Play From Start")};
+    IconButton play_{IconButton::Glyph::Play, tr("transport-strip.play-space", "Play (Space)")};
     IconButton stop_{IconButton::Glyph::Stop, "Stop"};
-    IconButton record_{IconButton::Glyph::Record, "Record the performance"};
-    IconButton loop_{IconButton::Glyph::Loop, "Enable Automation Loop"};
+    IconButton record_{IconButton::Glyph::Record, tr("transport-strip.record-the-performance", "Record the performance")};
+    IconButton loop_{IconButton::Glyph::Loop, tr("transport-strip.enable-automation-loop", "Enable Automation Loop")};
     TempoSlider tempo_;
     TimeSigChip tsig_;
     ClockReadout clock_;

@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -10,7 +12,6 @@ constexpr double kPan[Harmonizer::kVoices] = {-1.0, 1.0, -0.5, 0.5};
 constexpr double kHumRate[Harmonizer::kVoices] = {0.31, 0.47, 0.23, 0.59};
 const char* const kVoiceName[Harmonizer::kVoices] = {"Voice1", "Voice2", "Voice3", "Voice4"};
 const char* const kLevelName[Harmonizer::kVoices] = {"Level1", "Level2", "Level3", "Level4"};
-constexpr double kTwoPi = 6.283185307179586;
 }
 
 void Harmonizer::prepare(double sampleRate, int) {
@@ -121,7 +122,7 @@ void Harmonizer::process(const float* const* in, int numIn, float* const* out, i
     const double lvl = tracker_.level();
     const bool rawVoiced = hz > 0.0 && clarity > 0.5 && lvl > 1.0e-3;
     if (rawVoiced) {
-        refNote_ = stableNote(69.0 + 12.0 * std::log2(hz / 440.0), refNote_);
+        refNote_ = stableNote(hzToMidi(hz), refNote_);
         voicedHold_ = (int) (0.18 * sampleRate_);
         const int period = (int) (sampleRate_ / hz);
         if (std::abs(2 * period - window_) > window_ / 8) {
@@ -180,7 +181,7 @@ void Harmonizer::process(const float* const* in, int numIn, float* const* out, i
             dstL[i] = x * dry + wetL * wet;
             dstR[i] = x * dry + wetR * wet;
         } else {
-            dstL[i] = x * dry + (wetL + wetR) * wet * 0.7071f;
+            dstL[i] = x * dry + (wetL + wetR) * wet * kSqrtHalfF;
         }
     }
 }

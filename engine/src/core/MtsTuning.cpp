@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void mtsNoteTriple(double hz, unsigned char out[3]) {
@@ -9,13 +11,13 @@ void mtsNoteTriple(double hz, unsigned char out[3]) {
         out[0] = out[1] = out[2] = 0x7F;
         return;
     }
-    double m = 69.0 + 12.0 * std::log2(hz / 440.0);
+    double m = hzToMidi(hz);
     if (m < 0.0) m = 0.0;
-    if (m > 127.0 + 16382.0 / 16384.0) m = 127.0 + 16382.0 / 16384.0;
+    if (m > kMidiMaxD + 16382.0 / 16384.0) m = kMidiMaxD + 16382.0 / 16384.0;
     int semi = (int) std::floor(m);
     int frac = (int) std::lround((m - (double) semi) * 16384.0);
     if (frac >= 16384) { ++semi, frac = 0; }
-    if (semi > 127) { semi = 127; frac = 16382; }
+    if (semi > kMidiMax) { semi = kMidiMax; frac = 16382; }
     if (semi == 0x7F && frac == 16383) frac = 16382;
     out[0] = (unsigned char) semi;
     out[1] = (unsigned char) ((frac >> 7) & 0x7F);

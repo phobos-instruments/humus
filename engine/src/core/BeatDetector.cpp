@@ -6,6 +6,8 @@
 
 #include <juce_dsp/juce_dsp.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -23,7 +25,7 @@ std::vector<float> onsetEnvelope(const juce::AudioBuffer<float>& buf, double sr,
     juce::dsp::FFT fft(order);
     std::vector<float> win((size_t) N), fd((size_t) N * 2), prev((size_t) (N / 2), 0.0f);
     for (int i = 0; i < N; ++i)
-        win[(size_t) i] = 0.5f * (1.0f - std::cos(2.0f * 3.14159265f * i / (N - 1)));
+        win[(size_t) i] = 0.5f * (1.0f - std::cos(2.0f * kPiF * i / (N - 1)));
 
     for (int f = 0; f < nFrames; ++f) {
         const int64_t s0 = (int64_t) f * hop;

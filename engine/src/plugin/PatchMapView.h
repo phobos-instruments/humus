@@ -7,6 +7,7 @@
 
 #include "io/PatchDocument.h"
 #include "plugin/FxLook.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -56,7 +57,7 @@ public:
             if (b.isIn || b.isOut) {
                 g.setColour(fxlook::accent());
                 g.setFont(juce::FontOptions(8.0f).withStyle("Bold"));
-                g.drawText(b.isIn ? "DAW IN" : "DAW OUT",
+                g.drawText(b.isIn ? tr("patch-map.daw-in", "DAW IN") : tr("patch-map.daw-out", "DAW OUT"),
                            b.r.toNearestInt().removeFromTop(9).reduced(3, 0),
                            b.isIn ? juce::Justification::topLeft
                                   : juce::Justification::topRight, false);

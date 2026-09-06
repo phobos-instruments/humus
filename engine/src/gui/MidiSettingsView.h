@@ -11,25 +11,26 @@
 #include "gui/AppSettings.h"
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
 class MidiSettingsView : public juce::Component, private juce::Timer {
 public:
     explicit MidiSettingsView(EngineHost* host) : host_(host) {
-        title_.setText("MIDI & OSC", juce::dontSendNotification);
+        title_.setText(tr("midi-settings.midi-and-osc", "MIDI & OSC"), juce::dontSendNotification);
         title_.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
         addAndMakeVisible(title_);
 
-        inputsLabel_.setText("MIDI Inputs", juce::dontSendNotification);
+        inputsLabel_.setText(tr("midi-settings.midi-inputs", "MIDI Inputs"), juce::dontSendNotification);
         inputsLabel_.setFont(juce::FontOptions(13.0f).withStyle("Bold"));
         addAndMakeVisible(inputsLabel_);
-        outputLabel_.setText("MIDI Outputs", juce::dontSendNotification);
+        outputLabel_.setText(tr("midi-settings.midi-outputs", "MIDI Outputs"), juce::dontSendNotification);
         outputLabel_.setFont(juce::FontOptions(13.0f).withStyle("Bold"));
         addAndMakeVisible(outputLabel_);
         for (int p = 0; p < EngineHost::kMidiPorts; ++p) {
             auto initRow = [this, p](PortRow& row, bool isInput) {
-                row.label.setText((isInput ? "MidiIn" : "MidiOut") + juce::String(p + 1),
+                row.label.setText((isInput ? tr("midi-settings.midiin", "MidiIn") : tr("midi-settings.midiout", "MidiOut")) + juce::String(p + 1),
                                   juce::dontSendNotification);
                 row.label.setFont(juce::FontOptions(12.0f));
                 row.label.setColour(juce::Label::textColourId, Palette::textDim);
@@ -58,7 +59,7 @@ public:
             initRow(outRows_[(size_t) p], false);
         }
 
-        btMidi_.setButtonText("Bluetooth MIDI devices...");
+        btMidi_.setButtonText(tr("midi-settings.bluetooth-midi-devices", "Bluetooth MIDI devices..."));
         btMidi_.onClick = [] { juce::BluetoothMidiDevicePairingDialogue::open(); };
         if (juce::BluetoothMidiDevicePairingDialogue::isAvailable())
             addAndMakeVisible(btMidi_);
@@ -68,11 +69,11 @@ public:
         hint_.setJustificationType(juce::Justification::topLeft);
         addAndMakeVisible(hint_);
 
-        syncLabel_.setText("Clock sync", juce::dontSendNotification);
+        syncLabel_.setText(tr("midi-settings.clock-sync", "Clock sync"), juce::dontSendNotification);
         addAndMakeVisible(syncLabel_);
-        syncCombo_.addItem("Off", 1);
-        syncCombo_.addItem("Generate (send clock to MidiOut1)", 2);
-        syncCombo_.addItem("Chase (follow incoming clock)", 3);
+        syncCombo_.addItem(tr("midi-settings.off", "Off"), 1);
+        syncCombo_.addItem(tr("midi-settings.generate-send-clock-to-midiout1", "Generate (send clock to MidiOut1)"), 2);
+        syncCombo_.addItem(tr("midi-settings.chase-follow-incoming-clock", "Chase (follow incoming clock)"), 3);
         {
             const auto s = AppSettings::instance().getString("midi.sync", "off");
             syncCombo_.setSelectedId(s == "generate" ? 2 : s == "chase" ? 3 : 1,
@@ -88,7 +89,7 @@ public:
                                                           : id == 3 ? "chase" : "off");
         };
 
-        oscEnable_.setButtonText("OSC input (UDP)");
+        oscEnable_.setButtonText(tr("midi-settings.osc-input-udp", "OSC input (UDP)"));
         oscEnable_.setToggleState(AppSettings::instance().getInt("osc.enabled", 0) != 0,
                                   juce::dontSendNotification);
         addAndMakeVisible(oscEnable_);
@@ -99,11 +100,11 @@ public:
                 if (oscEnable_.getToggleState() && !ok) {
                     oscEnable_.setToggleState(false, juce::dontSendNotification);
                     AppSettings::instance().set("osc.enabled", 0);
-                    oscPortLabel_.setText("port in use?", juce::dontSendNotification);
+                    oscPortLabel_.setText(tr("midi-settings.port-in-use", "port in use?"), juce::dontSendNotification);
                 }
             }
         };
-        oscPortLabel_.setText("Port", juce::dontSendNotification);
+        oscPortLabel_.setText(tr("midi-settings.port", "Port"), juce::dontSendNotification);
         addAndMakeVisible(oscPortLabel_);
         oscPort_.setText(juce::String(AppSettings::instance().getInt("osc.port", 9000)),
                          juce::dontSendNotification);
@@ -116,7 +117,7 @@ public:
         oscPort_.onFocusLost = commitPort;
         oscPort_.onReturnKey = commitPort;
 
-        padEnable_.setButtonText("Game controllers");
+        padEnable_.setButtonText(tr("midi-settings.game-controllers", "Game controllers"));
         padEnable_.setToggleState(AppSettings::instance().getInt("gamepad.enabled", 1) != 0,
                                   juce::dontSendNotification);
         padEnable_.onClick = [this] {
@@ -126,7 +127,7 @@ public:
         };
         addAndMakeVisible(padEnable_);
 
-        fineLabel_.setText("Fine drag (hold Shift)", juce::dontSendNotification);
+        fineLabel_.setText(tr("midi-settings.fine-drag-hold-shift", "Fine drag (hold Shift)"), juce::dontSendNotification);
         addAndMakeVisible(fineLabel_);
         fine_.setSliderStyle(juce::Slider::LinearHorizontal);
         fine_.setTextBoxStyle(juce::Slider::TextBoxRight, false, 60, 20);
@@ -144,7 +145,7 @@ public:
         padStatus_.setFont(juce::FontOptions(12.0f));
         addAndMakeVisible(padStatus_);
 
-        mapLabel_.setText("Mappings (right-click any knob -> MIDI / OSC Learn)",
+        mapLabel_.setText(tr("midi-settings.mappings-right-click-any-knob", "Mappings (right-click any knob -> MIDI / OSC Learn; hold a button while learning for a shift combo)"),
                           juce::dontSendNotification);
         mapLabel_.setColour(juce::Label::textColourId, Palette::textDim);
         mapLabel_.setFont(juce::FontOptions(12.0f));
@@ -226,7 +227,7 @@ private:
                            + juce::String(p + 1);
             const auto want = AppSettings::instance().getString(key);
             row.combo.clear(juce::dontSendNotification);
-            row.combo.addItem("(none)", 1);
+            row.combo.addItem(tr("midi-settings.none", "(none)"), 1);
             int selected = 1;
             for (int i = 0; i < (int) devs.size(); ++i) {
                 row.combo.addItem(devs[(size_t) i].name, 100 + i);
@@ -245,9 +246,10 @@ private:
             fillRow(outRows_[(size_t) p], false, p);
         }
 
-        hint_.setText("A MidiIn organism receives its port's device; a MidiOut "
-                      "organism sends to its port's device. Changes apply while "
-                      "MIDI is enabled (the toolbar MIDI button).",
+        hint_.setText(tr("midi-settings.port-devices",
+                         "A MidiIn organism receives its port's device; a MidiOut "
+                         "organism sends to its port's device. Changes apply while "
+                         "MIDI is enabled (the toolbar MIDI button)."),
                       juce::dontSendNotification);
         resized();
         repaint();
@@ -256,6 +258,7 @@ private:
     struct MapRow {
         std::unique_ptr<juce::Label> text;
         std::unique_ptr<juce::TextButton> remove;
+        std::unique_ptr<juce::ToggleButton> latching, ownAction;
     };
 
     void timerCallback() override {
@@ -293,12 +296,13 @@ private:
             mapRows_.addAndMakeVisible(*row.remove);
             mapRowWidgets_.push_back(std::move(row));
         };
+        for (const auto& m : host_->midi().map().modifiers()) addModifierRow(m);
         for (const auto& e : entries)
-            addRow(juce::String(midiSourceLabel(e.cc)) + "   " + juce::String(e.organism)
+            addRow(juce::String(midiSourceLabel(e.source())) + "   " + juce::String(e.organism)
                        + " / " + juce::String(e.param) + "   (" + juce::String(e.min, 2)
                        + " .. " + juce::String(e.max, 2) + ")",
-                   [this, cc = e.cc, c = e.organism, p = e.param] {
-                       if (host_ != nullptr) host_->midi().clearCC(cc, c, p);
+                   [this, src = e.source(), c = e.organism, p = e.param] {
+                       if (host_ != nullptr) host_->midi().clearCC(src, c, p);
                    });
         for (const auto& e : oscEntries)
             addRow("OSC " + juce::String(e.address) + "   " + juce::String(e.organism)
@@ -310,7 +314,7 @@ private:
         if (entries.empty() && oscEntries.empty()) {
             MapRow row;
             row.text = std::make_unique<juce::Label>();
-            row.text->setText("none yet", juce::dontSendNotification);
+            row.text->setText(tr("midi-settings.none-yet", "none yet"), juce::dontSendNotification);
             row.text->setColour(juce::Label::textColourId, Palette::textDim);
             row.text->setFont(juce::FontOptions(12.0f));
             mapRows_.addAndMakeVisible(*row.text);
@@ -319,11 +323,40 @@ private:
         layoutMappingRows();
     }
 
+    void addModifierRow(const MidiModifier& m) {
+        MapRow row;
+        row.text = std::make_unique<juce::Label>();
+        row.text->setText(juce::String(midiSourceLabel(m.source)) + tr("midi-settings.shift-button", "   shift button"),
+                          juce::dontSendNotification);
+        row.text->setFont(juce::FontOptions(12.0f));
+        mapRows_.addAndMakeVisible(*row.text);
+        row.latching = std::make_unique<juce::ToggleButton>("Latching");
+        row.latching->setToggleState(m.latching, juce::dontSendNotification);
+        row.latching->setTooltip(tr("midi-settings.tap-once-to-switch-the", "Tap once to switch the bank on, tap again to switch it off"));
+        row.ownAction = std::make_unique<juce::ToggleButton>(tr("midi-settings.own-action", "Own action"));
+        row.ownAction->setToggleState(m.ownAction, juce::dontSendNotification);
+        row.ownAction->setTooltip(tr("midi-settings.also-fire-this-button-s", "Also fire this button's own mapping when it is pressed"));
+        auto apply = [this, source = m.source, latch = row.latching.get(),
+                      own = row.ownAction.get()] {
+            if (host_ != nullptr)
+                host_->midi().setModifier(source, latch->getToggleState(), own->getToggleState());
+        };
+        row.latching->onClick = apply;
+        row.ownAction->onClick = apply;
+        mapRows_.addAndMakeVisible(*row.latching);
+        mapRows_.addAndMakeVisible(*row.ownAction);
+        mapRowWidgets_.push_back(std::move(row));
+    }
+
     void layoutMappingRows() {
         const int w = juce::jmax(100, mapViewport_.getWidth() - 12);
         int y = 0;
         for (auto& row : mapRowWidgets_) {
-            if (row.remove) {
+            if (row.latching) {
+                row.ownAction->setBounds(w - 100, y + 1, 100, 20);
+                row.latching->setBounds(w - 190, y + 1, 86, 20);
+                row.text->setBounds(0, y, w - 196, 22);
+            } else if (row.remove) {
                 row.remove->setBounds(w - 70, y + 1, 66, 20);
                 row.text->setBounds(0, y, w - 76, 22);
             } else {

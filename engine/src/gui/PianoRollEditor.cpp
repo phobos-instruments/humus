@@ -3,6 +3,9 @@
 #include <cmath>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -52,7 +55,7 @@ void PianoRollEditor::loopTap() {
 
 void PianoRollEditor::loopClear() {
     juce::PopupMenu m;
-    m.addItem(1, "Clear loop");
+    m.addItem(1, tr("piano-roll-editor.clear-loop", "Clear loop"));
     m.showMenuAsync(juce::PopupMenu::Options(), [this](int r) {
         if (r != 1) return;
         if (host_.midi().isRecordTarget(name_)) host_.midi().setRecordTarget(name_, false);
@@ -107,8 +110,9 @@ void PianoRollEditor::buildToolbar() {
     addAndMakeVisible(snap_);
 
     loop_.setClickingTogglesState(false);
-    loop_.setTooltip("Loop recorder: tap to record, tap to close the loop, "
-                     "tap to overdub (R). Right-click: clear.");
+    loop_.setTooltip(tr("piano-roll-editor.loop-recorder",
+                        "Loop recorder: tap to record, tap to close the loop, "
+                        "tap to overdub (R). Right-click: clear."));
     loop_.onClick = [this] { loopTap(); };
     loop_.onRightClick = [this] { loopClear(); };
     addAndMakeVisible(loop_);
@@ -116,7 +120,7 @@ void PianoRollEditor::buildToolbar() {
 
     record_.setClickingTogglesState(true);
     record_.setColour(juce::TextButton::buttonOnColourId, juce::Colour(0xffb04040));
-    record_.setTooltip("Record incoming MIDI into this clip");
+    record_.setTooltip(tr("piano-roll-editor.record-incoming-midi-into-this", "Record incoming MIDI into this clip"));
     record_.onClick = [this] {
         const bool on = record_.getToggleState();
         if (on) {
@@ -130,7 +134,7 @@ void PianoRollEditor::buildToolbar() {
 
     quantize_.setClickingTogglesState(true);
     quantize_.setToggleState(true, juce::dontSendNotification);
-    quantize_.setTooltip("Quantize recorded notes to the snap grid");
+    quantize_.setTooltip(tr("piano-roll-editor.quantize-recorded-notes-to-the", "Quantize recorded notes to the snap grid"));
     addAndMakeVisible(quantize_);
 
     struct { ToolButton* b; Tool t; const char* tip; } tools[] = {
@@ -158,11 +162,11 @@ void PianoRollEditor::fitPitch() {
     if (pitchScrolled_) return;
     const auto n = notes();
     if (n.empty()) return;
-    int lo = 127, hi = 0;
+    int lo = kMidiMax, hi = 0;
     for (const auto& e : n) { lo = std::min(lo, e.pitch); hi = std::max(hi, e.pitch); }
     const int rows = juce::jmax(1, (gridBottom() - gridTop()) / kRowH);
     const int want = hi + (rows - (hi - lo + 1)) / 2;
-    topPitch_ = juce::jlimit(juce::jmax(0, rows - 1), 127,
+    topPitch_ = juce::jlimit(juce::jmax(0, rows - 1), kMidiMax,
                              hi - lo + 1 <= rows ? want : hi + 1);
     repaint();
 }
@@ -181,7 +185,7 @@ int PianoRollEditor::preferredContentHeight(int) const {
 }
 
 void PianoRollEditor::soundKey(int pitch) {
-    pitch = juce::jlimit(0, 127, pitch);
+    pitch = juce::jlimit(0, kMidiMax, pitch);
     if (pitch == keyNote_) return;
     releaseKey();
     keyNote_ = pitch;
@@ -277,9 +281,9 @@ void PianoRollEditor::timerCallback() {
             const int rows = juce::jmax(1, (gridBottom() - gridTop()) / kRowH);
             const int p = n.back().pitch;
             if (p > topPitch_)
-                topPitch_ = juce::jlimit(rows - 1, 127, p + 4);
+                topPitch_ = juce::jlimit(rows - 1, kMidiMax, p + 4);
             else if (p < topPitch_ - rows + 1)
-                topPitch_ = juce::jlimit(rows - 1, 127, p + rows / 2);
+                topPitch_ = juce::jlimit(rows - 1, kMidiMax, p + rows / 2);
         }
     }
     const double tick = playheadClipTick();

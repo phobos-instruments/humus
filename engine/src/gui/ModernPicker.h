@@ -13,6 +13,7 @@
 #include "gui/HelpDocs.h"
 #include "gui/HelpMarkdown.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -128,7 +129,7 @@ private:
             if (owner->cells_.empty()) {
                 g.setColour(Palette::textDim);
                 g.setFont(juce::FontOptions(12.5f));
-                g.drawText(juce::String("no matches - Esc to close"),
+                g.drawText(juce::String(tr("modern-picker.no-matches-esc-to-close", "no matches - Esc to close")),
                            getLocalBounds().withHeight(40), juce::Justification::centred);
             }
         }

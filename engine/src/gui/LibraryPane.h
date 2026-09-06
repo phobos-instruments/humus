@@ -7,6 +7,7 @@
 #include "core/UserLibrary.h"
 #include "gui/AppSettings.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -32,11 +33,11 @@ public:
             b->setColour(juce::TextButton::textColourOffId, Palette::text);
             addAndMakeVisible(*b);
         }
-        changeBtn_.setButtonText("Move...");
-        changeBtn_.setTooltip("Choose a different library folder (a sample drive)");
+        changeBtn_.setButtonText(tr("library-pane.move", "Move..."));
+        changeBtn_.setTooltip(tr("library-pane.choose-a-different-library-folder", "Choose a different library folder (a sample drive)"));
         changeBtn_.onClick = [this] { chooseRoot(); };
-        revealBtn_.setButtonText("Show");
-        revealBtn_.setTooltip("Open the library folder itself");
+        revealBtn_.setButtonText(tr("library-pane.show", "Show"));
+        revealBtn_.setTooltip(tr("library-pane.open-the-library-folder-itself", "Open the library folder itself"));
         revealBtn_.onClick = [] { library::root().revealToUser(); };
 
         adoptRoot();
@@ -83,7 +84,7 @@ private:
     }
 
     void chooseRoot() {
-        chooser_ = std::make_unique<juce::FileChooser>("Choose the library folder",
+        chooser_ = std::make_unique<juce::FileChooser>(tr("library-pane.choose-the-library-folder", "Choose the library folder"),
                                                        library::root());
         chooser_->launchAsync(juce::FileBrowserComponent::openMode
                                   | juce::FileBrowserComponent::canSelectDirectories,

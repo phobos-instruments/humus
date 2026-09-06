@@ -8,6 +8,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/MenuStylePreview.h"
 #include "gui/MidiSettingsView.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -18,7 +19,7 @@ void applySavedAppearance();
 class SettingsComponent : public juce::Component,
                           private juce::ListBoxModel {
 public:
-    enum Category { kAi = 0, kAudio, kAppearance, kLicense, kMidi, kPacks, kPlugins,
+    enum Category { kAi = 0, kAudio, kAppearance, kLicense, kMidi, kPacks, kPlugins, kVideo,
                     kNumCategories };
 
     explicit SettingsComponent(std::function<void()> onAppearanceChanged,
@@ -66,12 +67,14 @@ private:
 
     juce::Label themeLabel_;
     juce::ComboBox themeCombo_;
+    juce::Label languageLabel_, languageHint_;
+    juce::ComboBox languageCombo_;
 
     static constexpr int kNumRoles = 9;
     std::array<std::unique_ptr<Swatch>, kNumRoles> swatches_;
     std::array<std::unique_ptr<juce::Label>, kNumRoles> swatchLabels_;
-    juce::TextButton saveCustomBtn_{"Save Theme..."};
-    juce::TextButton deleteThemeBtn_{"Delete Theme"};
+    juce::TextButton saveCustomBtn_{tr("settings.save-theme", "Save Theme...")};
+    juce::TextButton deleteThemeBtn_{tr("settings.delete-theme", "Delete Theme")};
     juce::TextButton exportThemeBtn_{"Export..."};
     juce::TextButton importThemeBtn_{"Import..."};
     std::unique_ptr<juce::FileChooser> chooser_;
@@ -94,6 +97,7 @@ private:
     std::unique_ptr<juce::Component> packsView_;
     std::unique_ptr<juce::Component> pluginsView_;
     std::unique_ptr<juce::Component> licenseView_;
+    std::unique_ptr<juce::Component> videoView_;
     int category_ = 0;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)

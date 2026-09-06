@@ -3,12 +3,9 @@
 #include <algorithm>
 #include <cmath>
 
-namespace hum {
+#include "hum/dsp/DspMath.h"
 
-namespace {
-constexpr double kPi = 3.14159265358979323846;
-constexpr double kTwoPi = 6.28318530717958647692;
-}
+namespace hum {
 
 void TromboneGlottis::reset() {
     timeInWaveform = 0.0;
@@ -153,7 +150,7 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
         const auto& e = staged_[(size_t) i];
         held_.apply(e);
         if ((e.data[0] & 0xF0) == 0x90 && e.data[2] > 0)
-            velocity_ = e.data[2] / 127.0;
+            velocity_ = e.data[2] / kMidiMaxD;
     }
     stagedCount_ = 0;
 
@@ -171,7 +168,7 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
     const bool voiced = held_.any() || drone;
     if (held_.any()) {
         glottis_.targetFrequency =
-            440.0 * std::pow(2.0, (held_.top() - 69) / 12.0);
+            midiToHz(held_.top());
         if (glottis_.intensity == 0.0)
             glottis_.smoothFrequency = glottis_.targetFrequency;
     }

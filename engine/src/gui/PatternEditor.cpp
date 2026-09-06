@@ -6,6 +6,7 @@
 #include "core/ParamSchema.h"
 #include "gui/LookAndFeel.h"
 #include "gui/ParamReset.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -94,7 +95,7 @@ void PatternEditor::build() {
         auto chip = std::make_unique<juce::TextButton>(laneSnapText(i));
         chip->setColour(juce::TextButton::buttonColourId, Palette::panelLight);
         chip->setColour(juce::TextButton::textColourOffId, Palette::textDim);
-        chip->setTooltip("Snap resolution for this lane");
+        chip->setTooltip(tr("pattern-editor.snap-resolution-for-this-lane", "Snap resolution for this lane"));
         chip->onClick = [this, i] {
             juce::PopupMenu m;
             const char* res[] = {"1/4", "1/8", "1/16", "1/32"};
@@ -112,8 +113,8 @@ void PatternEditor::build() {
 
         auto nl = std::make_unique<juce::TextButton>("<");
         auto nr = std::make_unique<juce::TextButton>(">");
-        nl->setTooltip("Nudge this lane left (fine, 1 tick)");
-        nr->setTooltip("Nudge this lane right (fine, 1 tick)");
+        nl->setTooltip(tr("pattern-editor.nudge-this-lane-left-fine", "Nudge this lane left (fine, 1 tick)"));
+        nr->setTooltip(tr("pattern-editor.nudge-this-lane-right-fine", "Nudge this lane right (fine, 1 tick)"));
         nl->onClick = [this, i] { host_.patterns().nudgeChannel(name_, i, -1); repaint(); };
         nr->onClick = [this, i] { host_.patterns().nudgeChannel(name_, i, +1); repaint(); };
         addAndMakeVisible(*nl); addAndMakeVisible(*nr);
@@ -138,10 +139,10 @@ void PatternEditor::build() {
     coarseR_ = std::make_unique<juce::TextButton>(">>");
     fineL_   = std::make_unique<juce::TextButton>("<");
     fineR_   = std::make_unique<juce::TextButton>(">");
-    coarseL_->setTooltip("Nudge grid left by the snap step");
-    coarseR_->setTooltip("Nudge grid right by the snap step");
-    fineL_->setTooltip("Nudge grid left (fine, 1 tick)");
-    fineR_->setTooltip("Nudge grid right (fine, 1 tick)");
+    coarseL_->setTooltip(tr("pattern-editor.nudge-grid-left-by-the", "Nudge grid left by the snap step"));
+    coarseR_->setTooltip(tr("pattern-editor.nudge-grid-right-by-the", "Nudge grid right by the snap step"));
+    fineL_->setTooltip(tr("pattern-editor.nudge-grid-left-fine-1", "Nudge grid left (fine, 1 tick)"));
+    fineR_->setTooltip(tr("pattern-editor.nudge-grid-right-fine-1", "Nudge grid right (fine, 1 tick)"));
     coarseL_->onClick = [this] { host_.patterns().reframe(name_, -snapTicks()); repaint(); };
     coarseR_->onClick = [this] { host_.patterns().reframe(name_, +snapTicks()); repaint(); };
     fineL_->onClick   = [this] { host_.patterns().reframe(name_, -1); repaint(); };
@@ -217,7 +218,7 @@ void PatternEditor::paint(juce::Graphics& g) {
 
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(10.0f));
-    g.drawText("Volume", 4, kKnobRowH - 12, 56, 12, juce::Justification::centred);
+    g.drawText(tr("pattern-editor.volume", "Volume"), 4, kKnobRowH - 12, 56, 12, juce::Justification::centred);
     for (int i = 0; i < (int) volKnobs_.size(); ++i) {
         auto b = volKnobs_[(size_t) i]->getBounds();
         g.drawText(juce::String(i + 1), b.getX(), 4, b.getWidth(), 12, juce::Justification::centred);
@@ -236,7 +237,7 @@ void PatternEditor::paint(juce::Graphics& g) {
 
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(11.0f));
-    g.drawText("Default:", 112, lanesBottom() + 3, 60, 22, juce::Justification::centredRight);
+    g.drawText(tr("pattern-editor.default", "Default:"), 112, lanesBottom() + 3, 60, 22, juce::Justification::centredRight);
 }
 
 void PatternEditor::paintRuler(juce::Graphics& g) {

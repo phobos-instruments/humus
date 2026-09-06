@@ -5,6 +5,7 @@
 
 #include <juce_cryptography/juce_cryptography.h>
 #include <juce_gui_basics/juce_gui_basics.h>
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -36,11 +37,11 @@ public:
 
     static juce::String revealVerb() {
 #if JUCE_MAC
-        return "Show in Finder";
+        return tr("app-updater.show-in-finder", "Show in Finder");
 #elif JUCE_WINDOWS
-        return "Show in Explorer";
+        return tr("app-updater.show-in-explorer", "Show in Explorer");
 #else
-        return "Show the file";
+        return tr("app-updater.show-the-file", "Show the file");
 #endif
     }
 
@@ -60,7 +61,7 @@ private:
                 .withConnectionTimeoutMs(15000)
                 .withNumRedirectsToFollow(5));
         if (stream == nullptr) {
-            finish(false, "Could not reach the download", {});
+            finish(false, tr("app-updater.could-not-reach-the-download", "Could not reach the download"), {});
             return;
         }
 
@@ -94,12 +95,12 @@ private:
         }
         if (got == 0) {
             partial.deleteFile();
-            finish(false, "The download was empty", {});
+            finish(false, tr("app-updater.the-download-was-empty", "The download was empty"), {});
             return;
         }
         if (total > 0 && got != total) {
             partial.deleteFile();
-            finish(false, "The download stopped early", {});
+            finish(false, tr("app-updater.the-download-stopped-early", "The download stopped early"), {});
             return;
         }
 
@@ -108,7 +109,7 @@ private:
             const auto have = juce::SHA256(in).toHexString().toLowerCase();
             if (have != sha_) {
                 partial.deleteFile();
-                finish(false, "The download did not match its checksum", {});
+                finish(false, tr("app-updater.the-download-did-not-match", "The download did not match its checksum"), {});
                 return;
             }
         }
@@ -119,7 +120,7 @@ private:
                    partial);
             return;
         }
-        finish(true, sha_.isEmpty() ? "Downloaded (unchecked)" : "Downloaded", target);
+        finish(true, sha_.isEmpty() ? tr("app-updater.downloaded-unchecked", "Downloaded (unchecked)") : "Downloaded", target);
     }
 
     juce::String url_, sha_, version_;

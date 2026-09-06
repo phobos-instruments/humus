@@ -5,6 +5,8 @@
 
 #include "hum/Swing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Microdot::process(const float* const*, int, float* const* out, int numOut,
@@ -30,7 +32,7 @@ void Microdot::process(const float* const*, int, float* const* out, int numOut,
         stepsDirty_ = false;
     }
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int wave = std::clamp((int) std::lround(params.get("Wave", 0.0)), 0, 5);
     const int note = (int) params.get("Note", 33.0);
     const double cutoff = params.get("Cutoff", 700.0);
@@ -42,7 +44,7 @@ void Microdot::process(const float* const*, int, float* const* out, int numOut,
     const float drive = (float) params.get("Drive", 0.35);
     const float level = (float) params.get("Level", 0.9);
 
-    const double stepsPerSec = transport.tempo() / 60.0 * stepsPerBeat_;
+    const double stepsPerSec = transport.tempo() / kSecondsPerMinute * stepsPerBeat_;
     const long stepLen = (long) (sr / stepsPerSec);
 
     const bool seqOn = params.get("Seq", 1.0) >= 0.5;

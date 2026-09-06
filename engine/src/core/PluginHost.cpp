@@ -5,6 +5,8 @@
 #include "core/ClassString.h"
 #include "hum/Registry.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 PluginHost& PluginHost::instance() {
@@ -134,7 +136,7 @@ const std::vector<ParamDesc>& PluginHost::schemaFor(const std::string& classRaw)
     auto desc = descriptionFor(classRaw);
     if (!desc) return empty;
     std::string err;
-    auto probe = createInstance(*desc, 44100.0, 512, err);
+    auto probe = createInstance(*desc, kDefaultSampleRate, 512, err);
     if (!probe) return empty;
 
     ioCache_[classRaw] = {std::max(0, probe->getTotalNumInputChannels()),

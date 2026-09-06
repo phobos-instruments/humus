@@ -12,13 +12,15 @@
 #include "Ph/PhMods.h"
 #include "Ph/PhVoice.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class PhSixOp {
 public:
     static constexpr int kVoices = 8;
     static constexpr int kBlock = 64;
-    static constexpr double kRate = 44100.0;
+    static constexpr double kRate = kDefaultSampleRate;
     static constexpr int kSlots = 32;
 
     PhSixOp();

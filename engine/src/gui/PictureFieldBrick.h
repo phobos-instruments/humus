@@ -10,6 +10,7 @@
 #include "gui/PolledBrick.h"
 #include "hum/Capabilities.h"
 #include "hum/PixelField.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -57,8 +58,8 @@ public:
         } else {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
-            g.drawText(dropHot_ ? juce::String("Let go")
-                                : juce::String("Drop a picture here, or any other file"),
+            g.drawText(dropHot_ ? juce::String(tr("picture-field.let-go", "Let go"))
+                                : juce::String(tr("picture-field.drop-a-picture-here-or", "Drop a picture here, or any other file")),
                        getLocalBounds(), juce::Justification::centred);
             g.setColour(dropHot_ ? Palette::accent : Palette::border);
             g.drawRoundedRectangle(r.reduced(0.5f), 5.0f, dropHot_ ? 2.0f : 1.0f);
@@ -145,7 +146,7 @@ private:
     }
 
     void browse() {
-        chooser_ = std::make_unique<juce::FileChooser>("Pick a picture - or any file at all");
+        chooser_ = std::make_unique<juce::FileChooser>(tr("picture-field.pick-a-picture-or-any", "Pick a picture - or any file at all"));
         juce::Component::SafePointer<PictureFieldBrick> safe(this);
         chooser_->launchAsync(juce::FileBrowserComponent::openMode
                                   | juce::FileBrowserComponent::canSelectFiles,

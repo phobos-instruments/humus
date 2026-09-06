@@ -12,8 +12,11 @@
 #include "core/PerfBox.h"
 #include "core/RecordTake.h"
 #include "gui/EngineHost.h"
+#include "gui/VideoLog.h"
 #include "io/WavWriter.h"
 #include "hum/Capabilities.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -26,7 +29,7 @@ void RecordHost::setCapturing(bool on) {
 bool RecordHost::capturing() const { return host_.capturing_; }
 
 void EngineHost::trimPerfRings() {
-    const double spb = (tempo() > 0.0 ? 60.0 / tempo() : 0.5) * sampleRate_;
+    const double spb = (tempo() > 0.0 ? kSecondsPerMinute / tempo() : 0.5) * sampleRate_;
     if (spb <= 0.0) return;
     const double keepBeats = kRingSeconds * sampleRate_ / spb;
     const double cutoff = positionBeats() - keepBeats;
@@ -60,7 +63,7 @@ bool EngineHost::commitRetroactiveAudio(double startBeat, double nowBeat, double
     const auto node = audioCaptureTarget();
     if (node.empty()) return false;
 
-    const double spb = (tempo() > 0.0 ? 60.0 / tempo() : 0.5) * sampleRate_;
+    const double spb = (tempo() > 0.0 ? kSecondsPerMinute / tempo() : 0.5) * sampleRate_;
     const int rs = (int) perfAudioL_.size();
     const std::int64_t head = perfAudioWrite_.load(std::memory_order_relaxed);
     const std::int64_t want = (std::int64_t) std::llround(beats * spb);
@@ -210,13 +213,13 @@ void RecordHost::beginSession() {
         existing.push_back(f.getFileName().toStdString());
 
     for (const auto& node : host_.arrangeableNodes()) {
+        if (!recordArmed(node)) continue;
+        if (host_.nodeRecordsVideo(node)) {
+            beginVideoTake(node, dir, existing);
+            continue;
+        }
         auto* cr = dynamic_cast<ClipRecorder*>(graph->find(node));
         if (!cr) continue;
-        const auto* cm = host_.model_.byName(node);
-        bool rec = false;
-        if (cm) for (const auto& p : cm->properties)
-            if (p.name == "Record") { rec = p.value >= 0.5; break; }
-        if (!rec) continue;
         const auto name = rec::nextTakeName(existing, node);
         const auto path = dir.getChildFile(juce::String(name)).getFullPathName().toStdString();
         existing.push_back(name);
@@ -234,10 +237,68 @@ void RecordHost::beginSession() {
         }
 }
 
+bool RecordHost::recordArmed(const std::string& node) const {
+    const auto* cm = host_.model_.byName(node);
+    if (cm == nullptr) return false;
+    for (const auto& p : cm->properties)
+        if (p.name == "Record") return p.value >= 0.5;
+    return false;
+}
+
+void RecordHost::beginVideoTake(const std::string& node, const juce::File& dir,
+                                std::vector<std::string>& existing) {
+    if (host_.videoSourceInto(node, 0).empty()) {
+        videoLog("video take on " + juce::String(node) + " skipped: nothing reaches its inlet");
+        return;
+    }
+    const std::string ext = std::string(".") + movieKindExtension(MovieKind::H264);
+    const auto name = rec::nextTakeName(existing, node, ext);
+    existing.push_back(name);
+    const int height = videotake::heightSetting();
+    const int width = videotake::widthFor(height);
+    auto recorder = std::make_shared<VideoTakeRecorder>(dir.getChildFile(juce::String(name)),
+                                                        width, height, videotake::kFps,
+                                                        host_.sampleRate_);
+    if (!recorder->ok()) {
+        videoLog("video take on " + juce::String(node) + " could not open its writer");
+        return;
+    }
+    VideoTakeStore::instance().open(node, recorder, width, height);
+    videoTakes_.push_back({node, std::move(recorder)});
+}
+
+void RecordHost::endVideoTakes(double samplesPerBeat) {
+    for (const auto& take : videoTakes_) {
+        VideoTakeStore::instance().close(take.node);
+        take.recorder->stop();
+        const auto path = take.recorder->file().getFullPathName().toStdString();
+        const double startBeat = take.recorder->takeStartBeat();
+        const auto len = take.recorder->takeLengthSamples();
+        videoLog("video take on " + juce::String(take.node) + ": "
+                 + juce::String((int) take.recorder->frames()) + " frames, "
+                 + juce::String(take.recorder->framesWritten()) + " written, "
+                 + juce::String(take.recorder->framesDropped()) + " dropped at the queue");
+        if (startBeat < 0.0 || len <= 0 || take.recorder->framesWritten() <= 0) {
+            take.recorder->file().deleteFile();
+            continue;
+        }
+        double lapBeats[ClipRecorder::kMaxLaps];
+        std::int64_t lapSamples[ClipRecorder::kMaxLaps];
+        const int nLaps = take.recorder->takeLaps(lapBeats, lapSamples, ClipRecorder::kMaxLaps);
+        for (const auto& lap : rec::splitLaps(startBeat, len, lapBeats, lapSamples, nLaps)) {
+            const int startTick = (int) std::llround(lap.startBeat * Pattern::kTicksPerBeat);
+            const int lenTicks = std::max(1, rec::ticksFromSamples(lap.lengthSamples, samplesPerBeat));
+            host_.clips().addVideo(take.node, startTick, lenTicks, path, lap.offsetSamples);
+        }
+    }
+    videoTakes_.clear();
+}
+
 void RecordHost::endSession() {
     sessionActive_ = false;
     auto* graph = host_.graph_.get();
-    const double spb = (host_.tempo() > 0.0 ? 60.0 / host_.tempo() : 0.5) * host_.sampleRate_;
+    const double spb = (host_.tempo() > 0.0 ? kSecondsPerMinute / host_.tempo() : 0.5) * host_.sampleRate_;
+    endVideoTakes(spb);
 
     for (const auto& take : takes_) {
         auto* cr = graph ? dynamic_cast<ClipRecorder*>(graph->find(take.node)) : nullptr;

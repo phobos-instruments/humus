@@ -13,6 +13,7 @@
 #include "gui/PluginParamTable.h"
 #include "gui/PresetsView.h"
 #include "gui/RootCollar.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -32,7 +33,7 @@ ParameterWindow::ParameterWindow(EngineHost& host, const std::string& name)
     buildContent();
 
     addAndMakeVisible(help_);
-    help_.setTooltip("Help for this organism");
+    help_.setTooltip(tr("parameter.help-for-this-organism", "Help for this organism"));
     help_.onClick = [this] {
         const auto* cm = host_.model().byName(name_);
         HelpView::show(cm ? cm->displayClass : name_, help_.getScreenBounds());
@@ -91,7 +92,7 @@ ParameterWindow::ParameterWindow(EngineHost& host, const std::string& name)
     if (histBack_.isVisible())
         host_.paramHistory().commit(name_, host_.captureNodeState(name_));
     addAndMakeVisible(close_);
-    close_.setTooltip("Close this editor");
+    close_.setTooltip(tr("parameter.close-this-editor", "Close this editor"));
     close_.onClick = [this] { if (onClose) onClose(name_); };
 
     pluginUi_.onClick = [this] { if (onOpenPluginUI) onOpenPluginUI(name_); };
@@ -161,7 +162,7 @@ void ParameterWindow::buildContentImpl() {
         showStrip()->setNote(
             pn == nullptr
                 ? juce::String("Plugin not installed  -  passing through")
-                : juce::String("Plugin not responding"),
+                : juce::String(tr("parameter.plugin-not-responding", "Plugin not responding")),
             pn == nullptr ? Palette::recordRed() : Palette::warnAmber());
         fold_.setVisible(false);
         return;
@@ -201,6 +202,23 @@ void ParameterWindow::buildContentImpl() {
     }
     viewSwitch_.set(embedded_ != nullptr);
     viewSwitch_.setVisible(pluginHasUi_);
+    syncVeil();
+}
+
+void ParameterWindow::syncVeil() {
+    const auto* cm = host_.model().byName(name_);
+    const bool wanted = cm != nullptr && !collapsed_ && strip_ == nullptr
+                        && caution::pending(cm->displayClass);
+    if (wanted == (veil_ != nullptr)) return;
+    if (!wanted) { veil_.reset(); repaint(); return; }
+    veil_ = std::make_unique<caution::Veil>(cm->displayClass);
+    veil_->onAcknowledged = [safe = juce::Component::SafePointer<ParameterWindow>(this)] {
+        juce::MessageManager::callAsync([safe] {
+            if (safe != nullptr) safe->syncVeil();
+        });
+    };
+    addAndMakeVisible(*veil_);
+    resized();
 }
 
 void ParameterWindow::setCollapsed(bool c) {
@@ -378,7 +396,7 @@ void ParameterWindow::paintOverChildren(juce::Graphics& g) {
 
 juce::String ParameterWindow::getTooltip() {
     if (getMouseXYRelative().y < kTitle && host_.midiOutletsOf(name_) > 0)
-        return "Drag to the timeline (or right-click) to send its notes to a track";
+        return tr("parameter.drag-to-the-timeline-or", "Drag to the timeline (or right-click) to send its notes to a track");
     return {};
 }
 
@@ -415,6 +433,7 @@ void ParameterWindow::resized() {
     if (editor_) editor_->setBounds(a);
     if (embedded_) embedded_->setBounds(a);
     if (strip_) strip_->setBounds(a);
+    if (veil_) { veil_->setBounds(a); veil_->toFront(false); }
     const int chrome = chromeHeight();
     gripR_.setBounds(getWidth() - 6, chrome, 6, getHeight() - chrome);
     gripB_.setBounds(0, getHeight() - 6, getWidth() - 16, 6);
@@ -438,7 +457,8 @@ void ParameterWindow::mouseDrag(const juce::MouseEvent& e) {
             setAlpha(1.0f);
             setTopLeftPosition(dragStart_);
             if (onDragPreview) onDragPreview(name_);
-            dnd->startDragging(juce::String("print:") + juce::String(juce::CharPointer_UTF8(name_.c_str())), this);
+            dnd->startDragging(juce::String("print:") + juce::String(juce::CharPointer_UTF8(name_.c_str())), this,
+                               juce::ScaledImage(), true);
             return;
         }
     }

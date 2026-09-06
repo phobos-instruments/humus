@@ -12,6 +12,8 @@
 #include "hum/Capabilities.h"
 #include "hum/Organism.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class BridgedPlugin : public Organism, public MidiNode, public LatencyReporting,
@@ -81,7 +83,7 @@ private:
     juce::uint32 lastRespawnMs_ = 0;
     int pluginLatency_ = 0;
     int preparedBlock_ = 512;
-    double preparedSampleRate_ = 44100.0;
+    double preparedSampleRate_ = kDefaultSampleRate;
 
     std::unique_ptr<BridgeClient> client_;
     std::atomic<BridgeClient*> activeClient_{nullptr};

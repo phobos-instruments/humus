@@ -7,6 +7,7 @@ if(HUM_GUI AND HUM_TESTS)
     src/gui/snapshot/BoardsPanes.cpp
     src/gui/snapshot/BoardsScenes.cpp
     src/gui/snapshot/ChecksAutomation.cpp
+    src/gui/snapshot/ChecksBounce.cpp
     src/gui/snapshot/ChecksBox.cpp
     src/gui/snapshot/ChecksEdit.cpp
     src/gui/snapshot/ChecksGraph.cpp
@@ -19,6 +20,7 @@ if(HUM_GUI AND HUM_TESTS)
     src/gui/snapshot/ChecksSession.cpp
     src/gui/snapshot/ChecksShader.cpp
     src/gui/snapshot/ChecksUnits.cpp
+    src/gui/snapshot/ChecksWelcome.cpp
     src/gui/snapshot/ExportOrganisms.cpp
     src/gui/snapshot/HostDiagnostics.cpp
     ${HUM_GUI_SOURCES}

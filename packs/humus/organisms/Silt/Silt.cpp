@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -18,7 +20,7 @@ void Silt::reset() {
     for (auto& s : sid_) {
         s.reset();
         s.set_sampling_parameters(kClock, reSID::SAMPLE_INTERPOLATE,
-                                  sampleRate_ > 0.0 ? sampleRate_ : 44100.0);
+                                  sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
         s.set_voice_mask(0x0f);
         s.input(0);
     }
@@ -155,9 +157,9 @@ void Silt::renderChunk(float* l, float* r, int n, float level) {
             std::fill(buf2 + got2, buf2 + want, (short) 0);
         }
         const float k = level * 3.2f / 32768.0f;
-        const float kMain = k / 1.35f, kBleed = kMain * 0.35f;
+        const float kMain = k / (1.0f + kTwinBleed), kBleed = kMain * kTwinBleed;
         const float rise = 1.0f / (0.04f * (float) (sampleRate_ > 0.0 ? sampleRate_
-                                                                      : 44100.0));
+                                                                      : kDefaultSampleRate));
         for (int i = 0; i < want; ++i) {
             const float g0 = declick_[0], g1 = declick_[1];
             const float s1 = (float) buf1[i] * g0 * g0;

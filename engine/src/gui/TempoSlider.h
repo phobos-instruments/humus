@@ -10,6 +10,8 @@ namespace hum {
 
 class TempoSlider : public juce::Slider {
 public:
+    static constexpr int kNumberW = 86;
+
     std::function<void(juce::Point<int>)> onPopup;
 
     void resized() override {
@@ -19,7 +21,11 @@ public:
             auto* c = getChildComponent(i);
             c->removeMouseListener(this);
             c->addMouseListener(this, false);
-            if (numberBox_ == nullptr) numberBox_ = dynamic_cast<juce::Label*>(c);
+            if (numberBox_ == nullptr) {
+                numberBox_ = dynamic_cast<juce::Label*>(c);
+                if (numberBox_ != nullptr)
+                    numberBox_->setFont(juce::Font(juce::FontOptions(13.0f).withStyle("Bold")));
+            }
             if (auto* tb = dynamic_cast<juce::TextButton*>(c)) {
                 tb->setColour(juce::TextButton::buttonColourId, Palette::panel);
                 tb->setColour(juce::TextButton::textColourOffId, Palette::textDim);

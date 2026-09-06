@@ -1,0 +1,379 @@
+{
+  "classes": [
+    {
+      "class": "VideoPad",
+      "category": "Visual",
+      "editor": "layout:videopad-editor.json",
+      "params": [
+        {
+          "name": "File1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In1",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out1",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In2",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out2",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In3",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out3",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In4",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out4",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In5",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out5",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In6",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out6",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In7",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out7",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "File8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Launch8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "In8",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Out8",
+          "min": 0.0,
+          "max": 36000.0,
+          "def": 0.0,
+          "unit": "none",
+          "random": true
+        },
+        {
+          "name": "Loop8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true,
+          "random": true
+        },
+        {
+          "name": "Stop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true,
+          "trigger": true
+        },
+        {
+          "name": "Mute",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Fade",
+          "min": 0.0,
+          "max": 10.0,
+          "def": 0.0,
+          "unit": "s"
+        },
+        {
+          "name": "Rate",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0,
+          "unit": "%"
+        },
+        {
+          "name": "Pads",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "Outlets",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Opacity",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Blend",
+          "min": 0.0,
+          "max": 3.0,
+          "def": 0.0,
+          "enum": true
+        }
+      ]
+    }
+  ]
+}

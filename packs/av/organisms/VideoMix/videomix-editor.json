@@ -1,15 +1,25 @@
 {
   "width": 293,
-  "height": 44,
+  "height": 80,
   "controls": [
     {
       "type": "hslider",
       "param": "Fade",
       "label": "A \u00b7 Fade \u00b7 B",
       "x": 12,
-      "y": 6,
-      "w": 269,
+      "y": 24,
+      "w": 204,
       "h": 30
+    },
+    {
+      "type": "knob",
+      "param": "Curve",
+      "label": "Curve",
+      "x": 226,
+      "y": 6,
+      "w": 56,
+      "h": 68,
+      "decimals": 2
     }
   ]
 }

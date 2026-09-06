@@ -12,6 +12,8 @@
 #include "hum/Organism.h"
 #include "hum/dsp/LiveWavWriter.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class SoundSpace : public Organism, public FileLoader, public SoundMapSource,
@@ -45,7 +47,7 @@ private:
     struct Grain { int file = 0; int start = 0; int len = 0; float x = 0.5f, y = 0.5f; };
     struct Corpus {
         std::array<juce::AudioBuffer<float>, kFiles> files;
-        std::array<double, kFiles> rates {44100.0, 44100.0, 44100.0, 44100.0};
+        std::array<double, kFiles> rates {kDefaultSampleRate, kDefaultSampleRate, kDefaultSampleRate, kDefaultSampleRate};
         std::vector<Grain> grains;
     };
     struct Voice {

@@ -1,4 +1,6 @@
 #include "gui/TracksPane.h"
+#include "core/ClipDrag.h"
+#include "gui/VideoDeckPool.h"
 
 #include "gui/FileDragImage.h"
 
@@ -10,6 +12,9 @@
 #include "gui/LookAndFeel.h"
 #include "gui/OrganismEditor.h"
 #include "gui/QwertyPiano.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -283,17 +288,21 @@ void TracksPane::mouseDownRuler(const juce::MouseEvent& e, juce::Point<int> p) {
         const double b = std::max(0.0, xToBeat((float) p.x));
         if (p.y < loopTop()) return;
         if (p.y < rulerTop()) {
+            if (e.mods.isPopupMenu()) { showLoopMenu(p); return; }
             const double ls = host_.automation().loopStartBeat(), le = host_.automation().loopEndBeat();
             const float xs = beatToX(ls), xe = beatToX(le);
-            if (host_.automation().loopEnabled() && std::abs(p.x - xs) <= 5) {
+            const bool on = host_.automation().loopEnabled();
+            if (on && std::abs(p.x - xs) <= kLoopHit) {
                 drag_ = Drag::LoopL; loopOrigStart_ = ls; loopOrigEnd_ = le;
-            } else if (host_.automation().loopEnabled() && std::abs(p.x - xe) <= 5) {
+            } else if (on && std::abs(p.x - xe) <= kLoopHit) {
                 drag_ = Drag::LoopR; loopOrigStart_ = ls; loopOrigEnd_ = le;
-            } else if (host_.automation().loopEnabled() && p.x > xs && p.x < xe) {
+            } else if (on && p.x > xs && p.x < xe) {
                 drag_ = Drag::LoopMove; loopAnchor_ = b - ls;
                 loopOrigStart_ = ls; loopOrigEnd_ = le;
+                setMouseCursor(juce::MouseCursor::DraggingHandCursor);
             } else {
                 drag_ = Drag::LoopNew; loopAnchor_ = snapBeats(b, e.mods.isAltDown());
+                loopDrawn_ = false;
             }
         } else if (host_.songEndBeat() > 0.0
                    && std::abs(p.x - beatToX(host_.songEndBeat())) <= 7) {
@@ -361,8 +370,8 @@ bool TracksPane::mouseDownAutoLane(const juce::MouseEvent& e, juce::Point<int> p
                 return true;
             }
             juce::PopupMenu m;
-            m.addItem(1, "Clear Lane Points");
-            m.addItem(2, "Delete Lane");
+            m.addItem(1, tr("tracks-pane-input.clear-lane-points", "Clear Lane Points"));
+            m.addItem(2, tr("tracks-pane-input.delete-lane", "Delete Lane"));
             const auto sp = e.getScreenPosition();
             m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
                             [this, node = lnode, param = sl.param](int r) {
@@ -483,8 +492,8 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
                 if (b.organism == node) { hasBoxes = true; break; }
             const bool has = (cm != nullptr && !cm->automation.empty()) || hasBoxes;
             juce::PopupMenu m;
-            m.addItem(1, "Clear Automation Points", has);
-            m.addItem(2, "Delete Automation Lanes", has);
+            m.addItem(1, tr("tracks-pane-input.clear-automation-points", "Clear Automation Points"), has);
+            m.addItem(2, tr("tracks-pane-input.delete-automation-lanes", "Delete Automation Lanes"), has);
             double from = 0.0, to = 0.0;
             const int bpb = juce::jmax(1, host_.automation().timeSigNumerator());
             const bool canBounce = consolidateRange(row, from, to)
@@ -512,21 +521,20 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
                     send.addItem(100 + i, juce::String(targets[(size_t) i]), true, corded);
                 }
                 m.addSeparator();
-                m.addSubMenu("Send MIDI to", send, !targets.empty());
+                m.addSubMenu(tr("tracks-pane-input.send-midi-to", "Send MIDI to"), send, !targets.empty());
             }
-            const auto* cmRow = host_.model().byName(node);
-            const bool ownsTheRow = host_.nodeRecordsAudio(node)
-                                    || (cmRow != nullptr && cmRow->classRaw == "MidiTrack");
+            const bool ownsTheRow = ownsRow(node);
             std::vector<std::string> group;
             if (selTracks_.count(node) != 0 && selTracks_.size() > 1)
                 for (const auto& n : rows_)
                     if (selTracks_.count(n) != 0) group.push_back(n);
             m.addSeparator();
-            m.addItem(5, "Rename Track...");
+            m.addItem(5, tr("tracks-pane-input.rename-track", "Rename Track..."));
             m.addItem(4, group.size() > 1
                              ? juce::String("Delete ") + juce::String((int) group.size())
                                    + " Tracks"
-                             : juce::String(ownsTheRow ? "Delete Track" : "Remove Track"));
+                             : (ownsTheRow ? tr("tracks-pane-input.delete-track", "Delete Track")
+                                           : tr("tracks-pane-input.remove-track", "Remove Track")));
             const auto sp = e.getScreenPosition();
             m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
                             [this, node, row, targets, group](int r) {
@@ -549,11 +557,13 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
                     const auto leaf =
                         slash == std::string::npos ? node : node.substr(slash + 1);
                     auto* aw = new juce::AlertWindow(
-                        "Rename Track", "New name for \"" + juce::String(leaf) + "\":",
+                        tr("tracks-pane-input.rename-track-title", "Rename Track"),
+                        tr("tracks-pane-input.new-name-for", "New name for") + " \""
+                            + juce::String(leaf) + "\":",
                         juce::MessageBoxIconType::NoIcon);
                     aw->addTextEditor("name", juce::String(leaf));
-                    aw->addButton("Rename", 1, juce::KeyPress(juce::KeyPress::returnKey));
-                    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+                    aw->addButton(tr("tracks-pane-input.rename", "Rename"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+                    aw->addButton(tr("tracks-pane-input.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
                     aw->enterModalState(true, juce::ModalCallbackFunction::create(
                         [this, aw, node, prefix](int ok) {
                             const auto text = aw->getTextEditorContents("name")
@@ -573,24 +583,12 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
                 }
                 if (r == 4) {
                     clearClipSel();
-                    auto deleteOne = [this](const std::string& n) {
-                        const auto* cm = host_.model().byName(n);
-                        if (host_.nodeRecordsAudio(n)
-                            || (cm != nullptr && cm->classRaw == "MidiTrack")) {
-                            host_.removeOrganism(n);
-                        } else if (arrangeable_.count(n) != 0) {
-                            host_.pushUndo();
-                            host_.clips().removeTrack(n);
-                        } else {
-                            host_.automation().clearOrganism(n, true);
-                        }
-                    };
                     if (group.size() > 1) {
                         host_.beginTransaction();
-                        for (const auto& n : group) deleteOne(n);
+                        for (const auto& n : group) deleteRow(n);
                         host_.endTransaction();
                     } else {
-                        deleteOne(node);
+                        deleteRow(node);
                     }
                     selTracks_.clear();
                     rebuild();
@@ -670,7 +668,7 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
             setNodeMuted(node, !nodeMuted(node));
             repaint();
         } else if (recBox(row).contains(p)) {
-            if (host_.nodeRecordsAudio(node)) {
+            if (host_.nodeRecordsMedia(node)) {
                 bool armed = false;
                 if (const auto* cm = host_.model().byName(node))
                     for (const auto& pr : cm->properties)
@@ -690,9 +688,9 @@ void TracksPane::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point
 void TracksPane::showBoxMenu(int bx, juce::Point<int> sp) {
     selBox_ = bx;
     juce::PopupMenu m;
-    m.addItem(1, "Duplicate After");
-    m.addItem(2, "Delete");
-    m.addItem(3, "Merge", sel_.size() > 1);
+    m.addItem(1, tr("tracks-pane-input.duplicate-after", "Duplicate After"));
+    m.addItem(2, tr("tracks-pane-input.delete", "Delete"));
+    m.addItem(3, tr("tracks-pane-input.merge", "Merge"), sel_.size() > 1);
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
                     [this, bx](int r) {
         const auto& boxes = host_.automation().boxes();
@@ -777,13 +775,16 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
             selectClip(row, clip);
             repaint();
             showClipMenu(row, clip, e.getScreenPosition(), tick);
-        } else if (host_.nodeRecordsAudio(node)) {
+        } else {
             juce::PopupMenu m;
-            m.addItem(1, "Import Audio File...");
+            const bool audio = host_.nodeRecordsAudio(node);
+            if (audio) m.addItem(1, tr("tracks-pane-input.import-audio-file", "Import Audio File..."));
+            m.addItem(2, tr("tracks-pane-input.cut-at-playhead", "Cut at Playhead"), clipsUnderPlayhead() > 0);
             const auto sp = e.getScreenPosition();
             m.showMenuAsync(juce::PopupMenu::Options()
                                 .withTargetScreenArea({sp.x, sp.y, 1, 1}),
                             [this, node, tick, alt = e.mods.isAltDown()](int r) {
+                if (r == 2) { cutAtPlayhead(); return; }
                 if (r != 1) return;
                 const int start = (int) std::llround(
                     snapBeats(tick / (double) Pattern::kTicksPerBeat, alt)
@@ -835,7 +836,7 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
             selectClip(row, made);
             drag_ = Drag::ClipMove;
             dragGrabTicks_ = tick - ci.startTick;
-        } else if (const auto fg = ci.isAudio
+        } else if (const auto fg = ci.hasMedia()
                        ? timelinechrome::fadeGripAt(clipBounds(row, ci), p, kFadeGrip,
                                                     ci.fadeInTicks, ci.fadeOutTicks,
                                                     ci.lengthTicks)
@@ -844,7 +845,7 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
             drag_ = fg == timelinechrome::FadeGrip::Left ? Drag::ClipFadeL : Drag::ClipFadeR;
             dragClip_ = clip;
             selectClip(row, clip);
-        } else if (const auto cg = ci.isAudio
+        } else if (const auto cg = ci.hasMedia()
                        ? timelinechrome::fadeCurveGripAt(
                              clipBounds(row, ci), p, kFadeGrip, ci.fadeInTicks,
                              ci.fadeOutTicks, ci.lengthTicks, ci.fadeInCurve, ci.fadeOutCurve)
@@ -891,7 +892,11 @@ void TracksPane::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<i
             repaint();
             return;
         }
-        if (host_.nodeRecordsAudio(node) || arrangeable_.count(node) == 0) { repaint(); return; }
+        if (host_.nodeRecordsAudio(node) || host_.nodeArrangesVideo(node)
+            || arrangeable_.count(node) == 0) {
+            repaint();
+            return;
+        }
         host_.pushUndo();
         const int start = (int) std::llround(
             snapBeats(tick / (double) Pattern::kTicksPerBeat, e.mods.isAltDown())
@@ -999,6 +1004,7 @@ void TracksPane::mouseDrag(const juce::MouseEvent& e) {
             return;
         case Drag::LoopNew: {
             const double b = snapBeats(beat, alt);
+            loopDrawn_ = loopDrawn_ || std::abs(b - loopAnchor_) > 1e-6;
             host_.automation().setLoop(std::min(loopAnchor_, b), std::max(loopAnchor_, b),
                                     std::abs(b - loopAnchor_) > 1e-6);
             repaint();
@@ -1148,6 +1154,7 @@ void TracksPane::dragClipOut(const std::string& node) {
     auto clips = host_.clips().list(node);
     if (dragClip_ >= (int) clips.size()) return;
     const bool audio = clips[(size_t) dragClip_].isAudio;
+    const bool video = clips[(size_t) dragClip_].isVideo;
     const juce::Image chip = clipChip(dragRow_, clips[(size_t) dragClip_]);
     std::string home = node;
     int clip = dragClip_;
@@ -1175,11 +1182,12 @@ void TracksPane::dragClipOut(const std::string& node) {
     clips = host_.clips().list(home);
     if (clip >= (int) clips.size()) return;
     if (!audio) {
+        const auto tag = video ? juce::String(clipdrag::videoClip(home, clips[(size_t) clip].id))
+                               : juce::String("noteclip:")
+                                     + juce::String(juce::CharPointer_UTF8(home.c_str()))
+                                     + ":" + juce::String(clips[(size_t) clip].id);
         if (auto* dnd = juce::DragAndDropContainer::findParentDragContainerFor(this))
-            dnd->startDragging(juce::String("noteclip:")
-                                   + juce::String(juce::CharPointer_UTF8(home.c_str()))
-                                   + ":" + juce::String(clips[(size_t) clip].id),
-                               this, juce::ScaledImage(chip, kChipScale));
+            dnd->startDragging(tag, this, juce::ScaledImage(chip, kChipScale), true);
         return;
     }
     juce::StringArray files;
@@ -1202,19 +1210,81 @@ void TracksPane::dragClipOut(const std::string& node) {
                                                                    [this] { extDrag_ = false; });
 }
 
+bool TracksPane::ownsRow(const std::string& node) const {
+    const auto* cm = host_.model().byName(node);
+    return host_.nodeRecordsAudio(node) || host_.nodeArrangesVideo(node)
+           || (cm != nullptr && cm->classRaw == "MidiTrack");
+}
+
+void TracksPane::deleteRow(const std::string& node) {
+    if (ownsRow(node)) {
+        host_.removeOrganism(node);
+    } else if (arrangeable_.count(node) != 0) {
+        host_.pushUndo();
+        host_.clips().removeTrack(node);
+    } else {
+        host_.automation().clearOrganism(node, true);
+    }
+}
+
+void TracksPane::showLoopMenu(juce::Point<int> at) {
+    juce::PopupMenu m;
+    double from = 0.0, to = 0.0;
+    const bool selected = timeSelection(from, to) && to > from;
+    m.addItem(1, tr("tracks-pane-input.remove-loop", "Remove loop"), host_.automation().loopEnabled());
+    m.addItem(2, tr("tracks-pane-input.loop-the-selection", "Loop the selection"), selected);
+    m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea(
+                        juce::Rectangle<int>(localPointToGlobal(at), localPointToGlobal(at))),
+                    [this, from, to](int r) {
+        if (r == 1)
+            host_.automation().setLoop(host_.automation().loopStartBeat(),
+                                       host_.automation().loopEndBeat(), false);
+        else if (r == 2)
+            host_.automation().setLoop(from, to, true);
+        repaint();
+    });
+}
+
 bool TracksPane::isInterestedInDragSource(const SourceDetails& d) {
-    return d.description.toString().startsWith("print:");
+    std::string pad;
+    int index = 0;
+    return d.description.toString().startsWith("print:")
+           || clipdrag::parseVideoPad(d.description.toString().toStdString(), pad, index);
+}
+
+void TracksPane::dropPad(const std::string& pad, int index, juce::Point<int> at) {
+    const auto n = std::to_string(index + 1);
+    const auto file = VideoDeckPool::resolveTape(host_.documentPath(),
+                                                 juce::String(host_.liveParamText(pad, "File" + n)));
+    if (!file.existsAsFile()) return;
+    ClipEditor::MediaRange r;
+    r.file = file.getFullPathName().toStdString();
+    r.inSeconds = host_.liveParamValue(pad, "In" + n);
+    r.outSeconds = host_.liveParamValue(pad, "Out" + n);
+    const int tick = (int) std::llround(
+        snapBeats(std::max(0.0, xToBeat((float) at.x)), false) * Pattern::kTicksPerBeat);
+    host_.pushUndo();
+    const auto node = dropTargetNode(at.y, true);
+    if (!node.empty()) host_.clips().addVideoRange(node, tick, r);
+    rebuild();
+    repaint();
 }
 
 void TracksPane::itemDropped(const SourceDetails& d) {
     dropHot_ = false;
+    std::string pad;
+    int index = 0;
+    if (clipdrag::parseVideoPad(d.description.toString().toStdString(), pad, index)) {
+        dropPad(pad, index, d.localPosition);
+        return;
+    }
     const auto node = d.description.toString().fromFirstOccurrenceOf("print:", false, false).toStdString();
     const int bar = 4 * Pattern::kTicksPerBeat;
     const int at = (std::max(0, xToTick((float) d.localPosition.x)) / bar) * bar;
     std::string err;
     host_.printToTimeline(node, err, at);
     if (!err.empty())
-        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, "MIDI to Track",
+        juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, tr("tracks-pane-input.midi-to-track", "MIDI to Track"),
                                                juce::String(juce::CharPointer_UTF8(err.c_str())));
     rebuild();
     repaint();
@@ -1237,6 +1307,9 @@ void TracksPane::mouseUp(const juce::MouseEvent& e) {
     }
     if (drag_ == Drag::Line && lineSlot_ >= 0)
         commitLine(dragAutoNode_, dragAutoParam_, lineBeat0_, lineVal0_, lineBeat1_, lineVal1_);
+    if (drag_ == Drag::LoopNew && !loopDrawn_ && host_.automation().loopEnabled())
+        host_.automation().setLoop(host_.automation().loopStartBeat(),
+                                   host_.automation().loopEndBeat(), false);
     lineSlot_ = -1;
     pencilLast_ = -1.0;
     dragBox_ = -1;
@@ -1257,6 +1330,13 @@ void TracksPane::mouseUp(const juce::MouseEvent& e) {
 void TracksPane::mouseDoubleClick(const juce::MouseEvent& e) {
     traceSel("dbl", e);
     const auto p = e.getPosition();
+    if (overLoopLane(p)) {
+        if (host_.automation().loopEnabled())
+            host_.automation().setLoop(host_.automation().loopStartBeat(),
+                                       host_.automation().loopEndBeat(), false);
+        repaint();
+        return;
+    }
     if (mode_ == Mode::Clip) {
         const auto h = clipEditorHit(p);
         if (h == ClipHit::CurveL || h == ClipHit::CurveR) straightenFade(h == ClipHit::CurveL);
@@ -1306,9 +1386,13 @@ void TracksPane::mouseDoubleClick(const juce::MouseEvent& e) {
     }
     if (clip >= 0) {
         const auto clips = host_.clips().list(rows_[(size_t) row]);
-        if (clip < (int) clips.size() && clips[(size_t) clip].isAudio) {
-            enterClipMode(rows_[(size_t) row], clips[(size_t) clip].id);
-            return;
+        if (clip < (int) clips.size()) {
+            const auto& ci = clips[(size_t) clip];
+            if (ci.isAudio) {
+                enterClipMode(rows_[(size_t) row], ci.id);
+                return;
+            }
+            if (ci.isVideo || ci.isCompound) return;
         }
         enterTrackMode(rows_[(size_t) row]);
     }
@@ -1318,13 +1402,15 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
     const auto p = e.getPosition();
     const auto was = hover_;
     hover_ = p;
-    if (p.y >= loopTop() && p.y < rulerTop() && host_.automation().loopEnabled()) {
+    if (overLoopLane(p)) {
         const float xs = beatToX(host_.automation().loopStartBeat());
         const float xe = beatToX(host_.automation().loopEndBeat());
-        if (std::abs(p.x - xs) <= 5 || std::abs(p.x - xe) <= 5) {
-            setMouseCursor(juce::MouseCursor::LeftRightResizeCursor);
-            return;
-        }
+        const bool on = host_.automation().loopEnabled();
+        setMouseCursor(on && (std::abs(p.x - xs) <= kLoopHit || std::abs(p.x - xe) <= kLoopHit)
+                           ? juce::MouseCursor::LeftRightResizeCursor
+                       : on && p.x > xs && p.x < xe ? juce::MouseCursor::DraggingHandCursor
+                                                    : juce::MouseCursor::CrosshairCursor);
+        return;
     }
     if (mode_ == Mode::Clip) {
         setMouseCursor(clipEditorCursor(p));
@@ -1390,7 +1476,7 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
                  c < (int) clips.size()) {
             const auto cb = clipBounds(row, clips[(size_t) c]);
             const auto& hc = clips[(size_t) c];
-            if (const auto fg = hc.isAudio
+            if (const auto fg = hc.hasMedia()
                     ? timelinechrome::fadeGripAt(cb, p, kFadeGrip, hc.fadeInTicks,
                                                  hc.fadeOutTicks, hc.lengthTicks)
                     : timelinechrome::FadeGrip::None;
@@ -1400,7 +1486,7 @@ void TracksPane::mouseMove(const juce::MouseEvent& e) {
                                    : juce::MouseCursor::TopRightCornerResizeCursor);
                 return;
             }
-            if (hc.isAudio
+            if (hc.hasMedia()
                 && timelinechrome::fadeCurveGripAt(cb, p, kFadeGrip, hc.fadeInTicks,
                                                    hc.fadeOutTicks, hc.lengthTicks,
                                                    hc.fadeInCurve, hc.fadeOutCurve)
@@ -1444,7 +1530,7 @@ void TracksPane::mouseWheelMove(const juce::MouseEvent& e,
                 const float whole = std::floor(rollScrollAcc_);
                 if (whole != 0.0f) {
                     rollScrollAcc_ -= whole;
-                    const int lo = -rollTopPitch_, hi = 127 - rollTopPitch_;
+                    const int lo = -rollTopPitch_, hi = kMidiMax - rollTopPitch_;
                     const int want = rollScrollSemis_ + (int) whole;
                     rollScrollSemis_ = juce::jlimit(juce::jmin(lo, 0), juce::jmax(hi, 0), want);
                     if (rollScrollSemis_ != want) rollScrollAcc_ = 0.0f;

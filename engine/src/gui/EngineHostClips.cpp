@@ -9,6 +9,11 @@
 #include <climits>
 #include <cmath>
 #include "core/ParamSchema.h"
+#include "gui/VideoProbe.h"
+#include <memory>
+#include <juce_audio_formats/juce_audio_formats.h>
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -28,6 +33,8 @@ std::vector<ClipEditor::ClipInfo> ClipEditor::list(const std::string& node) cons
         ci.legacy = clipops::clipIsLegacy(p, i);
         ci.color = ch->color;
         ci.isAudio = clipops::isAudioClip(*ch);
+        ci.isVideo = clipops::isVideoClip(*ch);
+        ci.isCompound = clipops::isCompoundClip(*ch);
         ci.audioFile = ch->audioFile;
         ci.audioOffset = ch->audioOffset;
         ci.id = ch->id;
@@ -62,7 +69,7 @@ void ClipEditor::setGain(const std::string& node, int clip, double gain) {
 void ClipEditor::setReverse(const std::string& node, int clip, bool reverse) {
     auto* cm = host_.mutableByName(node);
     auto* ch = cm ? clipops::clipChannel(cm->pattern, clip) : nullptr;
-    if (!ch || !clipops::isAudioClip(*ch) || ch->audioReverse == reverse) return;
+    if (!ch || !clipops::isMediaClip(*ch) || ch->audioReverse == reverse) return;
     ch->audioReverse = reverse;
     host_.dirty_ = true;
     host_.syncPattern(node);
@@ -214,6 +221,17 @@ int ClipEditor::addAudio(const std::string& node, int startTick, int lengthTicks
     return clip;
 }
 
+int ClipEditor::addVideo(const std::string& node, int startTick, int lengthTicks,
+                         const std::string& file, long long offsetSamples) {
+    host_.patterns().ensureAudio(node);
+    auto* cm = host_.mutableByName(node);
+    if (!cm) return -1;
+    const int clip = clipops::addVideoClip(cm->pattern, startTick, lengthTicks, file, offsetSamples);
+    host_.dirty_ = true;
+    host_.syncPattern(node);
+    return clip;
+}
+
 void ClipEditor::removeTrack(const std::string& node) {
     auto* cm = host_.mutableByName(node);
     if (!cm) return;
@@ -233,7 +251,7 @@ void ClipEditor::remove(const std::string& node, int clip) {
     if (clipops::noteChannels(cm->pattern).empty() && cm->pattern.present) {
         bool audio = false;
         for (const auto& ch : cm->pattern.channels)
-            if (ch.type == "audio-clip") audio = true;
+            if (clipops::isMediaClip(ch)) audio = true;
         if (!audio) {
             PatternChannel seed;
             seed.type = "note-events";
@@ -257,15 +275,76 @@ void ClipEditor::resize(const std::string& node, int clip, int newLengthTicks, b
     auto* cm = host_.mutableByName(node);
     if (!cm) return;
     clipops::upgradeLegacyClip(cm->pattern);
-    if (!clipops::resizeClip(cm->pattern, clip, newLengthTicks, fromLeft, samplesPerTick()))
+    const auto* ch = clipops::clipChannel(cm->pattern, clip);
+    const int tail = ch != nullptr && clipops::isMediaClip(*ch) ? tailTicks(*ch) : 0;
+    if (!clipops::resizeClip(cm->pattern, clip, newLengthTicks, fromLeft, samplesPerTick(), tail))
         return;
     host_.dirty_ = true;
     host_.syncPattern(node);
 }
 
+ClipEditor::Tape ClipEditor::tape(const std::string& file) const {
+    if (file.empty()) return {};
+    if (const auto it = tapes_.find(file); it != tapes_.end()) return it->second;
+    Tape t;
+    const auto uri = file.rfind("file://", 0) == 0 ? file.substr(7) : file;
+    const juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+    if (!f.existsAsFile()) return t;
+    if (isVideoFile(f)) {
+        t.seconds = probeVideoSeconds(f);
+        t.sampleRate = host_.sampleRate_;
+    } else {
+        juce::AudioFormatManager fm;
+        fm.registerBasicFormats();
+        std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
+        if (rd != nullptr && rd->sampleRate > 0.0) {
+            t.seconds = (double) rd->lengthInSamples / rd->sampleRate;
+            t.sampleRate = rd->sampleRate;
+        }
+    }
+    if (t.seconds > 0.0) tapes_[file] = t;
+    return t;
+}
+
+ClipEditor::MediaRange ClipEditor::rangeOf(const std::string& node, int clipId) const {
+    MediaRange r;
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    for (const auto& ci : list(node)) {
+        if (ci.id != clipId || !ci.hasMedia()) continue;
+        const double rate = ci.warpMode != 0 && ci.sourceBpm > 0.0 ? bpm / ci.sourceBpm : 1.0;
+        const auto t = ci.isAudio ? tape(ci.audioFile) : Tape{};
+        const double offsetRate = t.sampleRate > 0.0 ? t.sampleRate : host_.sampleRate_;
+        r.file = ci.audioFile;
+        r.inSeconds = (double) ci.audioOffset / offsetRate;
+        r.outSeconds = r.inSeconds
+                       + ci.lengthTicks / (double) Pattern::kTicksPerBeat * (kSecondsPerMinute / bpm) * rate;
+        r.looped = ci.looped;
+    }
+    return r;
+}
+
+int ClipEditor::addVideoRange(const std::string& node, int atTick, const MediaRange& range) {
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    double span = range.outSeconds - range.inSeconds;
+    if (span <= 0.0) span = tape(range.file).seconds - range.inSeconds;
+    if (span <= 0.0) return -1;
+    const int ticks = std::max(1, (int) std::llround(span * (bpm / kSecondsPerMinute) * Pattern::kTicksPerBeat));
+    return addVideo(node, atTick, ticks, range.file,
+                    (long long) std::llround(range.inSeconds * host_.sampleRate_));
+}
+
+int ClipEditor::tailTicks(const PatternChannel& clip) const {
+    const auto t = tape(clip.audioFile);
+    if (t.seconds <= 0.0 || t.sampleRate <= 0.0) return 0;
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    const double rate = clip.warpMode != 0 && clip.sourceBpm > 0.0 ? bpm / clip.sourceBpm : 1.0;
+    const double left = t.seconds - (double) clip.audioOffset / t.sampleRate;
+    return (int) std::floor(left / rate * (bpm / kSecondsPerMinute) * Pattern::kTicksPerBeat);
+}
+
 double ClipEditor::samplesPerTick() const {
     const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
-    return (60.0 / bpm) * host_.sampleRate_ / Pattern::kTicksPerBeat;
+    return (kSecondsPerMinute / bpm) * host_.sampleRate_ / Pattern::kTicksPerBeat;
 }
 
 void ClipEditor::setLooped(const std::string& node, int clip, bool looped) {
@@ -290,7 +369,17 @@ void ClipEditor::setColor(const std::string& node, int clip, int color) {
 }
 
 bool ClipEditor::accepts(const std::string& node, bool audio) {
-    return host_.nodeRecordsAudio(node) == audio;
+    return host_.nodeRecordsAudio(node) == audio && !host_.nodeArrangesVideo(node);
+}
+
+bool ClipEditor::accepts(const std::string& node, const ClipInfo& clip) {
+    if (clip.isVideo) return host_.nodeArrangesVideo(node);
+    return accepts(node, clip.isAudio);
+}
+
+bool ClipEditor::accepts(const std::string& node, const PatternChannel& clip) {
+    if (clipops::isVideoClip(clip)) return host_.nodeArrangesVideo(node);
+    return accepts(node, clipops::isAudioClip(clip));
 }
 
 int ClipEditor::moveToNode(const std::string& node, int clip, const std::string& toNode) {
@@ -302,9 +391,9 @@ int ClipEditor::moveToNode(const std::string& node, int clip, const std::string&
     if (!ch) return -1;
     const PatternChannel moved = *ch;
 
-    if (!accepts(toNode, clipops::isAudioClip(moved))) return -1;
+    if (!accepts(toNode, moved)) return -1;
 
-    if (clipops::isAudioClip(moved)) host_.patterns().ensureAudio(toNode);
+    if (clipops::isMediaClip(moved)) host_.patterns().ensureAudio(toNode);
     else                             host_.patterns().ensureNote(toNode);
     auto* dst = host_.mutableByName(toNode);
     if (!dst) return -1;
@@ -337,8 +426,8 @@ PatternChannel ClipEditor::copyClip(const std::string& node, int clip) const {
 
 int ClipEditor::pasteClip(const std::string& node, const PatternChannel& data, int atTick) {
     if (!clipops::isClipType(data)) return -1;
-    if (!accepts(node, clipops::isAudioClip(data))) return -1;
-    if (clipops::isAudioClip(data)) host_.patterns().ensureAudio(node);
+    if (!accepts(node, data)) return -1;
+    if (clipops::isMediaClip(data)) host_.patterns().ensureAudio(node);
     else                            host_.patterns().ensureNote(node);
     auto* cm = host_.mutableByName(node);
     if (!cm) return -1;
@@ -434,6 +523,94 @@ std::string writeTake(const juce::File& dir, const std::string& base,
     return writeSoundFile(path, buf, sr) ? path : std::string();
 }
 
+}
+
+std::string ClipEditor::compoundReel(const std::string& node, int clip) const {
+    const auto* cm = host_.model().byName(node);
+    if (cm == nullptr) return {};
+    const auto* ch = clipops::clipChannel(const_cast<Pattern&>(cm->pattern), clip);
+    return ch != nullptr && clipops::isCompoundClip(*ch) ? ch->audioFile : std::string{};
+}
+
+namespace {
+int reelCount(const Pattern& p) {
+    int n = 0;
+    for (const auto& ch : p.channels) if (clipops::isCompoundClip(ch)) ++n;
+    return n;
+}
+}
+
+int ClipEditor::makeCompound(const std::string& node, const std::vector<int>& ordinals) {
+    auto* cm = host_.mutableByName(node);
+    if (cm == nullptr || ordinals.size() < 2) return -1;
+    clipops::upgradeLegacyClip(cm->pattern);
+
+    const double spt = samplesPerTick();
+    struct Piece {
+        PatternChannel ch;
+        int atTick = 0;
+    };
+    std::vector<Piece> flat;
+    std::vector<std::string> absorbed;
+    std::vector<int> ids;
+    int start = INT_MAX, end = 0;
+    for (int o : ordinals) {
+        const auto* ch = clipops::clipChannel(cm->pattern, o);
+        if (ch == nullptr) continue;
+        ids.push_back(ch->id);
+        start = std::min(start, ch->startTick);
+        end = std::max(end, ch->startTick + ch->lengthTicks);
+        if (!clipops::isCompoundClip(*ch)) {
+            flat.push_back({*ch, ch->startTick});
+            continue;
+        }
+        const auto* reel = host_.model().byName(ch->audioFile);
+        if (reel == nullptr) continue;
+        int span = 0;
+        for (const auto& inner : reel->pattern.channels)
+            if (clipops::isClipType(inner))
+                span = std::max(span, inner.startTick + inner.lengthTicks);
+        const bool shaped = ch->fadeInTicks > 0 || ch->fadeOutTicks > 0 || ch->loopClip
+                         || ch->audioReverse || ch->warpMode != 0 || ch->audioOffset != 0
+                         || std::abs(ch->audioGain - 1.0) > 1.0e-9
+                         || ch->lengthTicks != span;
+        if (shaped) {
+            flat.push_back({*ch, ch->startTick});
+            continue;
+        }
+        absorbed.push_back(ch->audioFile);
+        const int into = spt > 0.0 ? (int) std::llround((double) ch->audioOffset / spt) : 0;
+        for (const auto& inner : reel->pattern.channels)
+            if (clipops::isClipType(inner))
+                flat.push_back({inner, ch->startTick + inner.startTick - into});
+    }
+    if (flat.size() < 2 || end <= start) return -1;
+
+    const auto reelNode = host_.addOrganism("VideoTrack", {0, 0});
+    if (reelNode.empty()) return -1;
+    host_.setNodeInternal(reelNode, true);
+    cm = host_.mutableByName(node);
+    auto* inner = host_.mutableByName(reelNode);
+    if (cm == nullptr || inner == nullptr) return -1;
+    inner->pattern = Pattern{};
+    int nextId = 1;
+    for (auto piece : flat) {
+        piece.ch.id = nextId++;
+        piece.ch.startTick = piece.atTick - start;
+        inner->pattern.channels.push_back(std::move(piece.ch));
+    }
+    host_.syncPattern(reelNode);
+
+    for (int id : ids)
+        if (const int at = clipops::clipIndexOfId(cm->pattern, id); at >= 0)
+            clipops::removeClip(cm->pattern, at);
+    const int made = clipops::addCompoundClip(cm->pattern, start, end - start, reelNode, 0);
+    if (auto* ch = clipops::clipChannel(cm->pattern, made))
+        ch->name = "Reel " + std::to_string(reelCount(cm->pattern));
+    host_.dirty_ = true;
+    host_.syncPattern(node);
+    for (const auto& gone : absorbed) host_.removeOrganism(gone);
+    return made;
 }
 
 int ClipEditor::mergeAudio(const std::string& node, const std::vector<int>& ordinals) {

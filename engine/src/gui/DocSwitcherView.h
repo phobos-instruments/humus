@@ -9,6 +9,7 @@
 #include "gui/LookAndFeel.h"
 #include "io/DocumentSet.h"
 #include "io/PatchFormat.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -153,7 +154,7 @@ private:
         if (row < 0 || row >= (int) slots_.size() || !actions_.openDocument) return;
         const juce::File f(slots_[(size_t) row]);
         if (!f.existsAsFile()) {
-            status_.setText("missing: " + f.getFullPathName(), juce::dontSendNotification);
+            status_.setText(tr("doc-switcher.missing", "missing: ") + f.getFullPathName(), juce::dontSendNotification);
             return;
         }
         actions_.openDocument(f);
@@ -221,7 +222,7 @@ private:
         auto parsed = parseDocumentSet(xml, f);
         if (parsed.empty() && !xml.contains("humus-document-set")) {
             if (announce)
-                status_.setText("not a document set: " + f.getFileName(),
+                status_.setText(tr("doc-switcher.not-a-document-set", "not a document set: ") + f.getFileName(),
                                 juce::dontSendNotification);
             return;
         }
@@ -234,7 +235,7 @@ private:
 
     void writeSetFile(const juce::File& f) {
         if (!f.replaceWithText(serializeDocumentSet(slots_, f))) {
-            status_.setText("could not write " + f.getFileName(), juce::dontSendNotification);
+            status_.setText(tr("doc-switcher.could-not-write", "could not write ") + f.getFileName(), juce::dontSendNotification);
             return;
         }
         setFile_ = f;

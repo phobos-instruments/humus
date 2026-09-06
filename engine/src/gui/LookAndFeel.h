@@ -93,6 +93,8 @@ public:
     void drawPopupMenuBackground(juce::Graphics&, int width, int height) override;
     void drawCallOutBoxBackground(juce::CallOutBox&, juce::Graphics&,
                                   const juce::Path&, juce::Image&) override;
+    void drawProgressBar(juce::Graphics&, juce::ProgressBar&, int width, int height,
+                         double progress, const juce::String& textToShow) override;
     void drawScrollbar(juce::Graphics&, juce::ScrollBar&, int x, int y, int w, int h,
                        bool isVertical, int thumbStart, int thumbSize,
                        bool mouseOver, bool mouseDown) override;

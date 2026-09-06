@@ -98,6 +98,23 @@ target_sources(hum_tests PRIVATE
   tests/SiltTests.cpp
   tests/MelodyTraceTests.cpp
   tests/SliderTests.cpp
+  tests/ButtonTests.cpp
+  tests/MidiChordTests.cpp
+  tests/CautionTests.cpp
+  tests/VideoTrackTests.cpp
+  tests/VideoTakeClockTests.cpp
+  tests/MediaProbeTests.cpp
+  tests/Coupling303Tests.cpp
+  tests/AcidTests.cpp
+  tests/RiffTests.cpp
+  tests/SequenceTests.cpp
+  tests/DxtDecodeTests.cpp
+  tests/PadBarTests.cpp
+  tests/CrossfaderCutTests.cpp
+  tests/VideoPadTests.cpp
+  tests/FollowerSensorTests.cpp
+  tests/GraphHandoverTests.cpp
+  tests/UiTickerTests.cpp
   tests/GateTests.cpp
   tests/ClusterTests.cpp
   tests/HarmonizerTests.cpp

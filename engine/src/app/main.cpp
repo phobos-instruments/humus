@@ -27,6 +27,8 @@
 
 #if HUM_LIVE_AUDIO
 #include <juce_audio_devices/juce_audio_devices.h>
+
+#include "hum/dsp/DspMath.h"
 #endif
 
 using namespace hum;
@@ -37,7 +39,7 @@ struct Override { std::string organism, param; double value; };
 
 struct Opts {
     double seconds = 10.0;
-    double sampleRate = 44100.0;
+    double sampleRate = kDefaultSampleRate;
     int block = 512;
     unsigned seed = 0;
     bool seedSet = false;
@@ -165,7 +167,7 @@ int cmdPlay(const std::string& path, const Opts& o) {
     applyOverrides(*graph, o.sets);
 
     struct Cb : juce::AudioIODeviceCallback {
-        std::shared_ptr<AudioGraph> g; MasterTap* so = nullptr; int block = 512; double sr = 44100;
+        std::shared_ptr<AudioGraph> g; MasterTap* so = nullptr; int block = 512; double sr = (int) kDefaultSampleRate;
         void audioDeviceAboutToStart(juce::AudioIODevice* d) override {
             sr = d->getCurrentSampleRate(); block = d->getCurrentBufferSizeSamples();
             g->prepare(sr, block, g->transport().tempo());

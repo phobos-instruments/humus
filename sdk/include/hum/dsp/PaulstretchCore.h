@@ -9,6 +9,8 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_dsp/juce_dsp.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class PaulstretchFrame {
@@ -62,7 +64,7 @@ public:
             rng ^= rng << 13;
             rng ^= rng >> 17;
             rng ^= rng << 5;
-            const double ph = 6.283185307179586 * (double) rng / 4294967296.0;
+            const double ph = kTwoPi * (double) rng / 4294967296.0;
             fftBuf_[(size_t) (2 * k)] = mag * (float) std::cos(ph);
             fftBuf_[(size_t) (2 * k + 1)] = mag * (float) std::sin(ph);
         }

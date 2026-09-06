@@ -23,6 +23,25 @@
 
 namespace hum {
 
+int EngineHost::reconcilePropertyTypes(PatchDocumentModel& doc) {
+    int fixed = 0;
+    for (auto& cm : doc.organisms) {
+        if (isPluginKind(cm.kind)) continue;
+        for (const auto& d : schemaFor(cm.classRaw.empty() ? cm.displayClass : cm.classRaw)) {
+            if (!d.isText) continue;
+            const std::string want = d.isPlainText ? "text" : "soundfile";
+            for (auto& p : cm.properties) {
+                if (p.name != d.name || p.type == want || p.type == "text" || p.type == "soundfile")
+                    continue;
+                p.type = want;
+                p.userEdited = true;
+                ++fixed;
+            }
+        }
+    }
+    return fixed;
+}
+
 std::string EngineHost::addOrganism(const std::string& className, juce::Point<int> at,
                                        const std::string& podScope) {
     pushUndo();
@@ -236,6 +255,42 @@ std::pair<int, int> classMidiIO(const std::string& cls) {
     auto* m = dynamic_cast<MidiNode*>(c.get());
     return {m ? m->numMidiInputs() : 0, m ? m->numMidiOutputs() : 0};
 }
+
+std::pair<int, int> classVideoIO(const std::string& cls) {
+    OrganismPtr c;
+    if (isPluginKind(parseClassString(cls).kind)) c = PluginHost::createOrganism(cls);
+    if (!c) c = Registry::instance().create(cls);
+    auto* v = dynamic_cast<VideoNode*>(c.get());
+    return {v ? v->numVideoInputs() : 0, v ? v->numVideoOutputs() : 0};
+}
+
+template <class Remove, class Connect>
+void spliceBefore(const std::vector<ConnectionModel>& conns, const std::string& name,
+                  const std::string& nn, std::pair<int, int> io, int nameIns,
+                  Remove remove, Connect connect) {
+    if (io.first <= 0 && io.second <= 0) return;
+    std::vector<ConnectionModel> feeders;
+    for (const auto& c : conns) if (c.dst == name) feeders.push_back(c);
+    for (const auto& f : feeders) {
+        remove(f.src, f.srcOutlet, name, f.dstInlet);
+        if (io.first > 0) connect(f.src, f.srcOutlet, nn, std::min(f.dstInlet, io.first - 1));
+    }
+    for (int k = 0; k < std::min(io.second, nameIns); ++k) connect(nn, k, name, k);
+}
+
+template <class Remove, class Connect>
+void spliceAfter(const std::vector<ConnectionModel>& conns, const std::string& name,
+                 const std::string& nn, std::pair<int, int> io, int nameOuts,
+                 Remove remove, Connect connect) {
+    if (io.first <= 0 && io.second <= 0) return;
+    std::vector<ConnectionModel> consumers;
+    for (const auto& c : conns) if (c.src == name) consumers.push_back(c);
+    for (const auto& u : consumers) {
+        remove(name, u.srcOutlet, u.dst, u.dstInlet);
+        if (io.second > 0) connect(nn, std::min(u.srcOutlet, io.second - 1), u.dst, u.dstInlet);
+    }
+    for (int k = 0; k < std::min(nameOuts, io.first); ++k) connect(name, k, nn, k);
+}
 }
 
 void EngineHost::dropInvalidConnections() {
@@ -275,6 +330,16 @@ std::string EngineHost::substituteOrganism(const std::string& name, const std::s
     }
     for (auto& c : midiOld)      removeMidiConnection(c.src, c.srcOutlet, c.dst, c.dstInlet);
     for (auto& c : midiRerouted) connectMidi(c.src, c.srcOutlet, c.dst, c.dstInlet);
+
+    const auto vio = classVideoIO(newClass);
+    std::vector<ConnectionModel> videoRerouted, videoOld;
+    for (auto& c : model_.videoConnections) {
+        if (c.dst == name && c.dstInlet  < vio.first)  videoRerouted.push_back({c.src, c.srcOutlet, nn, c.dstInlet});
+        if (c.src == name && c.srcOutlet < vio.second) videoRerouted.push_back({nn, c.srcOutlet, c.dst, c.dstInlet});
+        if (c.src == name || c.dst == name) videoOld.push_back(c);
+    }
+    for (auto& c : videoOld)      removeVideoConnection(c.src, c.srcOutlet, c.dst, c.dstInlet);
+    for (auto& c : videoRerouted) connectVideo(c.src, c.srcOutlet, c.dst, c.dstInlet);
 
     setPosition(name, {pos.x + 24, pos.y + 70});
     endTransaction();
@@ -325,36 +390,71 @@ std::string EngineHost::insertBefore(const std::string& name, const std::string&
         return nn;
     }
 
+    const int midiIns = midiInletsOf(name);
+    const int videoIns = videoInletsOf(name);
     beginTransaction();
     const auto pos = position(name);
     const auto nn = addOrganism(newClass, {pos.x, juce::jmax(0, pos.y - 70)},
                                 pods::parentOf(name));
-    const auto io = classIO(newClass);
-    for (auto& f : feeders) {
-        removeConnection(f.src, f.srcOutlet, name, f.dstInlet);
-        if (io.first > 0) connect(f.src, f.srcOutlet, nn, std::min(f.dstInlet, io.first - 1));
-    }
-    for (int k = 0; k < std::min(io.second, nameIns); ++k) connect(nn, k, name, k);
+    auto cutAudio = [this](const std::string& a, int b, const std::string& c, int d) {
+        removeConnection(a, b, c, d);
+    };
+    auto joinAudio = [this](const std::string& a, int b, const std::string& c, int d) {
+        connect(a, b, c, d);
+    };
+    auto cutMidi = [this](const std::string& a, int b, const std::string& c, int d) {
+        removeMidiConnection(a, b, c, d);
+    };
+    auto joinMidi = [this](const std::string& a, int b, const std::string& c, int d) {
+        connectMidi(a, b, c, d);
+    };
+    auto cutVideo = [this](const std::string& a, int b, const std::string& c, int d) {
+        removeVideoConnection(a, b, c, d);
+    };
+    auto joinVideo = [this](const std::string& a, int b, const std::string& c, int d) {
+        connectVideo(a, b, c, d);
+    };
+    spliceBefore(model_.connections, name, nn, classIO(newClass), nameIns, cutAudio, joinAudio);
+    spliceBefore(model_.midiConnections, name, nn, classMidiIO(newClass), midiIns, cutMidi,
+                 joinMidi);
+    spliceBefore(model_.videoConnections, name, nn, classVideoIO(newClass), videoIns, cutVideo,
+                 joinVideo);
     endTransaction();
     return nn;
 }
 
 std::string EngineHost::insertAfter(const std::string& name, const std::string& newClass) {
     if (!model_.byName(name)) return {};
+    const int nameOuts = outletsOf(name);
+    const int midiOuts = midiOutletsOf(name);
+    const int videoOuts = videoOutletsOf(name);
     beginTransaction();
     const auto pos = position(name);
     const auto nn = addOrganism(newClass, {pos.x, pos.y + 70},
                                 pods::parentOf(name));
-    const auto io = classIO(newClass);
-    const int nameOuts = outletsOf(name);
-
-    std::vector<ConnectionModel> consumers;
-    for (auto& c : model_.connections) if (c.src == name) consumers.push_back(c);
-    for (auto& c : consumers) {
-        removeConnection(name, c.srcOutlet, c.dst, c.dstInlet);
-        if (io.second > 0) connect(nn, std::min(c.srcOutlet, io.second - 1), c.dst, c.dstInlet);
-    }
-    for (int k = 0; k < std::min(nameOuts, io.first); ++k) connect(name, k, nn, k);
+    auto cutAudio = [this](const std::string& a, int b, const std::string& c, int d) {
+        removeConnection(a, b, c, d);
+    };
+    auto joinAudio = [this](const std::string& a, int b, const std::string& c, int d) {
+        connect(a, b, c, d);
+    };
+    auto cutMidi = [this](const std::string& a, int b, const std::string& c, int d) {
+        removeMidiConnection(a, b, c, d);
+    };
+    auto joinMidi = [this](const std::string& a, int b, const std::string& c, int d) {
+        connectMidi(a, b, c, d);
+    };
+    auto cutVideo = [this](const std::string& a, int b, const std::string& c, int d) {
+        removeVideoConnection(a, b, c, d);
+    };
+    auto joinVideo = [this](const std::string& a, int b, const std::string& c, int d) {
+        connectVideo(a, b, c, d);
+    };
+    spliceAfter(model_.connections, name, nn, classIO(newClass), nameOuts, cutAudio, joinAudio);
+    spliceAfter(model_.midiConnections, name, nn, classMidiIO(newClass), midiOuts, cutMidi,
+                joinMidi);
+    spliceAfter(model_.videoConnections, name, nn, classVideoIO(newClass), videoOuts, cutVideo,
+                joinVideo);
     endTransaction();
     return nn;
 }

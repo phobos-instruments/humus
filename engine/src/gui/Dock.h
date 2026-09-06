@@ -5,6 +5,7 @@
 
 #include "gui/FreeWindow.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -45,7 +46,7 @@ private:
 
     struct Grip : juce::Component, public juce::SettableTooltipClient {
         explicit Grip(SideBySide& o) : owner(o) {
-            setTooltip("Drag to resize the organism list; click to hide/show it");
+            setTooltip(tr("dock.drag-to-resize-the-organism", "Drag to resize the organism list; click to hide/show it"));
         }
         SideBySide& owner;
         bool over = false;
@@ -121,8 +122,8 @@ public:
     explicit DockPane(juce::String title) : title_(std::move(title)) {
         addAndMakeVisible(detachBtn_);
         addAndMakeVisible(closeBtn_);
-        detachBtn_.setTooltip("Detach into a floating window");
-        closeBtn_.setTooltip("Hide this pane");
+        detachBtn_.setTooltip(tr("dock.detach-into-a-floating-window", "Detach into a floating window"));
+        closeBtn_.setTooltip(tr("dock.hide-this-pane", "Hide this pane"));
         detachBtn_.onClick = [this] { if (onDetach) onDetach(); };
         closeBtn_.onClick = [this] { if (onClose) onClose(); };
     }
@@ -299,7 +300,7 @@ private:
     int stripH_ = 0;
 };
 
-class FloatingPaneWindow : public juce::DocumentWindow {
+class FloatingPaneWindow : public juce::DocumentWindow, public juce::DragAndDropContainer {
 public:
     FloatingPaneWindow(const juce::String& name, juce::Component* content,
                        juce::Rectangle<int> bounds, std::function<void()> onCloseRequested,

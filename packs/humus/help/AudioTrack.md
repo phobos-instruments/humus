@@ -43,3 +43,7 @@ Clips load without interrupting playback, however heavy the arrangement. Because
 ## Related Organisms
 
 Deck, Sampler, PianoRoll, Sequence
+
+## Media Info
+
+Right-click a clip and choose Media Info for the clip's position and length in beats and seconds, its in and out points, warp and source tempo, the file's path, size and date, and the sound file's format, sample rate, channels, bit depth and length. Copy puts the text on the clipboard for a bug report; Show File opens the folder it lives in.

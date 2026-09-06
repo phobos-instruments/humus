@@ -7,6 +7,7 @@
 
 #include "core/OllamaWire.h"
 #include "gui/AppSettings.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -64,7 +65,7 @@ public:
             if (const auto* blocks = response["content"].getArray())
                 for (const auto& b : *blocks)
                     if (b["type"].toString() == "text") text << b["text"].toString();
-            if (error.isEmpty() && text.isEmpty()) error = "Empty reply from the model";
+            if (error.isEmpty() && text.isEmpty()) error = tr("ai-client.empty-reply-from-the-model", "Empty reply from the model");
             if (onDone) onDone(text, error);
         });
     }
@@ -116,7 +117,7 @@ private:
         if (auto errVar = response["error"]; errVar.isObject())
             error = "API error: " + errVar["message"].toString();
         else if (!response["content"].isArray())
-            error = "Malformed reply from the API";
+            error = tr("ai-client.malformed-reply-from-the-api", "Malformed reply from the API");
     }
 
     static void fetchOllama(const ChatRequest& req, const juce::String& base,

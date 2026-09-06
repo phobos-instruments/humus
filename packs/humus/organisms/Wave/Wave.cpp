@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -49,7 +51,7 @@ void Wave::noteOn(int note, int vel) {
 
     Voice& v = voices_[(size_t) slot];
     v.note = note;
-    v.vel = (float) vel / 127.0f;
+    v.vel = (float) vel / kMidiMaxF;
     v.gate = true;
     for (int u = 0; u < 6; ++u) v.uphase[u] = v.phase + (u + 1) * 0.137;
 }
@@ -117,7 +119,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
     std::fill(L, L + numSamples, 0.0f);
     if (R != L) std::fill(R, R + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
     {
         const auto* tp = params.byName("Table");
@@ -140,7 +142,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
     stagedCount_ = 0;
 
     const bool poly = params.get("Mode", 1.0) >= 0.5;
-    const double note = std::clamp(params.get("Note", 48.0), 0.0, 127.0);
+    const double note = std::clamp(params.get("Note", 48.0), 0.0, kMidiMaxD);
     const double attack = std::max(1.0, params.get("Attack", 5.0));
     const double release = std::max(20.0, params.get("Release", 400.0));
     const float sub = (float) std::clamp(params.get("Sub", 0.0), 0.0, 1.0);
@@ -199,7 +201,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
             if (fmix > 0.0f)
                 w += fmix * (warpRead(t1, kWaveTableLen, freePhase_, warpMode, warpRamp_[(size_t) i]) - w);
             if (sub > 0.0f) {
-                w += sub * (float) std::sin(6.283185307179586 * freeSubPhase_);
+                w += sub * (float) std::sin(kTwoPi * freeSubPhase_);
                 freeSubPhase_ += dt * 0.5;
                 if (freeSubPhase_ >= 1.0) freeSubPhase_ -= 1.0;
             }
@@ -251,7 +253,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
             }
             wL *= unorm; wR *= unorm;
             if (sub > 0.0f) {
-                const float sv = sub * (float) std::sin(6.283185307179586 * v.subPhase);
+                const float sv = sub * (float) std::sin(kTwoPi * v.subPhase);
                 wL += sv; wR += sv;
                 v.subPhase += dt * 0.5;
                 if (v.subPhase >= 1.0) v.subPhase -= 1.0;

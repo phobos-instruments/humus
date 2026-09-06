@@ -28,12 +28,14 @@ add_library(hum_core STATIC
   src/core/AssistantProtocol.cpp
   src/core/OllamaWire.cpp
   src/core/RecipeSynth.cpp
+  src/io/MidiExport.cpp
   src/io/PatchWriter.cpp
   src/io/PatchWriterElements.cpp
   src/io/PatchDocument.cpp
   src/io/PatchDocumentPattern.cpp
   src/io/PatchLoader.cpp
   src/io/WavWriter.cpp
+  src/io/Mp3Writer.cpp
   src/io/AutosaveStore.cpp
 )
 target_include_directories(hum_core PUBLIC src)
@@ -41,6 +43,7 @@ target_compile_definitions(hum_core PUBLIC
   HUM_PACKS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../packs")
 target_link_libraries(hum_core PUBLIC
   monocypher
+  mp3lame
   ableton_link
   hum_sdk
   hum_pack_core

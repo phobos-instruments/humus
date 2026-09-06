@@ -19,6 +19,8 @@
 
 #include <juce_core/juce_core.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class HumNet {
@@ -103,12 +105,12 @@ inline float half2float(uint16_t h) {
             int e = -1;
             uint32_t m = man;
             do { ++e; m <<= 1; } while ((m & 0x400u) == 0);
-            bits = sign | ((uint32_t) (127 - 15 - e) << 23) | ((m & 0x3FFu) << 13);
+            bits = sign | ((uint32_t) (kMidiMax - 15 - e) << 23) | ((m & 0x3FFu) << 13);
         }
     } else if (exp == 31) {
         bits = sign | 0x7F800000u | (man << 13);
     } else {
-        bits = sign | ((exp + 127 - 15) << 23) | (man << 13);
+        bits = sign | ((exp + kMidiMax - 15) << 23) | (man << 13);
     }
     float f;
     std::memcpy(&f, &bits, 4);

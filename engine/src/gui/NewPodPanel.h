@@ -4,6 +4,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -25,8 +26,8 @@ public:
         stepper(midiIns_, 0, 8, 1);
         stepper(midiOuts_, 0, 8, 1);
 
-        ports_.addItem("Stereo pairs", 1);
-        ports_.addItem("Mono ports", 2);
+        ports_.addItem(tr("new-pod.stereo-pairs", "Stereo pairs"), 1);
+        ports_.addItem(tr("new-pod.mono-ports", "Mono ports"), 2);
         ports_.setSelectedId(1, juce::dontSendNotification);
         ports_.onChange = [this] { repaint(); };
         addAndMakeVisible(ports_);
@@ -79,10 +80,10 @@ public:
         auto r = getLocalBounds().reduced(14, 12);
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(15.0f, juce::Font::bold));
-        g.drawText("New Pod", r.removeFromTop(20), juce::Justification::centredLeft);
+        g.drawText(tr("new-pod.new-pod", "New Pod"), r.removeFromTop(20), juce::Justification::centredLeft);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(11.5f));
-        g.drawText("A patch inside one box. Double-click the box to open it.",
+        g.drawText(tr("new-pod.a-patch-inside-one-box", "A patch inside one box. Double-click the box to open it."),
                    r.removeFromTop(18), juce::Justification::centredLeft);
 
         drawPodPreview(g);
@@ -90,7 +91,7 @@ public:
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(12.5f));
         auto rows = preview_.getBottom() + 10;
-        const char* labels[] = {"Audio in", "Audio out", "MIDI in", "MIDI out", "Ports"};
+        const juce::String labels[] = {tr("new-pod.audio-in", "Audio in"), tr("new-pod.audio-out", "Audio out"), tr("new-pod.midi-in", "MIDI in"), tr("new-pod.midi-out", "MIDI out"), "Ports"};
         for (int i = 0; i < 5; ++i)
             g.drawText(labels[i], r.getX(), rows + i * 32, 92, 26,
                        juce::Justification::centredLeft);
@@ -173,7 +174,7 @@ private:
         };
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.5f));
-        g.drawText("in: " + caption(aIns) + "    out: " + caption(aOuts),
+        g.drawText(tr("new-pod.in", "in: ") + caption(aIns) + tr("new-pod.out", "    out: ") + caption(aOuts),
                    preview_.withTop(preview_.getBottom() - 16),
                    juce::Justification::centredTop);
     }

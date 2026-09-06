@@ -7,6 +7,8 @@
 #include "hum/Pattern.h"
 #include "hum/Transport.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct OrganismState {
@@ -45,7 +47,7 @@ public:
 
 protected:
     std::string name_;
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
 };
 
 using OrganismPtr = std::unique_ptr<Organism>;

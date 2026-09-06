@@ -10,6 +10,8 @@
 #include "hum/Capabilities.h"
 #include "hum/Organism.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 enum class GritCart { kNone, kVrc6, kMmc5, kFds, kN163, k5B, kVrc7 };
@@ -98,7 +100,7 @@ private:
 
     std::unique_ptr<Impl> impl_;
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     bool pal_ = false;
     int cachedCart_ = -1;
     int cachedWave_ = -1;

@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Phaser::process(const float* const* in, int numIn, float* const* out, int numOut,
@@ -18,7 +20,7 @@ void Phaser::process(const float* const* in, int numIn, float* const* out, int n
     for (int n = 0; n < numSamples; ++n) {
         const double lfoVal = Lfo::sineUp(lfo_.tick());
         const double fc = std::exp(logMin + lfoVal * (logMax - logMin));
-        const double tn = std::tan(M_PI * std::min(fc, sampleRate_ * 0.49) / sampleRate_);
+        const double tn = std::tan(kPi * std::min(fc, sampleRate_ * 0.49) / sampleRate_);
         const double a = (tn - 1.0) / (tn + 1.0);
 
         for (int c = 0; c < numOut && c < 2; ++c) {

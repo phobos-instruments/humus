@@ -4,16 +4,17 @@
 #include <cmath>
 #include <cstdint>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 namespace {
 
-constexpr double kTwoPi = 6.28318530717958647692;
 constexpr double kMaxTimeMs = 8.0, kMaxRange = 5.0;
 
 }
 
 void Spark::prepare(double sampleRate, int) {
-    sampleRate_ = sampleRate > 0.0 ? sampleRate : 44100.0;
+    sampleRate_ = sampleRate > 0.0 ? sampleRate : kDefaultSampleRate;
     const int maxSamples =
         (int) std::ceil(kMaxTimeMs * std::exp2(kMaxRange) * 0.001 * sampleRate_) + 8;
     std::uint32_t rng = 0x5A2C0FFu;

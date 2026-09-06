@@ -3,24 +3,51 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
+void Acid::forgetHeld(int note) {
+    int kept = 0;
+    for (int i = 0; i < heldCount_; ++i)
+        if (heldNotes_[(size_t) i] != note) heldNotes_[(size_t) kept++] = heldNotes_[(size_t) i];
+    heldCount_ = kept;
+}
+
+double Acid::accentFor(int vel) const {
+    const double binary = vel >= kAccentVelocity ? 1.0 : 0.0;
+    const double continuous = std::clamp((vel - 40.0) / 87.0, 0.0, 1.0);
+    const double byVelocity = std::clamp(params.get("Velocity", 0.0), 0.0, 1.0);
+    return binary + (continuous - binary) * byVelocity;
+}
+
 void Acid::noteOn(int note, int vel, const Tuning& tuning) {
-    const bool legato = held_ > 0 && gate_;
-    ++held_;
+    const bool legato = heldCount_ > 0 && gate_;
+    forgetHeld(note);
+    if (heldCount_ == kMaxHeld) {
+        for (int i = 1; i < heldCount_; ++i) heldNotes_[(size_t) i - 1] = heldNotes_[(size_t) i];
+        --heldCount_;
+    }
+    heldNotes_[(size_t) heldCount_++] = note;
     note_ = note;
     targetFreq_ = tuning.hz(note);
     gate_ = true;
     if (!legato) {
         envT_ = 0;
-        accent_ = vel >= kAccentVelocity;
+        accentLevel_ = accentFor(vel);
         if (params.get("Glide", 60.0) < 1.0) curFreq_ = targetFreq_;
     }
 }
 
-void Acid::noteOff(int note) {
-    if (held_ > 0) --held_;
-    if (note == note_ && held_ == 0) gate_ = false;
+void Acid::noteOff(int note, const Tuning& tuning) {
+    forgetHeld(note);
+    if (heldCount_ == 0) {
+        gate_ = false;
+        return;
+    }
+    if (note != note_) return;
+    note_ = heldNotes_[(size_t) heldCount_ - 1];
+    targetFreq_ = tuning.hz(note_);
 }
 
 void Acid::process(const float* const*, int, float* const* out, int numOut,
@@ -29,7 +56,7 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
     float* o = out[0];
     for (int c = 1; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int wave = std::clamp((int) std::lround(params.get("Wave", 0.0)), 0, 3);
     const double cutoff = params.get("Cutoff", 900.0);
     const double res = std::max(0.5, params.get("Resonance", 6.0));
@@ -44,11 +71,22 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
     const double accentDecay = std::max(30.0, params.get("AccentDecay", 200.0)) * 0.001 * sr;
     const double filterFM = std::clamp(params.get("FilterFM", 0.0), 0.0, 1.0);
     const double track = std::clamp(params.get("Track", 0.0), 0.0, 1.0);
-    const double glide = glideMs < 1.0 ? 1.0 : 1.0 - std::exp(-1.0 / (glideMs * 0.001 * sr));
+    const double sustain = std::clamp(params.get("Sustain", 0.0), 0.0, 1.0);
+    const double squelch = std::clamp(params.get("Squelch", 0.8), 0.0, 1.0);
+    const double punch = std::clamp(params.get("Punch", 0.5), 0.0, 1.0);
+    const double muffler = std::clamp(params.get("Muffler", 0.0), 0.0, 1.0);
+    if (std::abs(squelch - squelchSet_) > 1e-6) {
+        squelchSet_ = squelch;
+        lp_.setFeedbackHighpass(kSquelchHighHz - (kSquelchHighHz - kSquelchLowHz) * squelch);
+    }
+    const double mufflerHz = kMufflerOpenHz * std::pow(kMufflerClosedHz / kMufflerOpenHz, muffler);
+    const double mufCoef = 1.0 - std::exp(-kTwoPi * mufflerHz / sr);
+    const double acc = accent * accentLevel_;
+    const double glide = glideMs < 1.0 ? 1.0 : 1.0 - std::exp(-1.0 / (kSlideTimeConstant * glideMs * 0.001 * sr));
     const double atk = 1.0 - std::exp(-1.0 / (attackMs * 0.001 * sr));
     const double pluck = ampDecayMs >= 2990.0
         ? 0.0 : 1.0 - std::exp(-1.0 / (ampDecayMs * 0.001 * sr));
-    const double rel = 1.0 - std::exp(-1.0 / ((accent_ ? 0.05 : 0.008) * sr));
+    const double rel = 1.0 - std::exp(-1.0 / ((0.008 + 0.042 * accentLevel_) * sr));
     const double resN = std::clamp((res - 0.5) / 11.5, 0.0, 1.0);
     const double accUp = 1.0 - std::exp(-1.0 / ((0.004 + 0.05 * resN) * sr));
     const double accDown = 1.0 - std::exp(-1.0 / (0.28 * sr));
@@ -79,12 +117,13 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
 
     int ei = 0;
     int ctrl = 0;
+    double fenvNow = 0.0;
     for (int i = 0; i < numSamples; ++i) {
         while (ei < nEv && ev[ei].sampleOffset <= i) {
             const auto& e = ev[ei++];
             const int st = e.data[0] & 0xF0;
             if (st == 0x90 && e.data[2] > 0) noteOn(e.data[1], e.data[2], transport.tuning());
-            else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) noteOff(e.data[1]);
+            else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) noteOff(e.data[1], transport.tuning());
         }
         {
             const double p = lfo_.tick();
@@ -103,8 +142,9 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
             lfoPrevPhase_ = p;
         }
         if ((ctrl++ & 15) == 0) {
-            const double megDecay = accent_ ? accentDecay : decay;
+            const double megDecay = decay + (accentDecay - decay) * accentLevel_;
             const double fenv = envT_ >= 0 ? std::exp(-(double) envT_ / megDecay) : 0.0;
+            fenvNow = fenv;
             const double trackOct = track * std::log2(std::max(20.0, curFreq_) / 261.626);
             const double hz = std::clamp(
                 cutoff * std::pow(2.0, envMod * 3.6 * fenv + accSweep_ * 2.4
@@ -114,14 +154,14 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
         }
         if (envT_ >= 0) ++envT_;
         {
-            const double accEnv = accent_ && envT_ >= 0
-                ? accent * std::exp(-(double) envT_ / accentDecay) : 0.0;
+            const double accEnv = accentLevel_ > 0.0 && envT_ >= 0
+                ? acc * std::exp(-(double) envT_ / accentDecay) : 0.0;
             accSweep_ += (accEnv > accSweep_ ? accUp : accDown) * (accEnv - accSweep_);
         }
         curFreq_ += (targetFreq_ - curFreq_) * glide;
         if (gate_) {
             const bool attacking = envT_ >= 0 && envT_ < (long) (0.010 * sr);
-            amp_ += attacking ? (1.0 - amp_) * atk : (0.0 - amp_) * pluck;
+            amp_ += attacking ? (1.0 - amp_) * atk : (sustain - amp_) * pluck;
         } else {
             amp_ += (0.0 - amp_) * rel;
         }
@@ -136,10 +176,15 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
         }
         const float preGain = (float) std::pow(66.6, std::pow((double) drive, 1.7));
         const double fmOct = filterFM > 0.0 ? filterFM * 1.5 * (double) lastOut_ : 0.0;
-        s = lp_.process(s * preGain, fmOct);
-        const float accGain = accent_ ? (float) (1.0 + 0.7 * accent) : 1.0f;
+        s = coupling_.post(lp_.process(coupling_.pre(s) * preGain, fmOct));
+        const float accGain = (float) (1.0 + 0.7 * acc);
         s = std::tanh(s * (1.0f + 1.2f * drive) * accGain);
-        const float y = s * (float) amp_ * level;
+        if (muffler > 0.0) {
+            muffled_ += ((double) s - muffled_) * mufCoef;
+            s = (float) muffled_;
+        }
+        const double lift = 1.0 + punch * fenvNow * (0.45 + 1.5 * acc);
+        const float y = s * (float) (amp_ * lift) * level;
         lastOut_ = y;
         o[i] = y;
     }

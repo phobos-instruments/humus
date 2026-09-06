@@ -1,5 +1,7 @@
 #include "gui/SettingsComponent.h"
 
+#include "gui/Localisation.h"
+
 #include <juce_gui_extra/juce_gui_extra.h>
 
 #include "gui/AppSettings.h"
@@ -9,12 +11,23 @@
 #include "gui/PickerLauncher.h"
 #include "gui/PluginManagerView.h"
 #include "gui/ThemeStore.h"
+#include "gui/VideoCacheSettingsView.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
 namespace {
-const char* kRoleNames[9] = {"Background", "Panel", "Panel Light", "Border", "Accent",
-                             "Accent Dim", "Text", "Text Dim", "Cord"};
+struct RoleName { const char* key; const char* name; };
+const RoleName kRoleNames[9] = {{"settings.role-background", "Background"},
+                                {"settings.role-panel", "Panel"},
+                                {"settings.role-panel-light", "Panel Light"},
+                                {"settings.role-border", "Border"},
+                                {"settings.role-accent", "Accent"},
+                                {"settings.role-accent-dim", "Accent Dim"},
+                                {"settings.role-text", "Text"},
+                                {"settings.role-text-dim", "Text Dim"},
+                                {"settings.role-cord", "Cord"}};
 constexpr int customComboId() { return 100; }
 constexpr int userThemeBase() { return 200; }
 }
@@ -85,6 +98,8 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
     addAndMakeVisible(categories_);
     categories_.setRowHeight(24);
     midiView_ = std::make_unique<MidiSettingsView>(host);
+    videoView_ = std::make_unique<VideoCacheSettingsView>();
+    addChildComponent(*videoView_);
     addChildComponent(*midiView_);
     audioView_ = std::make_unique<AudioSettingsPanel>(host);
     addChildComponent(*audioView_);
@@ -101,11 +116,11 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
         addChildComponent(*licenseView_);
     }
 
-    appearanceTitle_.setText("Graphics & UI", juce::dontSendNotification);
+    appearanceTitle_.setText(tr("settings.graphics-and-ui", "Graphics & UI"), juce::dontSendNotification);
     appearanceTitle_.setFont(juce::FontOptions(16.0f).withStyle("Bold"));
     addAndMakeVisible(appearanceTitle_);
 
-    themeLabel_.setText("Theme", juce::dontSendNotification);
+    themeLabel_.setText(tr("settings.theme", "Theme"), juce::dontSendNotification);
     addAndMakeVisible(themeLabel_);
     rebuildThemeCombo();
     addAndMakeVisible(themeCombo_);
@@ -138,7 +153,8 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
 
     for (int r = 0; r < kNumRoles; ++r) {
         swatchLabels_[(size_t) r] = std::make_unique<juce::Label>();
-        swatchLabels_[(size_t) r]->setText(kRoleNames[r], juce::dontSendNotification);
+        swatchLabels_[(size_t) r]->setText(tr(kRoleNames[r].key, kRoleNames[r].name),
+                                          juce::dontSendNotification);
         swatchLabels_[(size_t) r]->setFont(juce::FontOptions(12.0f));
         addAndMakeVisible(*swatchLabels_[(size_t) r]);
 
@@ -198,7 +214,37 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
         AppSettings::instance().set("contrast", contrast_.getValue());
         pushAppearance();
     };
-    uiScaleLabel_.setText("UI scale", juce::dontSendNotification);
+    languageLabel_.setText(tr("settings.language", "Language"), juce::dontSendNotification);
+    addAndMakeVisible(languageLabel_);
+    languageCombo_.addItem(tr("settings.english-as-written", "English (as written)"), 1);
+    {
+        const auto langs = i18n::available();
+        for (int i = 0; i < langs.size(); ++i)
+            languageCombo_.addItem(langs[i].name, i + 2);
+        const auto saved = i18n::saved();
+        int id = 1;
+        for (int i = 0; i < langs.size(); ++i)
+            if (langs[i].code == saved) id = i + 2;
+        languageCombo_.setSelectedId(id, juce::dontSendNotification);
+        languageCombo_.onChange = [this] {
+            const auto found = i18n::available();
+            const int i = languageCombo_.getSelectedId() - 2;
+            i18n::choose(i >= 0 && i < found.size() ? found[i].code
+                                                   : juce::String(i18n::kSystem));
+        };
+    }
+    addAndMakeVisible(languageCombo_);
+    languageHint_.setText(tr("settings.menus-and-windows-follow-the",
+       "Menus and windows follow the language they are built in, so a "
+       "change reads fully on the next launch. Drop a catalogue in "
+       "Documents/Humus/assets/Translations to add one."),
+                          juce::dontSendNotification);
+    languageHint_.setFont(juce::FontOptions(11.5f));
+    languageHint_.setColour(juce::Label::textColourId, Palette::textDim);
+    languageHint_.setJustificationType(juce::Justification::topLeft);
+    addAndMakeVisible(languageHint_);
+
+    uiScaleLabel_.setText(tr("settings.ui-scale", "UI scale"), juce::dontSendNotification);
     addAndMakeVisible(uiScaleLabel_);
     uiScale_.setRange(0.8, 1.6, 0.05);
     uiScale_.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -212,7 +258,7 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
         AppSettings::instance().set("uiScale", uiScale_.getValue());
     };
 
-    flowLights_.setButtonText("Flow lights (nodes glow with audio, MIDI ports blink)");
+    flowLights_.setButtonText(tr("settings.flow-lights-nodes-glow-with", "Flow lights (nodes glow with audio, MIDI ports blink)"));
     flowLights_.setToggleState(AppSettings::instance().getInt("ui.flowLights", 1) != 0,
                                juce::dontSendNotification);
     addAndMakeVisible(flowLights_);
@@ -220,7 +266,7 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
         AppSettings::instance().set("ui.flowLights", flowLights_.getToggleState() ? 1 : 0);
     };
 
-    menuStyleLabel_.setText("Creation menus", juce::dontSendNotification);
+    menuStyleLabel_.setText(tr("settings.creation-menus", "Creation menus"), juce::dontSendNotification);
     addAndMakeVisible(menuStyleLabel_);
     modernCard_.modern = true;
     classicCard_.selected = !modernMenusEnabled();
@@ -274,6 +320,9 @@ void SettingsComponent::showCategory(int index) {
     brightness_.setVisible(appearance);
     contrastLabel_.setVisible(appearance);
     contrast_.setVisible(appearance);
+    languageLabel_.setVisible(appearance);
+    languageCombo_.setVisible(appearance);
+    languageHint_.setVisible(appearance);
     uiScaleLabel_.setVisible(appearance);
     uiScale_.setVisible(appearance);
     flowLights_.setVisible(appearance);
@@ -299,8 +348,11 @@ void SettingsComponent::showCategory(int index) {
     packsView_->setVisible(index == kPacks);
     pluginsView_->setVisible(index == kPlugins);
     licenseView_->setVisible(index == kLicense);
+    videoView_->setVisible(index == kVideo);
     if (index == kLicense)
         static_cast<LicensePanel*>(licenseView_.get())->refresh();
+    if (index == kVideo)
+        static_cast<VideoCacheSettingsView*>(videoView_.get())->refresh();
     resized();
 }
 
@@ -314,7 +366,7 @@ void SettingsComponent::rebuildThemeCombo() {
             themeCombo_.addItem(user[i].name, userThemeBase() + (int) i);
     }
     themeCombo_.addSeparator();
-    themeCombo_.addItem("Custom", customComboId());
+    themeCombo_.addItem(tr("settings.custom", "Custom"), customComboId());
 }
 
 void SettingsComponent::updateThemeButtons() {
@@ -329,8 +381,8 @@ void SettingsComponent::promptSaveTheme() {
                                      "Name this theme. Saving to an existing name replaces it.",
                                      juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", initial);
-    aw->addButton("Save", 1, juce::KeyPress(juce::KeyPress::returnKey));
-    aw->addButton("Cancel", 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    aw->addButton(tr("settings.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    aw->addButton(tr("settings.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
     aw->enterModalState(true, juce::ModalCallbackFunction::create(
         [safe = juce::Component::SafePointer<SettingsComponent>(this), aw](int r) {
             const juce::String name = aw->getTextEditorContents("name").trim();
@@ -356,7 +408,7 @@ void SettingsComponent::exportTheme() {
                                 ? s.getString("themeName")
                             : mode == "preset"
                                 ? juce::String(themeName(s.getInt("themeIndex", 0)))
-                                : juce::String("My Theme");
+                                : juce::String(tr("settings.my-theme", "My Theme"));
     chooser_ = std::make_unique<juce::FileChooser>(
         "Export theme",
         juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
@@ -450,7 +502,7 @@ void SettingsComponent::setSwatches(const ThemeColours& c) {
 
 void SettingsComponent::paintListBoxItem(int row, juce::Graphics& g, int w, int h, bool selected) {
     static const char* names[] = {"AI", "Audio", "Graphics & UI", "License & Privacy",
-                                  "MIDI & OSC", "Packs", "Plugins"};
+                                  "MIDI & OSC", "Packs", "Plugins", "Video"};
     if (row < 0 || row >= kNumCategories) return;
     g.fillAll(selected ? Palette::accentDim : Palette::panel);
     g.setColour(selected ? juce::Colours::white : Palette::text);
@@ -473,6 +525,7 @@ void SettingsComponent::resized() {
     if (category_ == kPacks) { packsView_->setBounds(area.reduced(8)); return; }
     if (category_ == kPlugins) { pluginsView_->setBounds(area.reduced(8)); return; }
     if (category_ == kLicense) { licenseView_->setBounds(area.reduced(8)); return; }
+    if (category_ == kVideo) { videoView_->setBounds(area.reduced(8)); return; }
 
     if (category_ == kAi) {
         auto panel = area.reduced(16, 12);
@@ -545,11 +598,16 @@ void SettingsComponent::resized() {
     contrastLabel_.setBounds(contrastRow.removeFromLeft(80));
     contrast_.setBounds(contrastRow.removeFromLeft(360));
     panel.removeFromTop(8);
+    auto langRow = panel.removeFromTop(26);
+    languageLabel_.setBounds(langRow.removeFromLeft(80));
+    languageCombo_.setBounds(langRow.removeFromLeft(220));
+    languageHint_.setBounds(panel.removeFromTop(34));
+    panel.removeFromTop(6);
     auto scaleRow = panel.removeFromTop(26);
     uiScaleLabel_.setBounds(scaleRow.removeFromLeft(80));
     uiScale_.setBounds(scaleRow.removeFromLeft(360));
     panel.removeFromTop(10);
-    flowLights_.setBounds(panel.removeFromTop(24).removeFromLeft(440));
+    flowLights_.setBounds(panel.removeFromTop(24).removeFromLeft(kA4Hz));
     panel.removeFromTop(10);
     menuStyleLabel_.setBounds(panel.removeFromTop(18));
     panel.removeFromTop(4);

@@ -8,7 +8,11 @@ The fake sidechain, volume-shaper edition: a gain curve is scanned over a synced
 
 ## The shape
 
+While the transport runs a cursor rides the curve, so you can see where in the cycle you are and how deep the duck is at that moment. The same two readings, phase and gain, are control values: right-click any knob, Control with, and pick SideKick's gain to pump something else in step.
+
 Ten factory tiles below the curve - ducks of varying laziness, a slow swell, a blink, three trance-gate patterns, a riser and a triangle. Click one to load it, or draw directly on the curve: drag to sketch any shape freehand; it snaps to an efficient set of breakpoints on release. The curve is stored in the patch, so custom shapes travel with your session.
+
+The small buttons under the dB scale rework whatever is loaded. The arrows slide the shape earlier or later by a 32nd of the cycle, an eighth with Shift held, wrapping round the end: a duck nudged early pumps ahead of the kick, a gate pattern shifts by a step. REV plays the shape backwards in time, so a duck that dips on the beat becomes a swell that lands on it and a riser becomes a fall. INV flips the gain, turning dips into peaks: the complement of a gate pattern, handy on a second SideKick so two parts take turns.
 
 ## Dialing it in
 

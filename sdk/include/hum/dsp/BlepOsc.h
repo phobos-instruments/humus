@@ -1,6 +1,8 @@
 #pragma once
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct BlepOsc {
@@ -46,7 +48,7 @@ struct BlepOsc {
     }
 
     float sine(double dt) {
-        const double v = std::sin(6.283185307179586 * phase);
+        const double v = std::sin(kTwoPi * phase);
         step(dt);
         return (float) v;
     }

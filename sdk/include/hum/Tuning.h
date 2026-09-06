@@ -9,6 +9,8 @@
 
 #include "hum/Number.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Tuning {
@@ -20,20 +22,20 @@ public:
     }
 
     static Tuning equalDivisions(int divisions, double periodCents = 1200.0,
-                                 double rootNote = 69.0, double rootHz = 440.0) {
+                                 double rootNote = 69.0, double rootHz = kA4Hz) {
         Tuning t;
         t.equal_ = true;
         t.n_ = divisions < 1 ? 1 : (divisions > kMaxDegrees ? kMaxDegrees : divisions);
         t.periodCents_ = periodCents;
         t.rootNote_ = rootNote;
-        t.rootHz_ = rootHz > 0.0 ? rootHz : 440.0;
+        t.rootHz_ = rootHz > 0.0 ? rootHz : kA4Hz;
         for (int k = 1; k <= t.n_; ++k)
             t.degrees_[(std::size_t) (k - 1)] = t.periodCents_ * (double) k / (double) t.n_;
         return t;
     }
 
     static Tuning fromCents(const double* degreeCents, int n, double rootNote = 69.0,
-                            double rootHz = 440.0) {
+                            double rootHz = kA4Hz) {
         if (degreeCents == nullptr || n < 1 || n > kMaxDegrees
             || degreeCents[(std::size_t) (n - 1)] <= 0.0)
             return equalDivisions(12, 1200.0, rootNote, rootHz);
@@ -46,16 +48,16 @@ public:
         for (int i = 0; i < n; ++i) t.degrees_[(std::size_t) i] = degreeCents[(std::size_t) i];
         t.periodCents_ = degreeCents[(std::size_t) (n - 1)];
         t.rootNote_ = rootNote;
-        t.rootHz_ = rootHz > 0.0 ? rootHz : 440.0;
+        t.rootHz_ = rootHz > 0.0 ? rootHz : kA4Hz;
         return t;
     }
     static Tuning fromCents(const std::vector<double>& degreeCents, double rootNote = 69.0,
-                            double rootHz = 440.0) {
+                            double rootHz = kA4Hz) {
         return fromCents(degreeCents.data(), (int) degreeCents.size(), rootNote, rootHz);
     }
 
     static Tuning fromSclText(const std::string& text, double rootNote = 69.0,
-                              double rootHz = 440.0) {
+                              double rootHz = kA4Hz) {
         const Tuning fallback = equalDivisions(12, 1200.0, rootNote, rootHz);
         double cents[kMaxDegrees];
         int want = -1, got = 0, realLine = 0;
@@ -175,7 +177,7 @@ public:
 
     bool isStandard() const {
         return equal_ && !keyMapped_ && n_ == 12 && periodCents_ == 1200.0
-               && rootNote_ == 69.0 && rootHz_ == 440.0;
+               && rootNote_ == 69.0 && rootHz_ == kA4Hz;
     }
 
     bool operator==(const Tuning& o) const {
@@ -223,7 +225,7 @@ private:
     int n_ = 12;
     double periodCents_ = 1200.0;
     double rootNote_ = 69.0;
-    double rootHz_ = 440.0;
+    double rootHz_ = kA4Hz;
     std::array<double, kMaxDegrees> degrees_{};
     std::array<std::int8_t, 12> keyMap_{};
 };

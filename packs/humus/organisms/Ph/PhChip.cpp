@@ -8,6 +8,8 @@
 
 #include "Ph/PhChipBank.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -73,7 +75,7 @@ PhVoice PhChip::voiceAt(int slot) const {
     for (int i = 0; i < 4; ++i) {
         const Op& o = pt.ops[(size_t) i];
         PhVoiceOp& op = v.ops[(size_t) i];
-        op.level = 99 - std::clamp((int) o.tl * 99 / 127, 0, 99);
+        op.level = 99 - std::clamp((int) o.tl * 99 / kSevenBitMax, 0, 99);
         op.ratio = o.mult;
         op.detune = std::clamp((int) o.dt * 2, 0, 14);
         op.attack = fromChip(o.ar, 31);
@@ -92,7 +94,7 @@ void PhChip::setVoice(const PhVoice& v) {
     for (int i = 0; i < 4; ++i) {
         const PhVoiceOp& src = v.ops[(size_t) i];
         Op& o = p.ops[(size_t) i];
-        o.tl = (uint8_t) std::clamp(127 - src.level * 127 / 99, 0, 127);
+        o.tl = (uint8_t) std::clamp(kSevenBitMax - src.level * kSevenBitMax / 99, 0, kSevenBitMax);
         o.mult = (uint8_t) std::clamp(src.ratio, 0, 15);
         o.dt = (uint8_t) std::clamp(src.detune / 2, 0, 6);
         o.ar = (uint8_t) toChip(src.attack, 31);
@@ -124,7 +126,7 @@ bool PhChip::loadTfi(const std::string& path) {
         Op& op = p.ops[(size_t) i];
         op.mult = (uint8_t) (o[0] & 15);
         op.dt = (uint8_t) std::min<int>(6, o[1]);
-        op.tl = (uint8_t) (o[2] & 127);
+        op.tl = (uint8_t) (o[2] & kSevenBitMax);
         op.rs = (uint8_t) (o[3] & 3);
         op.ar = (uint8_t) (o[4] & 31);
         op.dr = (uint8_t) (o[5] & 31);
@@ -188,7 +190,7 @@ bool PhChip::loadWopn(const std::string& path) {
             const int regDt = (ob[0] >> 4) & 7;
             op.dt = (uint8_t) (regDt <= 3 ? 3 + regDt : 3 - (regDt - 4));
             op.mult = (uint8_t) (ob[0] & 15);
-            op.tl = (uint8_t) (ob[1] & 127);
+            op.tl = (uint8_t) (ob[1] & kSevenBitMax);
             op.rs = (uint8_t) ((ob[2] >> 6) & 3);
             op.ar = (uint8_t) (ob[2] & 31);
             op.dr = (uint8_t) (ob[3] & 31);
@@ -239,9 +241,9 @@ void PhChip::writeChannelPatch(int ch, int velocity) {
         push(port, (uint8_t) (0x30 + s), (uint8_t) ((dt << 4) | op.mult));
         const bool carrier = (kCarriers[pt.alg & 7] & (1 << i)) != 0;
         int tl = op.tl;
-        if (carrier) tl += (127 - std::clamp(velocity, 1, 127)) >> 2;
+        if (carrier) tl += (kMidiMax - std::clamp(velocity, 1, kMidiMax)) >> 2;
         else tl -= lift;
-        push(port, (uint8_t) (0x40 + s), (uint8_t) std::clamp(tl, 0, 127));
+        push(port, (uint8_t) (0x40 + s), (uint8_t) std::clamp(tl, 0, kSevenBitMax));
         push(port, (uint8_t) (0x50 + s),
              (uint8_t) ((op.rs << 6) | std::clamp((int) op.ar - slowAtk, 0, 31)));
         push(port, (uint8_t) (0x60 + s), op.dr);

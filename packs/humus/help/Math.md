@@ -1,5 +1,7 @@
 # Math
 
+**Volume down first.** Math plays whatever you type, straight to the outlet: a formula can be full scale, pure DC, or a tone far above or below hearing, with no limiter in the way. The first Math you open in a session wears this note over its panel until you press OK. Keep them there while a new line settles, take headphones off to try it, and be kind to your speakers.
+
 One line of arithmetic as a patchable object: type a formula and it runs once per sample. The two inlets arrive as a and b, the four knobs as x, y, z and w, the MIDI inlet as note, freq, gate and vel, and the clock lends t (seconds), beat, bpm and sr. Writing is playing - a draft that parses sounds immediately, and a half-typed edit keeps the last good expression running. The output is exactly what the expression says; to chain like a Number, start with "a +".
 
 ## What it is for

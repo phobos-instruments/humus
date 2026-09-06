@@ -3,6 +3,7 @@
 #include "gui/EngineHost.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include "core/AudioGraph.h"
 
@@ -98,13 +99,66 @@ PatternChannel* triggerChannel(Pattern& p, int channel) {
     }
     return nullptr;
 }
+
+int rowCountOf(const std::string& classRaw) {
+    int rows = 0;
+    for (const auto& d : schemaFor(classRaw))
+        if (d.name.rfind("Note_", 0) == 0) ++rows;
+    return rows;
+}
+}
+
+void PatternHost::ensureBanks(const std::string& name, int laneCount, int banks) {
+    ensure(name, laneCount);
+    auto* cm = host_.mutableByName(name);
+    if (!cm || !cm->pattern.present) return;
+    const int want = laneCount * banks;
+    if ((int) cm->pattern.triggerChannels().size() >= want) return;
+    host_.recordPatternRevert(name);
+    while ((int) cm->pattern.triggerChannels().size() < want)
+        cm->pattern.channels.push_back(PatternChannel{});
+    host_.markPatternEdited();
+    host_.syncPattern(name);
+}
+
+int PatternHost::laneOffset(const std::string& name) const {
+    const int b = bank(name);
+    if (b == 0) return 0;
+    const auto* cm = host_.model_.byName(name);
+    return cm ? b * rowCountOf(cm->classRaw) : 0;
+}
+
+std::vector<const PatternChannel*> PatternHost::triggerLanes(const std::string& name) const {
+    const auto* cm = host_.model_.byName(name);
+    if (!cm) return {};
+    auto all = cm->pattern.triggerChannels();
+    const int rows = rowCountOf(cm->classRaw);
+    const int off = laneOffset(name);
+    if (rows <= 0) return all;
+    std::vector<const PatternChannel*> out;
+    for (int r = 0; r < rows && off + r < (int) all.size(); ++r) out.push_back(all[(size_t) (off + r)]);
+    return out;
+}
+
+void PatternHost::setLaneTriggers(const std::string& name, int bank, int lane,
+                                  const std::vector<int>& triggers) {
+    host_.recordPatternRevert(name);
+    auto* cm = host_.mutableByName(name);
+    if (!cm || !cm->pattern.present || lane < 0) return;
+    auto* ch = triggerChannel(cm->pattern, bank * rowCountOf(cm->classRaw) + lane);
+    if (!ch) return;
+    ch->triggers = triggers;
+    std::sort(ch->triggers.begin(), ch->triggers.end());
+    ch->triggers.erase(std::unique(ch->triggers.begin(), ch->triggers.end()), ch->triggers.end());
+    host_.markPatternEdited();
+    host_.syncPattern(name);
 }
 
 void PatternHost::addTrigger(const std::string& name, int channel, int tick) {
     host_.recordPatternRevert(name);
     auto* cm = host_.mutableByName(name);
     if (!cm || !cm->pattern.present || tick < 0) return;
-    auto* ch = triggerChannel(cm->pattern, channel);
+    auto* ch = triggerChannel(cm->pattern, laneOffset(name) + channel);
     if (!ch) return;
     auto& t = ch->triggers;
     if (std::find(t.begin(), t.end(), tick) != t.end()) return;
@@ -118,7 +172,7 @@ void PatternHost::removeTrigger(const std::string& name, int channel, int tick, 
     host_.recordPatternRevert(name);
     auto* cm = host_.mutableByName(name);
     if (!cm || !cm->pattern.present) return;
-    auto* ch = triggerChannel(cm->pattern, channel);
+    auto* ch = triggerChannel(cm->pattern, laneOffset(name) + channel);
     if (!ch) return;
     auto& t = ch->triggers;
     auto it = std::find_if(t.begin(), t.end(),
@@ -133,7 +187,7 @@ int PatternHost::moveTrigger(const std::string& name, int channel, int oldTick, 
     host_.recordPatternRevert(name);
     auto* cm = host_.mutableByName(name);
     if (!cm || !cm->pattern.present) return -1;
-    auto* ch = triggerChannel(cm->pattern, channel);
+    auto* ch = triggerChannel(cm->pattern, laneOffset(name) + channel);
     if (!ch) return -1;
     auto& t = ch->triggers;
     auto it = std::find(t.begin(), t.end(), oldTick);
@@ -155,7 +209,7 @@ void PatternHost::clearChannel(const std::string& name, int channel) {
     host_.recordPatternRevert(name);
     auto* cm = host_.mutableByName(name);
     if (!cm || !cm->pattern.present) return;
-    if (auto* ch = triggerChannel(cm->pattern, channel)) {
+    if (auto* ch = triggerChannel(cm->pattern, laneOffset(name) + channel)) {
         ch->triggers.clear();
         host_.markPatternEdited();
         host_.syncPattern(name);
@@ -185,7 +239,7 @@ void PatternHost::nudgeChannel(const std::string& name, int channel, int deltaTi
     if (!cm || !cm->pattern.present) return;
     const int dur = cm->pattern.duration;
     if (dur <= 0) return;
-    if (auto* ch = triggerChannel(cm->pattern, channel)) {
+    if (auto* ch = triggerChannel(cm->pattern, laneOffset(name) + channel)) {
         for (int& t : ch->triggers) t = ((t + deltaTicks) % dur + dur) % dur;
         std::sort(ch->triggers.begin(), ch->triggers.end());
         host_.markPatternEdited();
@@ -197,7 +251,7 @@ void PatternHost::setChannelSnap(const std::string& name, int channel, const std
     host_.recordPatternRevert(name);
     auto* cm = host_.mutableByName(name);
     if (!cm || !cm->pattern.present) return;
-    if (auto* ch = triggerChannel(cm->pattern, channel)) { ch->snap = snap; host_.markPatternEdited(); }
+    if (auto* ch = triggerChannel(cm->pattern, laneOffset(name) + channel)) { ch->snap = snap; host_.markPatternEdited(); }
 }
 
 void PatternHost::reframe(const std::string& name, int deltaTicks) {
@@ -216,9 +270,8 @@ void PatternHost::reframe(const std::string& name, int deltaTicks) {
 }
 
 namespace {
-PatternChannel* matrixChannelMut(Pattern& p, const std::string& type) {
-    for (auto& ch : p.channels) if (ch.type == type) return &ch;
-    return nullptr;
+PatternChannel* matrixChannelMut(Pattern& p, const std::string& type, int ordinal = 0) {
+    return const_cast<PatternChannel*>(matrixChannel(p, type, ordinal));
 }
 }
 
@@ -235,18 +288,20 @@ void PatternHost::ensureMatrix(const std::string& name, const std::string& type,
         PatternChannel ts; ts.type = "time-signatures"; ts.timeSignatures = {{0, 4, 4}};
         p.channels.push_back(ts);
     }
-    if (!matrixChannelMut(p, type)) {
-        PatternChannel ch; ch.type = type;
-        if (type == "bassline-pattern-matrix") {
+    if (type == "bassline-pattern-matrix") {
+        while (matrixChannelCount(p, type) < kPatternBanks) {
+            PatternChannel ch; ch.type = type;
             ch.matrix = encodeBassline(std::vector<BasslineStep>((size_t) steps));
-        } else {
-            std::vector<ArpStep> st((size_t) steps);
-            for (size_t i = 0; !seed.empty() && i < st.size(); ++i) {
-                const char c = seed[i % seed.size()];
-                st[i].trigger = c == '1' || c == 'x';
-            }
-            ch.matrix = encodeArp(st);
+            p.channels.push_back(ch);
         }
+    } else if (!matrixChannelMut(p, type)) {
+        PatternChannel ch; ch.type = type;
+        std::vector<ArpStep> st((size_t) steps);
+        for (size_t i = 0; !seed.empty() && i < st.size(); ++i) {
+            const char c = seed[i % seed.size()];
+            st[i].trigger = c == '1' || c == 'x';
+        }
+        ch.matrix = encodeArp(st);
         p.channels.push_back(ch);
     }
     bool hasProp = false;
@@ -259,22 +314,37 @@ void PatternHost::ensureMatrix(const std::string& name, const std::string& type,
     host_.syncPattern(name);
 }
 
+int PatternHost::bank(const std::string& name) const {
+    const double v = host_.liveParamValue(name, "Bank");
+    return std::clamp((int) std::lround(v), 0, kPatternBanks - 1);
+}
+
 std::vector<BasslineStep> PatternHost::basslineSteps(const std::string& name) const {
+    return basslineSteps(name, bank(name));
+}
+
+std::vector<BasslineStep> PatternHost::basslineSteps(const std::string& name, int bank) const {
     if (auto* cm = host_.model_.byName(name))
-        if (auto* ch = matrixChannel(cm->pattern, "bassline-pattern-matrix"))
+        if (auto* ch = matrixChannel(cm->pattern, "bassline-pattern-matrix", bank))
             return decodeBassline(ch->matrix);
     return {};
 }
 
 void PatternHost::setBasslineStep(const std::string& name, int index, const BasslineStep& s) {
-    host_.recordPatternRevert(name);
-    auto* cm = host_.mutableByName(name);
-    if (!cm || index < 0) return;
-    auto* ch = matrixChannelMut(cm->pattern, "bassline-pattern-matrix");
-    if (!ch) return;
-    auto steps = decodeBassline(ch->matrix);
+    if (index < 0) return;
+    auto steps = basslineSteps(name);
     if (index >= (int) steps.size()) steps.resize((size_t) index + 1);
     steps[(size_t) index] = s;
+    setBasslineSteps(name, bank(name), steps);
+}
+
+void PatternHost::setBasslineSteps(const std::string& name, int bank,
+                                   const std::vector<BasslineStep>& steps) {
+    host_.recordPatternRevert(name);
+    auto* cm = host_.mutableByName(name);
+    if (!cm) return;
+    auto* ch = matrixChannelMut(cm->pattern, "bassline-pattern-matrix", bank);
+    if (!ch) return;
     ch->matrix = encodeBassline(steps);
     host_.markPatternEdited();
     host_.syncPattern(name);

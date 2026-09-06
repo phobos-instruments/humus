@@ -1,0 +1,128 @@
+{
+  "width": 600,
+  "height": 196,
+  "controls": [
+    {
+      "type": "knob",
+      "param": "PosX",
+      "label": "X",
+      "x": 12,
+      "y": 8,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "PosY",
+      "label": "Y",
+      "x": 108,
+      "y": 8,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "Scale",
+      "label": "Scale",
+      "x": 204,
+      "y": 8,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "Rotate",
+      "label": "Rotate",
+      "x": 300,
+      "y": 8,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "Pixelate",
+      "label": "Pixelate",
+      "x": 396,
+      "y": 8,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "label",
+      "label": "Mirror",
+      "x": 492,
+      "y": 8,
+      "w": 96,
+      "h": 14
+    },
+    {
+      "type": "combo",
+      "param": "Mirror",
+      "label": "",
+      "x": 492,
+      "y": 30,
+      "w": 96,
+      "h": 22,
+      "options": [
+        "Off",
+        "Left",
+        "Top",
+        "Both"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Brightness",
+      "label": "Bright",
+      "x": 12,
+      "y": 100,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "Contrast",
+      "label": "Contrast",
+      "x": 108,
+      "y": 100,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "Saturation",
+      "label": "Colour",
+      "x": 204,
+      "y": 100,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "knob",
+      "param": "Hue",
+      "label": "Hue",
+      "x": 300,
+      "y": 100,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "minitoggle",
+      "param": "Invert",
+      "label": "Invert",
+      "x": 396,
+      "y": 122,
+      "w": 84,
+      "h": 22
+    }
+  ]
+}

@@ -1,10 +1,13 @@
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <vector>
 
 #include "hum/PatternMatrix.h"
 #include "hum/dsp/PitchTrack.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum::melodytrace {
 
@@ -14,19 +17,27 @@ struct Frame {
     bool voiced = false;
 };
 
-inline std::vector<Frame> frames(const float* mono, int n, double sampleRate) {
+using Watch = std::function<bool(double)>;
+
+inline std::vector<Frame> frames(const float* mono, int n, double sampleRate,
+                                 const Watch& watch = {}) {
     std::vector<Frame> out;
     PitchTracker pt;
     pt.prepare(sampleRate);
     const int hop = PitchTracker::hopSamples();
+    int sinceWatch = 0;
     for (int at = 0; at < n; at += hop) {
+        if (watch && ++sinceWatch >= 64) {
+            sinceWatch = 0;
+            if (!watch(n > 0 ? (double) at / (double) n : 1.0)) return {};
+        }
         const int take = std::min(hop, n - at);
         const int fresh = pt.push(mono + at, take);
         for (int f = 0; f < fresh; ++f) {
             Frame fr;
             fr.level = pt.level();
             if (pt.pitchHz() > 0.0 && pt.clarity() > 0.5) {
-                fr.midi = 69.0 + 12.0 * std::log2(pt.pitchHz() / 440.0);
+                fr.midi = hzToMidi(pt.pitchHz());
                 fr.voiced = fr.midi > 12.0 && fr.midi < 120.0;
             }
             out.push_back(fr);
@@ -52,9 +63,9 @@ inline std::vector<NoteEvent> notesFromFrames(const std::vector<Frame>& fr,
             NoteEvent n;
             n.tick = (int) std::lround(start * hopTicks);
             n.lengthTicks = std::max(6, (int) std::lround((endFrame - start) * hopTicks));
-            n.pitch = std::clamp((int) std::lround(sumMidi / count), 0, 127);
+            n.pitch = std::clamp((int) std::lround(sumMidi / count), 0, kMidiMax);
             const double loud = std::sqrt(std::min(1.0, sumLevel / count / std::max(1.0e-9, peak)));
-            n.velocity = std::clamp((int) std::lround(30.0 + 97.0 * loud), 1, 127);
+            n.velocity = std::clamp((int) std::lround(30.0 + 97.0 * loud), 1, kMidiMax);
             out.push_back(n);
         }
         start = -1;
@@ -83,10 +94,10 @@ inline std::vector<NoteEvent> notesFromFrames(const std::vector<Frame>& fr,
 }
 
 inline std::vector<NoteEvent> trace(const float* mono, int n, double sampleRate,
-                                    double ticksPerSecond) {
+                                    double ticksPerSecond, const Watch& watch = {}) {
     const double hopTicks =
         ticksPerSecond * (double) PitchTracker::hopSamples() / sampleRate;
-    return notesFromFrames(frames(mono, n, sampleRate), hopTicks);
+    return notesFromFrames(frames(mono, n, sampleRate, watch), hopTicks);
 }
 
 }

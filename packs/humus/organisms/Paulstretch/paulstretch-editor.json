@@ -1,14 +1,77 @@
 {
   "width": 293,
-  "height": 236,
+  "height": 264,
   "controls": [
-    { "type": "label", "label": "Sound File", "x": 12, "y": 10, "w": 200, "h": 16 },
-    { "type": "soundfile", "param": "File", "label": "", "x": 8, "y": 30, "w": 277, "h": 26 },
-    { "type": "file-transport", "label": "", "x": 8, "y": 64, "w": 277, "h": 24 },
-    { "type": "knob", "param": "Stretch", "label": "Stretch", "x": 16, "y": 100, "w": 62, "h": 86, "log": true },
-    { "type": "knob", "param": "Window", "label": "Window", "x": 96, "y": 100, "w": 62, "h": 86 },
-    { "type": "knob", "param": "Level", "label": "Level", "x": 176, "y": 100, "w": 62, "h": 86 },
-    { "type": "toggle", "param": "Loop", "label": "Loop", "x": 8, "y": 200, "w": 88, "h": 26 },
-    { "type": "toggle", "param": "Active", "label": "Active", "x": 108, "y": 200, "w": 88, "h": 26 }
+    {
+      "type": "label",
+      "label": "Sound File",
+      "x": 12,
+      "y": 10,
+      "w": 200,
+      "h": 16
+    },
+    {
+      "type": "soundfile",
+      "param": "File",
+      "label": "",
+      "x": 8,
+      "y": 30,
+      "w": 277,
+      "h": 26
+    },
+    {
+      "type": "file-transport",
+      "label": "",
+      "x": 8,
+      "y": 64,
+      "w": 277,
+      "h": 52
+    },
+    {
+      "type": "knob",
+      "param": "Stretch",
+      "label": "Stretch",
+      "x": 16,
+      "y": 128,
+      "w": 62,
+      "h": 86,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Window",
+      "label": "Window",
+      "x": 96,
+      "y": 128,
+      "w": 62,
+      "h": 86
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 176,
+      "y": 128,
+      "w": 62,
+      "h": 86
+    },
+    {
+      "type": "toggle",
+      "param": "Loop",
+      "label": "Loop",
+      "x": 8,
+      "y": 228,
+      "w": 88,
+      "h": 26
+    },
+    {
+      "type": "toggle",
+      "param": "Active",
+      "label": "Active",
+      "x": 108,
+      "y": 228,
+      "w": 88,
+      "h": 26
+    }
   ]
 }

@@ -1,0 +1,103 @@
+{
+  "width": 600,
+  "height": 360,
+  "resize": "grow",
+  "controls": [
+    {
+      "type": "clip-grid",
+      "param": "",
+      "label": "",
+      "x": 12,
+      "y": 8,
+      "w": 576,
+      "h": 244
+    },
+    {
+      "type": "knob",
+      "param": "Fade",
+      "label": "Fade",
+      "x": 12,
+      "y": 264,
+      "w": 64,
+      "h": 84,
+      "decimals": 2
+    },
+    {
+      "type": "knob",
+      "param": "Rate",
+      "label": "Speed",
+      "x": 88,
+      "y": 264,
+      "w": 64,
+      "h": 84
+    },
+    {
+      "type": "momentary",
+      "param": "Stop",
+      "label": "Stop",
+      "x": 168,
+      "y": 278,
+      "w": 60,
+      "h": 24
+    },
+    {
+      "type": "toggle",
+      "param": "Mute",
+      "label": "Mute",
+      "x": 168,
+      "y": 312,
+      "w": 60,
+      "h": 24
+    },
+    {
+      "type": "hslider",
+      "param": "Opacity",
+      "label": "Opacity",
+      "x": 248,
+      "y": 268,
+      "w": 340,
+      "h": 24
+    },
+    {
+      "type": "combo",
+      "param": "Blend",
+      "label": "",
+      "x": 248,
+      "y": 300,
+      "w": 160,
+      "h": 22,
+      "options": [
+        "Normal",
+        "Add",
+        "Multiply",
+        "Screen"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Pads",
+      "label": "",
+      "x": 416,
+      "y": 300,
+      "w": 80,
+      "h": 22,
+      "options": [
+        "4 pads",
+        "8 pads"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Outlets",
+      "label": "",
+      "x": 504,
+      "y": 300,
+      "w": 84,
+      "h": 22,
+      "options": [
+        "One out",
+        "Per pad"
+      ]
+    }
+  ]
+}

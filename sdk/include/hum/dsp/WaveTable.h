@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "hum/Number.h"
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -89,7 +90,7 @@ inline void waveTablePreset(int idx, float* out, int len) {
         const double ph = (double) i / (double) len;
         switch (idx) {
             default:
-            case 0: out[i] = (float) std::sin(2.0 * 3.14159265358979323846 * ph); break;
+            case 0: out[i] = (float) std::sin(2.0 * kPi * ph); break;
             case 1: out[i] = (float) (ph < 0.5 ? 4.0 * ph - 1.0 : 3.0 - 4.0 * ph); break;
             case 2: out[i] = (float) (2.0 * ph - 1.0); break;
             case 3: out[i] = ph < 0.5 ? 1.0f : -1.0f; break;
@@ -125,7 +126,7 @@ inline void waveTableRandom(uint32_t seed, float* out, int len) {
         a *= 1.0 + formantG * std::exp(-(lobe * lobe) / (2.0 * formantW * formantW));
         const double ph = uni();
         for (int i = 0; i < len; ++i)
-            out[i] += (float) (a * std::sin(2.0 * 3.14159265358979323846
+            out[i] += (float) (a * std::sin(2.0 * kPi
                                             * ((double) k * i / (double) len + ph)));
     }
     if (fold)
@@ -210,7 +211,7 @@ inline void waveTableAlignFrames(float* frames, int count, int len) {
     auto fundPhase = [&](const float* f) {
         double c = 0.0, s = 0.0;
         for (int k = 0; k < len; ++k) {
-            const double a = 2.0 * 3.14159265358979323846 * k / len;
+            const double a = 2.0 * kPi * k / len;
             c += f[k] * std::cos(a);
             s += f[k] * std::sin(a);
         }
@@ -220,7 +221,7 @@ inline void waveTableAlignFrames(float* frames, int count, int len) {
     std::vector<float> tmp((std::size_t) len);
     for (int fi = 1; fi < count; ++fi) {
         float* f = frames + (std::size_t) fi * len;
-        const double shift = (p0 - fundPhase(f)) / (2.0 * 3.14159265358979323846) * len;
+        const double shift = (p0 - fundPhase(f)) / (2.0 * kPi) * len;
         for (int k = 0; k < len; ++k) {
             double src = k + shift;
             src -= std::floor(src / len) * len;

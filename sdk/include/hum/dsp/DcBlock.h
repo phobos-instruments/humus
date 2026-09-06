@@ -1,4 +1,5 @@
 #pragma once
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -7,8 +8,8 @@ struct DcBlock {
     float x1 = 0.0f, y1 = 0.0f;
 
     void prepare(double sampleRate, double cornerHz = 5.0) {
-        const double sr = sampleRate > 0.0 ? sampleRate : 44100.0;
-        R = (float) (1.0 - 6.283185307179586 * cornerHz / sr);
+        const double sr = sampleRate > 0.0 ? sampleRate : kDefaultSampleRate;
+        R = (float) (1.0 - kTwoPi * cornerHz / sr);
         x1 = y1 = 0.0f;
     }
 

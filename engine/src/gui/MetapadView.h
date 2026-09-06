@@ -12,6 +12,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/MetapadMaskPanel.h"
 #include "gui/OrganismEditor.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -20,14 +21,14 @@ public:
     explicit MetapadView(EngineHost& host) : host_(host) {
         addAndMakeVisible(modeBtn_);
         modeBtn_.setClickingTogglesState(true);
-        modeBtn_.setButtonText("Interpolate");
+        modeBtn_.setButtonText(tr("metapad.interpolate", "Interpolate"));
         modeBtn_.onClick = [this] {
             host_.setParam(host_.metapadNodeName(), kMetaInterpolateParam,
                            modeBtn_.getToggleState() ? 1.0 : 0.0);
             syncFromHost();
         };
         addAndMakeVisible(newBtn_);
-        newBtn_.setButtonText("New Snapshot");
+        newBtn_.setButtonText(tr("metapad.new-snapshot", "New Snapshot"));
         newBtn_.onClick = [this] {
             selected_ = host_.metapad().addSnapshot("");
             rebuildList();
@@ -41,8 +42,9 @@ public:
         tempSlider_.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
         tempSlider_.setRange(0.0, 2.0, 0.0);
         tempSlider_.setValue(host_.model().metapad.temperature, juce::dontSendNotification);
-        tempSlider_.setTooltip("Morph temperature - left snaps to the nearest snapshot, "
-                               "right blends them evenly. Right-click to map a control");
+        tempSlider_.setTooltip(tr("metapad.morph-temperature",
+                                  "Morph temperature - left snaps to the nearest snapshot, "
+                                  "right blends them evenly. Right-click to map a control"));
         tempSlider_.addMouseListener(this, false);
         tempSlider_.onValueChange = [this] {
             host_.metapad().setTemperature(tempSlider_.getValue());
@@ -58,8 +60,8 @@ public:
             l->setFont(juce::FontOptions(11.0f).withStyle("Bold"));
             addAndMakeVisible(*l);
         }
-        snapHdr_.setText("Snapshots", juce::dontSendNotification);
-        maskHdr_.setText("Morph parameters", juce::dontSendNotification);
+        snapHdr_.setText(tr("metapad.snapshots", "Snapshots"), juce::dontSendNotification);
+        maskHdr_.setText(tr("metapad.morph-parameters", "Morph parameters"), juce::dontSendNotification);
         mask_ = std::make_unique<MetapadMaskPanel>(host_);
         addAndMakeVisible(*mask_);
         styleBtn(modeBtn_); styleBtn(newBtn_);
@@ -155,7 +157,7 @@ public:
             const int pi = pointAt(e.position.toFloat());
             if (pi < 0) return;
             juce::PopupMenu m;
-            m.addItem(1, "Remove point");
+            m.addItem(1, tr("metapad.remove-point", "Remove point"));
             m.showMenuAsync(juce::PopupMenu::Options(), [this, pi](int r) {
                 if (r != 1) return;
                 host_.metapad().removePoint(pi);
@@ -236,7 +238,7 @@ private:
             addAndMakeVisible(store);
             addAndMakeVisible(clear);
             view.styleBtn(clear);
-            clear.setTooltip("Delete this snapshot");
+            clear.setTooltip(tr("metapad.delete-this-snapshot", "Delete this snapshot"));
             recall.onClick = [this] {
                 auto& h = view.host_;
                 h.setParam(h.metapadNodeName(), kMetaRecallParam, (double) index + 1.0);
@@ -267,8 +269,8 @@ private:
         }
         MetapadView& view; int index; juce::Colour swatch;
         juce::Label nameLbl;
-        IconButton recall{IconGlyph::Open, "Recall this snapshot"};
-        IconButton store{IconGlyph::Save, "Store current settings into this snapshot"};
+        IconButton recall{IconGlyph::Open, tr("metapad.recall-this-snapshot", "Recall this snapshot")};
+        IconButton store{IconGlyph::Save, tr("metapad.store-current-settings-into-this", "Store current settings into this snapshot")};
         juce::TextButton clear{juce::String::charToString(juce::juce_wchar(0x00d7))};
     };
 
@@ -281,15 +283,15 @@ private:
 
     void updateMidiCaptions() {
         const auto node = host_.metapadNodeNameIfAny();
-        auto caption = [&](const char* param, const char* idle) {
+        auto caption = [&](const char* param, const juce::String& idle) {
             if (!node.empty())
                 for (const auto& e : host_.midi().map().entries())
                     if (e.organism == node && e.param == param)
-                        return juce::String(param) + ": " + juce::String(midiSourceLabel(e.cc));
-            return juce::String(idle);
+                        return juce::String(param) + ": " + juce::String(midiSourceLabel(e.source()));
+            return idle;
         };
-        midiXBtn_.setButtonText(caption(kMetaXParam, "MIDI X"));
-        midiYBtn_.setButtonText(caption(kMetaYParam, "MIDI Y"));
+        midiXBtn_.setButtonText(caption(kMetaXParam, tr("metapad.midi-x", "MIDI X")));
+        midiYBtn_.setButtonText(caption(kMetaYParam, tr("metapad.midi-y", "MIDI Y")));
     }
 
 public:

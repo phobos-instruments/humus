@@ -29,6 +29,7 @@
 #include "Harmonizer/Harmonizer.h"
 #include "Math/Math.h"
 #include "Morse/Morse.h"
+#include "Button/Button.h"
 #include "Number/Number.h"
 #include "Paulstretch/Paulstretch.h"
 #include "PinkTrombone/PinkTrombone.h"
@@ -134,6 +135,7 @@ void hum_register_pack_humus(Registry& r) {
     for (int n : {2, 3, 4, 5, 6, 7, 8})
         r.registerClass("S" + std::to_string(n) + "Console",
                         [n] { return std::make_unique<Console>(n, 2); });
+    r.registerClass("Button", [] { return std::make_unique<Button>(); });
     r.registerClass("Number", [] { return std::make_unique<Number>(); });
     r.registerClass("Slider", [] { return std::make_unique<Slider>(); });
     r.registerClass("Gate", [] { return std::make_unique<Gate>(2); });

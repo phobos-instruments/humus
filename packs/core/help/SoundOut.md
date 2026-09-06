@@ -10,7 +10,7 @@ Which device output pair this SoundOut feeds - the dropdown lists your interface
 
 A clean output trim - a plain level multiply, so it adds no latency and no noise, and it is bit-transparent at 12 o'clock (unity). The meter reads the level after it, so it shows exactly what leaves for the interface.
 
-The first SoundOut in a patch is the master: the toolbar meter and master level, Record Master Mix, and Export to Sound File all read it. Drop more SoundOuts for monitor sends, headphone cues or surround stems, each pointed at its own pair. Where two outputs address the same channel their signals sum.
+The first SoundOut in a patch is the master: the toolbar meter and master level, Record Live Performance and Bounce all read it. Drop more SoundOuts for monitor sends, headphone cues or surround stems, each pointed at its own pair. Where two outputs address the same channel their signals sum.
 
 A SoundOut adopts its channel count from what you wire into it (at least stereo), so a 6-channel surround feed occupies six consecutive device outputs starting at the chosen channel.
 

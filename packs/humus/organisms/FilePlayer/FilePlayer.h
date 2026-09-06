@@ -7,6 +7,8 @@
 #include "hum/Capabilities.h"
 #include "hum/Organism.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class FilePlayer : public Organism, public FileTransportCap {
@@ -35,7 +37,7 @@ private:
     int64_t readPos_ = 0;
     int64_t delayRemaining_ = 0;
     bool prevActive_ = false;
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
 
     juce::CriticalSection loadLock_;
     juce::AudioBuffer<float> pending_;
@@ -44,7 +46,7 @@ private:
     std::atomic<int64_t> playPos_ {0};
     std::atomic<int64_t> fileLen_ {0};
     std::atomic<int64_t> seekReq_ {-1};
-    std::atomic<double>  fileSr_  {44100.0};
+    std::atomic<double>  fileSr_  {kDefaultSampleRate};
 };
 
 }

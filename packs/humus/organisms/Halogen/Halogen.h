@@ -12,6 +12,8 @@
 #include "hum/Organism.h"
 #include "hum/PixelField.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Halogen : public Organism, public FileLoader, public ControlSource {
@@ -41,7 +43,7 @@ private:
     void frame(double column);
     void adoptPending();
 
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     std::unique_ptr<juce::dsp::FFT> fft_;
     std::vector<float> window_, fftBuf_, mag_;
     std::vector<float> phase_[2], accum_[2];

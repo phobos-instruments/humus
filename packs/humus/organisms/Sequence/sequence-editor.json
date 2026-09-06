@@ -1,16 +1,8 @@
 {
   "width": 620,
-  "height": 296,
+  "height": 330,
   "resize": "stretch",
   "controls": [
-    {
-      "type": "label",
-      "label": "rows are MIDI outlets - wire each to a sound \u00b7 click a name plate for the piano, wheel nudges the note",
-      "x": 8,
-      "y": 4,
-      "w": 540,
-      "h": 16
-    },
     {
       "type": "sequence-grid",
       "param": "",
@@ -46,6 +38,33 @@
       "y": 222,
       "w": 60,
       "h": 20
+    },
+    {
+      "type": "label",
+      "label": "Bank",
+      "x": 8,
+      "y": 286,
+      "w": 40,
+      "h": 13
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Bank",
+      "label": "",
+      "x": 48,
+      "y": 280,
+      "w": 400,
+      "h": 24,
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ]
     }
   ]
 }

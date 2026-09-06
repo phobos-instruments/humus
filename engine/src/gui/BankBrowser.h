@@ -10,6 +10,7 @@
 #include "gui/AppSettings.h"
 #include "gui/EngineHost.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -95,7 +96,7 @@ public:
         openBtn_.setButtonText(juce::String::fromUTF8("Open a file\xe2\x80\xa6"));
         openBtn_.onClick = [this] { chooseFile(); };
         addAndMakeVisible(openBtn_);
-        search_.setTextToShowWhenEmpty("Search banks", Palette::textDim);
+        search_.setTextToShowWhenEmpty(tr("bank-browser.search-banks", "Search banks"), Palette::textDim);
         search_.onTextChange = [this] { refilter(); };
         addAndMakeVisible(search_);
         list_.setModel(&model_);
@@ -235,15 +236,15 @@ public:
         browseBtn_.onClick = [this] { browse(); };
         addAndMakeVisible(browseBtn_);
 
-        prevBtn_.setTooltip("Previous bank");
-        nextBtn_.setTooltip("Next bank");
+        prevBtn_.setTooltip(tr("bank-browser.previous-bank", "Previous bank"));
+        nextBtn_.setTooltip(tr("bank-browser.next-bank", "Next bank"));
         prevBtn_.onClick = [this] { step(-1); };
         nextBtn_.onClick = [this] { step(+1); };
         addAndMakeVisible(prevBtn_);
         addAndMakeVisible(nextBtn_);
 
         clearBtn_.setButtonText(juce::String::charToString(juce::juce_wchar(0x00d7)));
-        clearBtn_.setTooltip("Back to the factory bank");
+        clearBtn_.setTooltip(tr("bank-browser.back-to-the-factory-bank", "Back to the factory bank"));
         clearBtn_.onClick = [this] {
             auto* host = &host_;
             const auto node = name_, param = param_;

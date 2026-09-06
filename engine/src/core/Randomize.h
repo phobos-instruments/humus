@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <cmath>
 #include <string>
 #include <utility>
@@ -84,16 +85,28 @@ inline std::string randomFormula(juce::Random& r) {
     return e.toStdString();
 }
 
+inline int basslineRoot(const std::vector<BasslineStep>& steps) {
+    constexpr int kFallbackRoot = 45;
+    constexpr int kHighestRoot = kBasslineHighNote - 24;
+    std::array<int, kMidiMax + 1> count{};
+    for (const auto& s : steps)
+        if (s.gate && s.note >= 0 && s.note <= kMidiMax) ++count[(size_t) s.note];
+    int root = -1;
+    for (int n = 0; n <= kMidiMax; ++n)
+        if (count[(size_t) n] > (root < 0 ? 0 : count[(size_t) root])) root = n;
+    return root < 0 ? kFallbackRoot : juce::jlimit(kBasslineLowNote, kHighestRoot, root);
+}
+
 inline std::vector<BasslineStep> randomBassline(int steps, int rootNote, juce::Random& r) {
-    static const int kScale[] = {0, 0, 3, 5, 7, 10, 12};
+    static const int kScale[] = {-5, 0, 0, 0, 3, 5, 7, 10, 12};
     std::vector<BasslineStep> out((size_t) juce::jmax(1, steps));
     for (size_t i = 0; i < out.size(); ++i) {
         auto& s = out[i];
         s.gate = i == 0 || r.nextDouble() < 0.65;
         int n = rootNote + kScale[r.nextInt(juce::numElementsInArray(kScale))];
-        if (r.nextDouble() < 0.12) n -= 12;
-        while (n < 36) n += 12;
-        while (n > 84) n -= 12;
+        if (n - 12 >= kBasslineLowNote && r.nextDouble() < 0.12) n -= 12;
+        while (n < kBasslineLowNote) n += 12;
+        while (n > kBasslineHighNote) n -= 12;
         s.note = n;
         s.accent = s.gate && r.nextDouble() < 0.25;
         s.slide = s.gate && r.nextDouble() < 0.20;

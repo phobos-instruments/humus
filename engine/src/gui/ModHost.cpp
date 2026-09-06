@@ -1,6 +1,7 @@
 #include "gui/ModHost.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include "core/ParamSchema.h"
 #include "gui/ControlDefaults.h"
@@ -24,6 +25,27 @@ bool readParam(EngineHost& host, const std::string& organism, const std::string&
     return false;
 }
 
+void widenEmptyRange(EngineHost& host, const std::string& organism, const std::string& param,
+                     double& min, double& max) {
+    if (std::abs(max - min) > 1.0e-12) return;
+    const auto* cm = host.model().byName(organism);
+    if (cm == nullptr) return;
+    for (const auto& d : schemaFor(cm->classRaw))
+        if (d.name == param && d.max > d.min) {
+            min = d.min;
+            max = d.max;
+            return;
+        }
+}
+
+ControlShape defaultShapeFor(EngineHost& host, const std::string& organism,
+                             const std::string& param) {
+    ControlShape d;
+    if (paramIsSwitch(host, organism, param)) d.isSwitch = true;
+    else d.logScale = paramIsLog(host, organism, param);
+    return d;
+}
+
 bool readSource(EngineHost& host, const std::string& source, const std::string& value,
                 float& out) {
     if (isParamSource(value)) return readParam(host, source, paramSourceName(value), out);
@@ -41,13 +63,12 @@ void ModHost::mapRoute(const std::string& source, const std::string& value,
                        const std::string& organism, const std::string& param,
                        double min, double max) {
     if (source == organism && paramSourceName(value) == param && isParamSource(value)) return;
+    widenEmptyRange(host_, organism, param, min, max);
     map_.set(source, value, organism, param, min, max);
     if (const auto* sh = map_.shapeOf(source, value, organism, param))
-        if (sh->isDefault() && paramIsLog(host_, organism, param)) {
-            ControlShape d;
-            d.logScale = true;
-            map_.setShape(source, value, organism, param, d);
-        }
+        if (sh->isDefault())
+            if (const auto d = defaultShapeFor(host_, organism, param); !d.isDefault())
+                map_.setShape(source, value, organism, param, d);
     host_.markDirty();
     host_.pokeLiveRefresh();
 }
@@ -102,6 +123,7 @@ void ModHost::syncMapFromModel() {
     map_.clearAll();
     for (auto& c : host_.model().organisms)
         for (auto& s : c.modSources) {
+            widenEmptyRange(host_, c.name, s.propertyName, s.mapMin, s.mapMax);
             map_.set(s.sourceOrganism, s.sourceValue, c.name, s.propertyName, s.mapMin,
                      s.mapMax);
             ControlShape sh;

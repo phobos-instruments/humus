@@ -8,6 +8,9 @@
 
 #include "core/ControlShape.h"
 #include "gui/LookAndFeel.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -120,11 +123,11 @@ public:
     std::function<void(const ControlShape&)> onChanged;
 
     MappingShapePanel() {
-        title_.setText("Mapping", juce::dontSendNotification);
+        title_.setText(tr("mapping-shape.mapping", "Mapping"), juce::dontSendNotification);
         title_.setFont(juce::FontOptions(13.0f).withStyle("Bold"));
         addAndMakeVisible(title_);
 
-        smoothLabel_.setText("Smoothing (s)", juce::dontSendNotification);
+        smoothLabel_.setText(tr("mapping-shape.smoothing-s", "Smoothing (s)"), juce::dontSendNotification);
         smoothLabel_.setFont(juce::FontOptions(12.0f));
         addChildComponent(smoothLabel_);
         smooth_.setInputRestrictions(6, "0123456789.");
@@ -142,22 +145,22 @@ public:
             emit();
         };
 
-        thresholdLabel_.setText("Threshold (0-127)", juce::dontSendNotification);
+        thresholdLabel_.setText(tr("mapping-shape.threshold-0-127", "Threshold (0-127)"), juce::dontSendNotification);
         thresholdLabel_.setFont(juce::FontOptions(12.0f));
         addChildComponent(thresholdLabel_);
         threshold_.setInputRestrictions(3, "0123456789");
         threshold_.setJustification(juce::Justification::centred);
         auto commitThreshold = [this] {
-            shape_.threshold = juce::jlimit(0, 127, threshold_.getText().getIntValue()) / 127.0;
+            shape_.threshold = juce::jlimit(0, kMidiMax, threshold_.getText().getIntValue()) / kMidiMaxD;
             emit();
         };
         threshold_.onReturnKey = commitThreshold;
         threshold_.onFocusLost = commitThreshold;
         addChildComponent(threshold_);
-        inverted_.setButtonText("Inverted");
+        inverted_.setButtonText(tr("mapping-shape.inverted", "Inverted"));
         inverted_.onClick = [this] { shape_.inverted = inverted_.getToggleState(); emit(); };
         addChildComponent(inverted_);
-        toggle_.setButtonText("Toggle");
+        toggle_.setButtonText(tr("mapping-shape.toggle", "Toggle"));
         toggle_.onClick = [this] { shape_.toggle = toggle_.getToggleState(); emit(); };
         addChildComponent(toggle_);
 
@@ -180,7 +183,7 @@ public:
         toggle_.setVisible(sw);
         smooth_.setText(juce::String(shape.smoothing, 2), juce::dontSendNotification);
         curve_.setPoints(shape.curve);
-        threshold_.setText(juce::String((int) std::lround(shape.threshold * 127.0)),
+        threshold_.setText(juce::String((int) std::lround(shape.threshold * kMidiMaxD)),
                            juce::dontSendNotification);
         inverted_.setToggleState(shape.inverted, juce::dontSendNotification);
         toggle_.setToggleState(shape.toggle, juce::dontSendNotification);

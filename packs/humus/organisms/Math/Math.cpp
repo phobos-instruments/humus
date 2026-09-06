@@ -4,6 +4,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void MathNode::process(const float* const* in, int numIn, float* const* out, int numOut,
@@ -56,7 +58,7 @@ void MathNode::process(const float* const* in, int numIn, float* const* out, int
                                beats = transport.beats(); }
     else                     { t = t_; beats = beat_; }
     const double dt = 1.0 / sampleRate_;
-    const double beatsPerSample = transport.tempo() / 60.0 / sampleRate_;
+    const double beatsPerSample = transport.tempo() / kSecondsPerMinute / sampleRate_;
 
     int mi = 0;
     float last = 0.0f;
@@ -86,7 +88,7 @@ void MathNode::process(const float* const* in, int numIn, float* const* out, int
             env.v[fvNote] = (float) lastNote_;
             env.v[fvFreq] = (float) transport.tuning().hz(lastNote_);
             env.v[fvGate] = gate;
-            env.v[fvVel] = (float) held_.lastVelocity / 127.0f;
+            env.v[fvVel] = (float) held_.lastVelocity / kMidiMaxF;
         }
         env.state = state_[0].data();
         env.v[fvCh] = 0.0f;

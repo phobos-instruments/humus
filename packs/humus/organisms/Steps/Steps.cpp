@@ -5,13 +5,15 @@
 
 #include "hum/Swing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 void Steps::emit(int offset, bool on, int note, int vel) {
     if (outCount_ >= (int) outEvents_.size()) return;
     MidiEvent e;
     e.data[0] = on ? 0x90 : 0x80;
-    e.data[1] = (unsigned char) std::clamp(note, 0, 127);
+    e.data[1] = (unsigned char) std::clamp(note, 0, kMidiMax);
     e.data[2] = (unsigned char) (on ? vel : 0);
     e.size = 3;
     e.sampleOffset = offset;
@@ -20,7 +22,7 @@ void Steps::emit(int offset, bool on, int note, int vel) {
 
 void Steps::process(const float* const*, int, float* const*, int,
                     int numSamples, const Transport& transport) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     if (stepsDirty_) {
         steps_.clear();
         ups_.clear();
@@ -50,7 +52,7 @@ void Steps::process(const float* const*, int, float* const*, int,
     const double gate = std::clamp(params.get("Gate", 0.6), 0.05, 1.0);
     const int vel = (int) params.get("Velocity", 100.0);
 
-    const double stepsPerSec = transport.tempo() / 60.0 * stepsPerBeat_;
+    const double stepsPerSec = transport.tempo() / kSecondsPerMinute * stepsPerBeat_;
     const long stepLen = (long) (sr / stepsPerSec);
     const double ticksPerStep = (double) Pattern::kTicksPerBeat / stepsPerBeat_;
     const auto groove = swing::resolve(params, transport, (int) std::lround(ticksPerStep));

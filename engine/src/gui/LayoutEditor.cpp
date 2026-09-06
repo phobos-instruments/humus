@@ -6,6 +6,7 @@
 
 #include "core/PackRegistry.h"
 #include "gui/Mappable.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -112,7 +113,9 @@ void LayoutEditor::build() {
                              || s.type == CT::LfoScope
                              || s.type == CT::Formula
                              || s.type == CT::TextField
-                             || s.type == CT::GainReduction;
+                             || s.type == CT::GainReduction
+                             || s.type == CT::ClipGrid
+                             || s.type == CT::ScreenButton;
         if (!s.label.empty() && !ownsLabel) {
             auto lbl = std::make_unique<juce::Label>();
             lbl->setText(juce::String::fromUTF8(s.label.c_str()), juce::dontSendNotification);
@@ -425,7 +428,7 @@ void LayoutEditor::build() {
                             listed |= item.first == current;
                         }
                         if (!listed && current > 0)
-                            lc->addItem(std::to_string(current) + " (unavailable)", current);
+                            lc->addItem(juce::String(current) + tr("layout-editor.unavailable", " (unavailable)"), current);
                         lc->setSelectedId(current, juce::dontSendNotification);
                     };
                     fill();

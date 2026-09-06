@@ -3,11 +3,9 @@
 #include <algorithm>
 #include <cmath>
 
-namespace hum {
+#include "hum/dsp/DspMath.h"
 
-namespace {
-constexpr double kTwoPi = 6.283185307179586;
-}
+namespace hum {
 
 void Rhizome::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
@@ -37,7 +35,7 @@ void Rhizome::noteOn(int note, int vel) {
 
     Voice& v = voices_[(size_t) slot];
     v.note = note;
-    v.vel = (float) vel / 127.0f;
+    v.vel = (float) vel / kMidiMaxF;
     v.gate = true;
 }
 
@@ -54,7 +52,7 @@ void Rhizome::process(const float* const*, int, float* const* out, int numOut,
     std::fill(L, L + numSamples, 0.0f);
     if (R != L) std::fill(R, R + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
     {
         std::lock_guard<std::mutex> g(liveLock_);

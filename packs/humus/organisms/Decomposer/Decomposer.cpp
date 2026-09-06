@@ -4,17 +4,18 @@
 #include <array>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
 constexpr int kRefract = 3;
 
-int hzToMidi(double hz) { return (int) std::lround(69.0 + 12.0 * std::log2(hz / 440.0)); }
-double midiToHz(int m) { return 440.0 * std::pow(2.0, (m - 69) / 12.0); }
+int nearestMidi(double hz) { return (int) std::lround(hum::hzToMidi(hz)); }
 
 int velFromLevel(double level) {
     const double v = std::sqrt(std::clamp(level * 6.0, 0.0, 1.0));
-    return std::clamp((int) (v * 110.0) + 17, 1, 127);
+    return std::clamp((int) (v * 110.0) + 17, 1, kMidiMax);
 }
 }
 
@@ -49,7 +50,7 @@ int Decomposer::medianNote(int raw) {
 }
 
 void Decomposer::emit(int offset, bool on, int note, int vel) {
-    if (outCount_ >= (int) out_.size() || note < 0 || note > 127) return;
+    if (outCount_ >= (int) out_.size() || note < 0 || note > kMidiMax) return;
     MidiEvent e;
     e.data[0] = (unsigned char) ((on ? 0x90 : 0x80) | ((channel_ - 1) & 0x0f));
     e.data[1] = (unsigned char) note;
@@ -67,8 +68,8 @@ void Decomposer::allNotesOff(int offset) {
 void Decomposer::process(const float* const* in, int numIn, float* const*, int,
                          int numSamples, const Transport&) {
     channel_ = std::clamp((int) params.get("Channel", 1.0), 1, 16);
-    loNote_ = std::clamp((int) params.get("LowNote", 12.0), 0, 127);
-    hiNote_ = std::clamp((int) params.get("HighNote", 108.0), 0, 127);
+    loNote_ = std::clamp((int) params.get("LowNote", 12.0), 0, kMidiMax);
+    hiNote_ = std::clamp((int) params.get("HighNote", 108.0), 0, kMidiMax);
     if (hiNote_ < loNote_ + 1) hiNote_ = loNote_ + 1;
     switch ((int) params.get("Response", 1.0)) {
         case 0: confirmFrames_ = 1; releaseFrames_ = 2; break;
@@ -105,7 +106,7 @@ void Decomposer::segmentMono(int blockEndOffset) {
 
     if (voiced) {
         silentFrames_ = 0;
-        const int raw = std::clamp(hzToMidi(hz), loNote_, hiNote_);
+        const int raw = std::clamp(nearestMidi(hz), loNote_, hiNote_);
         const int note = medianNote(raw);
         if (note == candNote_) ++candFrames_; else { candNote_ = note; candFrames_ = 1; }
 

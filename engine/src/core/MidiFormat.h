@@ -1,12 +1,14 @@
 #pragma once
 #include <string>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 inline std::string midiNoteName(int note) {
     static const char* kNames[12] = {"C",  "C#", "D",  "D#", "E",  "F",
                                      "F#", "G",  "G#", "A",  "A#", "B"};
-    if (note < 0 || note > 127) return "?";
+    if (note < 0 || note > kMidiMax) return "?";
     return std::string(kNames[note % 12]) + std::to_string(note / 12 - 1);
 }
 

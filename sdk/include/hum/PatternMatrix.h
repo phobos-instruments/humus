@@ -5,6 +5,8 @@
 
 #include "hum/Pattern.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 struct BasslineStep {
@@ -13,6 +15,10 @@ struct BasslineStep {
     bool slide = false;
     int note = 60;
 };
+
+inline constexpr int kPatternBanks = 8;
+inline constexpr int kBasslineLowNote = 36;
+inline constexpr int kBasslineHighNote = 84;
 
 struct ArpStep {
     bool trigger = false;
@@ -113,9 +119,9 @@ inline std::vector<NoteEvent> decodeNoteEvents(const std::string& text) {
         const long vel   = std::strtol(p, &end, 10); if (end == p) continue; p = end;
         NoteEvent n;
         n.tick = (int) (tick < 0 ? 0 : tick);
-        n.pitch = (int) (pitch < 0 ? 0 : pitch > 127 ? 127 : pitch);
+        n.pitch = (int) (pitch < 0 ? 0 : pitch > kMidiMax ? kMidiMax : pitch);
         n.lengthTicks = (int) (len < 1 ? 1 : len);
-        n.velocity = (int) (vel < 1 ? 1 : vel > 127 ? 127 : vel);
+        n.velocity = (int) (vel < 1 ? 1 : vel > kMidiMax ? kMidiMax : vel);
         out.push_back(n);
     }
     return out;
@@ -154,8 +160,8 @@ inline std::vector<CCEvent> decodeCCEvents(const std::string& text) {
                         p = end;
                         CCEvent c;
                         c.tick = (int) (tick < 0 ? 0 : tick);
-                        c.controller = (int) (num < 0 ? 0 : num > 127 ? 127 : num);
-                        c.value = (int) (val < 0 ? 0 : val > 127 ? 127 : val);
+                        c.controller = (int) (num < 0 ? 0 : num > kMidiMax ? kMidiMax : num);
+                        c.value = (int) (val < 0 ? 0 : val > kMidiMax ? kMidiMax : val);
                         out.push_back(c);
                     }
                 }
@@ -182,10 +188,21 @@ inline std::string replaceCCEvents(const std::string& matrix, const std::vector<
     return encodeNoteEvents(decodeNoteEvents(matrix)) + encodeCCEvents(ccs);
 }
 
-inline const PatternChannel* matrixChannel(const Pattern& p, const std::string& type) {
-    for (const auto& ch : p.channels)
-        if (ch.type == type) return &ch;
+inline const PatternChannel* matrixChannel(const Pattern& p, const std::string& type,
+                                           int ordinal = 0) {
+    int idx = 0;
+    for (const auto& ch : p.channels) {
+        if (ch.type != type) continue;
+        if (idx == ordinal) return &ch;
+        ++idx;
+    }
     return nullptr;
+}
+
+inline int matrixChannelCount(const Pattern& p, const std::string& type) {
+    int n = 0;
+    for (const auto& ch : p.channels) n += ch.type == type ? 1 : 0;
+    return n;
 }
 
 }

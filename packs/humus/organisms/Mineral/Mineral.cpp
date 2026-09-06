@@ -3,11 +3,13 @@
 #include <algorithm>
 #include <cmath>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 double Mineral::geometricRatio(int facets) {
     const double n = std::max(3, facets);
-    return std::clamp(2.0 * std::cos(3.14159265358979 / n), 1.01, 2.5);
+    return std::clamp(2.0 * std::cos(kPi / n), 1.01, 2.5);
 }
 
 void Mineral::process(const float* const*, int, float* const* out, int numOut,
@@ -18,7 +20,7 @@ void Mineral::process(const float* const*, int, float* const* out, int numOut,
     std::fill(L, L + numSamples, 0.0f);
     if (R != L) std::fill(R, R + numSamples, 0.0f);
 
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int facets = std::clamp((int) params.get("Facets", 5.0), 1, kMaxFacets);
     double ratio = std::max(1.01, params.get("Ratio", 1.62));
     if (params.get("Geometry", 0.0) >= 0.5) ratio = geometricRatio(facets);
@@ -45,7 +47,7 @@ void Mineral::process(const float* const*, int, float* const* out, int numOut,
         next_ = (next_ + 1) % kVoices;
         v.t = 0;
         v.f0 = transport.tuning().hz(note);
-        v.vel = (float) vel / 127.0f;
+        v.vel = (float) vel / kMidiMaxF;
         v.phL.fill(0.0);
         v.phR.fill(0.0);
         sigHit_.store(1.0f, std::memory_order_relaxed);
@@ -71,8 +73,8 @@ void Mineral::process(const float* const*, int, float* const* out, int numOut,
                 v.phR[(size_t) p] += f * (1.0 - det) / sr;
                 if (v.phL[(size_t) p] >= 1.0) v.phL[(size_t) p] -= 1.0;
                 if (v.phR[(size_t) p] >= 1.0) v.phR[(size_t) p] -= 1.0;
-                sl += (float) (std::sin(2.0 * 3.14159265358979 * v.phL[(size_t) p]) * env * facetAmp);
-                sr2 += (float) (std::sin(2.0 * 3.14159265358979 * v.phR[(size_t) p]) * env * facetAmp);
+                sl += (float) (std::sin(2.0 * kPi * v.phL[(size_t) p]) * env * facetAmp);
+                sr2 += (float) (std::sin(2.0 * kPi * v.phR[(size_t) p]) * env * facetAmp);
                 active = std::max(active, env * facetAmp);
                 facetAmp *= shine;
             }
@@ -123,9 +125,8 @@ int Mineral::sigil(Prim* out, int capacity, double t) {
     const float base = 0.36f * (0.72f + 0.24f * level + 0.14f * hit);
     const float rx = base * (1.0f - 0.20f * elong);
     const float ry = base * (0.82f + 0.42f * elong);
-    const double kTau = 6.283185307179586;
     double ang = 0.30 * t + 0.35 * hit;
-    ang = std::floor(ang / kTau * 28.0) * (kTau / 28.0);
+    ang = std::floor(ang / kTwoPi * 28.0) * (kTwoPi / 28.0);
 
     auto vertex = [&](double a, float sx, float sy, float* xy) {
         xy[0] = 0.5f + rx * sx * (float) std::cos(a);
@@ -133,7 +134,7 @@ int Mineral::sigil(Prim* out, int capacity, double t) {
     };
     auto gem = [&](Prim& p, double a, float scale) {
         p.kind = 0; p.closed = true; p.points = n;
-        for (int k = 0; k < n; ++k) vertex(a + kTau * k / n, scale, scale, p.pt[k]);
+        for (int k = 0; k < n; ++k) vertex(a + kTwoPi * k / n, scale, scale, p.pt[k]);
     };
     int c = 0;
     auto next = [&]() -> Prim* { return c < capacity ? &out[c++] : nullptr; };
@@ -164,14 +165,14 @@ int Mineral::sigil(Prim* out, int capacity, double t) {
         if (p == nullptr) break;
         p->kind = 0; p->points = 2; p->role = 0; p->alpha = 0.30f; p->size = 0.016f;
         p->pt[0][0] = 0.5f; p->pt[0][1] = 0.5f;
-        vertex(ang + kTau * (k * n / facets % n) / n, 1.0f, 1.0f, p->pt[1]);
+        vertex(ang + kTwoPi * (k * n / facets % n) / n, 1.0f, 1.0f, p->pt[1]);
     }
     if (auto* p = next()) {
         const double ga = -0.7 * t;
         p->kind = 0; p->points = 2; p->role = 3; p->size = 0.05f;
         p->alpha = shine * (0.15f + 0.30f * (0.5f + 0.5f * (float) std::sin(0.9 * t + 1.0)));
         vertex(ga, 0.85f, 0.85f, p->pt[0]);
-        vertex(ga + kTau * 0.18, 0.55f, 0.55f, p->pt[1]);
+        vertex(ga + kTwoPi * 0.18, 0.55f, 0.55f, p->pt[1]);
     }
     const int sparkles = (int) std::lround(shimmer * 4.0f);
     for (int k = 0; k < sparkles; ++k) {
@@ -180,7 +181,7 @@ int Mineral::sigil(Prim* out, int capacity, double t) {
         const float tw = 0.5f + 0.5f * (float) std::sin(5.0 * t + 2.1 * k);
         p->kind = 1; p->role = 3; p->alpha = tw * (0.25f + 0.55f * level);
         p->size = 0.02f + 0.015f * tw;
-        vertex(ang + kTau * (k * 2 + 1) / (2.0 * n) * 2.0, 1.0f, 1.0f, p->pt[0]);
+        vertex(ang + kTwoPi * (k * 2 + 1) / (2.0 * n) * 2.0, 1.0f, 1.0f, p->pt[0]);
     }
     return c;
 }

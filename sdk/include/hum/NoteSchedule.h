@@ -8,6 +8,8 @@
 #include "hum/PatternMatrix.h"
 #include "hum/Swing.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum::noteschedule {
 
 struct Voice {
@@ -91,7 +93,7 @@ inline int window(const std::vector<Voice>& voices, double fromBeat, double toBe
         active = c.swing >= 0.0 ? swing::Groove{c.swing, groove.gridTicks} : groove;
         for (const auto& nt : c.notes) {
             if (nt.tick >= c.len) continue;
-            const int vel = std::clamp((int) std::lround(nt.velocity * velScale), 1, 127);
+            const int vel = std::clamp((int) std::lround(nt.velocity * velScale), 1, kMidiMax);
             if (c.loop) {
                 scheduleLoop(c.start + nt.tick, c.len, c.gateFrom, c.gateTo,
                              true, nt.pitch, vel, -1);

@@ -11,6 +11,8 @@
 #include "gui/PictureFieldBrick.h"
 #include "gui/SliceMapBrick.h"
 #include "gui/VideoPreview.h"
+#include "gui/ClipGridBrick.h"
+#include "gui/ScreenButton.h"
 #include "gui/VideoTransportBrick.h"
 #include "gui/DnaBasesBrick.h"
 #include "gui/DnaStrandBrick.h"
@@ -184,6 +186,18 @@ bool LayoutEditor::buildBrick(const LayoutSpec::Control& s, Control& c) {
             auto vt = std::make_unique<VideoTransportBrick>(host_, cn);
             addAndMakeVisible(*vt);
             c.rich = std::move(vt);
+            return true;
+        }
+        case CT::ClipGrid: {
+            auto cr = std::make_unique<ClipGridBrick>(host_, cn);
+            addAndMakeVisible(*cr);
+            c.rich = std::move(cr);
+            return true;
+        }
+        case CT::ScreenButton: {
+            auto sb = std::make_unique<ScreenButton>(host_, cn);
+            addAndMakeVisible(*sb);
+            c.rich = std::move(sb);
             return true;
         }
         case CT::KnobGrid: {

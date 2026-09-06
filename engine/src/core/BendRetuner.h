@@ -6,6 +6,8 @@
 #include "hum/Capabilities.h"
 #include "hum/Tuning.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class BendRetuner {
@@ -35,9 +37,9 @@ public:
             const int st = e.data[0] & 0xF0;
             if (st == 0x90 && e.data[2] > 0) {
                 const double hz = t.hz((double) e.data[1]);
-                double m = hz > 0.0 ? 69.0 + 12.0 * std::log2(hz / 440.0) : (double) e.data[1];
+                double m = hz > 0.0 ? hzToMidi(hz) : (double) e.data[1];
                 if (m < 0.0) m = 0.0;
-                if (m > 127.0) m = 127.0;
+                if (m > kMidiMaxD) m = kMidiMaxD;
                 const int outNote = (int) std::lround(m);
                 const double residue = m - (double) outNote;
                 int bend = 8192 + (int) std::lround(residue / 2.0 * 8192.0);

@@ -8,6 +8,8 @@
 
 #include "Ph/PhOplBank.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -183,7 +185,7 @@ void PhOpl::writeOp(int ch, int opIndex, const Op& op, bool carrier, int velocit
     const int slowRel = (int) std::lround((mods_.release - 0.5) * 6.0);
     write(regAddr(ch, 0x20, slotAdd), op.avekm);
     int tl = op.ksltl & 63;
-    if (carrier) tl += (127 - std::clamp(velocity, 1, 127)) >> 3;
+    if (carrier) tl += (kMidiMax - std::clamp(velocity, 1, kMidiMax)) >> 3;
     else tl -= lift;
     write(regAddr(ch, 0x40, slotAdd),
           (uint8_t) ((op.ksltl & 0xC0) | std::clamp(tl, 0, 63)));
@@ -289,7 +291,7 @@ void PhOpl::noteOff(int midinote) {
 
 void PhOpl::allOff() {
     for (int i = 0; i < kChannels; ++i) {
-        writeFreq(i, chanHz_[(size_t) i] > 0.0 ? chanHz_[(size_t) i] : 440.0, false);
+        writeFreq(i, chanHz_[(size_t) i] > 0.0 ? chanHz_[(size_t) i] : kA4Hz, false);
         chanNote_[(size_t) i] = -1;
     }
     fourOpMask_ = 0;

@@ -5,6 +5,9 @@
 
 #include "gui/LookAndFeel.h"
 #include "gui/WaveformCache.h"
+#include "gui/Localisation.h"
+
+#include "hum/dsp/DspMath.h"
 
 namespace hum {
 
@@ -55,7 +58,7 @@ bool TracksPane::clipInfo(ClipEditor::ClipInfo& ci) const {
 }
 
 double TracksPane::samplesPerBeat() const {
-    return (host_.tempo() > 0.0 ? 60.0 / host_.tempo() : 0.5) * host_.sampleRate();
+    return (host_.tempo() > 0.0 ? kSecondsPerMinute / host_.tempo() : 0.5) * host_.sampleRate();
 }
 
 juce::Rectangle<int> TracksPane::clipField() const {
@@ -70,7 +73,7 @@ TracksPane::ClipHit TracksPane::clipEditorHit(juce::Point<int> p) const {
     const auto box = clipBox();
     if (!clipField().contains(p)) return ClipHit::None;
     using timelinechrome::FadeGrip;
-    if (ci.isAudio && box.contains(p)) {
+    if (ci.hasMedia() && box.contains(p)) {
         const auto fg = timelinechrome::fadeGripAt(box, p, kFadeGrip * 2, ci.fadeInTicks,
                                                    ci.fadeOutTicks, ci.lengthTicks);
         if (fg == FadeGrip::Left) return ClipHit::FadeL;
@@ -110,13 +113,13 @@ TracksPane::ClipHit TracksPane::rowClipHit(int row, juce::Point<int> p) const {
     const auto& ci = clips[(size_t) c];
     const auto b = clipBounds(row, ci);
     using timelinechrome::FadeGrip;
-    const auto fg = ci.isAudio
+    const auto fg = ci.hasMedia()
         ? timelinechrome::fadeGripAt(b, p, kFadeGrip, ci.fadeInTicks, ci.fadeOutTicks,
                                      ci.lengthTicks)
         : FadeGrip::None;
     if (fg == FadeGrip::Left) return ClipHit::FadeL;
     if (fg == FadeGrip::Right) return ClipHit::FadeR;
-    const auto cg = ci.isAudio
+    const auto cg = ci.hasMedia()
         ? timelinechrome::fadeCurveGripAt(b, p, kFadeGrip, ci.fadeInTicks,
                                           ci.fadeOutTicks, ci.lengthTicks,
                                           ci.fadeInCurve, ci.fadeOutCurve)
@@ -457,7 +460,7 @@ void TracksPane::mouseDragClip(const juce::MouseEvent& e) {
             break;
         case ClipDrag::TrimL: {
             const auto ci = host_.clips().list(clipNode_)[(size_t) c];
-            const int floorTick = ci.isAudio && !ci.audioReverse
+            const int floorTick = ci.hasMedia() && !ci.audioReverse
                 ? clipStart0_ - (int) std::llround((double) clipOffset0_ * Pattern::kTicksPerBeat / samplesPerBeat())
                 : 0;
             const int end = clipStart0_ + clipLen0_;
@@ -569,40 +572,45 @@ void TracksPane::showClipDetailMenu(juce::Point<int> screenPos) {
     ClipEditor::ClipInfo ci;
     if (!clipInfo(ci)) return;
     juce::PopupMenu m;
-    m.addItem(kSplit, sel ? "Split at Selection" : "Split at Playhead");
-    m.addItem(kDelete, "Delete Selection", sel);
-    m.addItem(kRipple, "Delete and Close Gap", sel);
-    m.addItem(kTrim, "Trim to Selection", sel);
-    m.addItem(kSplitTransients, sel ? "Split Selection at Transients" : "Split at Transients");
+    m.addItem(kSplit, sel ? tr("tracks-pane-clip.split-at-selection", "Split at Selection") : tr("tracks-pane-clip.split-at-playhead", "Split at Playhead"));
+    m.addItem(kDelete, tr("tracks-pane-clip.delete-selection", "Delete Selection"), sel);
+    m.addItem(kRipple, tr("tracks-pane-clip.delete-and-close-gap", "Delete and Close Gap"), sel);
+    m.addItem(kTrim, tr("tracks-pane-clip.trim-to-selection", "Trim to Selection"), sel);
+    m.addItem(kSplitTransients, sel ? tr("tracks-pane-clip.split-selection-at-transients", "Split Selection at Transients") : tr("tracks-pane-clip.split-at-transients", "Split at Transients"));
     juce::PopupMenu sense;
     static const double senses[] = {0.25, 0.5, 0.75, 1.0};
-    static const char* senseNames[] = {"Strong hits only", "Normal", "Sensitive", "Everything"};
+    struct Sense { const char* key; const char* name; };
+    static const Sense senseNames[] = {{"tracks-pane-clip.sense-strong", "Strong hits only"},
+                                       {"tracks-pane-clip.sense-normal", "Normal"},
+                                       {"tracks-pane-clip.sense-sensitive", "Sensitive"},
+                                       {"tracks-pane-clip.sense-everything", "Everything"}};
     for (int i = 0; i < 4; ++i)
-        sense.addItem(kSense0 + i, senseNames[i], true, std::abs(transientSense_ - senses[i]) < 0.01);
-    m.addSubMenu("Transients", sense);
+        sense.addItem(kSense0 + i, tr(senseNames[i].key, senseNames[i].name), true,
+                      std::abs(transientSense_ - senses[i]) < 0.01);
+    m.addSubMenu(tr("tracks-pane-clip.transients", "Transients"), sense);
     m.addSeparator();
-    m.addItem(kFadeIn, "Fade In to Playhead");
-    m.addItem(kFadeOut, "Fade Out from Playhead");
+    m.addItem(kFadeIn, tr("tracks-pane-clip.fade-in-to-playhead", "Fade In to Playhead"));
+    m.addItem(kFadeOut, tr("tracks-pane-clip.fade-out-from-playhead", "Fade Out from Playhead"));
     juce::PopupMenu gain;
     static const double dbs[] = {12, 6, 3, 0, -3, -6, -12, -24};
     const double curDb = ci.audioGain > 0.0 ? 20.0 * std::log10(ci.audioGain) : -99.0;
     for (int i = 0; i < 8; ++i)
         gain.addItem(kGain0 + i, clipdetail::gainDb(std::pow(10.0, dbs[i] / 20.0)), true,
                      std::abs(curDb - dbs[i]) < 0.05);
-    m.addSubMenu("Gain", gain);
-    m.addItem(kNormalize, "Normalize");
-    m.addItem(kReverse, "Reverse", true, ci.audioReverse);
-    m.addItem(kDouble, "Stretch to Double Length");
-    m.addItem(kHalf, "Stretch to Half Length");
+    m.addSubMenu(tr("tracks-pane-clip.gain", "Gain"), gain);
+    m.addItem(kNormalize, tr("tracks-pane-clip.normalize", "Normalize"));
+    m.addItem(kReverse, tr("tracks-pane-clip.reverse", "Reverse"), true, ci.audioReverse);
+    m.addItem(kDouble, tr("tracks-pane-clip.stretch-to-double-length", "Stretch to Double Length"));
+    m.addItem(kHalf, tr("tracks-pane-clip.stretch-to-half-length", "Stretch to Half Length"));
     juce::PopupMenu pitch;
     for (int st = 12; st >= -12; --st)
-        pitch.addItem(kPitch0 + st + 24, (st > 0 ? "+" : "") + juce::String(st) + " st", true,
+        pitch.addItem(kPitch0 + st + 24, (st > 0 ? "+" : "") + juce::String(st) + tr("tracks-pane-clip.st", " st"), true,
                       std::abs(ci.audioPitch - st) < 0.01);
-    m.addSubMenu("Pitch", pitch);
+    m.addSubMenu(tr("tracks-pane-clip.pitch", "Pitch"), pitch);
     m.addSeparator();
-    m.addItem(kLoop, sel ? "Loop Selection" : "Loop Clip");
-    m.addItem(kZoomClip, "Zoom to Clip");
-    m.addItem(kZoomSel, "Zoom to Selection", sel);
+    m.addItem(kLoop, sel ? tr("tracks-pane-clip.loop-selection", "Loop Selection") : tr("tracks-pane-clip.loop-clip", "Loop Clip"));
+    m.addItem(kZoomClip, tr("tracks-pane-clip.zoom-to-clip", "Zoom to Clip"));
+    m.addItem(kZoomSel, tr("tracks-pane-clip.zoom-to-selection", "Zoom to Selection"), sel);
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
                     [this](int r) {
         if (r <= 0) return;

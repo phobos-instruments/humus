@@ -12,7 +12,7 @@ void ValveFilter::process(const float* const* in, int numIn, float* const* out, 
     auto tap = [&](int c, int n) -> float {
         return (c < numIn && in[c]) ? in[c][n] : 0.0f;
     };
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : 44100.0;
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
     const bool legacy = params.byName("Mode") != nullptr;
     const int legacyMode = (int) params.get("Mode", 0.0);

@@ -21,6 +21,7 @@
 #include "gui/AiClient.h"
 #include "gui/EngineHost.h"
 #include "hum/Registry.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -98,7 +99,7 @@ private:
                     return;
                 }
                 if (phantomProse)
-                    line("error", "Heads up: nothing was actually changed this turn.");
+                    line("error", tr("assistant-engine.heads-up-nothing-was-actually", "Heads up: nothing was actually changed this turn."));
                 finishTurn();
                 return;
             }

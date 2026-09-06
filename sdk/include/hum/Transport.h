@@ -5,6 +5,8 @@
 #include "hum/Swing.h"
 #include "hum/Tuning.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class Transport {
@@ -99,7 +101,7 @@ public:
     }
 
 private:
-    double sampleRate_ = 44100.0;
+    double sampleRate_ = kDefaultSampleRate;
     double tempoBpm_ = 120.0;
     double beatsPerBar_ = 4.0;
     int64_t samplePos_ = 0;

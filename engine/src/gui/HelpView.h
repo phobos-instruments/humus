@@ -8,6 +8,8 @@
 #include "gui/HelpDocs.h"
 #include "gui/LookAndFeel.h"
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 class HelpView : public juce::Component {
@@ -22,7 +24,7 @@ public:
         viewport_.setViewedComponent(&body_, false);
         viewport_.setScrollBarsShown(true, false);
         addAndMakeVisible(viewport_);
-        setSize(500, 440);
+        setSize(500, kA4Hz);
     }
 
     void paint(juce::Graphics& g) override { g.fillAll(Palette::background); }

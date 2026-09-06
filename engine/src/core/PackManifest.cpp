@@ -42,6 +42,8 @@ bool parseOrganismManifest(const std::string& jsonText, OrganismManifest& out) {
         c.category = str(cv, "category", "Other");
         c.editor = str(cv, "editor");
         c.help = str(cv, "help");
+        c.caution = str(cv, "caution");
+        c.cautionIcon = str(cv, "caution-icon", "Warning");
         c.hidden = flag(cv, "hidden");
         c.canonical = str(cv, "canonical");
         if (auto* ps = cv.getProperty("params", {}).getArray()) {

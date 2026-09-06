@@ -5,6 +5,8 @@
 
 #include <juce_core/juce_core.h>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 namespace {
@@ -69,12 +71,12 @@ void TuningNode::rebuild() {
     lastPreset_ = params.get("Preset", 0.0);
     lastDivisions_ = params.get("Divisions", 12.0);
     lastRoot_ = params.get("Root", 69.0);
-    lastRootHz_ = params.get("RootHz", 440.0);
+    lastRootHz_ = params.get("RootHz", kA4Hz);
     lastMap_ = params.get("Map", 0.0);
     lastPlugins_ = params.get("Plugins", 0.0);
 
     const int preset = std::clamp((int) std::lround(lastPreset_), 0, (int) kSclFile);
-    const double root = std::clamp(lastRoot_, 0.0, 127.0);
+    const double root = std::clamp(lastRoot_, 0.0, kMidiMaxD);
     const double rootHz = std::clamp(lastRootHz_, 20.0, 4000.0);
 
     switch (preset) {

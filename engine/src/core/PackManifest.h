@@ -84,6 +84,8 @@ struct OrganismClassManifest {
     std::vector<PresetDef> presets;
     std::string editor;
     std::string help;
+    std::string caution;
+    std::string cautionIcon;
     bool hidden = false;
     std::string canonical;
     bool strips = false;

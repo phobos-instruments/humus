@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "hum/dsp/DspMath.h"
+
 namespace hum {
 
 enum class Interp { Linear, Cubic, Sinc };
@@ -14,7 +16,7 @@ struct SincTable {
 
     SincTable() {
         w.resize((size_t) kPhases * kTaps);
-        const double pi = 3.14159265358979323846;
+        const double pi = kPi;
         const double L = kTaps / 2.0;
         for (int p = 0; p < kPhases; ++p) {
             const double frac = (double) p / kPhases;

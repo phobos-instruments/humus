@@ -4,10 +4,12 @@
 #include <cmath>
 #include <vector>
 
+#include "hum/dsp/DspMath.h"
+
 namespace sv
 {
 
-constexpr float kPi = 3.14159265358979323846f;
+constexpr float kPi = hum::kPiF;
 constexpr float kTwoPi = 2.0f * kPi;
 
 inline float flushDenormal (float x) noexcept

@@ -1,0 +1,77 @@
+{
+  "width": 600,
+  "height": 148,
+  "controls": [
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Attack",
+      "x": 8,
+      "y": 8,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Release",
+      "label": "Release",
+      "x": 70,
+      "y": 8,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Gain",
+      "label": "Gain",
+      "x": 132,
+      "y": 8,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Threshold",
+      "label": "Threshold",
+      "x": 194,
+      "y": 8,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Hold",
+      "label": "Hold",
+      "x": 256,
+      "y": 8,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "label",
+      "label": "Note",
+      "x": 340,
+      "y": 22,
+      "w": 80,
+      "h": 13
+    },
+    {
+      "type": "note-field",
+      "param": "Note",
+      "label": "",
+      "x": 340,
+      "y": 38,
+      "w": 85,
+      "h": 24
+    },
+    {
+      "type": "threshold-meter",
+      "param": "Threshold",
+      "label": "",
+      "x": 8,
+      "y": 100,
+      "w": 584,
+      "h": 34
+    }
+  ]
+}

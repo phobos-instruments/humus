@@ -6,6 +6,7 @@
 #include "gui/LookAndFeel.h"
 #include "gui/NodeRandomize.h"
 #include "gui/QwertyPiano.h"
+#include "gui/Localisation.h"
 
 namespace hum {
 
@@ -35,8 +36,8 @@ void MainComponent::buildTransportRow() {
     mapAction(loopBtn_, kLoopToggleAction);
     recordBtn_.onRightClick = [this](juce::Point<int> at) {
         juce::PopupMenu m;
-        m.addItem(1, "Touch: write only while a control is held", true, !host_.latchMode());
-        m.addItem(2, "Latch: keep writing the last value until stop", true, host_.latchMode());
+        m.addItem(1, tr("main-transport.touch-write-only-while-a", "Touch: write only while a control is held"), true, !host_.latchMode());
+        m.addItem(2, tr("main-transport.latch-keep-writing-the-last", "Latch: keep writing the last value until stop"), true, host_.latchMode());
         m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({at.x, at.y, 1, 1}),
                         [this](int r) {
             if (r == 0) return;
@@ -47,7 +48,7 @@ void MainComponent::buildTransportRow() {
     addAndMakeVisible(keepBtn_);
     keepBtn_.onClick = [this] {
         host_.keepLast(8);
-        setStatus("kept the last 8 bars");
+        setStatus(tr("main-transport.kept-the-last-8-bars", "kept the last 8 bars"));
     };
     addAndMakeVisible(globalDiceBtn_);
     globalDiceBtn_.onClick = [this] { globalRoll(); };
@@ -63,7 +64,7 @@ void MainComponent::buildTransportRow() {
     qwertyBtn_.onClick = [this] {
         auto& qp = QwertyPiano::instance();
         qp.setEnabled(!qp.enabled());
-        setStatus(qp.enabled() ? "virtual keyboard enabled" : "virtual keyboard disabled");
+        setStatus(qp.enabled() ? tr("main-transport.virtual-keyboard-enabled", "virtual keyboard enabled") : tr("main-transport.virtual-keyboard-disabled", "virtual keyboard disabled"));
     };
 
     tempo_.setTextValueSuffix(" BPM");
@@ -71,7 +72,7 @@ void MainComponent::buildTransportRow() {
     tempo_.setSliderStyle(juce::Slider::IncDecButtons);
     tempo_.setRange(kTempoMin, kTempoMax, 0.1);
     tempo_.setValue(host_.tempo(), juce::dontSendNotification);
-    tempo_.setTextBoxStyle(juce::Slider::TextBoxLeft, false, 56, 22);
+    tempo_.setTextBoxStyle(juce::Slider::TextBoxLeft, false, TempoSlider::kNumberW, 22);
     tempo_.setTooltip(juce::String::fromUTF8(
         "Tempo in beats per minute - drag the number, or right-click to "
         "automate and map it"));
@@ -93,13 +94,13 @@ void MainComponent::buildTransportRow() {
         if (!tapTimesMs_.empty() && now - tapTimesMs_.back() > 2000.0) tapTimesMs_.clear();
         tapTimesMs_.push_back(now);
         if (tapTimesMs_.size() > 9) tapTimesMs_.erase(tapTimesMs_.begin());
-        if (tapTimesMs_.size() < 2) { setStatus("tap tempo: keep tapping..."); return; }
+        if (tapTimesMs_.size() < 2) { setStatus(tr("main-transport.tap-tempo-keep-tapping", "tap tempo: keep tapping...")); return; }
         const double ms = (tapTimesMs_.back() - tapTimesMs_.front())
                           / (double) (tapTimesMs_.size() - 1);
         const double bpm = juce::jlimit(20.0, 999.0, 60000.0 / ms);
         host_.setTempo(bpm);
         tempo_.setValue(bpm, juce::dontSendNotification);
-        setStatus("tap tempo: " + juce::String(bpm, 1) + " BPM ("
+        setStatus(tr("main-transport.tap-tempo", "tap tempo: ") + juce::String(bpm, 1) + tr("main-transport.bpm", " BPM (")
                   + juce::String((int) tapTimesMs_.size()) + " taps)");
     };
     addAndMakeVisible(beat1Btn_);
@@ -109,7 +110,7 @@ void MainComponent::buildTransportRow() {
         const double perBar = 4.0;
         const double pos = host_.positionBeats();
         host_.setPositionBeats(std::max(0.0, std::round(pos / perBar) * perBar));
-        setStatus("beat 1 marked");
+        setStatus(tr("main-transport.beat-1-marked", "beat 1 marked"));
     };
     addAndMakeVisible(metroBtn_);
     metroBtn_.setClickingTogglesState(true);
@@ -144,15 +145,15 @@ void MainComponent::buildTransportRow() {
 
     addAndMakeVisible(clock_);
     addAndMakeVisible(masterCaption_);
-    masterCaption_.setText("Out", juce::dontSendNotification);
+    masterCaption_.setText(tr("main-transport.out", "Out"), juce::dontSendNotification);
     masterCaption_.setColour(juce::Label::textColourId, Palette::textDim);
     masterCaption_.setFont(juce::FontOptions(11.0f));
     masterCaption_.setJustificationType(juce::Justification::centredRight);
     addAndMakeVisible(masterLevel_);
     masterLevel_.setRange(0.0, 1.0, 0.0);
     masterLevel_.setValue(host_.outputGain(), juce::dontSendNotification);
-    masterLevel_.setTooltip("Master output level");
-    masterLevel_.paramLabel = "Master out";
+    masterLevel_.setTooltip(tr("main-transport.master-output-level", "Master output level"));
+    masterLevel_.paramLabel = tr("main-transport.master-out", "Master out");
     masterLevel_.setDoubleClickReturnValue(true, 1.0);
     masterLevel_.onValueChange = [this] { host_.setOutputGain((float) masterLevel_.getValue()); };
     addAndMakeVisible(limiterBtn_);
@@ -187,17 +188,17 @@ void MainComponent::buildTransportRow() {
     dspLabel_.setColour(juce::Label::textColourId, Palette::textDim);
     dspLabel_.setFont(juce::FontOptions(11.0f));
     dspLabel_.setJustificationType(juce::Justification::centredRight);
-    dspLabel_.setTooltip(juce::String("Audio health: DSP load (callback time vs. its real-time "
-                                      "deadline, peak-held) and, after a \"!\", blocks dropped "
-                                      "to engine contention. ")
-                         + juce::String::fromUTF8("Any dropout is an audible glitch - "
-                                                  "report it if you hear one."));
+    dspLabel_.setTooltip(tr("main-transport.audio-health",
+                            "Audio health: DSP load (callback time vs. its real-time "
+                            "deadline, peak-held) and, after a \"!\", blocks dropped "
+                            "to engine contention. Any dropout is an audible glitch - "
+                            "report it if you hear one."));
 }
 
 void MainComponent::toggleAudio() {
     if (host_.audioRunning() || host_.audioStarting()) {
         host_.stopAudio();
-        setStatus("audio disabled");
+        setStatus(tr("main-transport.audio-disabled", "audio disabled"));
         AppSettings::instance().set("audio.enabled", 0);
         return;
     }
@@ -205,7 +206,7 @@ void MainComponent::toggleAudio() {
     host_.startAudioAsync([safe = juce::Component::SafePointer<MainComponent>(this)]
                           (bool ok, std::string err) {
         if (safe == nullptr) return;
-        safe->setStatus(ok ? "audio enabled"
+        safe->setStatus(ok ? tr("main-transport.audio-enabled", "audio enabled")
                            : err == "cancelled" ? "audio disabled"
                                                 : "no audio device (" + juce::String(err) + ")");
         AppSettings::instance().set("audio.enabled", safe->host_.audioRunning() ? 1 : 0);
@@ -217,14 +218,14 @@ void MainComponent::toggleMidi() {
     if (host_.midi().enabled()) {
         host_.midi().setEnabled(false);
         s.set("midi.enabled", 0);
-        setStatus("MIDI disabled");
+        setStatus(tr("main-transport.midi-disabled", "MIDI disabled"));
     } else if (host_.midi().setEnabled(true)) {
         s.set("midi.enabled", 1);
-        setStatus("MIDI enabled");
+        setStatus(tr("main-transport.midi-enabled", "MIDI enabled"));
     } else {
         host_.midi().setEnabled(false);
         s.set("midi.enabled", 1);
-        setStatus("no MIDI input devices found");
+        setStatus(tr("main-transport.no-midi-input-devices-found", "no MIDI input devices found"));
     }
 }
 
@@ -234,9 +235,9 @@ void MainComponent::ensureAudio() {
     host_.startAudioAsync([safe = juce::Component::SafePointer<MainComponent>(this)]
                           (bool ok, std::string err) {
         if (safe == nullptr) return;
-        if (ok) safe->setStatus("audio enabled");
+        if (ok) safe->setStatus(tr("main-transport.audio-enabled", "audio enabled"));
         else if (err != "cancelled")
-            safe->setStatus("no audio device (" + juce::String(err) + ")");
+            safe->setStatus(tr("main-transport.no-audio-device", "no audio device (") + juce::String(err) + ")");
     });
 }
 
@@ -266,7 +267,7 @@ void MainComponent::globalRoll() {
     std::vector<std::string> targets;
     for (const auto& c : host_.model().organisms)
         if (nodeSupportsRandom(host_, c.name)) targets.push_back(c.name);
-    if (targets.empty()) { setStatus("nothing here answers to the dice"); return; }
+    if (targets.empty()) { setStatus(tr("main-transport.nothing-here-answers-to-the", "nothing here answers to the dice")); return; }
     host_.pushParamStep();
     auto& hist = host_.paramHistory();
     for (const auto& n : targets) {
@@ -275,7 +276,7 @@ void MainComponent::globalRoll() {
         hist.commit(n, host_.captureNodeState(n));
     }
     for (const auto& n : targets) propsPane_->reloadValuesFor(n);
-    setStatus("rolled " + juce::String((int) targets.size()) + " organisms");
+    setStatus(tr("main-transport.rolled", "rolled ") + juce::String((int) targets.size()) + tr("main-transport.organisms", " organisms"));
 }
 
 void MainComponent::toggleLoop() {
@@ -295,11 +296,11 @@ void MainComponent::showMetroMenu() {
     const int vol = s.getInt("metro.volume", 100);
     const bool ci = s.getInt("metro.countin", 0) != 0;
     juce::PopupMenu m;
-    m.addSectionHeader("Metronome");
+    m.addSectionHeader(tr("main-transport.metronome", "Metronome"));
     for (int v : {25, 50, 75, 100})
-        m.addItem(v, "Volume " + juce::String(v) + "%", true, vol == v);
+        m.addItem(v, tr("main-transport.volume", "Volume ") + juce::String(v) + "%", true, vol == v);
     m.addSeparator();
-    m.addItem(200, "Count-in: one bar before play", true, ci);
+    m.addItem(200, tr("main-transport.count-in-one-bar-before", "Count-in: one bar before play"), true, ci);
     const auto anchor = metroBtn_.getScreenBounds();
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea(anchor),
                     [this](int r) {
@@ -311,7 +312,7 @@ void MainComponent::showMetroMenu() {
             const bool on = st.getInt("metro.countin", 0) == 0;
             st.set("metro.countin", on ? 1 : 0);
             host_.setCountIn(on);
-            setStatus(on ? "count-in on: play clicks one bar first" : "count-in off");
+            setStatus(on ? tr("main-transport.count-in-on-play-clicks", "count-in on: play clicks one bar first") : tr("main-transport.count-in-off", "count-in off"));
         }
     });
 }
@@ -324,18 +325,18 @@ void MainComponent::showOverflowMenu() {
     };
     if (!dspLabel_.isVisible()) {
         const auto t = dspLabel_.getText();
-        m.addSectionHeader(t.isEmpty() ? juce::String("Audio health: idle") : "Audio health: " + t);
+        m.addSectionHeader(t.isEmpty() ? juce::String(tr("main-transport.audio-health-idle", "Audio health: idle")) : tr("main-transport.audio-health-prefix", "Audio health: ") + t);
     }
-    add(1, goStartBtn_, "Go to Start");
-    add(2, goEndBtn_, "Go to End");
-    add(3, loopBtn_, "Automation Loop", host_.automation().loopEnabled());
+    add(1, goStartBtn_, tr("main-transport.go-to-start", "Go to Start"));
+    add(2, goEndBtn_, tr("main-transport.go-to-end", "Go to End"));
+    add(3, loopBtn_, tr("main-transport.automation-loop", "Automation Loop"), host_.automation().loopEnabled());
     m.addSeparator();
-    add(4, tapBtn_, "Tap Tempo");
-    add(5, beat1Btn_, "Mark Beat 1");
+    add(4, tapBtn_, tr("main-transport.tap-tempo-2", "Tap Tempo"));
+    add(5, beat1Btn_, tr("main-transport.mark-beat-1", "Mark Beat 1"));
     add(6, metroBtn_, "Click", metroBtn_.getToggleState());
     add(7, linkBtn_, "Link", linkBtn_.getToggleState());
     m.addSeparator();
-    add(8, qwertyBtn_, "Computer Keyboard Notes", QwertyPiano::instance().enabled());
+    add(8, qwertyBtn_, tr("main-transport.computer-keyboard-notes", "Computer Keyboard Notes"), QwertyPiano::instance().enabled());
     m.showMenuAsync(juce::PopupMenu::Options()
                         .withTargetScreenArea(overflowBtn_.getScreenBounds()),
                     [this](int r) {
@@ -355,8 +356,8 @@ void MainComponent::showOverflowMenu() {
 
 void MainComponent::showLinkMenu() {
     juce::PopupMenu m;
-    m.addSectionHeader("Ableton Link");
-    m.addItem(1, "Sync start/stop with peers", true, host_.linkStartStopSync());
+    m.addSectionHeader(tr("main-transport.ableton-link", "Ableton Link"));
+    m.addItem(1, tr("main-transport.sync-start-stop-with-peers", "Sync start/stop with peers"), true, host_.linkStartStopSync());
     const auto anchor = linkBtn_.getScreenBounds();
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea(anchor),
                     [this](int r) {
@@ -384,7 +385,7 @@ void MainComponent::showGrooveMenu() {
     juce::PopupMenu m;
     const double now = host_.groove();
     const auto unit = host_.grooveUnit();
-    m.addSectionHeader("Groove");
+    m.addSectionHeader(tr("main-transport.groove", "Groove"));
     for (int pct : {0, 20, 40, 50, 60, 75, 100}) {
         const double v = pct / 100.0;
         m.addItem(100 + pct,
@@ -396,7 +397,7 @@ void MainComponent::showGrooveMenu() {
     juce::PopupMenu grid;
     grid.addItem(1, "1/8", true, unit == "1/8");
     grid.addItem(2, "1/16", true, unit == "1/16");
-    m.addSubMenu("Grid", grid);
+    m.addSubMenu(tr("main-transport.grid", "Grid"), grid);
     m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&grooveBtn_),
                     [this](int r) {
                         if (r <= 0) return;
