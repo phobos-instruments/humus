@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <cmath>
@@ -45,6 +47,74 @@ inline void fromImage(const juce::Image& img, PixelField& out, int maxW, int max
                 n > 0 ? sum / (float) n : 0.0f;
         }
     }
+}
+
+inline void boxBlur(const PixelField& in, int radius, PixelField& out) {
+    if (in.empty()) { out = {}; return; }
+    if (radius <= 0) { out = in; return; }
+    const int w = in.width, h = in.height;
+    PixelField pass;
+    pass.width = w;
+    pass.height = h;
+    pass.v.assign(in.v.size(), 0.0f);
+    std::vector<float> prefix;
+    for (int y = 0; y < h; ++y) {
+        prefix.assign((std::size_t) w + 1, 0.0f);
+        for (int x = 0; x < w; ++x) prefix[(std::size_t) x + 1] = prefix[(std::size_t) x] + in.at(x, y);
+        for (int x = 0; x < w; ++x) {
+            const int a = std::max(0, x - radius), b = std::min(w - 1, x + radius);
+            pass.v[(std::size_t) y * (std::size_t) w + (std::size_t) x] =
+                (prefix[(std::size_t) b + 1] - prefix[(std::size_t) a]) / (float) (b - a + 1);
+        }
+    }
+    out.width = w;
+    out.height = h;
+    out.v.assign(in.v.size(), 0.0f);
+    for (int x = 0; x < w; ++x) {
+        prefix.assign((std::size_t) h + 1, 0.0f);
+        for (int y = 0; y < h; ++y) prefix[(std::size_t) y + 1] = prefix[(std::size_t) y] + pass.at(x, y);
+        for (int y = 0; y < h; ++y) {
+            const int a = std::max(0, y - radius), b = std::min(h - 1, y + radius);
+            out.v[(std::size_t) y * (std::size_t) w + (std::size_t) x] =
+                (prefix[(std::size_t) b + 1] - prefix[(std::size_t) a]) / (float) (b - a + 1);
+        }
+    }
+}
+
+inline int blurRadiusFor(double blur) { return (int) std::lround(std::clamp(blur, 0.0, 1.0) * 10.0); }
+
+inline float gated(float px, float gate) {
+    return px <= gate ? 0.0f : (px - gate) / std::max(1e-4f, 1.0f - gate);
+}
+
+inline void fromPixels(const std::uint8_t* px, int iw, int ih, int strideBytes, bool bgra,
+                       PixelField& out, int maxW, int maxH) {
+    if (px == nullptr || iw <= 0 || ih <= 0 || strideBytes < iw * 4) { out = {}; return; }
+    out.width = std::min(maxW, iw);
+    out.height = std::min(maxH, ih);
+    out.v.assign((std::size_t) out.width * (std::size_t) out.height, 0.0f);
+    const int rOff = bgra ? 2 : 0, bOff = bgra ? 0 : 2;
+    for (int y = 0; y < out.height; ++y) {
+        const int y0 = y * ih / out.height, y1 = std::max(y0 + 1, (y + 1) * ih / out.height);
+        for (int x = 0; x < out.width; ++x) {
+            const int x0 = x * iw / out.width, x1 = std::max(x0 + 1, (x + 1) * iw / out.width);
+            float sum = 0.0f;
+            int n = 0;
+            for (int yy = y0; yy < y1; ++yy)
+                for (int xx = x0; xx < x1; ++xx) {
+                    const auto* p = px + (std::size_t) yy * (std::size_t) strideBytes + (std::size_t) xx * 4u;
+                    sum += (0.299f * p[rOff] + 0.587f * p[1] + 0.114f * p[bOff]) / 255.0f;
+                    ++n;
+                }
+            out.v[(std::size_t) y * (std::size_t) out.width + (std::size_t) x] =
+                n > 0 ? sum / (float) n : 0.0f;
+        }
+    }
+}
+
+inline void fromPixels(const std::uint8_t* px, int iw, int ih, bool bgra, PixelField& out,
+                       int maxW, int maxH) {
+    fromPixels(px, iw, ih, iw * 4, bgra, out, maxW, maxH);
 }
 
 inline void fromBytes(const juce::MemoryBlock& mb, PixelField& out, int maxW, int maxH) {

@@ -9,7 +9,8 @@
           "min": 0.0,
           "max": 0.0,
           "def": 0.0,
-          "isText": true
+          "isText": true,
+          "plainText": true
         },
         {
           "name": "WPM",

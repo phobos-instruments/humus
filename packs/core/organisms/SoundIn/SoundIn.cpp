@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "SoundIn/SoundIn.h"
 
 #include <algorithm>
+#include <utility>
 #include <memory>
 
 #include <juce_audio_formats/juce_audio_formats.h>
@@ -44,8 +47,9 @@ void SoundIn::loadFromFile(const std::string& uriIn) {
 }
 
 void SoundIn::applyPending() {
-    const juce::ScopedLock sl(loadLock_);
-    file_ = std::move(pending_);
+    const juce::ScopedTryLock sl(loadLock_);
+    if (!sl.isLocked()) return;
+    std::swap(file_, pending_);
     readPos_ = 0;
     hasPending_.store(false);
 }

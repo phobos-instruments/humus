@@ -21,7 +21,7 @@ mypack/
 ├── register.cpp                 # code: registerClass() per organism
 ├── entry.cpp                    # 3 lines of boilerplate -> the C ABI
 ├── CMakeLists.txt               # builds static lib + pack.so + .humpack
-├── help/<Class>.txt             # the "?" button text per class
+├── help/<Class>.md              # the "?" button text per class
 └── organisms/<Name>/
     ├── <Name>.h / <Name>.cpp    # the DSP (subclass hum::Organism)
     ├── organism.json         # metadata: class, category, params, editor
@@ -50,8 +50,19 @@ class Tremolo : public hum::Organism {
 Ground rules for `process()` (it runs on the audio thread):
 
 - **Never** allocate, lock, or touch files. Preallocate in `prepare()`.
+- Text parameters are parsed off the audio thread. Read them in `prepare()`
+  and `loadFrom()` for the starting value, override
+  `onTextChanged(param, text)` for edits (the host calls it on the message
+  thread after storing the text), and hand the parsed result to `process()`
+  through `hum::Prepared<T>` from `hum/dsp/Prepared.h`: `publish()` on the
+  message thread, `adopt()` at the top of `process()`. Never compare
+  `p->text` inside `process()`.
 - Read parameters with `params.get("Name", fallback)` - the host updates them
-  between blocks; no synchronisation needed.
+  between blocks; no synchronisation needed. When a name is built per block
+  (`"Level" + std::to_string(i)`), keep a `hum::ParamRef` from
+  `hum/ParamRef.h` as a member instead (`numberedParams<N>("Level")` builds a
+  set): it resolves the name once and reads by slot after that, so
+  `process()` stops building strings and hashing them.
 - The `Transport` is the musical clock: `samplesPerBeat()`, `beats()`,
   `playing()`, `rhythmicUnitToSamples("1/8")` for tempo-synced behaviour, and
   `liveInput(ch)` for the sound card's capture channels.
@@ -118,15 +129,17 @@ void hum_register_pack_sample(hum::Registry& r) {
 
 ```cpp
 #include "hum/PackEntryImpl.h"
-#include "PackManifestJson.h"                              // generated
 namespace hum { void hum_register_pack_sample(Registry&); }
-HUM_DEFINE_PACK_ENTRY(hum::hum_register_pack_sample, kPackManifestJson)
+HUM_DEFINE_PACK_ENTRY(hum::hum_register_pack_sample)
 ```
 
-That macro exports the four C symbols of the pack ABI (`hum/PackEntry.h`):
-`hum_pack_abi`, `hum_pack_manifest_json`, `hum_pack_create`,
-`hum_pack_destroy`. Packs must be built with a toolchain C++-ABI-compatible
-with the host (Linux: GCC/Clang + libstdc++).
+That macro exports the C symbols of the pack ABI (`hum/PackEntry.h`):
+`hum_pack_abi`, `hum_pack_shape`, `hum_pack_create` and `hum_pack_layout_json`.
+There is no destroy call: `Organism` has a virtual destructor, so the host's
+`delete` runs the pack's own deleting destructor and allocator. `hum_pack_shape` reports the sizes of the SDK types
+that cross the boundary, so a pack built against a different SDK layout is
+refused with a message instead of misreading memory. Packs must be built with
+a toolchain C++-ABI-compatible with the host (Linux: GCC/Clang + libstdc++).
 
 ## 4. Building the .humpack
 
@@ -161,10 +174,12 @@ the update manifest rather than offered and left to fail on load.
 *exactly*, and the pack must be built with a toolchain that is C++-ABI-compatible
 with it (same compiler family + standard library) - capability discovery uses
 `dynamic_cast` across the boundary, so keep default symbol visibility on the SDK
-types. The ABI major bumps whenever a type crossing the boundary changes shape,
-which invalidates every pack built against the old one. Publish per-ABI builds:
-`versions.json` is keyed by `abi`, so an older host is simply offered the last
-pack it can load instead of a broken one.
+types. The types that cross the boundary are frozen: anything new the host has
+to say arrives behind the `ext` slot each of them carries (`hum/Extensions.h`,
+read with `extHas` before touching a field), so a pack built today keeps
+loading. The ABI major would bump only if a frozen type ever moved, which
+invalidates every pack built against the old one; `versions.json` is keyed by
+`abi`, so an older host is simply offered the last pack it can load.
 
 **Signing.** The build signs `pack.dylib` with `HUM_CODESIGN_IDENTITY`
 (`"-"` = ad-hoc by default). Two things worth knowing:
@@ -182,10 +197,13 @@ pack it can load instead of a broken one.
   `com.apple.quarantine` and Gatekeeper never assesses it. Signing with your own
   Developer ID is good practice, not a requirement.
 
-**Getting listed.** Publish the `.humpack` files and a `versions.json` beside
-them as release assets; the manager reads the manifest from the releases page,
-and `latest/download/<asset>` is a stable URL onto the newest release, so an
-update means uploading files and running no service.
+**Getting listed.** The manager reads one manifest, `versions.json`, from the
+Humus downloads server, and `tools/pack_versions.py` writes it from the
+bundles in a folder: each bundle carries its ABI and platform in a
+`bundle.json` that `make_humpack.py` adds, so listing a pack is uploading the
+file and running the script. A pack published elsewhere is installed by hand
+through "Install pack..." and gets no update offers. The shape, for a manifest
+you host yourself (the same script writes it):
 
 ```json
 {
@@ -207,6 +225,6 @@ update means uploading files and running no service.
 `version` is dotted numeric and compared numerically, so `1.2.10` is newer than
 `1.2.9`. `abi` and the `platforms` keys are both enforced - an entry failing
 either is withheld rather than offered and left to fail on load
-(`engine/src/core/PackUpdates.h`). Build one architecture at a time,
+(`engine/src/core/packs/PackUpdates.h`). Build one architecture at a time,
 `make build ARCH=x86_64`, since a pack's binary lives under `bin/<tag>/` and the
 host resolves that tag per slice.

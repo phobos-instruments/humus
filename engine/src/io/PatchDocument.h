@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <cctype>
 #include <cstdlib>
@@ -7,7 +9,9 @@
 #include <utility>
 #include <vector>
 
+#include "hum/Meter.h"
 #include "hum/Parameter.h"
+#include "hum/Meter.h"
 #include "hum/Pattern.h"
 
 namespace juce { class XmlElement; }
@@ -178,7 +182,22 @@ inline constexpr const char* kTempoParam = "Tempo";
 inline constexpr double kTempoMin = 20.0;
 inline constexpr double kTempoMax = 999.0;
 inline constexpr double kTempoLaneMin = 40.0;
+inline constexpr const char* kMeterBeatsParam = "Meter beats";
+inline constexpr const char* kMeterUnitParam = "Meter unit";
+inline constexpr double kMeterLaneMin = 1.0;
+inline constexpr double kMeterLaneMax = 32.0;
+inline bool isMeterParam(const std::string& param) {
+    return param == kMeterBeatsParam || param == kMeterUnitParam;
+}
 inline constexpr double kTempoLaneMax = 300.0;
+inline constexpr const char* kGrooveParam = "Groove";
+inline constexpr const char* kGrooveGridParam = "Groove grid";
+inline bool isGrooveParam(const std::string& param) {
+    return param == kGrooveParam || param == kGrooveGridParam;
+}
+inline bool isHeldClockParam(const std::string& param) {
+    return isMeterParam(param) || param == kGrooveGridParam;
+}
 
 inline bool isMetapadPseudo(const std::string& displayClass) {
     return displayClass == "MetasurfacePseudoSP";
@@ -270,6 +289,25 @@ inline int timeSigNumeratorOf(const std::string& payload) {
     return total > 0 ? total : 4;
 }
 
+inline int timeSigDenominatorOf(const std::string& payload) {
+    if (payload.empty()) return 4;
+    const std::string row = payload.substr(0, payload.find('\n'));
+    std::string field;
+    if (const auto slash = row.find('/'); slash != std::string::npos) {
+        field = row.substr(slash + 1);
+    } else {
+        const auto bar = row.find('|');
+        if (bar == std::string::npos) return 4;
+        field = row.substr(bar + 1);
+    }
+    const int v = std::atoi(field.c_str());
+    return meterUnitValid(v) ? v : 4;
+}
+
+inline Meter meterOf(const std::string& payload) {
+    return Meter{timeSigNumeratorOf(payload), timeSigDenominatorOf(payload)};
+}
+
 inline std::string makeTimeSignature(int numerator, int denominator) {
     return "0\t" + std::to_string(numerator) + "\t|\t" + std::to_string(denominator);
 }
@@ -287,6 +325,8 @@ struct OrganismView {
     int editorH = 0;
     int editorHalf = -1;
     bool editorCollapsed = false;
+    bool editorFloating = false;
+    int floatX = 0, floatY = 0, floatW = 0, floatH = 0;
 };
 
 struct AutomationView {
@@ -348,7 +388,10 @@ struct MidiModifierModel {
 };
 
 struct PatchDocumentModel {
+    static constexpr int kFormatVersion = 1;
     std::string version;
+    bool newerFormat = false;
+    std::vector<std::string> migrationNotes;
     std::vector<MidiModifierModel> midiModifiers;
     std::string applicationPath;
     std::string documentPath;
@@ -369,6 +412,11 @@ struct PatchDocumentModel {
     std::string grooveUnit = "1/16";
 
     const OrganismModel* byName(const std::string& n) const {
+        for (auto& c : organisms)
+            if (c.name == n) return &c;
+        return nullptr;
+    }
+    OrganismModel* byName(const std::string& n) {
         for (auto& c : organisms)
             if (c.name == n) return &c;
         return nullptr;

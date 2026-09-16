@@ -19,5 +19,6 @@ needs no CMake edit. Three rules:
    line is a short lower-case phrase, is what the start window prints under the
    patch's name. Without one it says "a patch that ships with Humus".
 
-Tutorial patches belong here too: one idea each, named for what they teach, and
-the blurb is the sentence the reader sees before opening it.
+Tutorial patches and worked examples live in `assets/examples/` instead, one
+idea each, named for what they teach; they are not listed on the start window,
+the guide points at them, and the blurb is the sentence a reader sees first.

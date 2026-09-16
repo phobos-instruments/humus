@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "hum/Registry.h"
 
 #include "DNA/DNA.h"
@@ -23,6 +25,8 @@
 #include "Halogen/Halogen.h"
 #include "Drops/Drops.h"
 #include "FilePlayer/FilePlayer.h"
+#include "MidiPlayer/MidiPlayer.h"
+#include "Graft/Graft.h"
 #include "Leafcutter/Leafcutter.h"
 #include "Cluster/Cluster.h"
 #include "Gate/Gate.h"
@@ -31,16 +35,20 @@
 #include "Morse/Morse.h"
 #include "Button/Button.h"
 #include "Number/Number.h"
+#include "RNG/RNG.h"
 #include "Paulstretch/Paulstretch.h"
 #include "PinkTrombone/PinkTrombone.h"
 #include "Slider/Slider.h"
-#include "VCA/VCA.h"
 #include "VuMeter/VuMeter.h"
 #include "Ph/Ph.h"
 #include "PianoRoll/PianoRoll.h"
 #include "Sampler/Sampler.h"
+#include "Board/Board.h"
 #include "SerialIn/SerialIn.h"
+#include "Sig/Sig.h"
 #include "SerialOut/SerialOut.h"
+#include "Notes/Notes.h"
+#include "Var/Var.h"
 #include "Sequence/Sequence.h"
 #include "SideChain/SideChain.h"
 #include "AudioTrack/AudioTrack.h"
@@ -64,6 +72,7 @@
 #include "Repeater/Repeater.h"
 #include "Riff/Riff.h"
 #include "SideKick/SideKick.h"
+#include "Siren/Siren.h"
 #include "Steps/Steps.h"
 #include "Dynamics/Dynamics.h"
 #include "ParaEQ/ParaEQ.h"
@@ -79,6 +88,7 @@ void hum_register_layouts_humus(Registry&);
 
 void hum_register_pack_humus(Registry& r) {
     hum_register_layouts_humus(r);
+    r.registerClass("MidiPlayer", [] { return std::make_unique<MidiPlayer>(); });
     r.registerClass("Deck", [] { return std::make_unique<Deck>(); });
     r.registerClass("Substrate", [] { return std::make_unique<Substrate>(); });
     r.registerClass("Mineral",   [] { return std::make_unique<Mineral>(); });
@@ -95,6 +105,7 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("AudioTrack", [] { return std::make_unique<AudioTrack>(); });
     r.registerClass("Sampler", [] { return std::make_unique<Sampler>(); });
     r.registerClass("FilePlayer", [] { return std::make_unique<FilePlayer>(); });
+    r.registerClass("Graft", [] { return std::make_unique<Graft>(); });
     r.registerClass("Leafcutter", [] { return std::make_unique<Leafcutter>(); });
     r.registerClass("SoundSpace", [] { return std::make_unique<SoundSpace>(); });
     r.registerClass("MidiMonitor", [] { return std::make_unique<MidiMonitor>(); });
@@ -137,6 +148,7 @@ void hum_register_pack_humus(Registry& r) {
                         [n] { return std::make_unique<Console>(n, 2); });
     r.registerClass("Button", [] { return std::make_unique<Button>(); });
     r.registerClass("Number", [] { return std::make_unique<Number>(); });
+    r.registerClass("RNG", [] { return std::make_unique<RNG>(); });
     r.registerClass("Slider", [] { return std::make_unique<Slider>(); });
     r.registerClass("Gate", [] { return std::make_unique<Gate>(2); });
     r.registerClass("SGate", [] { return std::make_unique<Gate>(2); });
@@ -147,6 +159,7 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("PinkTrombone", [] { return std::make_unique<PinkTrombone>(); });
     r.registerClass("Math", [] { return std::make_unique<MathNode>(); });
     r.registerClass("pH", [] { return std::make_unique<Ph>(); });
+    r.registerClass("Board", [] { return std::make_unique<Board>(); });
     r.registerClass("SerialIn", [] { return std::make_unique<SerialIn>(); });
     r.registerClass("SerialOut", [] { return std::make_unique<SerialOut>(); });
     r.registerClass("LFO", [] { return std::make_unique<LfoGen>(); });
@@ -154,7 +167,9 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("Filter",  [] { return std::make_unique<ValveFilter>(); });
     r.registerClass("SFilter", [] { return std::make_unique<ValveFilter>(); });
     r.registerClass("MFilter", [] { return std::make_unique<ValveFilter>(); });
-    r.registerClass("VCA", [] { return std::make_unique<Vca>(); });
+    r.registerClass("Sig", [] { return std::make_unique<Sig>(); });
+    r.registerClass("Notes", [] { return std::make_unique<Notes>(); });
+    r.registerClass("Var", [] { return std::make_unique<Var>(); });
 
     r.registerClass("Kick",    [] { return std::make_unique<Kick>(); });
     r.registerClass("Cicada",  [] { return std::make_unique<Cicada>(); });
@@ -167,6 +182,7 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("Riff",    [] { return std::make_unique<Riff>(); });
     r.registerClass("Steps",   [] { return std::make_unique<Steps>(); });
     r.registerClass("SideKick", [] { return std::make_unique<SideKick>(); });
+    r.registerClass("Siren",   [] { return std::make_unique<Siren>(); });
     r.registerClass("Repeater", [] { return std::make_unique<Repeater>(); });
 
     r.registerClass("Compressor",  [] { return std::make_unique<Compressor>(2); });

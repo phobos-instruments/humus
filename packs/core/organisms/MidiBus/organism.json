@@ -3,6 +3,7 @@
     {
       "class": "MidiBus",
       "category": "Buses",
+      "blurb": "A named meeting point for MIDI cords.",
       "canonical": "Midi4Bus",
       "params": [],
       "editor": "gen:midibus"

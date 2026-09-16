@@ -1,40 +1,34 @@
 # ParaEQ
 
-The four-band equalizer. A shelf at each end to tilt the whole sound, and two sweepable bands in the middle to reach in and move one thing. Where the Filter is an instrument you play, this is a tool you aim: for deciding what a sound should be made of, not for making it sing.
+A four-band equalizer with a shelf at each end and two sweepable bands in the middle.
 
-Use it to take the mud out of a bass, to find the one ringing frequency in a room recording and pull it down, or to lift air into something dull.
-
-The most useful move it makes is usually a cut, not a boost - a small cut where two parts are fighting does more for a mix than a boost on either of them. The two shelves affect everything past their corner frequency, so they tilt; the two mid bands affect a region around their centre, so they sculpt. All four run in series on each channel.
+The two shelves lift or cut everything past their corner, so they tilt the whole sound; the two mid bands work on a region around their centre, so they reach in and move one thing. All four run in series on each channel. Cord it after a Sampler, a FilePlayer or a Mixer bus to take mud out of a bass, to pull down one ringing frequency in a room recording, or to add air to something dull. A small cut where two parts fight usually does more than a boost on either. Bandwidth is given in hertz, so 200 Hz wide is 200 Hz wide wherever the band sits, though the same width covers more of the octave down low.
 
 ## Parameters
 
-**Mode** switches stereo and mono in place, keeping the name, the settings and the automation.
+**HSCutoffFrequency** The high shelf's corner. Everything above it moves together.
 
-**LSCutoffFrequency** the low shelf's corner. Everything below it is lifted or cut together.
+**HSGain** The high shelf's cut or boost in dB.
 
-**LSGain** how much, in dB.
+**BP1CenterFrequency** The centre of the first mid band.
 
-**BP1CenterFrequency** the first mid band's centre.
+**BP1Bandwidth** How wide the first band reaches, in Hz. Narrow for one resonance, wide for a tonal decision.
 
-**BP1Bandwidth** how wide it reaches, in Hz. Narrow is a scalpel for one resonance; wide is a tonal decision.
+**BP1Gain** The first band's cut or boost in dB. Negative is a notch.
 
-**BP1Gain** how much, in dB. Negative is a notch.
+**BP2CenterFrequency** The centre of the second mid band.
 
-**BP2CenterFrequency** the second mid band's centre.
+**BP2Bandwidth** The second band's width in Hz.
 
-**BP2Bandwidth** its width, in Hz.
+**BP2Gain** The second band's cut or boost in dB.
 
-**BP2Gain** its cut or boost, in dB.
+**LSCutoffFrequency** The low shelf's corner. Everything below it moves together.
 
-**HSCutoffFrequency** the high shelf's corner. Everything above it moves together.
+**LSGain** The low shelf's cut or boost in dB.
 
-**HSGain** how much, in dB.
+## Recipe
 
-## How it works
-
-Bandwidth is given in Hz rather than as a Q number, which is the more useful of the two to think in: 200 Hz wide is 200 Hz wide wherever you put the band. The same bandwidth still sounds broader down low than it does up high, since it covers more of the octave there.
-
-To find a problem frequency, boost a narrow band hard and sweep it until the sound gets worse. That is the frequency. Now cut it instead.
+**Finding a resonance** Set BP1Gain to 12 and BP1Bandwidth to 60, then sweep BP1CenterFrequency until the sound gets worse. That is the frequency: set BP1Gain to -6 there and widen the band until the cut stops sounding like a hole.
 
 ## Related Organisms
 

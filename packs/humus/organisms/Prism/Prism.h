@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <atomic>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
 #include "hum/Organism.h"
 #include "hum/dsp/PitchTrack.h"
 
@@ -46,7 +48,6 @@ private:
 
     void onFrame(float* reim, int fftSize);
 
-    int order_ = 10;
     std::vector<Chan> chans_;
     std::vector<float> wet_, mono_, bank_, silence_;
     std::vector<float> bankDelay_;

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/WavWriter.h"
 
 #include <memory>
@@ -24,11 +26,11 @@ int qualityFor(const juce::File& f) {
 
 bool writeSound(const std::string& path,
                 const std::vector<std::vector<float>>& channels,
-                double sampleRate, int bitsPerSample) {
+                double sampleRate, int bitsPerSample, int mp3Rate) {
     if (channels.empty() || channels[0].empty()) return false;
     const int numCh = (int) channels.size();
     const juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
-    if (f.hasFileExtension("mp3")) return writeMp3(path, channels, sampleRate);
+    if (f.hasFileExtension("mp3")) return writeMp3(path, channels, sampleRate, mp3Rate);
     f.deleteFile();
     std::unique_ptr<juce::FileOutputStream> stream(f.createOutputStream());
     if (!stream) return false;

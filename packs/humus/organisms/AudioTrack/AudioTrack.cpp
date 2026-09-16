@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "hum/dsp/FadeLaw.h"
 #include "AudioTrack/AudioTrack.h"
 
@@ -164,7 +166,8 @@ void AudioTrack::renderClips(float* const* out, int numOut, int numSamples,
 }
 
 void AudioTrack::applyPending() {
-    const juce::ScopedLock sl(loadLock_);
+    const juce::ScopedTryLock sl(loadLock_);
+    if (!sl.isLocked()) return;
     clips_.swap(pendingClips_);
     hasPending_.store(false, std::memory_order_release);
 }

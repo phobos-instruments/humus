@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <mutex>
 
 #include "hum/dsp/BlepOsc.h"
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 #include "hum/dsp/Coupling303.h"
 #include "hum/dsp/DiodeLadder303.h"
 #include "hum/dsp/Lfo.h"
@@ -37,6 +40,7 @@ public:
         accentLevel_ = 0.0;
         squelchSet_ = -1.0;
         muffled_ = 0.0;
+        bend_.reset();
     }
 
     void deliverMidi(int, const MidiEvent* events, int count) override {
@@ -58,6 +62,7 @@ private:
     static constexpr int kMaxHeld = 16;
     void noteOn(int note, int vel, const Tuning& tuning);
     void noteOff(int note, const Tuning& tuning);
+    void retune(const Tuning& tuning);
     void forgetHeld(int note);
     double accentFor(int vel) const;
 
@@ -71,6 +76,8 @@ private:
     std::mutex liveLock_;
 
     int note_ = -1;
+    PitchBend bend_;
+    double bendRange_ = kDefaultBendRange;
     std::array<int, kMaxHeld> heldNotes_{};
     int heldCount_ = 0;
     bool gate_ = false;

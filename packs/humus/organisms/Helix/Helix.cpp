@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Helix/Helix.h"
 
 #include <algorithm>
@@ -8,6 +10,17 @@
 #include "hum/dsp/SoundFileBuffer.h"
 
 namespace hum {
+
+std::array<Helix::StrandParams, Helix::kStrands> Helix::makeStrandParams() {
+    std::array<StrandParams, kStrands> out;
+    for (int t = 0; t < kStrands; ++t) {
+        auto ref = [t](const char* prefix) { return ParamRef::numbered(prefix, t + 1); };
+        out[(size_t) t] = {ref("Level"), ref("Mute"), ref("Solo"), ref("Sync"), ref("Rec"),
+                           ref("Stop"), ref("Play"), ref("Undo"), ref("Redo"), ref("Clear"),
+                           ref("Rev"), ref("Half"), ref("Shot")};
+    }
+    return out;
+}
 
 void Helix::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
@@ -209,7 +222,7 @@ void Helix::process(const float* const* in, int numIn, float* const* out, int nu
 
     bool anySolo = false;
     for (int t = 0; t < kStrands; ++t)
-        anySolo = anySolo || params.get("Solo" + std::to_string(t + 1), 0.0) >= 0.5;
+        anySolo = anySolo || strandParams_[(size_t) t].solo.on(params);
 
     const bool jumped = rolling
                         && (!prevRolling_ || std::abs(beats0 - expectBeats_) > 0.25);
@@ -219,21 +232,20 @@ void Helix::process(const float* const* in, int numIn, float* const* out, int nu
     std::array<int, kStrands> pendAt {}, revAt {}, halfAt {};
     for (int t = 0; t < kStrands; ++t) {
         auto& s = strands_[(size_t) t];
-        const std::string k = std::to_string(t + 1);
-        s.level = (float) std::clamp(params.get("Level" + k, 1.0), 0.0, 1.0);
-        const bool audible = params.get("Mute" + k, 0.0) < 0.5
-                             && (!anySolo || params.get("Solo" + k, 0.0) >= 0.5);
+        const auto& sp = strandParams_[(size_t) t];
+        s.level = (float) std::clamp(sp.level.get(params, 1.0), 0.0, 1.0);
+        const bool audible = !sp.mute.on(params) && (!anySolo || sp.solo.on(params));
         if (!audible) s.level = 0.0f;
-        const int sync = std::clamp((int) std::lround(params.get("Sync" + k, 2.0)), 0, 2);
-        const bool rec = params.get("Rec" + k, 0.0) >= 0.5;
-        const bool stop = params.get("Stop" + k, 0.0) >= 0.5;
-        const bool play = params.get("Play" + k, 0.0) >= 0.5;
-        const bool undo = params.get("Undo" + k, 0.0) >= 0.5;
-        const bool redo = params.get("Redo" + k, 0.0) >= 0.5;
-        const bool clear = params.get("Clear" + k, 0.0) >= 0.5;
-        const bool rev = params.get("Rev" + k, 0.0) >= 0.5;
-        const bool half = params.get("Half" + k, 0.0) >= 0.5;
-        s.oneShot = params.get("Shot" + k, 0.0) >= 0.5;
+        const int sync = std::clamp((int) std::lround(sp.sync.get(params, 2.0)), 0, 2);
+        const bool rec = sp.rec.on(params);
+        const bool stop = sp.stop.on(params);
+        const bool play = sp.play.on(params);
+        const bool undo = sp.undo.on(params);
+        const bool redo = sp.redo.on(params);
+        const bool clear = sp.clear.on(params);
+        const bool rev = sp.rev.on(params);
+        const bool half = sp.half.on(params);
+        s.oneShot = sp.shot.on(params);
 
         if (jumped) anchorToTransport(s, sync, beats0, spb);
 

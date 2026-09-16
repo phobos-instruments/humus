@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: MIT
 #include "hum/Registry.h"
 
 #include "Tremolo/Tremolo.h"

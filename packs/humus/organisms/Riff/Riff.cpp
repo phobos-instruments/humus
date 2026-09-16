@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Riff/Riff.h"
 
 #include <algorithm>
@@ -22,7 +24,6 @@ void Riff::emit(int offset, bool on, int note, int vel) {
 
 void Riff::process(const float* const*, int, float* const*, int,
                    int numSamples, const Transport& transport) {
-    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int bank = std::clamp((int) params.get("Bank", 0.0), 0, kPatternBanks - 1);
     if (bank != bank_) {
         bank_ = bank;
@@ -37,6 +38,8 @@ void Riff::process(const float* const*, int, float* const*, int,
         stepsDirty_ = false;
     }
 
+    if (transport.playing() && !steps_.empty()) placeSteps(numSamples, transport);
+
     for (int i = 0; i < offCount_;) {
         if (offs_[(size_t) i].samplesLeft < numSamples) {
             emit((int) offs_[(size_t) i].samplesLeft, false, offs_[(size_t) i].note, 0);
@@ -47,9 +50,13 @@ void Riff::process(const float* const*, int, float* const*, int,
             ++i;
         }
     }
-    if (!transport.playing() || steps_.empty()) return;
+}
+
+void Riff::placeSteps(int numSamples, const Transport& transport) {
+    const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
     const int transpose = (int) params.get("Transpose", 0.0);
+    const long nudge = std::lround(params.get("Nudge", 0.0));
 
     const double gate = std::clamp(params.get("Gate", 0.55), 0.05, 1.0);
     const int vel = (int) params.get("Velocity", 96.0);
@@ -62,19 +69,36 @@ void Riff::process(const float* const*, int, float* const*, int,
     const double step0 = transport.beats() * stepsPerBeat_;
     const double stepEnd = step0 + (double) numSamples * stepsPerSec / sr;
 
+    const long count = (long) steps_.size();
+    const auto stepAt = [&](long step) -> const BasslineStep& {
+        return steps_[(size_t) (((step - nudge) % count + count) % count)];
+    };
+
     for (long k = (long) std::floor(step0 - swingFrac) - 1; k < (long) std::ceil(stepEnd) + 1; ++k) {
         const double pos = (double) k + swing::delaySteps((double) k, ticksPerStep, groove);
         if (pos < step0 || pos >= stepEnd || k < 0) continue;
-        const auto& s = steps_[(size_t) (k % (long) steps_.size())];
+        const auto& s = stepAt(k);
         if (!s.gate) continue;
         const int at = std::min(numSamples - 1, (int) ((pos - step0) / stepsPerSec * sr));
         const int note = std::clamp(s.note + transpose, 0, kMidiMax);
-        emit(at, true, note, s.accent ? 118 : vel);
-        if (offCount_ < (int) offs_.size()) {
-            const long len = s.slide ? stepLen + (long) (0.003 * sr)
-                                     : (long) (gate * (double) stepLen);
-            offs_[(size_t) offCount_++] = {note, (long) at + std::max((long) 32, len)};
+        const double nextPos = (double) (k + 1) + swing::delaySteps((double) (k + 1), ticksPerStep, groove);
+        const long toNext = (long) ((nextPos - pos) / stepsPerSec * sr);
+        const long len = s.slide ? toNext + (long) (kSlideOverlapSeconds * sr)
+                                 : (long) (gate * (double) stepLen);
+        const long until = (long) at + std::max(kMinNoteSamples, len);
+
+        const auto& before = stepAt(k - 1);
+        PendingOff* held = nullptr;
+        if (before.gate && before.slide && before.note == s.note)
+            for (int i = 0; i < offCount_; ++i)
+                if (offs_[(size_t) i].note == note) held = &offs_[(size_t) i];
+        if (held != nullptr) {
+            held->samplesLeft = until;
+            continue;
         }
+
+        emit(at, true, note, s.accent ? kAccentVelocity : vel);
+        if (offCount_ < (int) offs_.size()) offs_[(size_t) offCount_++] = {note, until};
     }
 }
 

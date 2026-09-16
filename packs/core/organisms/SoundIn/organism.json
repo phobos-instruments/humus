@@ -2,7 +2,9 @@
   "classes": [
     {
       "class": "SoundIn",
+      "roles": ["audio-in", "master-in"],
       "category": "Input/Output",
+      "blurb": "The sound coming into the interface, one channel per box.",
       "params": [
         {
           "name": "Channel",

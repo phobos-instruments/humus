@@ -3,7 +3,7 @@
 set(HUM_PACK_ROLE builtin PARENT_SCOPE)
 
 # AV pack - audio-reactive visuals (Lumen; every future visual organism lands
-# here). Pre-installed like core/humus/tribe: statically linked into the host,
+# here). Pre-installed like core/humus: statically linked into the host,
 # registered via BuiltinPacks. The GL window / video decode (AVFoundation on
 # macOS, FFmpeg elsewhere, HAP everywhere) live GUI-side
 # (engine/src/gui); the organisms here are the audio-thread half only, so the

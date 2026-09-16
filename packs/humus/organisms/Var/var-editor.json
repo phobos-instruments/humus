@@ -1,0 +1,32 @@
+{
+  "width": 293,
+  "height": 100,
+  "controls": [
+    {
+      "type": "text-field",
+      "param": "Name",
+      "label": "name",
+      "x": 12,
+      "y": 20,
+      "w": 120,
+      "h": 26
+    },
+    {
+      "type": "number-field",
+      "param": "Value",
+      "label": "Value",
+      "x": 144,
+      "y": 20,
+      "w": 137,
+      "h": 26
+    },
+    {
+      "type": "readout",
+      "x": 12,
+      "y": 60,
+      "w": 269,
+      "h": 28,
+      "decimals": 3
+    }
+  ]
+}

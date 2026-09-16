@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Skeleton/BodyCoreML.h"
 
 #include <memory>
 
-#include "core/AppPaths.h"
+#include "core/app/AppPaths.h"
 
 #include "common/CoreMLNet.h"
 

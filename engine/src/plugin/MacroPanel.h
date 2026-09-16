@@ -1,10 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "core/ParamSchema.h"
+#include "core/params/ParamSchema.h"
 #include "plugin/FxLook.h"
 #include "plugin/HumusProcessor.h"
-#include "gui/Localisation.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 

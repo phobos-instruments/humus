@@ -1,11 +1,15 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <atomic>
 #include <cstdint>
 #include <mutex>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
+#include "hum/caps/Video.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 
 namespace hum {
 
@@ -32,6 +36,7 @@ public:
     void reset() override {
         for (auto& v : voices_) v.t = -1;
         next_ = 0;
+        bend_.reset();
     }
 
     void deliverMidi(int, const MidiEvent* events, int count) override {
@@ -58,6 +63,7 @@ private:
     };
     std::array<Voice, kVoices> voices_;
     int next_ = 0;
+    PitchBend bend_;
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> staged_;
     int stagedCount_ = 0;
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> liveQ_;

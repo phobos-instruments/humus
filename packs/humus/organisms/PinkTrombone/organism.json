@@ -13,7 +13,8 @@
         { "name": "Vibrato", "min": 0.0, "max": 1.0, "def": 0.25, "random": true },
         { "name": "Wobble", "min": 0.0, "max": 1.0, "def": 0.0, "bool": true },
         { "name": "Drone", "min": 0.0, "max": 1.0, "def": 0.0, "bool": true },
-        { "name": "Level", "min": 0.0, "max": 2.0, "def": 0.8 }
+        { "name": "Level", "min": 0.0, "max": 2.0, "def": 0.8 },
+        { "name": "BendRange", "min": 0.0, "max": 24.0, "def": 2.0, "int": true }
       ],
       "editor": "layout:pinktrombone-editor.json"
     }

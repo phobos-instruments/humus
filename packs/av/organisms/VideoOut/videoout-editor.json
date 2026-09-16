@@ -5,6 +5,7 @@
   "controls": [
     {
       "type": "video-preview",
+      "preview": "Preview",
       "param": "",
       "label": "",
       "x": 12,

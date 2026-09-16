@@ -1,0 +1,284 @@
+{
+ "classes": [
+  {
+   "class": "MidiPlayer",
+   "category": "Input/Output",
+   "params": [
+    {
+     "name": "File",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true
+    },
+    {
+     "name": "Bank",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "text": "bank:gm.wopn"
+    },
+    {
+     "name": "Play",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Loop",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "FollowHost",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Chips",
+     "min": 1.0,
+     "max": 4.0,
+     "def": 4.0,
+     "int": true
+    },
+    {
+     "name": "Level",
+     "min": 0.0,
+     "max": 2.0,
+     "def": 0.7
+    },
+    {
+     "name": "Program1",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program2",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program3",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program4",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program5",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program6",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program7",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program8",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program9",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program10",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program11",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program12",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program13",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program14",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program15",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Program16",
+     "min": 0.0,
+     "max": 128.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Mute1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute7",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute8",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute9",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute10",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute11",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute12",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute13",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute14",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute15",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Mute16",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    }
+   ],
+   "editor": "layout:editor.json"
+  }
+ ]
+}

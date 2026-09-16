@@ -1,6 +1,23 @@
 {
   "width": 600,
   "height": 466,
+  "bind": {
+    "active": "Active",
+    "bpm": "BPM",
+    "cue": "Cue",
+    "file": "File",
+    "grid-offset": "GridOffset",
+    "hot-cue-prefix": "HotCue_",
+    "hq": "HQ",
+    "key": "Key",
+    "loop": "Loop",
+    "loop-beats": "LoopBeats",
+    "loop-in": "LoopIn",
+    "loop-out": "LoopOut",
+    "quantize": "Quantize",
+    "pitch": "PitchPercent",
+    "pitch-range": "PitchRange"
+  },
   "controls": [
     {
       "type": "label",

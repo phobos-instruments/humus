@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 // Apple frameworks FIRST (the ApplicationServices `Pattern` collision -
 // see HandsVisionMac.mm). Output MLMultiArrays are STRIDED: a GPU-backed
 // array pads its rows, so the copy walks shape x strides - pinned by

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Silt/Silt.h"
 
 #include <algorithm>
@@ -30,6 +32,8 @@ void Silt::reset() {
     voiceHz_.fill(0.0);
     voiceAge_.fill(0);
     age_ = 0;
+    bend_.reset();
+    bendRatio_ = 1.0;
 }
 
 int Silt::freqRegister(double hz) {
@@ -78,7 +82,7 @@ void Silt::applyVoiceShape(int chip, int v) {
 }
 
 void Silt::applyVoicePitch(int chip, int v) {
-    const double hz = voiceHz_[(size_t) v];
+    const double hz = voiceHz_[(size_t) v] * bendRatio_;
     if (hz <= 0.0) return;
     const double half = params.get("TwinDetune", 6.0) / 2400.0;
     const double chz = !twin() ? hz
@@ -178,6 +182,13 @@ void Silt::renderChunk(float* l, float* r, int n, float level) {
     }
 }
 
+void Silt::applyBend() {
+    bendRatio_ = bend_.ratio(bendRangeOf(params));
+    for (int v = 0; v < kPerChip; ++v)
+        if (voiceNote_[(size_t) v] >= 0)
+            for (int c = 0; c < (twin() ? 2 : 1); ++c) applyVoicePitch(c, v);
+}
+
 void Silt::process(const float* const*, int, float* const* out, int numOut,
                    int numSamples, const Transport& transport) {
     if (numOut == 0) return;
@@ -223,7 +234,8 @@ void Silt::process(const float* const*, int, float* const* out, int numOut,
         if (i < nEv) {
             const auto& e = ev[i];
             const int st = e.data[0] & 0xF0;
-            if (st == 0x90 && e.data[2] > 0) noteOn(e.data[1], e.data[2], transport.tuning());
+            if (bend_.apply(e)) applyBend();
+            else if (st == 0x90 && e.data[2] > 0) noteOn(e.data[1], e.data[2], transport.tuning());
             else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) noteOff(e.data[1]);
         }
     }

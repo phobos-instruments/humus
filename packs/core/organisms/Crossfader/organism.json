@@ -3,6 +3,7 @@
   {
    "class": "Crossfader",
    "category": "Mixers",
+   "blurb": "Slides between two sounds, one hand on the fade.",
    "params": [
     {
      "name": "MasterGain",

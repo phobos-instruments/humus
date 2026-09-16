@@ -1,30 +1,24 @@
 # Limiter
 
-The ceiling. A limiter is a compressor that has stopped negotiating: nothing gets past the line, ever. That absolute quality is the point - once you know the sound cannot exceed a level, you can push everything up against that level without listening for the one peak that would have clipped.
+A brickwall limiter with instant attack: nothing passes the ceiling.
 
-Use it at the end of a chain, on a master bus, or anywhere a signal is about to leave for somewhere less forgiving.
-
-## The two levels
-
-Threshold is where limiting begins; Ceiling is where the output is allowed to reach, and they do different jobs. The organism scales its output so a sound arriving at the threshold leaves at the ceiling, so lowering Threshold does not make the result quieter - it makes it louder and more limited at once. That is the knob you reach for; Ceiling is the safety line you set once and leave.
+Threshold is where limiting begins and Ceiling is where the output may reach, and the output is scaled so a sound arriving at the threshold leaves at the ceiling. Lowering Threshold therefore makes the result louder and more limited at once, which is the knob to ride; Ceiling is the safety line set once. Attack is instant and a hard clamp at the ceiling backs it up, so everything expressive lives in the release. Detection is linked across channels, so limiting never tilts the stereo image. Cord it last, after a Console or a Mixer and before the SoundOut.
 
 ## Parameters
 
-**Mode** switches stereo and mono in place. Detection is linked across channels either way: one gain for both sides, so limiting cannot tilt the stereo image.
+**InputGain** Trims the incoming sound before limiting.
 
-**Threshold** where limiting begins. Lower it for more limiting and, because of the scaling above, a louder result.
+**Threshold** Where limiting begins. Lower it for more limiting and a louder result.
 
-**Ceiling** the highest level allowed out. Leave a little headroom below full scale for whatever comes next in the chain.
+**Ceiling** The highest level allowed out. Leave a little headroom below full scale for whatever comes next.
 
-**ReleaseTime** how quickly the limiter recovers after a peak. Short releases hold loudness but can pump audibly on dense material; long ones stay clean and give up some level.
+**HoldTime** How long full reduction is held before release starts, in milliseconds. A little stops chatter on peaks in quick succession.
 
-**HoldTime** how long full reduction is held before release starts. A little of this stops the limiter chattering on material with peaks arriving in quick succession.
+**ReleaseTime** How quickly the limiter recovers after a peak, in milliseconds. Short holds loudness but can pump on dense material; long stays clean and gives up some level.
 
-**InputGain** trims the incoming sound before limiting.
+## Recipe
 
-## How it works
-
-Attack is instant and not adjustable, which is what separates a limiter from a fast compressor. A compressor with a very short attack still lets the first fraction of a peak through while it responds; this does not, so the ceiling means what it says. Everything expressive about a limiter therefore lives in the release.
+**Master ceiling** Cord the Console's outlet into the Limiter and the Limiter into the SoundOut. Ceiling 0.95, ReleaseTime 150, HoldTime 10, then lower Threshold until the loudest section shows a few dB of reduction and no more.
 
 ## Related Organisms
 

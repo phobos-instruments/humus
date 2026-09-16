@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "Sampler",
+      "roles": ["sample-kit"],
       "category": "Instruments",
       "params": [
         {
@@ -16,6 +17,13 @@
           "min": 0.0,
           "max": 2.0,
           "def": 1.0
+        },
+        {
+          "name": "BendRange",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 2.0,
+          "int": true
         },
         {
           "name": "Attack",

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Grit/GritImpl.h"
 
 #include <cmath>
@@ -26,7 +28,6 @@ void Grit::reset() {
     cachedWave_ = -1;
     cachedPatch_ = -1;
     cachedDuty_ = -1;
-    cachedSample_.clear();
     cycleAcc_ = 0.0;
     envAcc_ = 0.0;
     for (auto& v : voices_) v = Voice{};
@@ -35,6 +36,8 @@ void Grit::reset() {
     triHi_ = -1;
     noiseNote_ = -1;
     age_ = 0;
+    bend_.reset();
+    bendRatio_ = 1.0;
     applyRegion();
 }
 
@@ -71,7 +74,7 @@ void Grit::applyTriangle() {
     }
     double hz = 0.0;
     for (const auto& v : voices_)
-        if (v.note == triNote_) hz = v.hz;
+        if (v.note == triNote_) hz = v.hz * bendRatio_;
     if (hz <= 0.0) return;
     const int t = std::clamp((int) std::lround(clock() / (32.0 * hz)) - 1, 0, 2047);
     pokeApu(0x08, 0xFF);
@@ -90,7 +93,7 @@ void Grit::noteOn(int note, int vel, const Tuning& tuning) {
         noiseEnv_.phase = 0;
         noiseEnv_.wait = 0;
         noiseEnv_.sounding = true;
-        if ((int) params.get("Attack", 0.0) == 0) noiseEnv_.level = 15;
+        if ((int) params.get("Attack", 0.0) == 0) noiseEnv_.level = kFullVolume;
         const bool buzz = params.get("Buzz", 0.0) >= 0.5;
         const int period = std::clamp(15 - (note - kNoiseSplit), 0, 15);
         pokeApu(0x0C, 0x30
@@ -129,8 +132,7 @@ void Grit::noteOn(int note, int vel, const Tuning& tuning) {
     vc.phase = 0;
     vc.wait = 0;
     vc.sounding = true;
-    if ((int) params.get("Attack", 0.0) == 0)
-        vc.level = std::clamp((int) params.get("Sustain", 12.0), 0, 15);
+    if ((int) params.get("Attack", 0.0) == 0) vc.level = kFullVolume;
     applyPitch(v);
     applyLevel(v);
     triggerVoice(v);
@@ -184,7 +186,7 @@ void Grit::envelopeTick() {
         if (v.wait > 0) { --v.wait; return false; }
         int was = v.level;
         if (v.phase == 0) {
-            if (v.level >= 15 || a == 0) { v.phase = 1; v.level = std::max(v.level, sus); }
+            if (v.level >= kFullVolume || a == 0) { v.phase = 1; v.level = kFullVolume; }
             else { ++v.level; v.wait = a - 1; }
             if (v.level >= 15) v.phase = 1;
         } else if (v.phase == 1) {
@@ -260,6 +262,14 @@ void Grit::renderChunk(float* l, float* r, int n, float level) {
     }
 }
 
+void Grit::applyBend() {
+    bendRatio_ = bend_.ratio(bendRangeOf(params));
+    const int n = voiceCount();
+    for (int v = 0; v < n; ++v)
+        if (voices_[(size_t) v].sounding) applyPitch(v);
+    applyTriangle();
+}
+
 void Grit::process(const float* const*, int, float* const* out, int numOut,
                    int numSamples, const Transport& transport) {
     if (numOut == 0) return;
@@ -288,9 +298,7 @@ void Grit::process(const float* const*, int, float* const* out, int numOut,
                 applyLevel(v);
             }
     }
-    if (const auto* sp = params.byName("Sample");
-        sp != nullptr && sp->text != cachedSample_)
-        loadSample();
+    pendingRom_.adopt(impl_->rom.bytes);
 
     MidiEvent ev[2 * MidiNode::kMaxMidiEventsPerBlock];
     int nEv = 0;
@@ -322,7 +330,8 @@ void Grit::process(const float* const*, int, float* const* out, int numOut,
         if (i < nEv) {
             const auto& e = ev[i];
             const int st = e.data[0] & 0xF0;
-            if (st == 0x90 && e.data[2] > 0)
+            if (bend_.apply(e)) applyBend();
+            else if (st == 0x90 && e.data[2] > 0)
                 noteOn(e.data[1], e.data[2], transport.tuning());
             else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) noteOff(e.data[1]);
         }

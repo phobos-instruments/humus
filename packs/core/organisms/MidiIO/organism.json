@@ -2,7 +2,9 @@
   "classes": [
     {
       "class": "MidiIn",
+      "roles": ["midi-in"],
       "category": "Input/Output",
+      "blurb": "Notes and controllers arriving from a MIDI port.",
       "params": [
         {
           "name": "Port",
@@ -16,7 +18,9 @@
     },
     {
       "class": "MidiOut",
+      "roles": ["midi-out"],
       "category": "Input/Output",
+      "blurb": "Sends notes and controllers out to a MIDI port.",
       "params": [
         {
           "name": "Port",
@@ -68,6 +72,7 @@
     },
     {
       "class": "MidiIn1",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -83,6 +88,7 @@
     },
     {
       "class": "MidiIn2",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -98,6 +104,7 @@
     },
     {
       "class": "MidiIn3",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -113,6 +120,7 @@
     },
     {
       "class": "MidiIn4",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -128,6 +136,7 @@
     },
     {
       "class": "MidiIn5",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -143,6 +152,7 @@
     },
     {
       "class": "MidiIn6",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -158,6 +168,7 @@
     },
     {
       "class": "MidiIn7",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -173,6 +184,7 @@
     },
     {
       "class": "MidiIn8",
+      "roles": ["midi-in"],
       "category": "MIDI Inputs",
       "hidden": true,
       "params": [
@@ -188,6 +200,7 @@
     },
     {
       "class": "MidiOut1",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -241,6 +254,7 @@
     },
     {
       "class": "MidiOut2",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -294,6 +308,7 @@
     },
     {
       "class": "MidiOut3",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -347,6 +362,7 @@
     },
     {
       "class": "MidiOut4",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -400,6 +416,7 @@
     },
     {
       "class": "MidiOut5",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -453,6 +470,7 @@
     },
     {
       "class": "MidiOut6",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -506,6 +524,7 @@
     },
     {
       "class": "MidiOut7",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [
@@ -559,6 +578,7 @@
     },
     {
       "class": "MidiOut8",
+      "roles": ["midi-out"],
       "category": "MIDI Outputs",
       "hidden": true,
       "params": [

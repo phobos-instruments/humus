@@ -1,28 +1,24 @@
 # Decomposer
 
-Audio in, MIDI notes out. Like a soil decomposer breaking matter down into reusable nutrients, it breaks a sound into the notes hiding inside it: play a line in and it emits MIDI as you play. A modular, first-principles take on the MIDI-guitar idea, built on YIN pitch tracking - no trained model, nothing phones home.
+Audio in, MIDI notes out: a monophonic pitch tracker that turns a played line into notes as you play.
 
-## How it listens
-
-It follows one voice at a time. The pitch search is confined to the Low to High note range, its strongest defence against octave errors, then median-smoothed to shrug off single-frame glitches, and struck notes re-articulate from an energy onset, so playing the same note twice registers as two notes rather than one held one. It is best on a single instrument or voice: a bassline, a vocal melody, a synth lead, a guitar played one note at a time. Full polyphonic transcription needs a trained model, and a guess at it would be worse than nothing.
-
-It reports what it hears and nothing else: no key, no scale, no correction. To pull the result into tune, put the notes through something that does that on purpose.
+It follows one voice at a time, so it is best on a bassline, a sung melody, a lead or a guitar played one note at a time. The pitch search is confined to the LowNote to HighNote range, which is its strongest defence against octave errors, single-frame glitches are smoothed away, and a repeated note re-articulates from its onset instead of merging into one held note. It reports what it hears with no key or scale correction; to pull the result into tune, send the notes through a Trellis. The readout on the editor shows the note being sent and how sharp or flat the source is. Cord a SoundIn into it and its MIDI outlet into any instrument, or into a MidiMonitor to watch it. Expect a few tens of milliseconds of tracking latency.
 
 ## Parameters
 
-**Sensitivity** lowers the level and clarity thresholds. Raise it for quiet or breathy sources, lower it if noise triggers stray notes.
+**Sensitivity** Lowers the level and clarity thresholds. Raise it for quiet or breathy sources, lower it if noise triggers stray notes.
 
-**Response** Fast, Balanced or Accurate: how many frames a pitch must hold before it commits. Fast is snappier, Accurate steadier on noisy or breathy sources.
+**Response** How many frames a pitch must hold before it commits. Fast is snappier, Accurate is steadier on noisy sources, Balanced sits between.
 
-**Low / High** the note range to listen for, C0 to C8 by default. Narrow it to your source's actual range and octave errors and rumble outside the band simply cannot be chosen.
+**LowNote** The lowest note it will report. Raise it to your source's real range so rumble below cannot be chosen.
 
-**Channel** the MIDI channel the notes go out on.
+**HighNote** The highest note it will report. Lower it to your source's real range so octave errors above cannot be chosen.
 
-## Notes
+**Channel** The MIDI channel the notes go out on.
 
-The tuner strip shows what it hears live: the note being emitted, a 50-cent needle for how sharp or flat you are, and level and lock bars.
+## Recipe
 
-Patch the MIDI outlet into any instrument - a synth organism, a hosted plugin, a Kick - or into a MidiMonitor to see what it hears. Try it on a mic for voice into notes, then into Trellis for a sung melody that also plays a synth. There is a short tracking latency of a few tens of milliseconds, inherent to hearing a pitch before naming it.
+**Voice to synth** Cord a SoundIn from a microphone into the Decomposer and its outlet into a Rhizome. Response Balanced, Sensitivity 0.5, LowNote 48, HighNote 84 for a typical singing range. Hum a line and the synth doubles it; add a Trellis between the two to keep it in key.
 
 ## Related Organisms
 

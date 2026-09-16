@@ -4,6 +4,8 @@
   "controls": [
     {
       "type": "sound-map",
+      "spray": "Spray",
+      "file-prefix": "File",
       "param": "X",
       "param2": "Y",
       "x": 12,

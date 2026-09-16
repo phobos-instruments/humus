@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <array>
 #include <string>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/dsp/Prepared.h"
 
 namespace hum {
 
@@ -18,7 +21,18 @@ public:
     int numMidiInputs() const override { return 1; }
     int numMidiOutputs() const override { return 1; }
 
-    void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; reset(); }
+    void prepare(double sampleRate, int) override {
+        sampleRate_ = sampleRate;
+        reset();
+        chords_ = parseChords();
+    }
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        chords_ = parseChords();
+    }
+    void onTextChanged(const std::string& param, const std::string&) override {
+        if (param.rfind("Notes", 0) == 0) pendingChords_.publish(parseChords());
+    }
     void reset() override;
     void process(const float* const* in, int numIn, float* const* out, int numOut,
                  int numSamples, const Transport& transport) override;
@@ -46,7 +60,13 @@ private:
     void emit(int offset, bool on, int note, int velocity);
     void soundChord(const int* notes, int count, int velocity, int offset, Emitted& slot);
     void hushChord(Emitted& slot, int offset);
-    void refreshSlotTexts();
+    struct Chords {
+        std::array<std::array<int, kChordMax>, kSlots> notes{};
+        std::array<int, kSlots> count{};
+        std::array<bool, kSlots> changed{};
+    };
+    Chords parseChords();
+    void adoptChords();
     void hushAll(int offset);
     void handleFireEdges(int hold);
     void handleEvent(const MidiEvent& e, int mode, int hold, int triggerNote,
@@ -57,9 +77,9 @@ private:
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> outEvents_;
     int outCount_ = 0;
 
-    std::array<std::string, kSlots> cachedText_;
-    std::array<std::array<int, kChordMax>, kSlots> chord_{};
-    std::array<int, kSlots> chordCount_{};
+    std::array<std::string, kSlots> appliedText_;
+    Chords chords_;
+    Prepared<Chords> pendingChords_;
 
     std::array<Emitted, kSlots> pad_;
     std::array<Emitted, 128> follow_;

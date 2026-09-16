@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<humus-document version="1">
+  <patch>
+    <clock tempo="120.0" loop-start="0.0" loop-end="0.0" loop-enabled="0"/>
+    <contraption class="SoundIn" name="SoundIn">
+      <properties>
+        <property index="0" name="Channel">
+          <int>1</int>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Crossover" name="Crossover">
+      <properties>
+        <property index="0" name="Freq1">
+          <double>200</double>
+        </property>
+        <property index="1" name="Freq2">
+          <double>2000</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Follower" name="Low">
+      <properties>
+        <property index="0" name="Attack">
+          <double>10</double>
+        </property>
+        <property index="1" name="Release">
+          <double>200</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Follower" name="Mid">
+      <properties>
+        <property index="0" name="Attack">
+          <double>10</double>
+        </property>
+        <property index="1" name="Release">
+          <double>200</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Follower" name="High">
+      <properties>
+        <property index="0" name="Attack">
+          <double>10</double>
+        </property>
+        <property index="1" name="Release">
+          <double>200</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="SerialOut" name="Ring">
+      <properties>
+        <property index="0" name="Device">
+          <int>1</int>
+        </property>
+        <property index="1" name="BaudRate">
+          <enum>8</enum>
+        </property>
+        <property index="2" name="Rate">
+          <int>30</int>
+        </property>
+        <property index="7" name="Send">
+          <enum>0</enum>
+        </property>
+        <property index="8" name="Values">
+          <int>3</int>
+        </property>
+        <property index="35" name="Format">
+          <text>A %1 %2 %3\n</text>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value1" property-index="-1">
+          <mod-controller source-organism="Low" source-value="env" map-minimum="0.0" map-maximum="1.0"/>
+        </property-sources>
+        <property-sources property-name="Value2" property-index="-1">
+          <mod-controller source-organism="Mid" source-value="env" map-minimum="0.0" map-maximum="1.0"/>
+        </property-sources>
+        <property-sources property-name="Value3" property-index="-1">
+          <mod-controller source-organism="High" source-value="env" map-minimum="0.0" map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <audio-connection from="SoundIn" from-outlet="0" to="Crossover" to-inlet="0"/>
+    <audio-connection from="SoundIn" from-outlet="0" to="Crossover" to-inlet="1"/>
+    <audio-connection from="Crossover" from-outlet="0" to="Low" to-inlet="0"/>
+    <audio-connection from="Crossover" from-outlet="2" to="Mid" to-inlet="0"/>
+    <audio-connection from="Crossover" from-outlet="4" to="High" to-inlet="0"/>
+  </patch>
+  <contraption-views>
+    <contraption-view contraption-name="SoundIn" patcher-x="449" patcher-y="40" editor-visible="0"
+                      editor-x="40" editor-y="40"/>
+    <contraption-view contraption-name="Crossover" patcher-x="449" patcher-y="126"
+                      editor-visible="1" editor-x="40" editor-y="160"/>
+    <contraption-view contraption-name="Low" patcher-x="352" patcher-y="212" editor-visible="1"
+                      editor-x="380" editor-y="40"/>
+    <contraption-view contraption-name="Mid" patcher-x="492" patcher-y="212" editor-visible="1"
+                      editor-x="380" editor-y="200"/>
+    <contraption-view contraption-name="High" patcher-x="632" patcher-y="212" editor-visible="1"
+                      editor-x="380" editor-y="360"/>
+    <contraption-view contraption-name="Ring" patcher-x="352" patcher-y="298" editor-visible="1"
+                      editor-x="700" editor-y="160"/>
+  </contraption-views>
+  <automation-views/>
+  <performance-boxes/>
+  <notes>Bass, mids and highs become red, green and blue on a ring running NeoPixel.ino, the way a Pd patch maps frequency to colour. SoundIn feeds a three-band Crossover, one Follower per band reads its level, and the three env outlets land on SerialOut's three sockets, sent as A r g b thirty times a second so the whole ring takes the colour. Move the Crossover's two frequencies to decide what counts as bass and what as air; a Slider between a Follower and its socket trims a band that is too loud.</notes>
+</humus-document>

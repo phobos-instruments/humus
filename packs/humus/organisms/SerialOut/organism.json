@@ -15,7 +15,7 @@
     {
      "name": "BaudRate",
      "min": 0.0,
-     "max": 9.0,
+     "max": 14.0,
      "def": 8.0,
      "enum": true
     },
@@ -27,18 +27,238 @@
      "int": true
     },
     {
-     "name": "ASCII",
+     "name": "Frame",
+     "min": 0.0,
+     "max": 3.0,
+     "def": 0.0,
+     "enum": true
+    },
+    {
+     "name": "Custom",
+     "min": 0.0,
+     "max": 4000000.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Reset",
      "min": 0.0,
      "max": 1.0,
      "def": 1.0,
      "bool": true
     },
     {
+     "name": "Reconnect",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Send",
+     "min": 0.0,
+     "max": 2.0,
+     "def": 0.0,
+     "enum": true
+    },
+    {
+     "name": "Values",
+     "min": 1.0,
+     "max": 8.0,
+     "def": 2.0,
+     "int": true
+    },
+    {
+     "name": "Value1",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value2",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value3",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value4",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value5",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value6",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value7",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Value8",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Trigger",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true,
+     "socket": true
+    },
+    {
+     "name": "Message",
+     "min": 1.0,
+     "max": 8.0,
+     "def": 1.0,
+     "int": true,
+     "socket": true
+    },
+    {
+     "name": "Scale1",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale2",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale3",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale4",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale5",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale6",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale7",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int7",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Scale8",
+     "min": -100000.0,
+     "max": 100000.0,
+     "def": 1.0
+    },
+    {
+     "name": "Int8",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Format",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "plainText": true
+    },
+    {
      "name": "Port",
      "min": 0.0,
      "max": 0.0,
      "def": 0.0,
-     "isText": true
+     "isText": true,
+     "plainText": true
     }
    ]
   }

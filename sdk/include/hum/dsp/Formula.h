@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <cmath>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 
 #include "hum/Number.h"
@@ -17,6 +20,7 @@ enum class FOp : std::uint8_t {
     Pow, Min, Max, Step, Pulse,
     Clamp, Mix, Smoothstep, If,
     Noise, Ph, Harm, Env,
+    LoadVar, StoreVar,
 };
 
 enum FVar : std::uint8_t {
@@ -26,6 +30,7 @@ enum FVar : std::uint8_t {
     fvPrev,
     fvNote, fvFreq, fvGate, fvVel,
     fvCh,
+    fvDt,
     fvCount
 };
 
@@ -33,6 +38,9 @@ struct FormulaProgram {
     static constexpr int kMaxOps = 128;
     static constexpr int kMaxStack = 32;
     static constexpr int kMaxDepth = 32;
+    static constexpr int kMaxUserVars = 16;
+    static constexpr int kStateSlots = kMaxOps + kMaxUserVars;
+    static constexpr float kSeed = 0.001f;
     struct Op {
         FOp code = FOp::PushK;
         std::uint8_t var = 0;
@@ -40,6 +48,7 @@ struct FormulaProgram {
     };
     Op ops[kMaxOps];
     int n = 0;
+    int userVars = 0;
     bool valid() const { return n > 0; }
     bool reads(FVar v) const {
         for (int i = 0; i < n; ++i) if (ops[i].code == FOp::PushVar && ops[i].var == v) return true;
@@ -66,6 +75,11 @@ inline float formulaNoise(std::uint32_t& s) {
     return (float) (s & 0xffffffu) * (2.0f / 16777215.0f) - 1.0f;
 }
 
+inline void seedFormulaState(float* state, const FormulaProgram& p) {
+    if (state == nullptr) return;
+    for (int k = 0; k < p.userVars; ++k) state[FormulaProgram::kMaxOps + k] = FormulaProgram::kSeed;
+}
+
 inline float evalFormula(const FormulaProgram& p, const FormulaEnv& env) {
     float st[FormulaProgram::kMaxStack];
     int sp = 0;
@@ -73,7 +87,16 @@ inline float evalFormula(const FormulaProgram& p, const FormulaEnv& env) {
         const auto& op = p.ops[i];
         switch (op.code) {
             case FOp::PushK:   st[sp++] = op.k; break;
-            case FOp::PushVar: st[sp++] = env.v[op.var]; break;
+            case FOp::PushVar: st[sp++] = op.var == fvDt ? env.dt : env.v[op.var]; break;
+            case FOp::LoadVar: st[sp++] = env.state != nullptr ? env.state[op.var] : 0.0f; break;
+            case FOp::StoreVar: {
+                --sp;
+                if (env.state == nullptr) break;
+                const float v = st[sp];
+                env.state[op.var] = std::isfinite(v) ? std::min(std::max(v, -1.0e6f), 1.0e6f)
+                                                     : FormulaProgram::kSeed;
+                break;
+            }
             case FOp::Neg:     st[sp - 1] = -st[sp - 1]; break;
             case FOp::Add:     --sp; st[sp - 1] += st[sp]; break;
             case FOp::Sub:     --sp; st[sp - 1] -= st[sp]; break;
@@ -225,6 +248,7 @@ inline const Var* variables(int& count) {
         {"a", fvA}, {"b", fvB}, {"x", fvX}, {"y", fvY}, {"z", fvZ}, {"w", fvW},
         {"t", fvT}, {"beat", fvBeat}, {"bpm", fvBpm}, {"sr", fvSr}, {"prev", fvPrev},
         {"note", fvNote}, {"freq", fvFreq}, {"gate", fvGate}, {"vel", fvVel}, {"ch", fvCh},
+        {"dt", fvDt},
     };
     count = (int) (sizeof(k) / sizeof(k[0]));
     return k;
@@ -249,6 +273,70 @@ struct Parser {
     int stack = 0;
     const char* err = nullptr;
     int errPos = -1;
+    char names[FormulaProgram::kMaxUserVars][16] = {};
+
+    bool builtin(const char* name) const {
+        int n = 0;
+        const Fn* fns = functions(n);
+        for (int f = 0; f < n; ++f) if (std::strcmp(fns[f].name, name) == 0) return true;
+        const Var* vars = variables(n);
+        for (int v = 0; v < n; ++v) if (std::strcmp(vars[v].name, name) == 0) return true;
+        const Konst* ks = constants(n);
+        for (int v = 0; v < n; ++v) if (std::strcmp(ks[v].name, name) == 0) return true;
+        return false;
+    }
+    int userSlot(const char* name) const {
+        for (int k = 0; k < prog.userVars; ++k)
+            if (std::strcmp(names[k], name) == 0) return FormulaProgram::kMaxOps + k;
+        return -1;
+    }
+    bool declare(const char* name) {
+        if (userSlot(name) >= 0) return true;
+        if (prog.userVars >= FormulaProgram::kMaxUserVars) { fail("too many variables"); return false; }
+        std::snprintf(names[prog.userVars], sizeof(names[prog.userVars]), "%s", name);
+        ++prog.userVars;
+        return true;
+    }
+    void declareAssigned() {
+        int j = 0;
+        while (s[j] != 0) {
+            if (s[j] >= 'a' && s[j] <= 'z') {
+                char name[16];
+                int n = 0;
+                while ((s[j] >= 'a' && s[j] <= 'z') || (s[j] >= '0' && s[j] <= '9')) {
+                    if (n + 1 < (int) sizeof(name)) name[n++] = s[j];
+                    ++j;
+                }
+                name[n] = 0;
+                int k = j;
+                while (s[k] == ' ' || s[k] == '\t') ++k;
+                if (s[k] == ':' && s[k + 1] == '=') {
+                    if (builtin(name)) { i = j - n; fail("cannot assign to a built-in name"); return; }
+                    if (!declare(name)) return;
+                }
+                continue;
+            }
+            ++j;
+        }
+    }
+    void statement() {
+        skip();
+        const int start = i;
+        char name[16];
+        if (ident(name, sizeof(name))) {
+            skip();
+            if (s[i] == ':' && s[i + 1] == '=') {
+                i += 2;
+                const int slot = userSlot(name);
+                if (slot < 0) { fail("cannot assign to a built-in name"); return; }
+                expr();
+                emit(FOp::StoreVar, (std::uint8_t) slot, 0.0f, -1);
+                return;
+            }
+        }
+        i = start;
+        expr();
+    }
 
     void fail(const char* m) {
         if (err == nullptr) { err = m; errPos = i; }
@@ -339,6 +427,10 @@ struct Parser {
                     emit(FOp::PushK, 0, ks[v].k, +1);
                     return;
                 }
+            if (const int slot = userSlot(name); slot >= 0) {
+                emit(FOp::LoadVar, (std::uint8_t) slot, 0.0f, +1);
+                return;
+            }
             fail(s[i] == '(' ? "unknown function" : "unknown name");
             return;
         }
@@ -450,10 +542,25 @@ inline bool compileFormula(const char* src, FormulaProgram& out, FormulaError* e
         if (err != nullptr) *err = {"empty expression", 0};
         return false;
     }
-    p.expr();
+    p.declareAssigned();
+    if (p.err == nullptr) {
+        for (;;) {
+            p.statement();
+            p.skip();
+            if (p.err != nullptr) break;
+            if (p.s[p.i] == ';') {
+                ++p.i;
+                p.skip();
+                if (p.s[p.i] == 0) break;
+                if (p.stack > 0) { p.fail("only the last statement can be a value"); break; }
+                continue;
+            }
+            break;
+        }
+    }
     p.skip();
     if (p.err == nullptr && p.s[p.i] != 0) p.fail("unexpected text after expression");
-    if (p.err == nullptr && p.stack != 1) p.fail("incomplete expression");
+    if (p.err == nullptr && p.stack != 1) p.fail("the last statement must be a value");
     if (p.err != nullptr) {
         if (err != nullptr) *err = {p.err, p.errPos};
         return false;

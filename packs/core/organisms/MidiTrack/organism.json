@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "MidiTrack",
+      "roles": ["midi-track"],
       "category": "Input/Output",
       "hidden": true,
       "params": [

@@ -1,0 +1,8 @@
+[
+  { "name": "Wail", "values": { "PitchLow": 180.0, "PitchHigh": 1400.0, "LfoUp": 0.6, "LfoDown": 0.6, "Mode": 0.0, "Wave": 0.0, "Tone": 4000.0 } },
+  { "name": "Two Tone", "values": { "PitchLow": 620.0, "PitchHigh": 930.0, "LfoUp": 0.3, "LfoDown": 0.3, "Mode": 3.0, "Wave": 0.0, "Tone": 3000.0 } },
+  { "name": "Laser", "values": { "PitchLow": 200.0, "PitchHigh": 3200.0, "LfoUp": 0.04, "LfoDown": 0.14, "Mode": 2.0, "Wave": 2.0, "Tone": 8000.0 } },
+  { "name": "Foghorn", "values": { "PitchLow": 90.0, "PitchHigh": 140.0, "LfoUp": 1.2, "LfoDown": 1.6, "Mode": 0.0, "Wave": 1.0, "Tone": 900.0 } },
+  { "name": "Trill", "values": { "PitchLow": 900.0, "PitchHigh": 1250.0, "LfoUp": 0.06, "LfoDown": 0.06, "Mode": 3.0, "Wave": 0.0, "Tone": 5000.0 } },
+  { "name": "Dive", "values": { "PitchLow": 100.0, "PitchHigh": 2000.0, "LfoUp": 0.4, "LfoDown": 2.2, "Mode": 2.0, "Wave": 0.0, "Tone": 2500.0 } }
+]

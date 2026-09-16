@@ -1,26 +1,28 @@
 # Cluster
 
-Chords on demand. Eight slots each hold a handful of notes - typed as names ("C3 E3 G3", sharps and flats welcome, bare numbers work too) - and each slot fires as a chord out of the MIDI outlet when you press its button, play its trigger note, or route a control at its Fire parameter. Point the outlet at any instrument and one pad plays whole voicings.
+Eight chord slots that fire as whole voicings out of a MIDI outlet.
 
-In PADS mode the eight slots map to eight incoming notes starting at From: play the mapped key and the slot's chord sounds at your velocity, released when you let go. In FOLLOW mode one chosen slot becomes a shape that follows your playing - every incoming note becomes the root and the chord moves with it, so a single finger walks the voicing up and down the keyboard.
-
-Hold decides what a press means. GATE is momentary: the chord sounds while the trigger is down. LATCH makes every trigger a toggle - press to start, press again to stop, and pads can layer. PEDAL is one chord at a time: each press replaces whatever was ringing and note-offs are ignored, so a single tap carries the harmony until the next tap - and a pad left empty becomes a stop button. Notes shared between two sounding slots are counted, not cut - releasing one pad never chokes the note a second pad still holds.
+Each slot holds a handful of notes typed as names, such as C3 E3 G3, with sharps, flats and bare note numbers accepted. A slot fires when you press its button, play its trigger note, or drive its Fire parameter from a control route. In PADS mode the eight slots sit on eight incoming notes starting at TriggerNote and sound at the velocity you play. In FOLLOW mode one slot becomes a shape that follows your playing: every incoming note becomes the root and the chord moves with it. Notes shared between two sounding slots are counted, so releasing one pad never cuts a note another still holds. Cord the outlet to a Rhizome, a Wave or any other instrument.
 
 ## Parameters
 
-**Mode** PADS plays the eight slots; FOLLOW transposes one slot from the keyboard.
+**Mode** PADS plays the eight slots from eight keys. FOLLOW transposes one slot from whatever you play.
 
-**From** the incoming note mapped to slot 1; the next seven notes up map to the next slots.
+**Hold** What a press means. GATE sounds the chord while the trigger is down. LATCH makes every trigger a toggle, so pads can layer. PEDAL plays one chord at a time: each press replaces the last and releases are ignored, so an empty slot becomes a stop button.
 
-**Slot** which slot FOLLOW mode carries around.
+**TriggerNote** The incoming note mapped to slot 1. The next seven notes up map to slots 2 to 8.
 
-**Vel** the velocity used when a slot is fired from its button or a control route.
+**Slot** Which slot FOLLOW mode carries around.
 
-**Hold** GATE while pressed, LATCH toggles, PEDAL swaps - one chord ringing until the next.
+**Velocity** The velocity used when a slot is fired from its button or a control route.
 
-**Notes 1-8** the slots themselves.
+**Notes1** The notes of slot 1, typed as names or numbers. And so on for 2 to 8.
 
-**Fire 1-8** the triggers behind the buttons, reachable by control routes and automation.
+**Fire1** The trigger behind slot 1's button, reachable by control routes and automation. And so on for 2 to 8.
+
+## Recipe
+
+**One-finger changes** Mode PADS, Hold PEDAL, TriggerNote 36. Type a progression into slots 1 to 4 and leave slot 5 empty. Cord a PianoRoll into the inlet and this into a Rhizome, then draw single notes at 36 to 39 where each chord should change and a 40 where it should stop.
 
 ## Related Organisms
 

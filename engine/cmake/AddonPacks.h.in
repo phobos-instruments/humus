@@ -5,7 +5,7 @@
 #include <initializer_list>
 #include <string>
 
-#include "core/PackRegistry.h"
+#include "core/packs/PackRegistry.h"
 #include "hum/Registry.h"
 
 namespace hum {

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <atomic>
 #include <memory>
@@ -6,18 +8,19 @@
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include "core/AudioGraph.h"
-#include "core/GraphIo.h"
-#include "core/GraphMidi.h"
+#include "core/graph/AudioGraph.h"
+#include "core/graph/GraphIo.h"
+#include "core/graph/GraphMidi.h"
 #include "io/PatchDocument.h"
 
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
 
-class HumusProcessor : public juce::AudioProcessor {
+class HumusProcessor : public juce::AudioProcessor, private juce::AsyncUpdater {
 public:
     HumusProcessor();
+    ~HumusProcessor() override { cancelPendingUpdate(); }
 
     bool loadPatchFile(const juce::File& file, std::string& error);
     bool loadPatchText(const std::string& amhXml, std::string& error);
@@ -50,6 +53,7 @@ public:
     void releaseResources() override {}
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     const graphmidi::Ports& midiPortsForTest() const { return midiPorts_; }
+    bool holdsRetiredGraphForTest() const { return retired_ != nullptr; }
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
     bool acceptsMidi() const override { return true; }
@@ -65,12 +69,17 @@ public:
 
 private:
     void applyPending();
+    void handleAsyncUpdate() override;
     void driveTransportFromHost();
     void applyMacros();
     void applyParamEdits();
+    void collectPorts(AudioGraph& g, std::vector<MasterTap*>& masters,
+                      std::vector<HardwareOut*>& auxes, graphmidi::Ports& ports) const;
 
     struct MacroMap { std::string organism, param; float lo = 0.0f, hi = 1.0f; };
+    struct MacroTarget { Organism* organism = nullptr; int slot = -1; bool resolved = false; };
     MacroMap macros_[kNumMacros];
+    MacroTarget macroTargets_[kNumMacros];
     juce::AudioParameterFloat* macroParam_[kNumMacros] {};
     juce::CriticalSection macroLock_;
     PatchDocumentModel model_;
@@ -80,11 +89,16 @@ private:
     std::vector<HardwareOut*> auxes_;
     graphmidi::Ports midiPorts_;
     std::unique_ptr<AudioGraph> pending_;
+    std::vector<MasterTap*> pendingMasters_;
+    std::vector<HardwareOut*> pendingAuxes_;
+    graphmidi::Ports pendingPorts_;
+    std::unique_ptr<AudioGraph> retired_;
     std::atomic<bool> hasPending_{false};
     juce::CriticalSection stageLock_;
 
     struct ParamEdit { std::string organism, param; double value; };
     std::vector<ParamEdit> pendingEdits_;
+    std::vector<ParamEdit> appliedEdits_;
     juce::CriticalSection editLock_;
 
     std::string docText_;

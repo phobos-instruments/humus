@@ -1,28 +1,32 @@
 # Mineral
 
-Crystalline percussion: struck tones whose partials sit on a geometric lattice - each partial is the previous one times Ratio, the inharmonic series of struck glass, bells and gamelan metal. Geometry as timbre.
+A struck percussion synth whose partials sit on a geometric lattice, each one the previous one times Ratio.
+
+That series is the inharmonic spectrum of struck glass, bells and gamelan metal, and the shape of the lattice is the timbre. Four voices play from the MIDI inlet, so sequence it from a PianoRoll or a DNA, or play it from the keyboard while its editor is focused. The sigil on the left of the editor draws the model live: one side per facet, stretched by Ratio, doubled by Shimmer, flashing on a strike. Cord the outlet into a Verbatim or a Fern for the space a bell wants.
 
 ## Parameters
 
-**Facets** How many partials the crystal grows (1-12). Few and it is a struck bar; many and it fills out into a bell.
+**Facets** How many partials, 1 to 12. Few is a struck bar; many fills out into a bell.
 
-**Ratio** The lattice constant. 2.0 = octaves (organ-pure); the golden 1.62 = classic bell inharmonicity; lower = clustered, metallic.
+**Ratio** The lattice constant. 2.0 is octaves, 1.62 the classic bell inharmonicity, lower is clustered and metallic.
 
-**Geometry** Hands Ratio to the facet count: the crystal takes the lattice its own shape implies, the diagonal of a regular polygon over its side. Five facets give the golden 1.618 - which is where Mineral has always sat - and every side after that climbs closer to the octave without ever arriving, so the crystal grows more harmonic as it grows more faces. Off by default, and the Ratio knob dims while it is on.
+**Geometry** Hands Ratio to the facet count: the diagonal of a regular polygon over its side, so five facets give 1.618 and more facets climb towards the octave. The Ratio knob dims while it is on.
 
-**Shine** Level slope across facets - dull to glassy.
+**Shine** Level slope across the facets, dull to glassy.
 
-**Decay** Ring time; higher facets always die faster, as real plates do.
+**Decay** Ring time in milliseconds. Higher facets always die faster.
 
-**Strike** The contact transient (a snap of noise).
+**Strike** The contact transient, a short burst of noise.
 
-**Shimmer** Detunes each facet slightly differently left and right, so the crystal beats across the stereo field.
+**Shimmer** Detunes each facet slightly differently left and right, so the sound beats across the stereo field.
 
-MIDI-driven, four voices: sequence it from a PianoRoll or DNA, or play it with the QWERTY keyboard while its editor is focused.
+**Level** Output level.
 
-## The sigil
+**BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
 
-The mark on the left of the editor is the synthesis model drawn live: the gem has one side per facet (+2), stretches with Ratio, gleams with Shine, doubles its image with Shimmer, trails with Decay, flashes on a strike and breathes with the output level. What you hear is what it shows.
+## Recipe
+
+**Gamelan** Facets 6, Ratio 1.62, Shine 0.75, Decay 1200, Strike 0.5, Shimmer 0.4. Cord a DNA into the MIDI inlet for a pentatonic line and the outlet into a Verbatim with a long tail.
 
 ## Related Organisms
 

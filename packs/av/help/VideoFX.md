@@ -1,31 +1,37 @@
 # VideoFX
 
-The picture treatment. One video inlet, one outlet, and a rack of knobs that move, resize, spin, colour and break the frame on its way through: position, scale and rotation on the top row, brightness, contrast, colour, hue and invert on the bottom, a pixelate knob that coarsens the image down to a mosaic and a mirror that folds the frame across its middle.
+A picture treatment with position, scale, rotation, colour and mosaic controls.
 
-Every knob is an ordinary param, and that is the point: put a Follower on Scale so the kick pushes the picture at you, an LFO on Rotate for a slow spin, a Sequence on Hue for a colour cycle in time, or map the lot to a controller. Chain two for a transform and a colour stage that automate separately, or put one before a VideoMix and one after.
+One video inlet and one outlet. The picture passes through a transform stage (position, scale, rotation, mirror and pixelate) and then a colour stage (brightness, contrast, saturation, hue and invert). Every knob is an ordinary param, so a Follower on Scale pushes the picture with the kick, an LFO on Rotate spins it slowly and a Sequence on Hue cycles colour in time. Put it between a VideoPlayer, VideoPad or CameraIn and a Lumen, VideoMix or VideoOut, and chain two when the transform and the colour should automate separately.
 
 ## Parameters
 
-**PosX / PosY** where the picture sits, as a share of the frame: +100% slides it a whole frame to the right or up, -50% half a frame the other way.
+**PosX** Where the picture sits left to right, as a share of the frame. +100% slides it a whole frame to the right.
 
-**Scale** how big. 100% is as it came, 200% twice as big, 0% collapses it to a point.
+**PosY** The same up and down. +100% is a whole frame up.
 
-**Rotate** the spin, in degrees, around the centre of the frame.
+**Scale** How big. 100% is as it came, 200% twice as big, 0% collapses it to a point.
 
-**Pixelate** how coarse the mosaic is. 0% leaves the picture alone; 100% is a handful of blocks across.
+**Rotate** The spin in degrees around the centre of the frame.
 
-**Mirror** folds the frame: Left copies the left half onto the right, Top the top half onto the bottom, Both does both.
+**Pixelate** How coarse the mosaic is. 0% leaves the picture alone; 100% is a handful of blocks across.
 
-**Brightness** the light. 100% is as it came, 0% is black, 200% twice as bright.
+**Mirror** Folds the frame across its middle. Off leaves it whole, Left copies the left half onto the right, Top copies the top half onto the bottom, Both does both.
 
-**Contrast** the spread around mid-grey. 0% flattens to grey, 200% pushes to the extremes.
+**Brightness** The light. 100% is as it came, 0% is black, 200% twice as bright.
 
-**Saturation** the Colour knob: 0% is monochrome, 100% as it came, 200% overdriven.
+**Contrast** The spread around mid grey. 0% flattens to grey, 200% pushes to the extremes.
 
-**Hue** rotates every colour around the wheel, in degrees.
+**Saturation** The Colour knob. 0% is monochrome, 100% as it came, 200% overdriven.
 
-**Invert** the negative.
+**Hue** Rotates every colour around the wheel, in degrees.
+
+**Invert** Shows the negative.
+
+## Recipe
+
+**Kick zoom** Cord a VideoPlayer into VideoFX and VideoFX into a VideoOut. Cord the kick into a Follower with a short release and route the Follower onto Scale with a small depth above 100%, so each hit pushes the picture towards you and it settles back between hits. Add a touch of Pixelate for a rough edge.
 
 ## Related Organisms
 
-VideoPlayer, VideoPad, VideoMix, Lumen, VideoOut
+VideoPlayer, VideoPad, VideoMix, Lumen

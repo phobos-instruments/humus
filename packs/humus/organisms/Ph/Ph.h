@@ -1,19 +1,28 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
+#include <atomic>
 #include <mutex>
 #include <string>
 
 #include <juce_core/juce_core.h>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Files.h"
+#include "hum/caps/Midi.h"
+#include "hum/caps/Params.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
+#include "hum/ParamRef.h"
 
-#include "Ph/PhChip.h"
-#include "Ph/PhMods.h"
+#include "common/RateRing.h"
+
+#include "common/FmChip.h"
+#include "common/FmMods.h"
 #include "Ph/PhOpl.h"
 #include "Ph/PhOpm.h"
 #include "Ph/PhSixOp.h"
-#include "Ph/PhVoice.h"
+#include "common/FmVoice.h"
 
 namespace hum {
 
@@ -27,6 +36,14 @@ public:
 
     void prepare(double sampleRate, int maxBlock) override;
     void reset() override;
+    void applyBend();
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        fileVoice_.store((int) voiceOf(params.getText("File")), std::memory_order_relaxed);
+    }
+    void onTextChanged(const std::string& param, const std::string& text) override {
+        if (param == "File") fileVoice_.store((int) voiceOf(text), std::memory_order_relaxed);
+    }
 
     void deliverMidi(int, const MidiEvent* events, int count) override {
         stagedCount_ = std::min(count, (int) staged_.size());
@@ -85,23 +102,29 @@ private:
     void pumpChip();
     void pumpOpm();
     void pumpOpl();
-    PhMods readMods() const;
-    PhVoice readVoice(const PhVoice& fromBank) const;
+    FmMods readMods() const;
+    FmVoice readVoice(const FmVoice& fromBank) const;
+
+    struct OpParams { ParamRef on, level, ratio, detune, attack, decay, sustain, release; };
+    static std::array<OpParams, 6> makeOpParams();
+    struct ModParams { ParamRef bright, attack, release, detune, vibrato, speed; };
 
     PhSixOp six_;
-    PhChip chip_;
+    FmChip chip_;
     PhOpm opm_;
     PhOpl opl_;
     Voice voice_ = Voice::SixOp;
+    std::atomic<int> fileVoice_{0};
     int patchSlot_ = -1;
-    PhMods mods_;
-    PhVoice voice_params_;
+    FmMods mods_;
+    FmVoice voice_params_;
+    ParamRef algorithmRef_ {"Algorithm"}, feedbackRef_ {"Feedback"};
+    std::array<OpParams, 6> opParams_ = makeOpParams();
+    ModParams modParams_ {ParamRef("Bright"), ParamRef("Attack"), ParamRef("Release"),
+                          ParamRef("Detune"), ParamRef("Vibrato"), ParamRef("Speed")};
     std::string loadedUri_;
 
-    static constexpr int kRing = 4096;
-    std::array<float, kRing> ringL_{}, ringR_{};
-    int ringWrite_ = 0;
-    double ringRead_ = 0.0;
+    RateRing ring_;
 
     juce::CriticalSection ioLock_;
 
@@ -110,6 +133,7 @@ private:
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> liveQ_;
     int liveCount_ = 0;
     std::mutex liveLock_;
+    PitchBend bend_;
 };
 
 }

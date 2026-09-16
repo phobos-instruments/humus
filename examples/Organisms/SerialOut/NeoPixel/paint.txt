@@ -1,0 +1,1 @@
+four sliders pick a pixel on the ring and paint it

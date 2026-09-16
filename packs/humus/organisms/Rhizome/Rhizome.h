@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <cstdint>
 #include <mutex>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 #include "hum/dsp/Biquad.h"
 #include "hum/dsp/BlepOsc.h"
 #include "hum/dsp/Lfo.h"
@@ -58,6 +61,8 @@ private:
 
     std::array<Voice, kVoices> voices_;
     int next_ = 0;
+    PitchBend bend_;
+    double bendRatio_ = 1.0;
     Biquad lpL_, lpR_;
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> staged_;
     int stagedCount_ = 0;

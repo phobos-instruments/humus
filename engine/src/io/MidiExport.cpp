@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/MidiExport.h"
 
 #include <algorithm>
 #include <cmath>
 
 #include "hum/NoteSchedule.h"
+#include "io/MeterMap.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -45,6 +48,10 @@ void collect(const OrganismModel& cm, const Range& range, juce::MidiMessageSeque
         for (int i = 0; i < n; ++i) {
             const auto& e = edges[(size_t) i];
             const double tick = (at - range.fromBeat) * Pattern::kTicksPerBeat + e.offset;
+            if (e.cc == kBendController) {
+                seq.addEvent(juce::MidiMessage::pitchWheel(channel, std::clamp(e.vel, 0, kBendMax)), tick);
+                continue;
+            }
             if (e.cc >= 0) {
                 seq.addEvent(juce::MidiMessage::controllerEvent(
                                  channel, std::clamp(e.cc, 0, kMidiMax),
@@ -88,7 +95,9 @@ bool write(const PatchDocumentModel& model, const juce::File& out, const Range& 
     conductor.addEvent(juce::MidiMessage::tempoMetaEvent(
                            (int) std::llround(kSecondsPerMinute * 1.0e6 / bpm)),
                        0.0);
-    conductor.addEvent(juce::MidiMessage::timeSignatureMetaEvent(4, 4), 0.0);
+    for (const auto& mc : meterMapOf(model))
+        conductor.addEvent(juce::MidiMessage::timeSignatureMetaEvent(mc.meter.beats, mc.meter.unit),
+                           mc.beat * Pattern::kTicksPerBeat);
     file.addTrack(conductor);
 
     int channel = 1, written = 0;

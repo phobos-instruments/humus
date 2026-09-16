@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "AudioIn",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -17,6 +18,7 @@
     },
     {
       "class": "AudioOut",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -32,6 +34,7 @@
     },
     {
       "class": "AuxIn1",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -47,6 +50,7 @@
     },
     {
       "class": "AuxIn2",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -62,6 +66,7 @@
     },
     {
       "class": "AuxIn3",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -77,6 +82,7 @@
     },
     {
       "class": "AuxIn4",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -92,6 +98,7 @@
     },
     {
       "class": "AuxIn5",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -107,6 +114,7 @@
     },
     {
       "class": "AuxIn6",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -122,6 +130,7 @@
     },
     {
       "class": "AuxIn7",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -137,6 +146,7 @@
     },
     {
       "class": "AuxIn8",
+      "roles": ["audio-in"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -152,6 +162,7 @@
     },
     {
       "class": "AuxOut1",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -167,6 +178,7 @@
     },
     {
       "class": "AuxOut2",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -182,6 +194,7 @@
     },
     {
       "class": "AuxOut3",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -197,6 +210,7 @@
     },
     {
       "class": "AuxOut4",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -212,6 +226,7 @@
     },
     {
       "class": "AuxOut5",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -227,6 +242,7 @@
     },
     {
       "class": "AuxOut6",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -242,6 +258,7 @@
     },
     {
       "class": "AuxOut7",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [
@@ -257,6 +274,7 @@
     },
     {
       "class": "AuxOut8",
+      "roles": ["audio-out"],
       "category": "Input/Output",
       "hidden": true,
       "params": [

@@ -1,39 +1,49 @@
 # Filter
 
-An homage to a legendary 1U analogue club filter. A valve drive stage feeds a state-variable VCF whose filter-type buttons combine, exactly like the classic hardware idea:
+A valve-driven state-variable filter in the tradition of the rackmount club filter.
 
-**HI + LO** the notch - sweep it for phasing
+A drive stage feeds a resonant filter whose HI, BAND and LO buttons combine rather than exclude each other: HI with LO is a notch to sweep for phasing, all three together is an all-pass that Resonance makes dramatic, and none selected passes the signal clean. An envelope follower and a triangle or square sweep can both push the cutoff, or the envelope can be sent into the drive instead. Every switch is soft, so the buttons can be ridden in a performance without clicks. Cord it after a Rhizome, a Drums organism or a whole Mixer, and cord an LFO or a Follower onto Frequency for more shapes than the built-in sweeps give.
 
-**HI + BAND + LO** the "all pass" - subtle to dramatic with Resonance
+## Parameters
 
-none selected clean passthrough (our one deviation - the hardware mutes here; we hand the dry signal back instead)
+**EnvFollow** How far the input's loudness opens the cutoff. Zero leaves the filter static.
 
-A fresh Filter arrives switched off - a transparent wire - so dropping one into a chain changes nothing until you press the button.
+**EnvDecay** Fast or Slow release for the envelope once the input drops.
 
-## The pots
+**Drive** The valve stage. It adds warmth first, then soft clipping, then hard clipping as you push, with make-up gain so the level stays put.
 
-**VCF Freq** 20 Hz - 20 kHz, the big sweep.
+**EnvToDrive** Sends the envelope into Drive instead of the cutoff, so loud passages distort more.
 
-**Res** gentle roll-off to synth-peaky. ARC (automatic resonance control) eases it back at high programme levels and low cut-offs, so full-tilt sweeps stay speaker-safe.
+**LfoSpeed** Sweep rate from 0.2 Hz to 10 kHz. Past a few hundred hertz the sweep itself becomes a tone.
 
-**Valve** the overdrive: 2nd-harmonic warmth first, soft clip, then hard clip as you push - with make-up gain riding along so the level stays put.
+**LfoWave** Triangle glides between the ends of the sweep. Square jumps between them.
 
-**Env Foll** the input's intensity opens the cut-off; Decay picks the fast or slow release. EF>OD re-routes the envelope into the valve instead - intensity-modulated overdrive.
+**LfoSync** Locks the sweep to the transport instead of LfoSpeed.
 
-**LFO/Depth** 0.2 Hz to 10 kHz sweep, Triangle glides, Square gates. Past a few hundred hertz the sweep itself turns into tone - the growling sideband trick from the filterbank tradition.
+**LfoBeats** The length of one synced sweep in beats, so 4 is a bar of four.
 
-**Sync** locks the sweep to the transport instead of the LFO knob; Beats sets the cycle length (1 = one beat, 4 = a bar of 4/4).
+**LfoDepth** How far the sweep pushes the cutoff, up to a few octaves each way.
 
-## Switches
+**Resonance** From a gentle roll-off to a synth peak. It eases back on its own at high input levels and low cutoffs so full sweeps stay speaker-safe.
 
-**Filter On** soft-switched true bypass - off is a clean straight wire.
+**HiPass** Adds the high-pass band to the output.
 
-**24dB MONO** the rear-panel trick: both channel filters in series from the left input - 24 dB/octave, doubled resonance, both outputs fed.
+**BandPass** Adds the band-pass band to the output.
 
-**INV** rear "mix + invert filter": outputs dry MINUS filtered - cancellation effects, lovely into a reverb or delay.
+**LoPass** Adds the low-pass band to the output.
 
-All switching is click-free (soft-switched), so ride the buttons in a performance like the original. Patches from the single-mode Filter era (Mode lowpass/highpass/bandpass) load with the matching band selected and the filter on - they sound as they did.
+**Frequency** The cutoff, 20 Hz to 20 kHz. The big sweep.
+
+**FilterOn** Switches the filter in or out. Off is a clean straight wire.
+
+**Mono** Runs both channel filters in series from the left input for a 24 dB slope and doubled resonance, feeding both outputs.
+
+**MixInvert** Outputs the dry signal minus the filtered one, for cancellation effects that sit well before a delay or reverb.
+
+## Recipe
+
+**Synced sweep** LoPass on, Resonance 6, Drive 3, Frequency 400. LfoSync on, LfoBeats 4, LfoWave Triangle, LfoDepth 6. Cord a Drums organism in and the cutoff opens and closes once a bar in time with the transport.
 
 ## Related Organisms
 
-LFO, VCA, Follower
+LFO, Gain, Follower

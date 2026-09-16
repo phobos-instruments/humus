@@ -1,4 +1,5 @@
 option(HUM_PLUGIN_EXPORT "Build the Humus plugin (VST3; +AU on macOS)" ON)
+
 if(HUM_PLUGIN_EXPORT)
   if(APPLE)
     set(HUM_HUMUS_FORMATS VST3 AU)
@@ -16,7 +17,8 @@ if(HUM_PLUGIN_EXPORT)
     IS_SYNTH FALSE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT TRUE
-    COPY_PLUGIN_AFTER_BUILD FALSE)
+    COPY_PLUGIN_AFTER_BUILD FALSE
+    VST3_AUTO_MANIFEST ${HUM_VST3_MANIFEST})
   target_sources(Humus PRIVATE src/plugin/HumusProcessor.cpp)
   target_include_directories(Humus PRIVATE src ${HUM_GENERATED_DIR})
   add_dependencies(Humus hum_build_id)

@@ -1,9 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Halogen.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cmath>
 #include <cstdint>
 
+#include "hum/NativePicture.h"
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
@@ -15,6 +19,7 @@ constexpr float kPartial = 0.05f;
 constexpr float kOlaScale = kPartial * kSizeF / 4.0f;
 
 float lerp(float a, float b, float t) { return a + (b - a) * t; }
+constexpr float kGlide = 0.25f;
 
 }
 
@@ -45,41 +50,89 @@ void Halogen::reset() {
 }
 
 void Halogen::loadFromFile(const std::string& uri) {
+    loaded_ = uri;
+    if (videoAttached_.load(std::memory_order_relaxed)) return;
     PixelField next;
     if (!uri.empty()) loadPixelField(uri, next);
-    PixelField retired;
+    offerField(std::move(next), false);
+}
+
+void Halogen::offerField(PixelField next, bool keepMagnitudes) {
     {
-        const juce::SpinLock::ScopedLockType sl(swap_);
-        retired = std::move(pending_);
-        pending_ = std::move(next);
-        ready_.store(true, std::memory_order_release);
+        const juce::SpinLock::ScopedLockType dl(displayLock_);
+        display_ = next;
     }
-    loaded_ = uri;
+    displayGen_.fetch_add(1, std::memory_order_relaxed);
+    PixelField retired;
+    const juce::SpinLock::ScopedLockType sl(swap_);
+    retired = std::move(pending_);
+    pending_ = std::move(next);
+    softSwap_ = keepMagnitudes;
+    ready_.store(true, std::memory_order_release);
+}
+
+void Halogen::pushVideoFrame(const Picture& picture) {
+    PixelField next;
+    if (picture.pixels != nullptr && picture.width > 0 && picture.height > 0) {
+        pixelfield::fromPixels(picture.pixels, picture.width, picture.height, picture.bgra, next,
+                               kVideoFieldW, kVideoFieldH);
+    } else if (picture.native != nullptr) {
+        NativePictureView view;
+        if (!lockNativePicture(picture.native, view)) return;
+        pixelfield::fromPixels(view.base, view.width, view.height, view.strideBytes, view.bgra, next,
+                               kVideoFieldW, kVideoFieldH);
+        unlockNativePicture(picture.native);
+    } else {
+        return;
+    }
+    if (next.empty()) return;
+    if (picture.mirrored)
+        for (int y = 0; y < next.height; ++y)
+            std::reverse(next.v.begin() + (std::ptrdiff_t) y * next.width,
+                         next.v.begin() + (std::ptrdiff_t) (y + 1) * next.width);
+    offerField(std::move(next), true);
+}
+
+void Halogen::setVideoCordAttached(bool on) {
+    const bool was = videoAttached_.exchange(on, std::memory_order_relaxed);
+    if (was && !on) {
+        PixelField next;
+        if (!loaded_.empty()) loadPixelField(loaded_, next);
+        offerField(std::move(next), false);
+    }
 }
 
 void Halogen::adoptPending() {
-    if (!ready_.load(std::memory_order_acquire)) return;
-    const juce::SpinLock::ScopedTryLockType sl(swap_);
-    if (!sl.isLocked()) return;
-    std::swap(field_.v, pending_.v);
-    std::swap(field_.width, pending_.width);
-    std::swap(field_.height, pending_.height);
-    ready_.store(false, std::memory_order_relaxed);
-    std::fill(mag_.begin(), mag_.end(), 0.0f);
+    const int radius = pixelfield::blurRadiusFor(params.get("Blur", 0.2));
+    bool fresh = false;
+    if (ready_.load(std::memory_order_acquire)) {
+        const juce::SpinLock::ScopedTryLockType sl(swap_);
+        if (sl.isLocked()) {
+            std::swap(raw_.v, pending_.v);
+            std::swap(raw_.width, pending_.width);
+            std::swap(raw_.height, pending_.height);
+            ready_.store(false, std::memory_order_relaxed);
+            if (!softSwap_) std::fill(mag_.begin(), mag_.end(), 0.0f);
+            fresh = true;
+        }
+    }
+    if (fresh || radius != blurRadius_) {
+        blurRadius_ = radius;
+        pixelfield::boxBlur(raw_, radius, field_);
+    }
 }
 
 void Halogen::frame(double column) {
     adoptPending();
     const int bins = kSize / 2;
     const float gate = (float) std::clamp(params.get("Gate", 0.1), 0.0, 1.0);
-    const float blur = (float) std::clamp(params.get("Blur", 0.2), 0.0, 1.0);
     const float tilt = (float) std::clamp(params.get("Tilt", 0.0), -1.0, 1.0);
-    const double lowHz = std::clamp(params.get("Low", 55.0), 20.0, 2000.0);
+    const double lowHz = std::clamp(params.get("Lowest", 55.0), 20.0, 2000.0);
     const double highHz = std::max(lowHz * 1.25,
-                                   std::clamp(params.get("High", 8000.0), 200.0, 16000.0));
+                                   std::clamp(params.get("Highest", 8000.0), 200.0, 16000.0));
     const double y = std::clamp(params.get("Y", 0.0), 0.0, 1.0);
     const double height = std::clamp(params.get("Height", 1.0), 0.02, 1.0);
-    const float smooth = blur * 0.985f;
+    const float smooth = kGlide;
 
     if (field_.empty()) {
         for (auto& m : mag_) m *= smooth;
@@ -100,7 +153,7 @@ void Halogen::frame(double column) {
                 const int row = std::clamp((int) std::lround(rowTop + (1.0 - up) * rowSpan),
                                            0, field_.height - 1);
                 float px = lerp(field_.at(c0, row), field_.at(c1, row), cx);
-                px = px <= gate ? 0.0f : (px - gate) / std::max(1e-4f, 1.0f - gate);
+                px = pixelfield::gated(px, gate);
                 target = px * px;
                 if (tilt != 0.0f) target *= std::pow((float) (hz / lowHz), tilt * 0.5f);
             }
@@ -136,9 +189,9 @@ void Halogen::process(const float* const*, int, float* const* out, int numOut,
                       int numSamples, const Transport&) {
     if (fft_ == nullptr) return;
     const int mode = (int) std::lround(params.get("Scan", 0.0));
-    const double rate = std::clamp(params.get("Rate", 0.25), 0.01, 8.0);
+    const double rate = std::clamp(params.get("Rate", 0.25), 0.01, 100.0);
     const double x = std::clamp(params.get("X", 0.0), 0.0, 1.0);
-    const double span = std::clamp(params.get("Span", 1.0), 0.01, 1.0);
+    const double span = std::clamp(params.get("Width", 1.0), 0.01, 1.0);
     const bool reverse = params.get("Reverse", 0.0) >= 0.5;
     const float level = (float) std::clamp(params.get("Level", 1.0), 0.0, 2.0);
     const double step = rate * kHop / sampleRate_;

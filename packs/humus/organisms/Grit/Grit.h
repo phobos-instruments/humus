@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <array>
@@ -7,10 +9,12 @@
 #include <string>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 
 #include "hum/dsp/DspMath.h"
+#include "hum/dsp/Prepared.h"
 
 namespace hum {
 
@@ -25,6 +29,8 @@ struct GritTarget {
 class Grit : public Organism, public MidiNode, public LiveMidiIn {
 public:
     static constexpr double kNtscClock = 1789772.0;
+    static constexpr int kConsolePulses = 2;
+    static constexpr int kFullVolume = 15;
     static constexpr double kPalClock = 1662607.0;
     static constexpr int kMaxVoices = 8;
     static constexpr int kNoiseSplit = 96;
@@ -40,6 +46,16 @@ public:
     int numMidiOutputs() const override { return 0; }
 
     void prepare(double sampleRate, int maxBlock) override;
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        const std::string text = params.getText("Sample");
+        if (text != appliedSample_) onTextChanged("Sample", text);
+    }
+    void onTextChanged(const std::string& param, const std::string& text) override {
+        if (param != "Sample") return;
+        appliedSample_ = text;
+        pendingRom_.publish(buildSampleRom(text));
+    }
     void reset() override;
 
     void deliverMidi(int, const MidiEvent* events, int count) override {
@@ -92,10 +108,12 @@ private:
     void triggerVoice(int v);
     void silenceVoice(int v);
     void applyTriangle();
+    void applyBend();
     void noteOn(int note, int vel, const Tuning& tuning);
     void noteOff(int note);
     void envelopeTick();
     void loadSample();
+    static std::vector<std::uint8_t> buildSampleRom(const std::string& path);
     void renderChunk(float* l, float* r, int n, float level);
 
     std::unique_ptr<Impl> impl_;
@@ -106,7 +124,8 @@ private:
     int cachedWave_ = -1;
     int cachedPatch_ = -1;
     int cachedDuty_ = -1;
-    std::string cachedSample_;
+    std::string appliedSample_;
+    Prepared<std::vector<std::uint8_t>> pendingRom_;
     double cycleAcc_ = 0.0;
     double envAcc_ = 0.0;
     float dcIn_ = 0.0f;
@@ -114,6 +133,8 @@ private:
 
     std::array<Voice, kMaxVoices> voices_;
     unsigned age_ = 0;
+    PitchBend bend_;
+    double bendRatio_ = 1.0;
     int triNote_ = -1;
     int triHi_ = -1;
     int noiseNote_ = -1;

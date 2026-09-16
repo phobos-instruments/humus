@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <functional>
 #include <string>
@@ -5,9 +7,11 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/packs/Roles.h"
+#include "gui/style/Colours.h"
 #include "io/PatchDocument.h"
 #include "plugin/FxLook.h"
-#include "gui/Localisation.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -49,7 +53,7 @@ public:
             g.setColour(fxlook::box());
             g.fillRoundedRectangle(b.r, 4.0f);
             g.setColour(sel ? fxlook::accent() : b.isIn || b.isOut
-                                ? fxlook::accent().withAlpha(0.45f) : fxlook::line());
+                                ? fxlook::accent().withAlpha(alpha::dim) : fxlook::line());
             g.drawRoundedRectangle(b.r, 4.0f, sel ? 1.6f : 1.0f);
             g.setColour(fxlook::text());
             g.drawFittedText(b.name, b.r.reduced(4, 2).toNearestInt(),
@@ -81,9 +85,6 @@ private:
         bool isIn = false, isOut = false;
     };
 
-    static bool classIsIn(const std::string& c) { return c == "SoundIn" || c == "AuxIn"; }
-    static bool classIsOut(const std::string& c) { return c == "SoundOut" || c == "AuxOut"; }
-
     void rebuild() {
         boxes_.clear();
         if (model_ == nullptr || model_->organisms.empty() || getWidth() < 40) return;
@@ -93,8 +94,8 @@ private:
         for (const auto& cm : model_->organisms) {
             Box b;
             b.name = cm.name;
-            b.isIn = classIsIn(cm.displayClass);
-            b.isOut = classIsOut(cm.displayClass);
+            b.isIn = classHasRole(cm.classRaw, role::kAudioIn);
+            b.isOut = classHasRole(cm.classRaw, role::kAudioOut);
             float x = (float) (120 * (fallback % 4)), y = (float) (44 * (fallback / 4));
             for (const auto& v : model_->views)
                 if (v.organismName == cm.name) {
@@ -125,7 +126,7 @@ private:
     }
 
     void drawCords(juce::Graphics& g, const std::vector<ConnectionModel>& conns, bool dotted) {
-        g.setColour(dotted ? fxlook::dim().withAlpha(0.7f) : fxlook::accent().withAlpha(0.4f));
+        g.setColour(dotted ? fxlook::dim().withAlpha(alpha::strong) : fxlook::accent().withAlpha(alpha::dim));
         for (const auto& c : conns) {
             const Box* s = boxFor(c.src);
             const Box* d = boxFor(c.dst);

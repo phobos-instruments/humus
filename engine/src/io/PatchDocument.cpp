@@ -1,11 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/PatchDocument.h"
+#include "io/PatchMigrate.h"
 
-#include "core/ClipOps.h"
-#include "core/UserLibrary.h"
+#include "core/timeline/ClipOps.h"
+#include "core/library/UserLibrary.h"
 
 #include <juce_core/juce_core.h>
 
-#include "core/ClassString.h"
+#include "core/packs/ClassString.h"
 #include "io/PatchFormat.h"
 #include "io/PatchParseInternal.h"
 
@@ -133,6 +136,7 @@ bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::strin
                 && !juce::File::isAbsolutePath(juce::String(ch.audioFile)))
                 ch.audioFile = dir.getChildFile(fromDocumentPath(juce::String(ch.audioFile)))
                                    .getFullPathName().toStdString();
+    migrateLegacyControl(out);
     return true;
 }
 
@@ -185,6 +189,8 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
     }
 
     out.version = root->getStringAttribute("version").toStdString();
+    out.newerFormat = root->getStringAttribute("version").getIntValue()
+                      > PatchDocumentModel::kFormatVersion;
     out.applicationPath = root->getStringAttribute("application-path").toStdString();
     out.documentPath = root->getStringAttribute("document-path").toStdString();
     if (auto* notes = root->getChildByName("notes"))
@@ -298,6 +304,11 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
                                    ? (ve->getIntAttribute("editor-half", 0) != 0 ? 1 : 0)
                                    : -1;
                 v.editorCollapsed = ve->getIntAttribute("editor-collapsed", 0) != 0;
+                v.editorFloating = ve->getIntAttribute("editor-float", 0) != 0;
+                v.floatX = ve->getIntAttribute("float-x", 0);
+                v.floatY = ve->getIntAttribute("float-y", 0);
+                v.floatW = ve->getIntAttribute("float-w", 0);
+                v.floatH = ve->getIntAttribute("float-h", 0);
                 out.views.push_back(std::move(v));
             }
 

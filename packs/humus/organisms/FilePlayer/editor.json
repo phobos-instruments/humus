@@ -1,15 +1,24 @@
 {
   "width": 293,
   "height": 168,
+  "skin": {
+    "panel": [
+      {"shape": "rect", "theme": "dark", "fill": ["#3c4046", "#232529"]},
+      {"shape": "rect", "theme": "light", "fill": ["#dcdee1", "#b9bcc1"]},
+      {"shape": "lines", "theme": "dark", "offset": 1.5, "pitch": 3, "fill": "#0fffffff"},
+      {"shape": "lines", "theme": "light", "offset": 1.5, "pitch": 3, "fill": "#0c000000"},
+      {"shape": "rect", "h": 1, "fill": "#1fffffff"},
+      {"shape": "screws", "theme": "dark", "inset": 7, "size": 3.2, "fill": "#6a6d73", "mark": "#2a2c30", "shadow": "#40000000"},
+      {"shape": "screws", "theme": "light", "inset": 7, "size": 3.2, "fill": "#8a8d93", "mark": "#3a3c40", "shadow": "#40000000"}
+    ],
+    "face": [
+      {"shape": "rect", "x": 5, "y": 25, "w": 283, "h": 96, "radius": 5, "fill": "#0a0b0c"},
+      {"shape": "rect", "x": 6, "y": 26, "w": 281, "h": 94, "radius": 4, "fill": "#0d0e10"},
+      {"shape": "rect", "x": 6, "y": 26, "w": 281, "h": 47, "radius": 4, "fill": ["#1fffffff", "#00ffffff"]},
+      {"shape": "rect", "x": 6.5, "y": 26.5, "w": 280, "h": 93, "radius": 4, "stroke": "#59b08a3c", "stroke-width": 0.8}
+    ]
+  },
   "controls": [
-    {
-      "type": "label",
-      "label": "Sound File",
-      "x": 12,
-      "y": 10,
-      "w": 200,
-      "h": 16
-    },
     {
       "type": "soundfile",
       "param": "File",
@@ -21,6 +30,8 @@
     },
     {
       "type": "file-transport",
+      "active": "Active",
+      "loop": "Loop",
       "label": "",
       "x": 8,
       "y": 64,

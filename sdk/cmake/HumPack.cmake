@@ -37,13 +37,7 @@ function(hum_sign_pack_binary TARGET)
 endfunction()
 
 function(hum_add_pack_dyn PACK_ID)
-  file(READ "${CMAKE_CURRENT_SOURCE_DIR}/pack.json" HUM_PACK_JSON)
-  configure_file("${HUM_SDK_DIR}/cmake/PackManifestJson.h.in"
-                 "${CMAKE_CURRENT_BINARY_DIR}/generated/PackManifestJson.h" @ONLY)
-
   add_library(hum_pack_${PACK_ID}_dyn SHARED "${CMAKE_CURRENT_SOURCE_DIR}/entry.cpp")
-  target_include_directories(hum_pack_${PACK_ID}_dyn PRIVATE
-    "${CMAKE_CURRENT_BINARY_DIR}/generated")
   target_link_libraries(hum_pack_${PACK_ID}_dyn PRIVATE hum_pack_${PACK_ID})
   # RUNTIME too - a .dll is one on Windows. Not ARCHIVE: that is the import
   # library. The empty $<0:> stops a multi-config generator appending /$<CONFIG>
@@ -58,9 +52,9 @@ function(hum_add_pack_dyn PACK_ID)
   hum_sign_pack_binary(hum_pack_${PACK_ID}_dyn)
 endfunction()
 
-# Sets HUM_PYTHON for the .humpacks and for the hand-model rebuild in
-# engine/CMakeLists.txt: one place knows that a bare "python3" on Windows is a
-# WindowsApps Store alias that exits 9009. Cached, or every caller re-warns.
+# Sets HUM_PYTHON for the .humpacks and the model rebuilds. One place knows
+# that a bare "python3" on Windows is a Store alias that exits 9009, and no
+# usable interpreter is fatal: carrying on shipped an app with pieces missing.
 function(hum_find_python)
   if(NOT HUM_PYTHON)
     set(_hum_py "")
@@ -75,20 +69,21 @@ function(hum_find_python)
       endif()
     endif()
     if(_hum_py)
-      set(HUM_PYTHON "${_hum_py}" CACHE INTERNAL "interpreter for .humpacks and the hand model")
-    else()
-      # Never cached, so installing Python later is enough on its own.
-      get_property(_hum_py_warned GLOBAL PROPERTY HUM_PYTHON_WARNED)
-      if(NOT _hum_py_warned)
-        message(WARNING
-          "no Python interpreter found - the .humpack bundles (and hum_tests, "
-          "which loads them) cannot be built. Install Python 3 and re-configure; "
-          "on Windows use python.org or `winget install Python.Python.3.12`, NOT "
-          "the Microsoft Store alias on PATH.")
-        set_property(GLOBAL PROPERTY HUM_PYTHON_WARNED ON)
+      execute_process(COMMAND "${_hum_py}" -c "import sys; print(sys.version_info[0])"
+                      RESULT_VARIABLE _hum_py_rc OUTPUT_VARIABLE _hum_py_major
+                      OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+      if(NOT _hum_py_rc EQUAL 0 OR NOT _hum_py_major STREQUAL "3")
+        set(_hum_py "")
       endif()
-      set(HUM_PYTHON python3 PARENT_SCOPE)   # trust PATH where find_package is blind
     endif()
+    if(NOT _hum_py)
+      message(FATAL_ERROR
+        "no Python 3 interpreter found, and the build needs one for the .humpack "
+        "bundles, hum_tests (which loads them) and the hand and body model rebuilds. "
+        "Install Python 3 and configure again; on Windows use python.org or "
+        "`winget install Python.Python.3.12`, not the Microsoft Store alias on PATH.")
+    endif()
+    set(HUM_PYTHON "${_hum_py}" CACHE INTERNAL "interpreter for .humpacks and the model rebuilds")
   endif()
 endfunction()
 
@@ -111,6 +106,8 @@ function(hum_pack_bundle PACK_ID)
       "${OUT}"
     DEPENDS hum_pack_${PACK_ID}_dyn
       "${CMAKE_CURRENT_SOURCE_DIR}/pack.json"
+      "${HUM_SDK_DIR}/../tools/make_humpack.py"
+      "${HUM_SDK_DIR}/include/hum/PackEntry.h"
       ${PACK_ASSETS}
     COMMENT "Packaging ${PACK_ID}.humpack")
   add_custom_target(humpack_${PACK_ID} DEPENDS "${OUT}")

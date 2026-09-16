@@ -1,36 +1,34 @@
 # SideChain
 
-A sidechain (ducking) compressor in the spirit of the cheap nineties rack box behind the pumping-house sound. The Main signal is compressed by the level of the Key input: kick on the key, bass or pad on the main, and the main pumps in time with the kick.
+A compressor whose gain reduction is driven by a separate key input.
 
-Inlets (stereo mode)
+The Main signal on inlets 1-2 is turned down by the level of the Key on inlets 3-4: cord the kick to the key and the bass or pad to the main, and the main ducks in time with the kick. The key is a detector tap only and never passes through, so cord the kick to your Mixer on its own as well. The Mode combo switches between stereo and mono in place; in mono, inlet 1 is Main and inlet 2 is Key. With nothing on the key the main passes through untouched. For a duck that is identical on every hit regardless of the kick, use SideKick instead.
 
-**1-2** Main - what gets ducked, and what you hear at the outlets.
+## Parameters
 
-**3-4** Key - the trigger. A detector tap only: it never passes through, so route the kick to your mixer on its own cord as well.
+**Detector** RMS averages the key, so the reduction grabs late and lets go slowly, the classic pumping character. Peak follows every transient exactly.
 
-## Detector
+**Threshold** The key level above which reduction starts, in dB. Set it so the kick clearly crosses it.
 
-**RMS** the signature setting: the detector averages the key, so the reduction grabs late and lets go lazily - the breathing, pumping character the original unit is famous for. Default.
+**Ratio** How hard the main is turned down once the key is over the threshold. 4 to 8 gives a clear pump.
 
-**Peak** rides every transient exactly - tight, surgical, ripple-free.
+**Knee** How gradually the reduction sets in around the threshold, in dB.
 
-## Dialing it in
+**Attack** How fast the reduction sets in, in milliseconds. Keep it at a few milliseconds so the kick's transient gets through.
 
-**Mode** switches stereo and mono in place, keeping the name, settings and automation. The inlets change meaning: in mono, inlet 1 is Main and inlet 2 is Key, so re-check your cords after switching.
+**Hold** How long the reduction stays at full depth after the key drops, in milliseconds.
 
-**Listen** monitors what the key receives; set Threshold so the kick clearly crosses it, then switch Listen back off.
+**Release** How fast the main recovers, in milliseconds. 150 to 250 ms lets it swell back before the next kick.
 
-**Ratio** the duck depth - 4-8 for a clear pump, higher for hard styles.
+**Makeup** Gain added after the compression, in dB.
 
-**Attack** keep fast (a few ms) so the kick's transient punches through.
+**Mix** Below 1 blends the ducked signal with the dry one, for parallel ducking.
 
-**Release** the groove control: ~150-250 ms lets the main swell back in before the next kick.
+**Listen** Sends the key to the outlets instead of the main, so you can set Threshold by ear. Switch it back off afterwards.
 
-**Mix** below 1.0 = parallel ducking, for subtler movement.
+## Recipe
 
-An unconnected key means no reduction - the main passes through untouched.
-
-If you want a duck that is identical on every hit regardless of how the kick is tuned, reach for SideKick: its trigger input fires a fixed envelope instead of following the key's level.
+**Pumping bass** Cord the Kick to inlets 3-4 and the bassline to inlets 1-2. Detector RMS, Threshold -20, Ratio 6, Attack 2, Release 180, Mix 1. Cord the Kick to the Mixer on its own cord too, then move Release until the bass rises back just before the next kick.
 
 ## Related Organisms
 

@@ -46,7 +46,7 @@
       "y": 66,
       "w": 60,
       "h": 84,
-      "dim-when": "!Preset=5"
+      "dim-when": "!Preset=Custom EDO"
     },
     {
       "type": "knob",
@@ -68,13 +68,14 @@
     },
     {
       "type": "scale-file",
+      "select": "Preset=Scala file (.scl)",
       "param": "File",
       "label": "",
       "x": 8,
       "y": 158,
       "w": 277,
       "h": 24,
-      "clear-when": "!Preset=11"
+      "clear-when": "!Preset=Scala file (.scl)"
     },
     {
       "type": "combo",

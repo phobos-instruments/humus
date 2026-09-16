@@ -109,14 +109,17 @@
       ]
     },
     {
-      "type": "dna-strand",
+      "type": "step-strip",
+      "mute": "Mute",
       "x": 39,
       "y": 122,
       "w": 522,
       "h": 16
     },
     {
-      "type": "dna-bases",
+      "type": "interval-rows",
+      "row-prefix": "Base ",
+      "chord": "Chord",
       "x": 39,
       "y": 138,
       "w": 522,

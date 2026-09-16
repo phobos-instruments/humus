@@ -1,11 +1,14 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <string>
 #include <vector>
 
 #include "Morse/MorseCode.h"
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/dsp/Prepared.h"
 
 namespace hum {
 
@@ -26,7 +29,17 @@ public:
 
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
+        syncText();
         reset();
+    }
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        syncText();
+    }
+    void onTextChanged(const std::string& param, const std::string& text) override {
+        if (param != "Text") return;
+        appliedText_ = text;
+        pendingPattern_.publish(morse::encode(text));
     }
     void reset() override {
         seg_ = 0;
@@ -47,8 +60,16 @@ private:
     bool keyWasOn_ = false;
     int midiNote_ = 74;
 
+    void syncText() {
+        const std::string text = params.getText("Text");
+        if (text == appliedText_) return;
+        appliedText_ = text;
+        pattern_ = morse::encode(text);
+    }
+
     std::vector<morse::Seg> pattern_;
-    std::string cachedText_;
+    Prepared<std::vector<morse::Seg>> pendingPattern_;
+    std::string appliedText_;
     size_t seg_ = 0;
     long segPos_ = 0;
     double phase_ = 0.0;

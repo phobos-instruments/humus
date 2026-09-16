@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "DNA/DNA.h"
 
 #include <algorithm>
@@ -53,6 +55,12 @@ void DNA::process(const float* const*, int, float* const*, int,
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     const int seed = (int) params.get("Seed", 1.0);
     if (seed != lastSeed_) grow(seed);
+    const int rate = std::clamp((int) params.get("Rate", 0.0), 0, kNumRates - 1);
+    const double stepsPerBeat = kStepsPerBeat[rate];
+    const double rest = params.get("Rest", 0.25);
+    stripStepsPerBeat_.store(stepsPerBeat, std::memory_order_relaxed);
+    stripSeed_.store(seed, std::memory_order_relaxed);
+    stripRest_.store(rest, std::memory_order_relaxed);
 
     for (int i = 0; i < offCount_;) {
         if (offs_[(size_t) i].samplesLeft < numSamples) {
@@ -66,8 +74,6 @@ void DNA::process(const float* const*, int, float* const*, int,
     }
     if (!transport.playing()) return;
 
-    const int rate = std::clamp((int) params.get("Rate", 0.0), 0, kNumRates - 1);
-    const double stepsPerBeat = kStepsPerBeat[rate];
     const int root = (int) params.get("Root", 45.0);
     const Chord chord = Chord::byId((int) params.get("Chord", 0.0));
     double baseCents[4];
@@ -78,7 +84,6 @@ void DNA::process(const float* const*, int, float* const*, int,
     const auto& tuning = transport.tuning();
     const double gate = params.get("Gate", 0.6);
     const double mutate = params.get("Mutate", 0.15);
-    const double rest = params.get("Rest", 0.25);
     const int mute = (int) params.get("Mute", 0.0);
     const int octaves = std::clamp((int) params.get("Octaves", 2.0), 1, 3);
     const int vel = (int) params.get("Velocity", 100.0);
@@ -105,12 +110,7 @@ void DNA::process(const float* const*, int, float* const*, int,
         const int slot = (int) (idx % kBases);
         if (((mute >> slot) & 1) != 0) { next += 1.0; continue; }
         const int base = genome_[(size_t) slot];
-        std::uint32_t h = (std::uint32_t) (idx * 2246822519u) ^ (std::uint32_t) (seed * 374761393u);
-        h ^= h >> 16;
-        h *= 0x85ebca6bu;
-        h ^= h >> 13;
-        h *= 0xc2b2ae35u;
-        h ^= h >> 16;
+        const std::uint32_t h = stepHash(idx, seed);
         if ((h & 0xFFFF) / 65536.0 >= rest) {
             const int lift = octaves > 1 && ((h >> 20) % (std::uint32_t) octaves) == 1
                                  ? tuning.notesPerPeriod() : 0;

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <array>
@@ -10,8 +12,12 @@
 #include "Hands/HandPose.h"
 #include "hum/CameraCapture.h"
 #include "hum/NativeCamera.h"
-#include "hum/Capabilities.h"
+#include "hum/caps/Graph.h"
+#include "hum/caps/Midi.h"
+#include "hum/caps/Osc.h"
+#include "hum/caps/Video.h"
 #include "hum/Organism.h"
+#include "hum/dsp/Prepared.h"
 
 namespace hum {
 
@@ -36,6 +42,8 @@ public:
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 0; }
     void prepare(double sampleRate, int maxBlock) override;
+    void loadFrom(const OrganismState& state) override;
+    void onTextChanged(const std::string& param, const std::string& text) override;
     void process(const float* const* in, int numIn, float* const* out, int numOut,
                  int numSamples, const Transport& transport) override;
 
@@ -166,8 +174,10 @@ private:
     Frame preview_;
     std::array<HandLandmarks, kHands> lastLm_;
 
-    std::string cachedGestures_;
+    void syncGestures();
+    std::string appliedGestures_;
     handpose::GestureSet gestures_;
+    Prepared<handpose::GestureSet> pendingGestures_;
 
     std::array<float, kSignals> smoothed_{0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0,
                                           0, 0, 0, 0, 0, 0.5f, 0.5f, 0, 0,

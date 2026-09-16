@@ -13,6 +13,6 @@
       "//steps": "beats, where 1 beat = a quarter note: 1/64 up to four bars, straight and dotted",
       "steps": "0.0625 0.125 0.1875 0.25 0.375 0.5 0.75 1 1.5 2 3 4 6 8 12 16" },
 
-    { "type": "lfo-scope", "x": 8, "y": 152, "w": 277, "h": 56 }
+    { "type": "lfo-scope", "waveform": "Waveform", "amplitude": "Amplitude", "offset": "Offset", "x": 8, "y": 152, "w": 277, "h": 56 }
   ]
 }

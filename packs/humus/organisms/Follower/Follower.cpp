@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Follower/Follower.h"
 
 #include <algorithm>
@@ -40,7 +42,6 @@ int Follower::collectMidi(int, MidiEvent* out, int capacity) {
 
 void Follower::process(const float* const* in, int numIn, float* const* out, int numOut,
                        int numSamples, const Transport&) {
-    if (numOut < 1) return;
     env_.set(std::max(0.0, params.get("Attack", 10.0)),
              std::max(0.0, params.get("Release", 200.0)), sampleRate_);
     const float gain = (float) std::max(0.0, params.get("Gain", 1.0));
@@ -48,11 +49,13 @@ void Follower::process(const float* const* in, int numIn, float* const* out, int
     const int holdSamples = (int) (std::max(0.0, params.get("Hold", 50.0)) * 0.001 * sampleRate_);
 
     const float* src = (numIn > 0 && in && in[0]) ? in[0] : nullptr;
-    float* dst = out[0];
+    float* dst = numOut > 0 ? out[0] : nullptr;
     float* gate = numOut > 1 ? out[1] : nullptr;
+    float last = 0.0f;
     for (int i = 0; i < numSamples; ++i) {
         const float level = (float) env_.process(src ? std::abs(src[i]) : 0.0f) * gain;
-        dst[i] = level;
+        if (dst) dst[i] = level;
+        last = level;
         if (!open_ && threshold > 0.0f && level >= threshold) {
             open_ = true;
             holdLeft_ = holdSamples;
@@ -67,8 +70,7 @@ void Follower::process(const float* const* in, int numIn, float* const* out, int
         if (gate) gate[i] = open_ ? 1.0f : 0.0f;
     }
     for (int c = 2; c < numOut; ++c) std::memset(out[c], 0, sizeof(float) * (size_t) numSamples);
-    if (numSamples > 0)
-        ctl_.store(std::clamp(dst[numSamples - 1], 0.0f, 1.0f), std::memory_order_relaxed);
+    if (numSamples > 0) ctl_.store(std::clamp(last, 0.0f, 1.0f), std::memory_order_relaxed);
     gate_.store(open_ ? 1.0f : 0.0f, std::memory_order_relaxed);
 }
 

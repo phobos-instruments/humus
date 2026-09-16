@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Morse/Morse.h"
 
 #include <algorithm>
@@ -28,13 +30,9 @@ void Morse::process(const float* const*, int, float* const* out, int numOut,
         if (keyWasOn_) { emit(0, false, midiNote_); keyWasOn_ = false; }
     };
 
-    if (const auto* p = params.byName("Text")) {
-        if (p->text != cachedText_) {
-            cachedText_ = p->text;
-            pattern_ = morse::encode(cachedText_);
-            closeKey();
-            reset();
-        }
+    if (pendingPattern_.adopt(pattern_)) {
+        closeKey();
+        reset();
     }
 
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;

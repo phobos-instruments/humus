@@ -1,0 +1,244 @@
+{
+ "classes": [
+  {
+   "class": "Board",
+   "category": "Primitives",
+   "editor": "layout:board-editor.json",
+   "params": [
+    {
+     "name": "Device",
+     "min": 1.0,
+     "max": 99.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "BaudRate",
+     "min": 0.0,
+     "max": 14.0,
+     "def": 7.0,
+     "enum": true
+    },
+    {
+     "name": "Custom",
+     "min": 0.0,
+     "max": 4000000.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Reset",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "bool": true
+    },
+    {
+     "name": "Reconnect",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Rate",
+     "min": 1.0,
+     "max": 100.0,
+     "def": 19.0,
+     "int": true,
+     "unit": "ms"
+    },
+    {
+     "name": "Outlets",
+     "min": 1.0,
+     "max": 6.0,
+     "def": 2.0,
+     "int": true
+    },
+    {
+     "name": "Inlets",
+     "min": 1.0,
+     "max": 6.0,
+     "def": 2.0,
+     "int": true
+    },
+    {
+     "name": "In1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "In2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "In3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "In4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "In5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "In6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true
+    },
+    {
+     "name": "Analog1",
+     "min": 0.0,
+     "max": 15.0,
+     "def": 0.0,
+     "int": true
+    },
+    {
+     "name": "Analog2",
+     "min": 0.0,
+     "max": 15.0,
+     "def": 1.0,
+     "int": true
+    },
+    {
+     "name": "Analog3",
+     "min": 0.0,
+     "max": 15.0,
+     "def": 2.0,
+     "int": true
+    },
+    {
+     "name": "Analog4",
+     "min": 0.0,
+     "max": 15.0,
+     "def": 3.0,
+     "int": true
+    },
+    {
+     "name": "Analog5",
+     "min": 0.0,
+     "max": 15.0,
+     "def": 4.0,
+     "int": true
+    },
+    {
+     "name": "Analog6",
+     "min": 0.0,
+     "max": 15.0,
+     "def": 5.0,
+     "int": true
+    },
+    {
+     "name": "Pin1",
+     "min": 0.0,
+     "max": 127.0,
+     "def": 13.0,
+     "int": true
+    },
+    {
+     "name": "Mode1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "enum": true
+    },
+    {
+     "name": "Pin2",
+     "min": 0.0,
+     "max": 127.0,
+     "def": 11.0,
+     "int": true
+    },
+    {
+     "name": "Mode2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "enum": true
+    },
+    {
+     "name": "Pin3",
+     "min": 0.0,
+     "max": 127.0,
+     "def": 10.0,
+     "int": true
+    },
+    {
+     "name": "Mode3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "enum": true
+    },
+    {
+     "name": "Pin4",
+     "min": 0.0,
+     "max": 127.0,
+     "def": 9.0,
+     "int": true
+    },
+    {
+     "name": "Mode4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "enum": true
+    },
+    {
+     "name": "Pin5",
+     "min": 0.0,
+     "max": 127.0,
+     "def": 6.0,
+     "int": true
+    },
+    {
+     "name": "Mode5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "enum": true
+    },
+    {
+     "name": "Pin6",
+     "min": 0.0,
+     "max": 127.0,
+     "def": 5.0,
+     "int": true
+    },
+    {
+     "name": "Mode6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0,
+     "enum": true
+    },
+    {
+     "name": "Port",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "plainText": true
+    }
+   ]
+  }
+ ]
+}

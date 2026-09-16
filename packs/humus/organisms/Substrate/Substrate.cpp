@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Substrate/Substrate.h"
 
 #include <algorithm>
@@ -19,8 +21,16 @@ void Substrate::prepare(double sampleRate, int) {
 }
 
 void Substrate::reset() {
+    for (size_t v = 0; v < voices_.size(); ++v) {
+        for (size_t k = 0; k < voices_[v].strata.size(); ++k) {
+            auto& st = voices_[v].strata[k];
+            const double seed = (double) (k + v * kMaxLayers) * kPhaseStride;
+            st.osc.reset(Lfo::wrap(seed));
+            st.pitchDrift.reset(Lfo::wrap(seed * 2.0));
+            st.ampDrift.reset(Lfo::wrap(seed * 3.0));
+        }
+    }
     for (auto& v : voices_) {
-        for (auto& st : v.strata) st.osc.reset();
         v.note = -1;
         v.gate = false;
         v.env = 0.0;
@@ -33,6 +43,7 @@ void Substrate::reset() {
     lastCount_ = 0;
     next_ = 0;
     intervalSm_ = -1.0;
+    bend_.reset();
 }
 
 void Substrate::process(const float* const*, int, float* const* out, int numOut,
@@ -43,14 +54,16 @@ void Substrate::process(const float* const*, int, float* const* out, int numOut,
 
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
-    {
-        std::lock_guard<std::mutex> g(liveLock_);
+    if (std::unique_lock<std::mutex> g(liveLock_, std::try_to_lock); g.owns_lock()) {
         for (int i = 0; i < liveCount_; ++i)
             if (stagedCount_ < (int) staged_.size()) staged_[(size_t) stagedCount_++] = liveQ_[(size_t) i];
         liveCount_ = 0;
     }
 
-    const bool drone = params.get("Drone", 1.0) >= 0.5;
+    for (int i = 0; i < stagedCount_; ++i) bend_.apply(staged_[(size_t) i]);
+    const double bendRatio = bend_.ratio(bendRangeOf(params));
+
+    const bool drone = params.get("Drone", 0.0) >= 0.5;
     const int mode = drone ? 0 : std::clamp((int) params.get("Mode", 0.0), 0, 2);
 
     if (mode == 0) {
@@ -128,7 +141,7 @@ void Substrate::process(const float* const*, int, float* const* out, int numOut,
 
     lpL_.setLowpass(sr, cutoff, 0.9);
     lpR_.setLowpass(sr, cutoff, 0.9);
-    const float norm = 0.9f / (float) layers;
+    const float norm = 0.45f / std::sqrt((float) layers);
 
     if (mode != 2) {
 
@@ -140,13 +153,13 @@ void Substrate::process(const float* const*, int, float* const* out, int numOut,
             M = lastCount_;
             for (int j = 0; j < M; ++j) {
                 roots[j] = (double) lastNotes_[(size_t) j];
-                f0s[j] = transport.tuning().hz(roots[j]);
+                f0s[j] = transport.tuning().hz(roots[j]) * bendRatio;
             }
             gateTarget = heldCount_ > 0 ? 1.0 : 0.0;
         } else {
             const double note = mode == 0 && midiRoot_ >= 0 ? midiRoot_ : params.get("Note", 36.0);
             roots[0] = note;
-            f0s[0] = transport.tuning().hz(note);
+            f0s[0] = transport.tuning().hz(note) * bendRatio;
             gateTarget = mode == 1 ? (heldCount_ > 0 ? 1.0 : 0.0)
                                    : (drone || held_ > 0 ? 1.0 : 0.0);
         }
@@ -154,7 +167,7 @@ void Substrate::process(const float* const*, int, float* const* out, int numOut,
         for (int j = 0; j < M; ++j)
             for (int r = 0; r < kMaxStack; ++r)
                 hzTab[j][r] = custom
-                    ? transport.tuning().hz(roots[j] + (double) (r * interval))
+                    ? transport.tuning().hz(roots[j] + (double) (r * interval)) * bendRatio
                     : f0s[j] * std::pow(ratio, (double) r);
 
         Voice& v0 = voices_[0];
@@ -184,10 +197,10 @@ void Substrate::process(const float* const*, int, float* const* out, int numOut,
     for (int v = 0; v < kVoices; ++v) {
         Voice& vv = voices_[(size_t) v];
         if (vv.note < 0) { vv.gate = false; vv.env = 0.0; continue; }
-        const double f0 = transport.tuning().hz((double) vv.note);
+        const double f0 = transport.tuning().hz((double) vv.note) * bendRatio;
         for (int r = 0; r < kMaxStack; ++r)
             hzTab[v][r] = custom
-                ? transport.tuning().hz((double) vv.note + (double) (r * interval))
+                ? transport.tuning().hz((double) vv.note + (double) (r * interval)) * bendRatio
                 : f0 * std::pow(ratio, (double) r);
     }
 

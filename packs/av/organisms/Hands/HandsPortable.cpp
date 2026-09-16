@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Hands/HandsPortable.h"
 
 #include <algorithm>
@@ -5,7 +7,7 @@
 #include <memory>
 #include <mutex>
 
-#include "core/AppPaths.h"
+#include "core/app/AppPaths.h"
 
 #include "common/CoreMLNet.h"
 

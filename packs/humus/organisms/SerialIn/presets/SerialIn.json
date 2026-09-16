@@ -1,0 +1,44 @@
+[
+ {
+  "name": "Every number on the line",
+  "values": {
+   "Parse": "",
+   "Values": 2
+  }
+ },
+ {
+  "name": "Named values",
+  "values": {
+   "Parse": "",
+   "Values": 2
+  }
+ },
+ {
+  "name": "Key=value pairs",
+  "values": {
+   "Parse": "T=%1;L=%2",
+   "Values": 2
+  }
+ },
+ {
+  "name": "Binary packet with checksum",
+  "values": {
+   "Parse": "\\xAA%c%b*%x",
+   "Values": 3
+  }
+ },
+ {
+  "name": "A word as a state",
+  "values": {
+   "Parse": "mode %{slow,fast,turbo}1",
+   "Values": 1
+  }
+ },
+ {
+  "name": "A line as a press",
+  "values": {
+   "Parse": "pressed",
+   "Values": 1
+  }
+ }
+]

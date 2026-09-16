@@ -37,7 +37,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -242,7 +242,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -343,7 +343,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -470,7 +470,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -623,7 +623,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -802,7 +802,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -1007,7 +1007,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",
@@ -1238,7 +1238,7 @@
           "name": "Sag",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.35
+          "def": 0.1
         },
         {
           "name": "Flavor",

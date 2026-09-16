@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Files.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/NoteSchedule.h"
 #include "hum/Pattern.h"
@@ -64,6 +67,7 @@ private:
     bool wasMuted_ = false;
 
     std::array<bool, 128> held_{};
+    bool bentOut_ = false;
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> outEvents_;
     int outCount_ = 0;
 

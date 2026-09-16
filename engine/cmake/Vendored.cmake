@@ -10,13 +10,13 @@ add_library(msfa STATIC
   third_party/msfa/fm_op_kernel.cc
   third_party/msfa/patch.cc
   third_party/msfa/dx7note.cc)
-target_include_directories(msfa PUBLIC third_party/msfa)
+target_include_directories(msfa SYSTEM PUBLIC third_party/msfa)
 add_library(nuked_opn2 STATIC third_party/nuked-opn2/ym3438.c)
-target_include_directories(nuked_opn2 PUBLIC third_party/nuked-opn2)
+target_include_directories(nuked_opn2 SYSTEM PUBLIC third_party/nuked-opn2)
 add_library(nuked_opm STATIC third_party/nuked-opm/opm.c)
-target_include_directories(nuked_opm PUBLIC third_party/nuked-opm)
+target_include_directories(nuked_opm SYSTEM PUBLIC third_party/nuked-opm)
 add_library(nuked_opl3 STATIC third_party/nuked-opl3/opl3.c)
-target_include_directories(nuked_opl3 PUBLIC third_party/nuked-opl3)
+target_include_directories(nuked_opl3 SYSTEM PUBLIC third_party/nuked-opl3)
 add_library(resid STATIC
   third_party/resid/sid.cc
   third_party/resid/voice.cc
@@ -25,7 +25,7 @@ add_library(resid STATIC
   third_party/resid/filter.cc
   third_party/resid/extfilt.cc
   third_party/resid/pot.cc)
-target_include_directories(resid PUBLIC third_party/resid)
+target_include_directories(resid SYSTEM PUBLIC third_party/resid)
 add_library(nsfplay_sound STATIC
   third_party/nsfplay/xgm/devices/Sound/nes_apu.cpp
   third_party/nsfplay/xgm/devices/Sound/nes_dmc.cpp
@@ -38,7 +38,7 @@ add_library(nsfplay_sound STATIC
   third_party/nsfplay/xgm/devices/Sound/legacy/emu2413.c
   third_party/nsfplay/xgm/devices/Sound/legacy/emu2149.c
   third_party/nsfplay/humus_cpu_stubs.cpp)
-target_include_directories(nsfplay_sound PUBLIC third_party/nsfplay/xgm/devices/Sound)
+target_include_directories(nsfplay_sound SYSTEM PUBLIC third_party/nsfplay/xgm/devices/Sound)
 # Vendored verbatim, warnings and all, so upstream can be re-synced.
 if(NOT MSVC)
   target_compile_options(msfa PRIVATE -w)
@@ -56,7 +56,7 @@ file(GLOB HUM_LAME_SOURCES CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/third_party/lame/libmp3lame/*.c")
 add_library(mp3lame STATIC ${HUM_LAME_SOURCES})
 target_compile_definitions(mp3lame PRIVATE HAVE_CONFIG_H=1)
-target_include_directories(mp3lame
+target_include_directories(mp3lame SYSTEM
   PUBLIC third_party/lame/include
   PRIVATE third_party/lame third_party/lame/libmp3lame)
 if(NOT MSVC)
@@ -70,7 +70,7 @@ endif()
 add_library(monocypher STATIC
   third_party/monocypher/monocypher.c
   third_party/monocypher/monocypher-ed25519.c)
-target_include_directories(monocypher PUBLIC third_party/monocypher)
+target_include_directories(monocypher SYSTEM PUBLIC third_party/monocypher)
 
 # Vendored here, fetched by the source distribution (docs/dev/build.md).
 set(HUM_LINK_VENDORED "${CMAKE_CURRENT_SOURCE_DIR}/third_party/ableton_link")

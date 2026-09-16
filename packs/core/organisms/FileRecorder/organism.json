@@ -1,19 +1,13 @@
 {
-  "_note": "GENERATED family: FileRecorder plus 1..32FileRecorder. Size lives in the class name (the house rule for structural size), so the schema can grow with it - N file slots + N channel counts. Regenerate rather than hand-edit.",
+  "_note": "GENERATED family: FileRecorder plus 1..32FileRecorder. The number is TRACKS, and a track is a stereo file, so NFileRecorder has 2N input channels. Written by tools/make_filerecorder_schema.py.",
   "classes": [
     {
       "class": "FileRecorder",
       "category": "Input/Output",
+      "blurb": "Writes what reaches it to a sound file while the patch plays.",
       "params": [
         {
           "name": "File_1",
-          "min": 0.0,
-          "max": 0.0,
-          "def": 0.0,
-          "isText": true
-        },
-        {
-          "name": "File_2",
           "min": 0.0,
           "max": 0.0,
           "def": 0.0,
@@ -24,12 +18,6 @@
           "min": 0.0,
           "max": 2.0,
           "def": 2.0
-        },
-        {
-          "name": "RequestedChannelCounts_2",
-          "min": 0.0,
-          "max": 2.0,
-          "def": 1.0
         },
         {
           "name": "FileMode",
@@ -59,7 +47,7 @@
           "bool": true
         }
       ],
-      "canonical": "2FileRecorder",
+      "canonical": "1FileRecorder",
       "editor": "gen:filerecorder"
     },
     {
@@ -76,8 +64,8 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 1.0,
-          "def": 1.0
+          "max": 2.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -131,14 +119,14 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 2.0,
+          "max": 4.0,
           "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 2.0,
-          "def": 1.0
+          "max": 4.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -199,20 +187,20 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 3.0,
-          "def": 3.0
+          "max": 6.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 3.0,
-          "def": 1.0
+          "max": 6.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 3.0,
-          "def": 1.0
+          "max": 6.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -280,26 +268,26 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 4.0,
-          "def": 4.0
+          "max": 8.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 4.0,
-          "def": 1.0
+          "max": 8.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 4.0,
-          "def": 1.0
+          "max": 8.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 4.0,
-          "def": 1.0
+          "max": 8.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -374,32 +362,32 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 5.0,
-          "def": 5.0
+          "max": 10.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 5.0,
-          "def": 1.0
+          "max": 10.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 5.0,
-          "def": 1.0
+          "max": 10.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 5.0,
-          "def": 1.0
+          "max": 10.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 5.0,
-          "def": 1.0
+          "max": 10.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -481,38 +469,38 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 6.0,
-          "def": 6.0
+          "max": 12.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 6.0,
-          "def": 1.0
+          "max": 12.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 6.0,
-          "def": 1.0
+          "max": 12.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 6.0,
-          "def": 1.0
+          "max": 12.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 6.0,
-          "def": 1.0
+          "max": 12.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 6.0,
-          "def": 1.0
+          "max": 12.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -601,44 +589,44 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 7.0,
-          "def": 7.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 7.0,
-          "def": 1.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 7.0,
-          "def": 1.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 7.0,
-          "def": 1.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 7.0,
-          "def": 1.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 7.0,
-          "def": 1.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 7.0,
-          "def": 1.0
+          "max": 14.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -734,50 +722,50 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 8.0,
-          "def": 8.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 8.0,
-          "def": 1.0
+          "max": 16.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -880,56 +868,56 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 9.0,
-          "def": 9.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 9.0,
-          "def": 1.0
+          "max": 18.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -1039,62 +1027,62 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 10.0,
-          "def": 10.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 10.0,
-          "def": 1.0
+          "max": 20.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -1211,68 +1199,68 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 11.0,
-          "def": 11.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 11.0,
-          "def": 1.0
+          "max": 22.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -1396,74 +1384,74 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 12.0,
-          "def": 12.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 12.0,
-          "def": 1.0
+          "max": 24.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -1594,80 +1582,80 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 13.0,
-          "def": 13.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 13.0,
-          "def": 1.0
+          "max": 26.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -1805,86 +1793,86 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 14.0,
-          "def": 14.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 14.0,
-          "def": 1.0
+          "max": 28.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -2029,92 +2017,92 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 15.0,
-          "def": 15.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 15.0,
-          "def": 1.0
+          "max": 30.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -2266,98 +2254,98 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 16.0,
-          "def": 16.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 16.0,
-          "def": 1.0
+          "max": 32.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -2516,104 +2504,104 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 17.0,
-          "def": 17.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 17.0,
-          "def": 1.0
+          "max": 34.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -2779,110 +2767,110 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 18.0,
-          "def": 18.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 18.0,
-          "def": 1.0
+          "max": 36.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -3055,116 +3043,116 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 19.0,
-          "def": 19.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 19.0,
-          "def": 1.0
+          "max": 38.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -3344,122 +3332,122 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 20.0,
-          "def": 20.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 20.0,
-          "def": 1.0
+          "max": 40.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -3646,128 +3634,128 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 21.0,
-          "def": 21.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 21.0,
-          "def": 1.0
+          "max": 42.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -3961,134 +3949,134 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 22.0,
-          "def": 22.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 22.0,
-          "def": 1.0
+          "max": 44.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -4289,140 +4277,140 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 23.0,
-          "def": 23.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 23.0,
-          "def": 1.0
+          "max": 46.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -4630,146 +4618,146 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 24.0,
-          "def": 24.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 24.0,
-          "def": 1.0
+          "max": 48.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -4984,152 +4972,152 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 25.0,
-          "def": 25.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 25.0,
-          "def": 1.0
+          "max": 50.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -5351,158 +5339,158 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 26.0,
-          "def": 26.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 26.0,
-          "def": 1.0
+          "max": 52.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -5731,164 +5719,164 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 27.0,
-          "def": 27.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_27",
           "min": 0.0,
-          "max": 27.0,
-          "def": 1.0
+          "max": 54.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -6124,170 +6112,170 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 28.0,
-          "def": 28.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_27",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_28",
           "min": 0.0,
-          "max": 28.0,
-          "def": 1.0
+          "max": 56.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -6530,176 +6518,176 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 29.0,
-          "def": 29.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_27",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_28",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_29",
           "min": 0.0,
-          "max": 29.0,
-          "def": 1.0
+          "max": 58.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -6949,182 +6937,182 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 30.0,
-          "def": 30.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_27",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_28",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_29",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_30",
           "min": 0.0,
-          "max": 30.0,
-          "def": 1.0
+          "max": 60.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -7381,188 +7369,188 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 31.0,
-          "def": 31.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_27",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_28",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_29",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_30",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_31",
           "min": 0.0,
-          "max": 31.0,
-          "def": 1.0
+          "max": 62.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",
@@ -7826,194 +7814,194 @@
         {
           "name": "RequestedChannelCounts_1",
           "min": 0.0,
-          "max": 32.0,
-          "def": 32.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_2",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_3",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_4",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_5",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_6",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_7",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_8",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_9",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_10",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_11",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_12",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_13",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_14",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_15",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_16",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_17",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_18",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_19",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_20",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_21",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_22",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_23",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_24",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_25",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_26",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_27",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_28",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_29",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_30",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_31",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "RequestedChannelCounts_32",
           "min": 0.0,
-          "max": 32.0,
-          "def": 1.0
+          "max": 64.0,
+          "def": 2.0
         },
         {
           "name": "FileMode",

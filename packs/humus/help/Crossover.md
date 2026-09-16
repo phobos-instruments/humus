@@ -1,55 +1,21 @@
 # Crossover
 
-A frequency splitter. The signal comes in whole and leaves in bands, one stereo pair of outlets per band, lowest first. The splits are phase-matched crossovers, so cord all the bands into any single inlet and they sum back to the original sound, flat. That is the whole trick: everything between the split and the merge happens to one band only.
+A frequency splitter that sends a signal out in bands, one stereo pair of outlets per band, lowest first.
 
-## Bands
-
-A new Crossover arrives three-way. The Bands selector on its editor reshapes it in place between 2 and 5 - cords and split settings are kept, and the outlets grow or shrink to match. Three is the isolator and the classic multiband; four and five are for surgical work.
-
-What to build with it
-
-**Multiband dynamics** split, put a Dynamics on each band, cord them all into the next inlet. The merge is free - every inlet in Humus sums its cords.
-
-**Band effects** echo on the mids only, drive on the lows, shimmer on the highs while the bass stays dry.
-
-**Bass discipline** the low band alone through a stereo tool, mono below the split.
-
-**Selective following** a Follower on the low outlet turns the kick into a control signal, untouched by the hats.
+The splits are phase-matched, so cord every band into one inlet and they sum back to the original sound flat. Everything between the split and the merge happens to one band only: a Compressor on each band is multiband dynamics, a Fern on the mids alone is an echo the bass stays out of, a Follower on the low outlet turns the kick into a control signal untouched by the hats. A new Crossover is three-way; the Bands dropdown on its editor reshapes it in place between 2 and 5, keeping cords and split settings, with a Freq3 and a Freq4 appearing as bands are added. Process the bands and merge them, but avoid mixing the merged result with the dry signal it came from: a crossover rotates phase, so the two cancel oddly when layered.
 
 ## Parameters
 
-**Split 1..n** the crossover frequencies, low to high. They keep their order: a split cannot be dragged below the one before it.
+**Freq1** The lowest crossover frequency, in Hz.
 
-**Slope** 24 dB/oct is the standard: steep, phase-matched, sums flat - what system processors and multiband compressors default to. 12 dB/oct is gentler for tonal blending; in this mode alternate bands are polarity-inverted (that is what makes the gentle slopes sum flat - normal for this crossover type, and inaudible on its own). 48 dB/oct is the sub-split steepness of big rigs: the seam is nearly a wall, so each band can be driven hard on its own.
+**Freq2** The next crossover frequency up. The splits keep their order, so a split cannot be dragged below the one before it.
 
-## Settings from the field
+**Slope** How steep the seam between bands is. 24 dB/oct is the standard, phase-matched and flat-summing. 12 dB/oct is gentler for tonal blending; alternate bands are polarity-inverted in this mode so it still sums flat, which is inaudible on its own. 48 dB/oct is nearly a wall, so each band can be driven hard on its own.
 
-The presets on the rail are working numbers from real traditions. The whole catalogue is there at every size, grouped by way count, and each preset carries its own band count: recall a four-way setting on a two-way and the splitter reshapes itself to match.
+## Recipe
 
-**Sub Split** (2) 90 Hz at 48 - the dancefloor sub/top seam. Big dance systems cut steep just under the kick's body, so the subs take only what they are built for.
-
-**Bass Mono** (2) 120 Hz - the vinyl-cutting rule: below here, keep it mono. Sum the low pair to mono and merge.
-
-**Air Lift** (2) 8 kHz gentle - peel the air off for parallel sweetening, then fold it back in.
-
-**Isolator** (3) 300 Hz and 4 kHz - the rotary-desk isolator map: a bass you can kill dead, a presence you can push.
-
-**Horn Stack** (3) 220 Hz and 1.8 kHz at 48 - the horn-loaded club stack tradition hands the mids to a big horn early and crosses to the top drivers before 2 k.
-
-**Multiband Glue** (3) 120 Hz and 2 kHz - the classic three-band compressor map for a mix bus.
-
-**Kick Body Air** (3) 110 Hz and 5 kHz - a drum bus in three handles: thump, knock, air.
-
-**Festival Rig** (4) 90 / 400 / 3.5 k at 48 - four-way processing the way a big outdoor rig is driven.
-
-**Mastering Four** (4) 120 / 1.2 k / 7 k on the gentle slope - tonal mastering moves that blend instead of cut.
-
-**Surgeon** (5) 100 / 400 / 1.6 k / 6.4 k - five even bands, two octaves each, for taking a mix apart.
-
-**Mastering Five** (5) 70 / 250 / 1.2 k / 7 k, gentle - the wide five- band mastering layout.
-
-One rule of thumb: process the bands, then merge them - but avoid mixing the merged result with the dry signal it came from. Any analog style crossover rotates phase, so band-split and dry cancel oddly when layered. Inside the split-process-merge loop everything stays clean.
+**Three-band drums** Freq1 120, Freq2 2000, Slope 24 dB/oct. Cord a drum Mixer in, a Compressor on each pair of outlets with a slower attack on the low band, and all three Compressors into the next inlet, which sums them back.
 
 ## Related Organisms
 
-ParaEQ, Filter, Console, StereoTool, Follower
+ParaEQ, Filter, StereoTool, Follower

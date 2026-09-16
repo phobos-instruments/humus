@@ -1,29 +1,27 @@
 # SideKick
 
-The fake sidechain, volume-shaper edition: a gain curve is scanned over a synced interval, locked to the transport grid - phase 0 lands exactly on the beat, so the classic duck dips where the kick lives. No key input, no thresholds, no detector: the shape is the pump, identical every cycle. This is how most modern club records do it.
+A transport-synced gain shaper that pumps the signal on a drawn curve, with no key input.
 
-## Inlets
-
-**1-2** The signal to shape (bass, pads, the whole bus).
+A gain curve is scanned once per synced interval, locked to the transport grid so that phase 0 lands on the beat; the classic duck dips exactly where the kick is and is identical every cycle. There is no key, threshold or detector, only the shape. It runs only while the transport plays and passes the signal through untouched when stopped. Its gain and phase are also control values, so any knob can pick Control with SideKick to pump in step. Put it on a bass, a pad or a whole Mixer bus. For ducking keyed by real audio, use SideChain.
 
 ## The shape
 
-While the transport runs a cursor rides the curve, so you can see where in the cycle you are and how deep the duck is at that moment. The same two readings, phase and gain, are control values: right-click any knob, Control with, and pick SideKick's gain to pump something else in step.
+Click one of the tiles below the curve to load a duck, swell, gate pattern, riser or triangle, or drag on the curve to draw freehand. The arrows under the dB scale slide the shape earlier or later by a 32nd of the cycle, REV plays it backwards and INV flips the gain so dips become peaks.
 
-Ten factory tiles below the curve - ducks of varying laziness, a slow swell, a blink, three trance-gate patterns, a riser and a triangle. Click one to load it, or draw directly on the curve: drag to sketch any shape freehand; it snaps to an efficient set of breakpoints on release. The curve is stored in the patch, so custom shapes travel with your session.
+## Parameters
 
-The small buttons under the dB scale rework whatever is loaded. The arrows slide the shape earlier or later by a 32nd of the cycle, an eighth with Shift held, wrapping round the end: a duck nudged early pumps ahead of the kick, a gate pattern shifts by a step. REV plays the shape backwards in time, so a duck that dips on the beat becomes a swell that lands on it and a riser becomes a fall. INV flips the gain, turning dips into peaks: the complement of a gate pattern, handy on a second SideKick so two parts take turns.
+**Sync** The cycle length: 1 bar, 1/2 bar, 1/4 bar, 1/8 bar or 1/16 bar. 1/4 bar is one beat, the classic pump.
 
-## Dialing it in
+**Mix** At 1 the shaped signal replaces the dry one; lower blends them for parallel pumping.
 
-**Sync** the cycle length: 1/4 bar (one beat) is the classic pump; 1 bar turns gate patterns into full-bar phrases; 1/16 chops.
+**Smooth** Rounds hard edges of the curve, in milliseconds. Raise it if a gate shape clicks, lower it for tighter chops.
 
-**Smooth** rounds hard gate edges (milliseconds) - raise it if square shapes click, lower it for tighter chops.
+**Shape** The drawn gain curve, stored with the patch.
 
-**Mix** 1.0 replaces the signal; less layers the shaped copy over the dry for parallel pumping.
+## Recipe
 
-SideKick only runs while the transport plays; stopped, it passes the signal through untouched. For level-dependent ducking keyed by real audio (a live kick, an unquantized groove), use SideChain - the compressor. SideKick is the deterministic one.
+**Club duck** Sync 1/4 bar, the first duck tile, Smooth 3, Mix 1, on the bass. Right-click a pad's Gain and pick Control with SideKick gain to make the pad pump on the same curve. Nudge the shape one arrow step early to pump ahead of the kick.
 
 ## Related Organisms
 
-SideChain (the compressor version), Kick, Microdot
+SideChain, Kick, Microdot

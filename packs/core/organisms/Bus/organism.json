@@ -4,6 +4,7 @@
     {
       "class": "Bus",
       "category": "Buses",
+      "blurb": "A named point many cords can meet at, to fan sound in or out.",
       "canonical": "S2Bus",
       "params": [],
       "editor": "gen:bus"

@@ -2,6 +2,7 @@
  "classes": [
   {
    "class": "Deck",
+   "roles": ["deck"],
    "category": "Players",
    "params": [
     {
@@ -132,7 +133,8 @@
      "min": 0.0,
      "max": 0.0,
      "def": 0.0,
-     "isText": true
+     "isText": true,
+     "plainText": true
     },
     {
      "name": "HotCue_1",

@@ -1,10 +1,13 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <cmath>
 #include <cstdint>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/HeldNotes.h"
+#include "hum/PitchBend.h"
 #include "hum/Organism.h"
 #include "hum/dsp/DspMath.h"
 
@@ -121,6 +124,7 @@ private:
     TromboneTract tract_;
     Bandpass aspFilter_, fricFilter_;
     HeldNotes held_;
+    PitchBend bend_;
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> staged_;
     int stagedCount_ = 0;
     double fricIntensity_ = 0.0;

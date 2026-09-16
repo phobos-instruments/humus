@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Crossover/Crossover.h"
 
 #include <algorithm>
@@ -68,7 +70,7 @@ void Crossover::process(const float* const* in, int numIn, float* const* out, in
     double prev = 20.0;
     bool moved = slope != lastSlope_;
     for (int i = 0; i < bands_ - 1; ++i) {
-        const double raw = params.get("Freq" + std::to_string(i + 1), def_[(size_t) i]);
+        const double raw = freq_[(size_t) i].get(params, def_[(size_t) i]);
         f[i] = std::clamp(raw, prev * 1.02, sampleRate_ * 0.45);
         prev = f[i];
         moved = moved || std::abs(f[i] - lastF_[(size_t) i]) > 1e-6;

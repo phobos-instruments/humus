@@ -5,6 +5,11 @@
   "controls": [
     {
       "type": "clip-grid",
+      "file-prefix": "File",
+      "in-prefix": "In",
+      "out-prefix": "Out",
+      "loop-prefix": "Loop",
+      "launch-prefix": "Launch",
       "param": "",
       "label": "",
       "x": 12,

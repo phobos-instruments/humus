@@ -1,31 +1,27 @@
 # VideoTrack
 
-A video track on the timeline. Add one from the timeline's add-track menu, or drop a movie file onto the arrangement and a video track appears for it. Its clips cut, trim, move, duplicate, loop and fade like audio clips, with the same handles and the same menu, and the track's video outlet shows whatever sits under the playhead: cord it into a Video Out, a VideoFX or a Scene like any deck.
+A video track on the timeline that plays its clips against the transport and records what reaches its inlet.
 
-## Playing to the clock
-
-The picture follows the transport rather than running on its own. Stop and it holds the frame under the playhead; locate and it jumps there; loop the song and it loops with it. A clip's In point is the trim on its left edge, so slip and trim work exactly as on audio. Fades are opacity fades to black, Warp to Beats stretches the tape so it runs at the song's tempo against its Source Tempo, and Reverse plays it backwards.
-
-The next clip is opened a moment before it is due and parked on its first frame, so a cut lands without a hitch. Every clip has its own decoder while it is near the playhead, and decoders rest once their clip is behind.
-
-## Fast tapes
-
-Ordinary .mp4 and .mov files keep their frames in groups, so jumping to a frame means decoding the whole group first: fine while playing, sluggish while scrubbing or at a cut on a big file. A HAP .mov (the codec live-visual rigs use) is instant everywhere, because every frame stands alone. Encode the tapes you cut hard as HAP and the timeline stays snappy.
-
-## Thumbnails and pads
-
-Each clip wears a strip of frames from its tape, one per second, read once in the background and kept for the session, so a cut shows what it cuts to. Drag a clip off the timeline onto a VideoPad pad and the pad takes the clip's tape with its In and Out set to the clip's edges; drop it on a VideoPlayer's file slot and the deck loads the tape. Drag a pad by its number badge onto the timeline and its In-to-Out range lands as a clip on a video track.
+Add one from the timeline's add-track menu, or drop a movie onto the arrangement and a track appears for it. Clips cut, trim, move, loop and fade like audio clips, and the outlet shows whatever sits under the playhead: stop and it holds that frame, locate and it jumps there, loop the song and it loops with it. Warp stretches a clip to the song's tempo against its source tempo, Reverse plays it backwards and fades are fades to black. Each clip wears a strip of frames from its tape, and right-click a clip for Media Info to read its codec, size and frame rate. Cord the outlet into a VideoOut, a VideoFX or a Lumen layer; two tracks are two layers.
 
 ## Recording
 
-The track has an inlet. Cord a camera, an effect chain, a pad rack, a scene or another video track into it, arm the track with its record button and press record: whatever reaches the inlet is written as a compact movie in the recordings folder while the transport rolls, and the take lands on the timeline as a clip at the beat it started, cut and looped like any other. A take follows the transport, so a loop while recording lays down a lap per pass, the way an audio take does. Sound is not part of the picture: record it on an audio track armed beside this one and the two start and stop together.
+Cord a CameraIn, a VideoFX chain, a VideoPad or another track into the inlet, arm the track with Record and press record on the transport: whatever reaches the inlet is written as a movie in the recordings folder while the transport rolls and lands on the timeline as a clip at the beat it started, one lap per pass of a loop. Sound is not part of the picture; arm an audio track beside it. The recording size is set in Settings, under Video.
 
-Monitor decides what the outlet shows. In always shows the inlet, Off always shows the clips, and Auto shows the inlet while the track is armed or the transport is stopped and the clips while it rolls. The recording size is set in Settings, under Video.
+## Parameters
 
-## Media Info
+**Record** Arms the track. While it is armed, the next transport record writes a take from the inlet.
 
-Right-click a clip and choose Media Info to read what the clip is made of: where it sits and how long it runs in beats and seconds, its in and out points on the tape, warp and source tempo, the file's path and size, and for the movie itself the codec, picture size, frame rate, frame count and how often a keyframe comes (every frame on a fast tape, one every so many frames on an ordinary one - the number that decides how a tape scrubs), plus any sound stream inside. Copy puts the text on the clipboard for a bug report.
+**Monitor** What the outlet shows. In always shows the inlet, Off always shows the clips, and Auto shows the inlet while the track is armed or the transport is stopped and the clips while it rolls.
 
-## Compositing
+**Opacity** How strongly the track's picture shows over the layers beneath it in a Lumen.
 
-Opacity and Blend set how the track's picture sits in a Scene, the same knobs as on a deck. Two video tracks are two layers.
+**Blend** How it combines with those layers: Normal, Add, Multiply or Screen.
+
+## Recipe
+
+**Live capture over a loop** Cord a CameraIn into the track's inlet and the track's outlet into a VideoOut. Set Monitor to Auto, arm Record, loop four bars and press record: you see the camera while it records, and once you stop the take plays back in the arrangement cut to the loop.
+
+## Related Organisms
+
+VideoPad, VideoPlayer, VideoOut, AudioTrack

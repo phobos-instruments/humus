@@ -1,16 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/AutosaveStore.h"
 
 #include "io/PatchFormat.h"
 
-#include <csignal>
-
-#include "core/AppPaths.h"
-
-#if JUCE_WINDOWS
-#else
-#include <sys/types.h>
-#include <unistd.h>
-#endif
+#include "core/app/AppPaths.h"
+#include "core/plugins/ProcessId.h"
 
 namespace hum {
 
@@ -20,21 +15,9 @@ juce::File AutosaveStore::defaultDir() {
     return appDataDir().getChildFile("autosave");
 }
 
-int AutosaveStore::currentPid() {
-#if JUCE_WINDOWS
-    return 0;
-#else
-    return (int) ::getpid();
-#endif
-}
+int AutosaveStore::currentPid() { return currentProcessId(); }
 
-bool AutosaveStore::pidAlive(int pid) {
-#if JUCE_WINDOWS
-    return false;
-#else
-    return pid > 0 && ::kill((pid_t) pid, 0) == 0;
-#endif
-}
+bool AutosaveStore::pidAlive(int pid) { return processAlive(pid); }
 
 juce::File AutosaveStore::autosaveFile() const {
     return dir_.getChildFile("session-" + juce::String(pid_) + "." + kPatchExt);

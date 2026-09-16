@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Ph/PhSixOp.h"
 
 #include <algorithm>
@@ -97,17 +99,17 @@ namespace {
 constexpr int kOpOffset(int playerOp) { return (6 - playerOp) * 21; }
 }
 
-PhVoice PhSixOp::voiceAt(int slot) const {
+FmVoice PhSixOp::voiceAt(int slot) const {
     char unpacked[156] = {0};
     const int s = std::clamp(slot, 0, kSlots - 1);
     UnpackPatch(reinterpret_cast<const char*>(bank_[(size_t) s].data()), unpacked);
-    PhVoice v;
+    FmVoice v;
     const auto* p = reinterpret_cast<const unsigned char*>(unpacked);
     v.algorithm = (p[134] & 31) + 1;
     v.feedback = p[135] & 7;
     for (int i = 1; i <= 6; ++i) {
         const auto* o = p + kOpOffset(i);
-        PhVoiceOp& op = v.ops[(size_t) (i - 1)];
+        FmVoiceOp& op = v.ops[(size_t) (i - 1)];
         op.attack = o[0];
         op.decay = o[1];
         op.release = o[3];
@@ -119,14 +121,14 @@ PhVoice PhSixOp::voiceAt(int slot) const {
     return v;
 }
 
-void PhSixOp::setVoice(const PhVoice& v) {
+void PhSixOp::setVoice(const FmVoice& v) {
     std::memcpy(edited_, current_, sizeof(edited_));
     auto* p = reinterpret_cast<unsigned char*>(edited_);
     p[134] = (unsigned char) std::clamp(v.algorithm - 1, 0, 31);
     p[135] = (unsigned char) std::clamp(v.feedback, 0, 7);
     for (int i = 1; i <= 6; ++i) {
         auto* o = p + kOpOffset(i);
-        const PhVoiceOp& op = v.ops[(size_t) (i - 1)];
+        const FmVoiceOp& op = v.ops[(size_t) (i - 1)];
         o[0] = (unsigned char) std::clamp(op.attack, 0, 99);
         o[1] = (unsigned char) std::clamp(op.decay, 0, 99);
         o[3] = (unsigned char) std::clamp(op.release, 0, 99);
@@ -139,7 +141,7 @@ void PhSixOp::setVoice(const PhVoice& v) {
     rebuildVoiced();
 }
 
-void PhSixOp::setMods(const PhMods& m) {
+void PhSixOp::setMods(const FmMods& m) {
     if (m == mods_) return;
     mods_ = m;
     rebuildVoiced();
@@ -168,6 +170,10 @@ void PhSixOp::rebuildVoiced() {
         v[143] = (uint8_t) std::max<int>(v[143], 4);
     }
     lfo_.reset(voiced_ + 137);
+}
+
+void PhSixOp::setBend(double semitones) {
+    controllers_.values_[kControllerPitch] = 0x2000 + (int) std::lround(semitones / 3.0 * 8192.0);
 }
 
 void PhSixOp::noteOn(int midinote, int velocity, double hz) {

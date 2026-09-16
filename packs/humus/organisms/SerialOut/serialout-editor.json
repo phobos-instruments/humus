@@ -1,13 +1,461 @@
 {
-  "width": 293,
-  "height": 150,
+  "width": 600,
+  "height": 354,
   "controls": [
-    { "type": "combo", "param": "Device", "label": "Device", "source": "serial-ports", "x": 8, "y": 8, "w": 277, "h": 22 },
-    { "type": "combo", "param": "BaudRate", "label": "Baud", "x": 8, "y": 38, "w": 136, "h": 22,
-      "options": ["300", "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400"] },
-    { "type": "int-spinner", "param": "Rate", "label": "Rate (Hz)", "x": 152, "y": 38, "w": 133, "h": 22 },
-    { "type": "toggle", "param": "ASCII", "label": "ASCII lines", "x": 8, "y": 68, "w": 136, "h": 24 },
-    { "type": "label", "label": "Inlets: 1 A - 2 B, sent as \"a b\" per line", "x": 8, "y": 100, "w": 277, "h": 16 },
-    { "type": "label", "label": "ASCII off: one raw byte each, 0..1 - 0..255", "x": 8, "y": 118, "w": 277, "h": 16 }
+    {
+      "type": "combo",
+      "param": "Device",
+      "label": "Port",
+      "source": "serial-ports",
+      "x": 8,
+      "y": 8,
+      "w": 292,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Frame",
+      "label": "Frame",
+      "x": 308,
+      "y": 8,
+      "w": 100,
+      "h": 22,
+      "options": [
+        "8N1",
+        "8E1",
+        "8O1",
+        "8N2"
+      ]
+    },
+    {
+      "type": "int-spinner",
+      "param": "Custom",
+      "label": "Custom",
+      "x": 416,
+      "y": 8,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Reset",
+      "label": "Reset",
+      "x": 534,
+      "y": 8,
+      "w": 58,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "BaudRate",
+      "label": "Baud",
+      "x": 8,
+      "y": 38,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "300",
+        "1200",
+        "2400",
+        "4800",
+        "9600",
+        "19200",
+        "38400",
+        "57600",
+        "115200",
+        "230400",
+        "250000",
+        "460800",
+        "500000",
+        "921600",
+        "1000000"
+      ]
+    },
+    {
+      "type": "int-spinner",
+      "param": "Rate",
+      "label": "Per second",
+      "x": 156,
+      "y": 38,
+      "w": 140,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Send",
+      "label": "Send",
+      "x": 304,
+      "y": 38,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Continuous",
+        "On change",
+        "On trigger"
+      ]
+    },
+    {
+      "type": "int-spinner",
+      "param": "Values",
+      "label": "Sockets",
+      "x": 452,
+      "y": 38,
+      "w": 140,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Format - one message per line, Message picks the line; %1 prints a value, %b1 a byte, %w1 a word, \\n ends a line",
+      "x": 8,
+      "y": 68,
+      "w": 584,
+      "h": 16
+    },
+    {
+      "type": "text-field",
+      "param": "Format",
+      "label": "%1 %2\\n",
+      "x": 8,
+      "y": 86,
+      "w": 584,
+      "h": 62,
+      "lines": 3
+    },
+    {
+      "type": "label",
+      "label": "Sockets sets how many the box shows; On trigger adds the trigger socket. Scale multiplies, Int rounds.",
+      "x": 8,
+      "y": 154,
+      "w": 584,
+      "h": 16
+    },
+    {
+      "type": "label",
+      "label": "Value",
+      "x": 32,
+      "y": 174,
+      "w": 80,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "Scale",
+      "x": 118,
+      "y": 174,
+      "w": 80,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "1",
+      "x": 8,
+      "y": 195,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value1",
+      "label": "",
+      "x": 32,
+      "y": 192,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale1",
+      "label": "",
+      "x": 118,
+      "y": 192,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int1",
+      "label": "Int",
+      "x": 206,
+      "y": 192,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "2",
+      "x": 8,
+      "y": 221,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value2",
+      "label": "",
+      "x": 32,
+      "y": 218,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale2",
+      "label": "",
+      "x": 118,
+      "y": 218,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int2",
+      "label": "Int",
+      "x": 206,
+      "y": 218,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "3",
+      "x": 8,
+      "y": 247,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value3",
+      "label": "",
+      "x": 32,
+      "y": 244,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale3",
+      "label": "",
+      "x": 118,
+      "y": 244,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int3",
+      "label": "Int",
+      "x": 206,
+      "y": 244,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "4",
+      "x": 8,
+      "y": 273,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value4",
+      "label": "",
+      "x": 32,
+      "y": 270,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale4",
+      "label": "",
+      "x": 118,
+      "y": 270,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int4",
+      "label": "Int",
+      "x": 206,
+      "y": 270,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Value",
+      "x": 328,
+      "y": 174,
+      "w": 80,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "Scale",
+      "x": 414,
+      "y": 174,
+      "w": 80,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "5",
+      "x": 304,
+      "y": 195,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value5",
+      "label": "",
+      "x": 328,
+      "y": 192,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale5",
+      "label": "",
+      "x": 414,
+      "y": 192,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int5",
+      "label": "Int",
+      "x": 502,
+      "y": 192,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "6",
+      "x": 304,
+      "y": 221,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value6",
+      "label": "",
+      "x": 328,
+      "y": 218,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale6",
+      "label": "",
+      "x": 414,
+      "y": 218,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int6",
+      "label": "Int",
+      "x": 502,
+      "y": 218,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "7",
+      "x": 304,
+      "y": 247,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value7",
+      "label": "",
+      "x": 328,
+      "y": 244,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale7",
+      "label": "",
+      "x": 414,
+      "y": 244,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int7",
+      "label": "Int",
+      "x": 502,
+      "y": 244,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "8",
+      "x": 304,
+      "y": 273,
+      "w": 20,
+      "h": 16
+    },
+    {
+      "type": "number-field",
+      "param": "Value8",
+      "label": "",
+      "x": 328,
+      "y": 270,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "number-field",
+      "param": "Scale8",
+      "label": "",
+      "x": 414,
+      "y": 270,
+      "w": 80,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Int8",
+      "label": "Int",
+      "x": 502,
+      "y": 270,
+      "w": 60,
+      "h": 22
+    },
+    {
+      "type": "text-readout",
+      "x": 8,
+      "y": 306,
+      "w": 484,
+      "h": 40
+    },
+    {
+      "type": "momentary",
+      "param": "Reconnect",
+      "label": "Reconnect",
+      "x": 500,
+      "y": 306,
+      "w": 92,
+      "h": 40
+    }
   ]
 }

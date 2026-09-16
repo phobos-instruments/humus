@@ -1,0 +1,376 @@
+{
+  "width": 600,
+  "height": 566,
+  "controls": [
+    {
+      "type": "label",
+      "param": "",
+      "label": "Sources",
+      "x": 12,
+      "y": 6,
+      "w": 300,
+      "h": 14
+    },
+    {
+      "type": "soundfile",
+      "param": "File1",
+      "label": "",
+      "x": 12,
+      "y": 24,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "0"
+    },
+    {
+      "type": "soundfile",
+      "param": "File5",
+      "label": "",
+      "x": 312,
+      "y": 24,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "4"
+    },
+    {
+      "type": "soundfile",
+      "param": "File2",
+      "label": "",
+      "x": 12,
+      "y": 52,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "1"
+    },
+    {
+      "type": "soundfile",
+      "param": "File6",
+      "label": "",
+      "x": 312,
+      "y": 52,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "5"
+    },
+    {
+      "type": "soundfile",
+      "param": "File3",
+      "label": "",
+      "x": 12,
+      "y": 80,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "2"
+    },
+    {
+      "type": "soundfile",
+      "param": "File7",
+      "label": "",
+      "x": 312,
+      "y": 80,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "6"
+    },
+    {
+      "type": "soundfile",
+      "param": "File4",
+      "label": "",
+      "x": 12,
+      "y": 108,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "3"
+    },
+    {
+      "type": "soundfile",
+      "param": "File8",
+      "label": "",
+      "x": 312,
+      "y": 108,
+      "w": 276,
+      "h": 24,
+      "filter": "*.wav;*.aif;*.aiff;*.flac;*.ogg;*.mp3",
+      "origin": "7"
+    },
+    {
+      "type": "label",
+      "param": "",
+      "label": "The creature",
+      "x": 12,
+      "y": 142,
+      "w": 110,
+      "h": 14
+    },
+    {
+      "type": "slice-map",
+      "edits": "SliceEdits",
+      "param": "",
+      "label": "",
+      "x": 12,
+      "y": 160,
+      "w": 576,
+      "h": 108
+    },
+    {
+      "type": "label",
+      "param": "",
+      "label": "Cutting",
+      "x": 12,
+      "y": 280,
+      "w": 300,
+      "h": 14
+    },
+    {
+      "type": "combo",
+      "param": "Order",
+      "label": "",
+      "x": 12,
+      "y": 298,
+      "w": 170,
+      "h": 22,
+      "options": [
+        "Random",
+        "In order",
+        "Round robin",
+        "Blocks",
+        "Mirror",
+        "One source"
+      ]
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Cut",
+      "label": "",
+      "x": 192,
+      "y": 298,
+      "w": 200,
+      "h": 22,
+      "options": [
+        "Free",
+        "Grid",
+        "Onsets"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Div",
+      "label": "",
+      "x": 402,
+      "y": 298,
+      "w": 186,
+      "h": 22,
+      "options": [
+        "1/1",
+        "1/2",
+        "1/4",
+        "1/8",
+        "1/16",
+        "1/32",
+        "1/2T",
+        "1/4T",
+        "1/8T",
+        "1/16T",
+        "1/4.",
+        "1/8."
+      ],
+      "dim-when": "!Cut=Grid"
+    },
+    {
+      "type": "int-spinner",
+      "param": "Slices",
+      "label": "Slices",
+      "x": 12,
+      "y": 326,
+      "w": 170,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Bars",
+      "label": "Bars",
+      "x": 192,
+      "y": 326,
+      "w": 200,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Source",
+      "label": "Only",
+      "x": 402,
+      "y": 326,
+      "w": 186,
+      "h": 22,
+      "dim-when": "!Order=One source"
+    },
+    {
+      "type": "knob",
+      "param": "Length",
+      "label": "Length",
+      "x": 12,
+      "y": 354,
+      "w": 60,
+      "h": 84,
+      "dim-when": "!Cut=Free"
+    },
+    {
+      "type": "knob",
+      "param": "Sense",
+      "label": "Sense",
+      "x": 76,
+      "y": 354,
+      "w": 60,
+      "h": 84,
+      "dim-when": "!Cut=Onsets"
+    },
+    {
+      "type": "knob",
+      "param": "Xfade",
+      "label": "Xfade",
+      "x": 140,
+      "y": 354,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "number-field",
+      "param": "Seed",
+      "label": "Creature",
+      "x": 214,
+      "y": 362,
+      "w": 170,
+      "h": 22
+    },
+    {
+      "type": "toggle",
+      "param": "Normalize",
+      "label": "Normalize",
+      "x": 214,
+      "y": 396,
+      "w": 170,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Play",
+      "label": "Play",
+      "x": 404,
+      "y": 358,
+      "w": 184,
+      "h": 30
+    },
+    {
+      "type": "minitoggle",
+      "param": "Loop",
+      "label": "Loop",
+      "x": 404,
+      "y": 396,
+      "w": 90,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Reverse",
+      "label": "Reverse",
+      "x": 498,
+      "y": 396,
+      "w": 90,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "param": "",
+      "label": "Playing",
+      "x": 12,
+      "y": 452,
+      "w": 300,
+      "h": 14
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Att",
+      "x": 12,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Decay",
+      "label": "Dec",
+      "x": 76,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Sustain",
+      "label": "Sus",
+      "x": 140,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Release",
+      "label": "Rel",
+      "x": 204,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Speed",
+      "label": "Speed",
+      "x": 268,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Start",
+      "label": "Start",
+      "x": 332,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 396,
+      "y": 470,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "int-spinner",
+      "param": "Voices",
+      "label": "Voices",
+      "x": 470,
+      "y": 492,
+      "w": 118,
+      "h": 22
+    },
+    {
+      "type": "text-readout",
+      "x": 128,
+      "y": 138,
+      "w": 460,
+      "h": 20
+    }
+  ]
+}

@@ -1,32 +1,34 @@
 # Rhizome
 
-A rhizome is a root that spreads sideways by subdividing. This one grows on the tuning: a played note sends out runners - further voices standing Interval scale degrees above the root, read from the patch's tuning rather than from the harmonic series.
+A six-voice MIDI synth that stacks extra voices above each note, spaced in scale degrees of the patch's tuning.
 
-That is what makes it different from Substrate and Mineral. Their intervals are numbers (a fifth is always 1.5), so they sound the same in any tuning. Rhizome's intervals are degrees, so the scale is not just what it is played in - it is what it is made of. Retune the patch and the timbre moves, not only the pitch.
+Every played note grows a set of runners: further oscillators standing Interval scale degrees above the root, with their pitches read from the patch's tuning rather than from the harmonic series. Change the tuning on the transport and the timbre changes with it, not only the pitch. Runners alternate left and right for width, and a lowpass over the sum keeps a tall stack of saws in check. Drive it from a PianoRoll, DNA or the keyboard when the editor is focused, and send it through Fern or SoundSpace.
 
 ## Parameters
 
-**Wave** The runner's waveform: sine, saw or square.
+**Runners** How many voices grow from each note, from the root alone up to eight.
 
-**Runners** How many shoots grow from the root (1 = just the root).
+**Interval** The gap between consecutive runners, in scale degrees. Shown as Degrees on the panel.
 
-**Degrees** The gap between consecutive runners, in scale degrees.
+**Creep** Slow independent pitch drift per runner, in cents. A little keeps the stack from phase-locking.
 
-**Creep** Slow independent pitch drift per runner, in cents. Roots never grow straight, and it stops the stack phase-locking.
+**Tilt** The level slope along the chain. Low keeps the sound close to the root; high lets the far runners come through.
 
-**Tilt** The level slope along the chain. Low keeps the growth close to the root; high lets the far runners sing.
+**Wave** The runner waveform: SIN, SAW or SQR.
 
-**Bloom** How long a note takes to open.
+**Bloom** Attack time in milliseconds, how long a note takes to open.
 
-**Decay** How long it takes to die away after release.
+**Decay** Release time in milliseconds, how long a note takes to die away after note-off.
 
-**Cutoff** A lowpass over the sum - a tall stack of saws is a lot.
+**Cutoff** A lowpass over the summed output, in Hz. Lower it when many saw runners get harsh.
 
 **Level** Output level.
 
-Six voices, MIDI-driven (PianoRoll, DNA, or the QWERTY keyboard when this editor is focused). Runners alternate left and right for width.
+**BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
 
-Try: Degrees 1, Runners 6, Creep 0, sine - a cluster of adjacent degrees that beats at the scale's own step size. In 12-TET it is a semitone pile; in 19-EDO it is something else entirely. This is the setting that makes a tuning audible as a texture rather than as a tuning.
+## Recipe
+
+**Cluster** Interval 1, Runners 6, Creep 0, Wave SIN. Play single notes from a PianoRoll: each becomes a cluster of adjacent scale degrees that beats at the scale's own step size. Retune the patch on the transport and the beating changes with it.
 
 ## Related Organisms
 

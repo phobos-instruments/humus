@@ -1,38 +1,40 @@
 # Bloom
 
-The shimmer reverb: a modulated reverb tank with a pitch shifter inside its regeneration loop, so every pass round the tank is transposed again - one octave, then two, then three, fading into the damping. The tail does not just ring, it climbs: the note flowers upward out of itself. Turn Shift negative and it sinks instead, a cathedral dissolving into the floor.
+The shimmer reverb: a modulated reverb tank with a pitch shifter inside its feedback loop.
 
-## The heart of it
-
-Shimmer is the balance between the two halves of the loop: the plain half sustains the body of the reverb, the shifted half stacks octaves on top. At zero this is a fine ordinary reverb; at full there is no body left, only climb. Feedback sets how long the whole garden rings.
+Every pass around the tank is transposed again, so a tail climbs by an octave, then two, until the damping takes it. The balance between the plain feedback and the shifted feedback is Shimmer: at zero this is an ordinary reverb, at full the tail is all climb and no body. Feedback sets how long the whole thing rings. Turn Shift negative and the tail sinks instead. Cord it after a Rhizome, a Wave or a Sampler, and put a Fern before it for a tail that also echoes.
 
 ## Parameters
 
-**Mix** dry against wet. The wet path is level-matched, so sweeping this compares rooms rather than volumes.
+**Mix** Dry against wet.
 
-**Shift** how far the shifter transposes each pass, in semitones. 12 is the classic heavenly octave; 7 gives fifths that stack into wide chords; -12 sinks.
+**Shift** How far the shifter transposes each pass, in semitones. 12 is the classic octave, 7 stacks fifths, -12 sinks.
 
-**Shimmer** how much of the shifted signal is fed back round, against the unshifted tail.
+**Shimmer** How much of the shifted signal is fed back around the tank against the unshifted tail.
 
-**Feedback** how much of the tank returns to its own input. This is the tail length.
+**Feedback** How much of the tank returns to its own input. This is the tail length.
 
-**Size** the room's dimensions, from a small bright room to a cathedral.
+**Size** The room's dimensions, from small to vast.
 
-**Diffusion** how quickly the first echoes blur together. Low keeps discrete echoes audible inside the tail.
+**Diffusion** How quickly the early echoes blur together. Low keeps discrete echoes audible inside the tail.
 
-**LowCut** keeps the mud out of the swell.
+**LowCut** Removes low end from the tank input, to keep the swell out of the bass.
 
-**HighCut** the damping: how much air the tail loses on each pass.
+**HighCut** Darkens the tail on each pass. Lower is a shorter, warmer tail.
 
-**ModRate** the speed of the chorusing inside the tank.
+**ModRate** The speed of the movement inside the tank, in Hz.
 
-**ModDepth** its depth. A little keeps the tail alive; a lot turns it to water.
+**ModDepth** How far that movement goes. A little keeps the tail alive, a lot turns it to water.
 
-**Mode** the room. Bloom is small and close, Hall natural, Cathedral vast, Cloud somewhere weightless in between.
+**Mode** The room type. Bloom is small and close, Hall is natural, Cathedral is vast, Cloud sits between with extra diffusion.
 
-**Voice** the shifter arrangement. Single follows Shift, Dual adds a second voice moving the opposite way, Stacked runs both upward, and Off is a plain reverb whatever Shift says.
+**Voice** The shifter arrangement. Single follows Shift, Dual adds a second voice moving the opposite way, Stacked adds a second voice at twice the shift, and Off is a plain reverb whatever Shift says.
 
-**Color** the tilt of the tail. Bright lets the shifted copies keep their sparkle, Dark folds them into velvet, Neutral sits between.
+**Color** The tilt of the tail. Bright keeps the shifted copies open, Dark folds them down, Neutral sits between.
+
+## Recipe
+
+**Pad halo** Mode Cathedral, Voice Single, Shift 12, Shimmer 0.6, Feedback 0.6, HighCut 6000, Color Dark, Mix 0.4. Cord a slow Rhizome pad in and hold a chord for a bar or two while the octaves build.
 
 ## Related Organisms
 

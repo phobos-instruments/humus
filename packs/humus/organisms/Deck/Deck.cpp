@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Deck/Deck.h"
 
 #include <algorithm>
+#include <utility>
 #include <cmath>
 
 #include "hum/dsp/SoundFileBuffer.h"
@@ -84,8 +87,9 @@ void Deck::loadFromFile(const std::string& uri) {
 }
 
 void Deck::applyPending() {
-    const juce::ScopedLock sl(loadLock_);
-    file_ = std::move(pending_);
+    const juce::ScopedTryLock sl(loadLock_);
+    if (!sl.isLocked()) return;
+    std::swap(file_, pending_);
     fileSr_.store(pendingSr_);
     fileLen_.store(file_.getNumSamples());
     readPos_ = 0.0;

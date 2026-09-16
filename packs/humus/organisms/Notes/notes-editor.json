@@ -1,0 +1,16 @@
+{
+  "width": 293,
+  "height": 168,
+  "controls": [
+    {
+      "type": "text-field",
+      "param": "Text",
+      "label": "Write here. Rename the box for a headline.",
+      "x": 8,
+      "y": 8,
+      "w": 277,
+      "h": 152,
+      "lines": 8
+    }
+  ]
+}

@@ -1,26 +1,32 @@
 # SerialIn
 
-Reads control values from a serial device - a microcontroller board reading sensors, a fader box, anything printing numbers to a USB serial port. The mirror of SerialOut: the device's values come out as two control signals.
+Reads numbers from a serial port and puts them on control outlets a to h.
 
-## The sensor path
-
-Firmware that prints readable numbers, one line per reading - a value for outlet A, optionally a space and a second value for outlet B - is all it takes. A light sensor, a potentiometer, a distance sensor: print its reading 30 or so times a second and patch outlet A into whatever should follow it. The port is read away from the audio path, so audio never waits on the device, and unplugging and replugging reconnects automatically.
-
-Beyond the two outlets, SerialIn is also a control source: right-click any parameter and pick Control with - SerialIn (a or b) to have the sensor drive it directly, no patch cord needed. The box meter flickers as data arrives, so a silent patch still shows the sensor is alive.
+Cord a microcontroller board that prints readings over its serial connection and each number on a line lands on its own outlet: the first on a, the second on b, and so on. Separate numbers with spaces, commas or semicolons, and put a word before a number to send it to the Var of that name with no cord. A Parse template reads lines or byte packets that are not bare numbers, and while one is set a ninth outlet called match pulses whenever a line fits. The port is read away from the audio path, a replugged device reconnects on its own, and any parameter can pick Control with SerialIn from its right-click menu. Cord the outlets onto Number, Gain or LFO sockets.
 
 ## Parameters
 
-**Device** which serial device to listen to. Auto picks the first USB serial device found; the rest of the list is every device present.
+**Device** Which serial port to listen to. Auto takes the first port found; the rest of the list is every port present.
 
-**Baud** the port's speed. It has to match what the firmware opens; 9600 and 115200 are the usual defaults.
+**BaudRate** The port speed, which has to match what the firmware opens. 9600 and 115200 are the usual choices.
 
-**Smooth** slew toward each new value, in milliseconds. A jumpy sensor at 0 steps hard; the 20 ms default rounds steps off without feeling laggy. Raise it for deliberately slow drifts.
+**Values** How many of the eight outlets the organism shows, a first.
 
-**ASCII** on, incoming text lines are parsed as numbers - up to two per line, separated by anything. Off treats every raw byte as outlet A, scaled 0..255 to 0..1.
+**Frame** Data bits, parity and stop bits: 8N1 is what nearly everything uses; 8E1, 8O1 and 8N2 are there for the gear that wants them.
 
-## Notes
+**Custom** Any other baud rate, typed in. 0 leaves the BaudRate list in charge.
 
-Values are used exactly as sent: firmware that prints 0..1023 drives parameters expecting 0..1 a thousand times too hard, so divide before printing, or map the range in the Modulate-with route. Serial I/O is not available on Windows yet.
+**Reset** Pulses the board's reset line when the port opens, so its program starts from the top on every connect. Off leaves the board running across a reconnect.
+
+**Reconnect** Closes the port and opens it again, for every organism sharing it.
+
+**Parse** The template a line or packet has to match: %1 to %8 capture numbers as text, %b1 to %b8 single bytes and %w1 to %w8 two-byte words, both read as 0 to 1. Empty takes every number on the line in order; a line that does not fit is ignored and shown as skipped.
+
+**Port** A port path typed in by hand, which overrides the Device choice while it is set.
+
+## Recipe
+
+**Light sensor to filter** Have the board print its sensor as a 0 to 1 number thirty times a second, one per line. Leave Parse empty, Values 1, BaudRate 115200. Right-click the Cutoff of a Filter, choose Control with SerialIn a, and the filter follows the sensor. Watch the readout under Parse to confirm what arrives.
 
 ## Related Organisms
 

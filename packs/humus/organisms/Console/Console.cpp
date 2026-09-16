@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Console/Console.h"
 
 #include <algorithm>
@@ -22,12 +24,20 @@ inline int flavorIndex(double v) {
 }
 }
 
-std::string Console::gainSuffix(int k) const {
-    if (width_ == 2) {
+namespace {
+std::string gainSuffix(int k, int width) {
+    if (width == 2) {
         const int lo = k * 2 + 1;
         return std::to_string(lo) + "-" + std::to_string(lo + 1);
     }
     return std::to_string(k + 1);
+}
+}
+
+Console::Strip Console::stripParams(int k, int width) {
+    const auto sfx = gainSuffix(k, width);
+    return {ParamRef("Mute_" + sfx), ParamRef("Solo_" + sfx), ParamRef("Gain_" + sfx),
+            ParamRef("Pan_" + sfx)};
 }
 
 void Console::process(const float* const* in, int numIn,
@@ -37,23 +47,22 @@ void Console::process(const float* const* in, int numIn,
     for (int c = 0; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
     if (numOut < 1) return;
 
-    const float output = (float) params.get("Output", 1.0);
+    outputS_.setTarget((float) params.get("Output", 1.0));
     const bool direct = params.get("Direct", 0.0) >= 0.5;
 
     bool anySolo = false;
     for (int k = 0; k < numInputs_; ++k)
-        if (params.get("Solo_" + gainSuffix(k), 0.0) >= 0.5) anySolo = true;
+        if (strips_[(size_t) k].solo.on(params)) anySolo = true;
 
     auto sumChannel = [&](int side, float* dst) {
         for (int k = 0; k < numInputs_; ++k) {
-            const std::string sfx = gainSuffix(k);
-            const bool mute = params.get("Mute_" + sfx, 0.0) >= 0.5;
-            const bool solo = params.get("Solo_" + sfx, 0.0) >= 0.5;
+            const auto& strip = strips_[(size_t) k];
+            const bool mute = strip.mute.on(params);
+            const bool solo = strip.solo.on(params);
             if (mute || (anySolo && !solo)) continue;
-            float g = (float) params.get("Gain_" + sfx, 1.0);
+            float g = (float) strip.gain.get(params, 1.0);
 
-            const float p =
-                (float) std::clamp(params.get("Pan_" + sfx, 0.5), 0.0, 1.0);
+            const float p = (float) std::clamp(strip.pan.get(params, 0.5), 0.0, 1.0);
             g *= std::min(1.0f, side == 0 ? 2.0f * (1.0f - p) : 2.0f * p);
             const int ch = k * width_ + side;
             const float* src = ch < numIn ? in[ch] : nullptr;
@@ -68,30 +77,33 @@ void Console::process(const float* const* in, int numIn,
     sumChannel(0, out[0]);
     if (numOut > 1) sumChannel(1, out[1]);
     if (direct) {
-        for (int c = 0; c < numOut; ++c)
-            for (int n = 0; n < numSamples; ++n) out[c][n] *= output;
+        for (int n = 0; n < numSamples; ++n) {
+            const float output = outputS_.next();
+            for (int c = 0; c < numOut; ++c) out[c][n] *= output;
+        }
         return;
     }
 
-    const double drive = params.get("Drive", 0.3);
-    const double xtalk = params.get("Crosstalk", 0.25);
-    const double sag = params.get("Sag", 0.35);
     const Flavor& f = kFlavors[flavorIndex(params.get("Flavor", 1.0))];
+    driveS_.setTarget((float) (params.get("Drive", 0.3) * f.drive));
+    xtalkS_.setTarget((float) (params.get("Crosstalk", 0.25) * 0.03));
+    stressS_.setTarget((float) (params.get("Sag", 0.1) * f.stress * 6.0));
 
     const double xtA = 1.0 - std::exp(-2.0 * kPi * f.xtHz / sampleRate_);
-    const double xtGain = xtalk * 0.03;
-    const double dAmt = drive * f.drive;
-    const double k = 1.0 + dAmt * 4.0;
-    const double a = f.asym * dAmt;
-    const double ta = std::tanh(a);
-    const double makeup = 1.0 + dAmt * 0.4;
     const double atk = smoothCoeff(f.atkMs, sampleRate_);
     const double rel = smoothCoeff(f.relMs, sampleRate_);
-    const double stress = sag * f.stress * 6.0;
     const double dcR = 1.0 - (2.0 * kPi * 10.0 / sampleRate_);
 
     const bool stereo = numOut > 1;
     for (int n = 0; n < numSamples; ++n) {
+        const double xtGain = xtalkS_.next();
+        const double dAmt = driveS_.next();
+        const double k = 1.0 + dAmt * 4.0;
+        const double a = f.asym * dAmt;
+        const double ta = std::tanh(a);
+        const double makeup = 1.0 + dAmt * 0.4;
+        const double stress = stressS_.next();
+        const double output = outputS_.next();
         double bl = out[0][n];
         double br = stereo ? out[1][n] : bl;
 

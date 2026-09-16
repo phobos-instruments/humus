@@ -7,10 +7,25 @@ Stages the pack's ASSETS only (pack.json, per-organism organism.json +
 editor layout JSONs, help/) plus the compiled binaries from <dynBinDir>
 (bin/<platform>/pack.so) - never the C++ sources. The result is what the
 Organism Manager's "Install pack..." consumes.
+
+A bundle.json at the root records the pack ABI it was built against
+(HUM_PACK_ABI from sdk/include/hum/PackEntry.h) and the one platform tag under
+bin/, so tools/pack_versions.py can list the bundle without a build tree.
 """
+import json
 import os
+import re
 import sys
 import zipfile
+
+
+def pack_abi():
+    header = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "sdk", "include", "hum", "PackEntry.h")
+    with open(header, encoding="utf-8") as f:
+        m = re.search(r"^#define HUM_PACK_ABI (\d+)", f.read(), re.M)
+    if not m:
+        raise SystemExit(f"error: no HUM_PACK_ABI in {header}")
+    return int(m.group(1))
 
 
 def main() -> int:
@@ -60,11 +75,17 @@ def main() -> int:
     if bins == 0:
         print(f"error: no binaries under {bdir} (build the *_dyn target first)")
         return 1
+    platforms = sorted(d for d in os.listdir(bdir) if os.path.isdir(os.path.join(bdir, d)))
+    if len(platforms) != 1:
+        print(f"error: expected one platform under {bdir}, found {platforms}")
+        return 1
+    bundle = json.dumps({"abi": pack_abi(), "platform": platforms[0]}, indent=2) + "\n"
 
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         for path, arc in entries:
             z.write(path, arc)
+        z.writestr("bundle.json", bundle)
     print(f"wrote {out} ({len(entries)} files, {os.path.getsize(out) // 1024} KiB)")
     return 0
 

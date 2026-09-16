@@ -2,6 +2,8 @@
   "classes": [
     {
       "class": "Sequence",
+      "roles": ["note-lanes"],
+      "roll": "drum-rows",
       "category": "Sequencers",
       "editor": "layout:sequence-editor.json",
       "params": [

@@ -19,7 +19,8 @@
       "x": 38,
       "y": 98,
       "w": 110,
-      "h": 22
+      "h": 22,
+      "dim-when": "!Seq"
     },
     {
       "type": "minitoggle",

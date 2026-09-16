@@ -15,7 +15,7 @@ add_library(hum_pack_core STATIC
 )
 # Organisms include each other as "<Name>/<Name>.h".
 target_include_directories(hum_pack_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/organisms)
-# core/Registry.h only (header-inline registration API; no host link dependency).
+# core/packs/Registry.h only (header-inline registration API; no host link dependency).
 target_include_directories(hum_pack_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../engine/src)
 target_link_libraries(hum_pack_core PUBLIC
   hum_sdk

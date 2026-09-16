@@ -1,0 +1,33 @@
+# -Wall -Wextra (or /W4) on our own sources only; JUCE's module .cpp files
+# compile inside every target and are not ours to fix. Vendored headers are
+# SYSTEM includes (-isystem, /external:I), so /external:W0 keeps MSVC quiet
+# about them and /wd4100 is its -Wno-unused-parameter.
+function(hum_warnings target)
+  if(NOT TARGET ${target})
+    return()
+  endif()
+  get_target_property(srcs ${target} SOURCES)
+  get_target_property(base ${target} SOURCE_DIR)
+  set(ours)
+  foreach(s IN LISTS srcs)
+    if(s MATCHES "^\\$<")
+      continue()
+    endif()
+    if(IS_ABSOLUTE "${s}")
+      set(abs "${s}")
+    else()
+      set(abs "${base}/${s}")
+    endif()
+    if(abs MATCHES "/(engine/src|sdk|packs)/" AND NOT abs MATCHES "third_party|_deps|/build|JuceLibraryCode")
+      list(APPEND ours "${abs}")
+    endif()
+  endforeach()
+  if(ours)
+    if(MSVC)
+      set_source_files_properties(${ours} TARGET_DIRECTORY ${target} PROPERTIES COMPILE_OPTIONS "/W4;/wd4100;/external:W0")
+    else()
+      set_source_files_properties(${ours} TARGET_DIRECTORY ${target} PROPERTIES
+        COMPILE_OPTIONS "-Wall;-Wextra;-Wno-missing-field-initializers;-Wno-unused-parameter")
+    endif()
+  endif()
+endfunction()

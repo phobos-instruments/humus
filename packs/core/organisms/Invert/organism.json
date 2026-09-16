@@ -3,6 +3,7 @@
     {
       "class": "Invert",
       "category": "Mixers",
+      "blurb": "Flips a signal upside down, for phase tricks and subtraction.",
       "params": [],
       "editor": "layout:invert-editor.json"
     }

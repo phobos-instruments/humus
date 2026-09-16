@@ -1,0 +1,21 @@
+{
+  "width": 600,
+  "height": 128,
+  "controls": [
+    { "type": "momentary", "param": "Hold", "label": "Hold", "hold": "true", "x": 8, "y": 6, "w": 64, "h": 22 },
+    { "type": "minitoggle", "param": "Auto", "label": "Auto", "x": 80, "y": 7, "w": 56, "h": 20 },
+    { "type": "enum-buttons", "param": "Mode", "label": "", "x": 144, "y": 6, "w": 200, "h": 22,
+      "options": ["Sweep", "Rise", "Fall", "Step"] },
+    { "type": "enum-buttons", "param": "Wave", "label": "", "x": 352, "y": 6, "w": 150, "h": 22,
+      "options": ["Square", "Pulse", "Saw"] },
+    { "type": "level-meter", "param": "", "label": "", "x": 510, "y": 6, "w": 82, "h": 22 },
+    { "type": "knob", "param": "PitchLow", "label": "Low", "x": 8, "y": 36, "w": 60, "h": 84 },
+    { "type": "knob", "param": "PitchHigh", "label": "High", "x": 72, "y": 36, "w": 60, "h": 84 },
+    { "type": "knob", "param": "LfoUp", "label": "Up", "x": 136, "y": 36, "w": 60, "h": 84 },
+    { "type": "knob", "param": "LfoDown", "label": "Down", "x": 200, "y": 36, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Manual", "label": "Manual", "x": 264, "y": 36, "w": 60, "h": 84, "dim-when": "Auto" },
+    { "type": "knob", "param": "Tone", "label": "Tone", "x": 328, "y": 36, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Release", "label": "Release", "x": 392, "y": 36, "w": 60, "h": 84 },
+    { "type": "knob", "param": "Level", "label": "Level", "x": 456, "y": 36, "w": 60, "h": 84 }
+  ]
+}

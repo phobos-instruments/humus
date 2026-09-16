@@ -1,36 +1,28 @@
 # DigiRust
 
-A lo-fi channel: the sound of a cheap converter slowly going to rust. Bits coarsens the signal into fewer and fewer levels, Rate holds each sample longer so the top end aliases down into grit, and the rest of the panel models the machine around the converter rather than the math alone.
+A lo-fi channel that models a cheap converter going bad: fewer bits, a slower clock, a wobbling clock and hiss.
 
-## The converter
-
-Bits is the word length, stepped like a real converter, from a clean 16 down to a 1-bit growl. Rate is the sampling clock in hertz: parked at the top it is out of the path, pulled down it holds each sample longer, the way early samplers did. Jitter wobbles that clock so the hold lengths vary sample to sample - the warble and smear of a converter running on a bad crystal. Noise adds a hiss that rides the signal and ducks out with silence, so an idle patch stays quiet.
-
-## Around it
-
-Tone is a tilt: below centre it fades toward a dark one-pole lowpass, above centre it pushes the presence back in. Mix blends the rusted signal against the dry input for parallel grit, and Level sets the output.
-
-The dice rolls Bits, Rate, Jitter, Noise and Tone; Mix and Level stay where you put them, so a roll changes the colour of the rust, never the balance of the patch.
+Bits coarsens the signal into fewer levels and Rate holds each sample longer so the top end aliases down into grit. Jitter wobbles the clock so hold lengths vary sample to sample, and Noise adds a hiss that rides the signal and ducks out in silence, so an idle patch stays quiet. Tone tilts the result dark or present, Mix blends it against the dry input for parallel grit, and a DC blocker keeps the output centred. The dice roll Bits, Rate, Jitter, Noise and Tone but leave Mix and Level alone, so a roll changes the colour, never the balance of the patch. Cord it after a Sampler or a Drums organism, or before a Fern for a degraded echo.
 
 ## Parameters
 
-**Bits** word length, 1 to 16, in whole steps. Lower is coarser.
+**Bits** Word length, 1 to 16, in whole steps. Lower is coarser.
 
-**Rate** sampling clock in hertz. Top of travel is off; low is crunchy.
+**Rate** Sampling clock in Hz. At the top of its travel it is out of the path; low is crunchy.
 
-**Jitter** clock wobble - warble and smear. 0 is a steady clock.
+**Jitter** Clock wobble. Zero is a steady clock; up is warble and smear.
 
-**Noise** signal-ducked hiss floor. 0 is silent.
+**Noise** Signal-ducked hiss. Zero is silent.
 
-**Tone** dark to present tilt around the middle.
+**Tone** Dark to present tilt around the middle.
 
-**Mix** dry to rusted blend.
+**Mix** Dry to rusted blend.
 
-**Level** output level.
+**Level** Output level.
 
-## Signal flow
+## Recipe
 
-Input -> bit quantize + jittered sample hold -> noise -> tone tilt -> Mix against dry -> Level -> Output. Stereo in, stereo out.
+**Old sampler drums** Bits 10, Rate 22000, Jitter 0.1, Noise 0.15, Tone 0.4, Mix 1. Cord a Sampler playing a break in and the top end dulls into the classic early-sampler crunch; pull Rate down to 8000 for the breakdown.
 
 ## Related Organisms
 

@@ -1,7 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: MIT
 #include "hum/PackEntryImpl.h"
-
-#include "PackManifestJson.h"
 
 namespace hum { void hum_register_pack_sample(Registry&); }
 
-HUM_DEFINE_PACK_ENTRY(hum::hum_register_pack_sample, kPackManifestJson)
+HUM_DEFINE_PACK_ENTRY(hum::hum_register_pack_sample)

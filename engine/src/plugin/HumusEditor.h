@@ -1,17 +1,21 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <cmath>
 #include <memory>
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include "core/ParamSchema.h"
+#include "core/params/ParamSchema.h"
+#include "core/packs/Roles.h"
+#include "gui/style/Colours.h"
 #include "io/PatchFormat.h"
 #include "plugin/FxLook.h"
 #include "plugin/HumusProcessor.h"
 #include "plugin/MacroPanel.h"
 #include "plugin/OrganismParamPanel.h"
 #include "plugin/PatchMapView.h"
-#include "gui/Localisation.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -35,7 +39,7 @@ public:
         playBtn_.setClickingTogglesState(true);
         playBtn_.setToggleState(proc_.freeRun(), juce::dontSendNotification);
         playBtn_.setColour(juce::TextButton::buttonOnColourId,
-                           fxlook::accent().withAlpha(0.35f));
+                           fxlook::accent().withAlpha(alpha::muted));
         playBtn_.setTooltip(tr("humus-editor.free-run-the-patch-while", "Free-run the patch while the DAW is stopped"));
         playBtn_.onClick = [this] { proc_.setFreeRun(playBtn_.getToggleState()); };
         addAndMakeVisible(playBtn_);
@@ -130,7 +134,7 @@ private:
         const auto& model = proc_.model();
         bool hasOut = model.organisms.empty();
         for (const auto& cm : model.organisms)
-            if (cm.displayClass == "SoundOut" || cm.displayClass == "AuxOut") hasOut = true;
+            if (classHasRole(cm.classRaw, role::kAudioOut)) hasOut = true;
         if (!hasOut) {
             status_.setColour(juce::Label::textColourId, fxlook::warn());
             status_.setText(tr("humus-editor.no-soundout",
@@ -151,8 +155,7 @@ private:
             std::string first;
             for (const auto& cm : proc_.model().organisms) {
                 if (first.empty()) first = cm.name;
-                if (cm.displayClass != "SoundIn" && cm.displayClass != "SoundOut"
-                    && cm.displayClass != "AuxIn" && cm.displayClass != "AuxOut"
+                if (!classHasRole(cm.classRaw, role::kAudioIn) && !classHasRole(cm.classRaw, role::kAudioOut)
                     && !schemaFor(cm.displayClass).empty()) {
                     first = cm.name;
                     break;

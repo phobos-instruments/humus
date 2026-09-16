@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <atomic>
@@ -7,8 +9,12 @@
 
 #include <juce_audio_basics/juce_audio_basics.h>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
+#include "hum/caps/Files.h"
+#include "hum/caps/Midi.h"
+#include "hum/caps/Params.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 #include "hum/dsp/LevelMeter.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
@@ -21,7 +27,10 @@ class Sampler : public Organism, public MidiNode, public FileLoader, public Live
                 public Recorder, public TextVoiceSource, public ReloadOnParam,
                 public LevelMeterSource {
 public:
-    ~Sampler() override { delete pending_.exchange(nullptr); }
+    ~Sampler() override {
+        delete pending_.exchange(nullptr);
+        delete retired_.exchange(nullptr);
+    }
 
     static constexpr int kSlots = 8;
     static constexpr int kMaxVoices = 16;
@@ -126,8 +135,11 @@ private:
     int pickZone(int note, bool kit) const;
 
     Kit kit_;
+    PitchBend bend_;
+    double bendRatio_ = 1.0;
 
     std::atomic<Kit*> pending_{nullptr};
+    std::atomic<Kit*> retired_{nullptr};
 
     std::array<SampleData, kSlots> slotCache_;
     std::array<std::string, kSlots> slotUri_;

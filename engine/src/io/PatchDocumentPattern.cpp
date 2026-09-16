@@ -1,4 +1,6 @@
-#include "core/MidiSource.h"
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
+#include "core/midi/MidiSource.h"
 #include "io/PatchParseInternal.h"
 
 namespace hum {
@@ -172,13 +174,13 @@ void parseModulationSources(juce::XmlElement& mod, OrganismModel& c) {
         lane.propertyIndex = ps->getIntAttribute("property-index", -1);
         lane.mute = ac->getIntAttribute("mute", 0) != 0;
         lane.record = ac->getIntAttribute("record", 0) != 0;
-        if (auto* tp = ac->getChildByName("double-timepoints")) {
-            lane.kind = "double"; parseTimepoints(tp->getAllSubText(), "double", lane);
-        } else if (auto* tp = ac->getChildByName("range-timepoints")) {
-            lane.kind = "range"; parseTimepoints(tp->getAllSubText(), "range", lane);
-        } else if (auto* tp = ac->getChildByName("trigger-timepoints")) {
-            lane.kind = "trigger"; parseTimepoints(tp->getAllSubText(), "trigger", lane);
-        }
+        for (const char* kind : {"double", "range", "trigger"})
+            if (auto* tp = ac->getChildByName(juce::String(kind) + "-timepoints")) {
+                lane.kind = kind;
+                parseTimepoints(tp->getAllSubText(), kind, lane);
+                break;
+            }
+        if (lane.kind == "double" && ac->getIntAttribute("hold", 0) != 0) lane.kind = "step";
         if (auto* cv = ac->getChildByName("curve-timepoints")) {
             auto toks = juce::StringArray::fromTokens(cv->getAllSubText(), " \t\n\r", "");
             toks.removeEmptyStrings();

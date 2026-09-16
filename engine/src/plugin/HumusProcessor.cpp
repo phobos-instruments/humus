@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "plugin/HumusProcessor.h"
 
 #include <cmath>
 
-#include "core/ParamSchema.h"
+#include "core/params/ParamSchema.h"
 #include "io/PatchLoader.h"
 #include "io/PatchWriter.h"
 #include "plugin/HumusEditor.h"
@@ -40,17 +42,20 @@ bool HumusProcessor::loadPatchText(const std::string& amhXml, std::string& error
     g->prepare(sampleRate_, blockSize_, model.clock.tempo);
     g->transport().setPlaying(true);
 
-    {
-        const juce::ScopedLock sl(stageLock_);
-        pending_ = std::move(g);
-    }
-    hasPending_.store(true);
     docText_ = amhXml;
     docXml_ = juce::XmlDocument::parse(juce::String(juce::CharPointer_UTF8(amhXml.c_str())));
     model_ = std::move(model);
     {
+        const juce::ScopedLock sl(stageLock_);
+        retired_.reset();
+        pending_ = std::move(g);
+        collectPorts(*pending_, pendingMasters_, pendingAuxes_, pendingPorts_);
+    }
+    hasPending_.store(true);
+    {
         const juce::ScopedLock sl(editLock_);
         pendingEdits_.clear();
+        appliedEdits_.clear();
     }
     if (patchName_.isEmpty()) patchName_ = "(embedded patch)";
     return true;
@@ -84,6 +89,7 @@ void HumusProcessor::setLiveParam(const std::string& organism, const std::string
         break;
     }
     const juce::ScopedLock sl(editLock_);
+    appliedEdits_.clear();
     pendingEdits_.push_back({organism, param, v});
 }
 
@@ -98,7 +104,8 @@ double HumusProcessor::liveParam(const std::string& organism, const std::string&
 void HumusProcessor::applyParamEdits() {
     const juce::ScopedTryLock sl(editLock_);
     if (!sl.isLocked() || pendingEdits_.empty()) return;
-    for (const auto& e : pendingEdits_)
+    pendingEdits_.swap(appliedEdits_);
+    for (const auto& e : appliedEdits_)
         if (auto* c = graph_->find(e.organism)) {
             if (auto* p = c->params.byName(e.param)) {
                 p->value = e.value;
@@ -110,7 +117,6 @@ void HumusProcessor::applyParamEdits() {
                 c->params.add(np);
             }
         }
-    pendingEdits_.clear();
 }
 
 void HumusProcessor::applyMacros() {
@@ -119,9 +125,18 @@ void HumusProcessor::applyMacros() {
     for (int i = 0; i < kNumMacros; ++i) {
         const auto& m = macros_[i];
         if (m.organism.empty() || m.param.empty()) continue;
+        auto& t = macroTargets_[i];
+        if (!t.resolved) {
+            t.resolved = true;
+            t.organism = graph_->find(m.organism);
+            t.slot = t.organism != nullptr ? t.organism->params.slotOf(m.param) : -1;
+        }
+        if (t.organism == nullptr) continue;
+        auto* p = t.organism->params.slot(t.slot);
+        if (p == nullptr) continue;
         const double v = m.lo + (double) macroParam_[i]->get() * (m.hi - m.lo);
-        if (auto* c = graph_->find(m.organism))
-            if (auto* p = c->params.byName(m.param)) { p->value = v; p->rangeMin = p->rangeMax = v; }
+        p->value = v;
+        p->rangeMin = p->rangeMax = v;
     }
 }
 
@@ -134,6 +149,7 @@ void HumusProcessor::setMacroMapping(int i, const std::string& organism, const s
                 if (d.name == param) { lo = (float) d.min; hi = (float) d.max; break; }
     const juce::ScopedLock sl(macroLock_);
     macros_[i] = { organism, param, lo, hi };
+    macroTargets_[i] = {};
 }
 
 std::pair<std::string, std::string> HumusProcessor::macroMapping(int i) const {
@@ -150,20 +166,34 @@ void HumusProcessor::setMacroValue(int i, float v) {
         macroParam_[i]->setValueNotifyingHost(juce::jlimit(0.0f, 1.0f, v));
 }
 
+void HumusProcessor::collectPorts(AudioGraph& g, std::vector<MasterTap*>& masters,
+                                  std::vector<HardwareOut*>& auxes,
+                                  graphmidi::Ports& ports) const {
+    masters = findMasterTaps(g);
+    auxes = findHardwareOuts(g);
+    ports = graphmidi::findPorts(g);
+    for (const auto& cm : model_.organisms)
+        if (auto* hp = dynamic_cast<PluginNode*>(g.find(cm.name)))
+            ports.hosted.push_back({hp, cm.name, cm.midiReceiveMode, cm.midiReceiveChannel});
+}
+
 void HumusProcessor::applyPending() {
     const juce::ScopedTryLock sl(stageLock_);
-    if (!sl.isLocked()) return;
+    if (!sl.isLocked() || retired_ != nullptr) return;
+    retired_ = std::move(graph_);
     graph_ = std::move(pending_);
+    masters_.swap(pendingMasters_);
+    auxes_.swap(pendingAuxes_);
+    std::swap(midiPorts_, pendingPorts_);
+    for (auto& t : macroTargets_) t = {};
     hasPending_.store(false);
-    masters_ = graph_ ? findMasterTaps(*graph_) : std::vector<MasterTap*>{};
-    auxes_ = graph_ ? findHardwareOuts(*graph_) : std::vector<HardwareOut*>{};
-    midiPorts_ = graph_ ? graphmidi::findPorts(*graph_) : graphmidi::Ports{};
-    if (graph_)
-        for (const auto& cm : model_.organisms)
-            if (auto* hp = dynamic_cast<PluginNode*>(graph_->find(cm.name)))
-                midiPorts_.hosted.push_back({hp, cm.name, cm.midiReceiveMode,
-                                             cm.midiReceiveChannel});
     lastPpq_ = -1.0;
+    triggerAsyncUpdate();
+}
+
+void HumusProcessor::handleAsyncUpdate() {
+    const juce::ScopedLock sl(stageLock_);
+    retired_.reset();
 }
 
 void HumusProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {

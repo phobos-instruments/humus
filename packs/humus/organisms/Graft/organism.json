@@ -1,0 +1,235 @@
+{
+  "classes": [
+    {
+      "class": "Graft",
+      "category": "Instruments",
+      "editor": "layout:graft-editor.json",
+      "params": [
+        {
+          "name": "File1",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File3",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File5",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File7",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "File8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "Slices",
+          "min": 4.0,
+          "max": 64.0,
+          "def": 16.0,
+          "int": true
+        },
+        {
+          "name": "Order",
+          "min": 0.0,
+          "max": 5.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Cut",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 0.0,
+          "enum": true
+        },
+        {
+          "name": "Div",
+          "min": 0.0,
+          "max": 11.0,
+          "def": 4.0,
+          "enum": true
+        },
+        {
+          "name": "Length",
+          "min": 10.0,
+          "max": 200.0,
+          "def": 100.0
+        },
+        {
+          "name": "Sense",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5
+        },
+        {
+          "name": "Xfade",
+          "min": 0.0,
+          "max": 50.0,
+          "def": 6.0
+        },
+        {
+          "name": "Seed",
+          "min": 0.0,
+          "max": 999.0,
+          "def": 0.0,
+          "int": true,
+          "random": true
+        },
+        {
+          "name": "Bars",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "int": true
+        },
+        {
+          "name": "Normalize",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
+        },
+        {
+          "name": "Source",
+          "min": 1.0,
+          "max": 8.0,
+          "def": 1.0,
+          "int": true
+        },
+        {
+          "name": "Play",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Attack",
+          "min": 0.5,
+          "max": 2000.0,
+          "def": 4.0
+        },
+        {
+          "name": "Decay",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 200.0
+        },
+        {
+          "name": "Sustain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Release",
+          "min": 1.0,
+          "max": 4000.0,
+          "def": 200.0
+        },
+        {
+          "name": "Loop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Reverse",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Speed",
+          "min": 0.25,
+          "max": 4.0,
+          "def": 1.0
+        },
+        {
+          "name": "Start",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0
+        },
+        {
+          "name": "Level",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "BendRange",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 2.0,
+          "int": true
+        },
+        {
+          "name": "Voices",
+          "min": 1.0,
+          "max": 16.0,
+          "def": 8.0,
+          "int": true
+        },
+        {
+          "name": "SliceEdits",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true
+        },
+        {
+          "name": "Pins",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,13 +1,133 @@
 {
   "width": 293,
-  "height": 150,
+  "height": 332,
   "controls": [
-    { "type": "combo", "param": "Device", "label": "Device", "source": "serial-ports", "x": 8, "y": 8, "w": 277, "h": 22 },
-    { "type": "combo", "param": "BaudRate", "label": "Baud", "x": 8, "y": 38, "w": 136, "h": 22,
-      "options": ["300", "1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200", "230400"] },
-    { "type": "double-spinner", "param": "Smooth", "label": "Smooth (ms)", "x": 152, "y": 38, "w": 133, "h": 22, "decimals": 0 },
-    { "type": "toggle", "param": "ASCII", "label": "ASCII lines", "x": 8, "y": 68, "w": 136, "h": 24 },
-    { "type": "label", "label": "Outlets: 1 A - 2 B, from \"a b\" per line", "x": 8, "y": 100, "w": 277, "h": 16 },
-    { "type": "label", "label": "Also a Modulate-with source: a, b", "x": 8, "y": 118, "w": 277, "h": 16 }
+    {
+      "type": "combo",
+      "param": "Device",
+      "label": "Port",
+      "source": "serial-ports",
+      "x": 8,
+      "y": 8,
+      "w": 277,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "BaudRate",
+      "label": "Baud",
+      "x": 8,
+      "y": 38,
+      "w": 136,
+      "h": 22,
+      "options": [
+        "300",
+        "1200",
+        "2400",
+        "4800",
+        "9600",
+        "19200",
+        "38400",
+        "57600",
+        "115200",
+        "230400",
+        "250000",
+        "460800",
+        "500000",
+        "921600",
+        "1000000"
+      ]
+    },
+    {
+      "type": "int-spinner",
+      "param": "Values",
+      "label": "Outlets",
+      "x": 152,
+      "y": 38,
+      "w": 133,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Frame",
+      "label": "Frame",
+      "x": 8,
+      "y": 68,
+      "w": 136,
+      "h": 22,
+      "options": [
+        "8N1",
+        "8E1",
+        "8O1",
+        "8N2"
+      ]
+    },
+    {
+      "type": "int-spinner",
+      "param": "Custom",
+      "label": "Custom",
+      "x": 152,
+      "y": 68,
+      "w": 133,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Reset",
+      "label": "Reset on open",
+      "x": 8,
+      "y": 98,
+      "w": 136,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Parse - empty takes every number; %1, %b1, %w1 capture",
+      "x": 8,
+      "y": 128,
+      "w": 277,
+      "h": 16
+    },
+    {
+      "type": "text-field",
+      "param": "Parse",
+      "label": "temp=%1 light=%2",
+      "x": 8,
+      "y": 146,
+      "w": 277,
+      "h": 26
+    },
+    {
+      "type": "readout",
+      "x": 8,
+      "y": 180,
+      "w": 277,
+      "h": 76,
+      "decimals": 3
+    },
+    {
+      "type": "label",
+      "label": "Outlets a to h carry the values; match fires when a line fits",
+      "x": 8,
+      "y": 262,
+      "w": 277,
+      "h": 16
+    },
+    {
+      "type": "text-readout",
+      "x": 8,
+      "y": 284,
+      "w": 277,
+      "h": 40
+    },
+    {
+      "type": "momentary",
+      "param": "Reconnect",
+      "label": "Reconnect",
+      "x": 152,
+      "y": 98,
+      "w": 133,
+      "h": 22
+    }
   ]
 }

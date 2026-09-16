@@ -1,19 +1,25 @@
 # Slider
 
-A fader as a patchable object: one big handle whose position becomes a signal. The outlet carries the value mapped between Min and Max as a steady level (summed onto anything at the inlet), and the raw 0..1 position is published as the control value "value", so any parameter in the patch can ride it through a control route.
+A fader whose position is a control value any knob in the patch can follow.
 
-Map a hardware fader or knob to Value via MIDI learn and the Slider becomes a physical macro: one hand movement steering a filter sweep, a send level and a delay feedback at once, each through its own route with its own range. Give a route a switch shape and the Slider turns into a trigger - push past the threshold to flip a Bypass, fire a pad, or open a Gate.
+The outlet carries the handle's position as a control value, so a knob can ride it through a control cord or a Control with route, and the inlet sets the handle from another control, so a sensor or an LFO can move it. Min and Max are the numbers the two ends stand for and the outlet declares that range, so a knob follows the position across its own travel while a Number corded to the same outlet reads the mapped value. Map a hardware fader to Value through MIDI learn and it becomes a macro steering several routes at once. Give a route a switch shape and the Slider flips a Bypass or opens a Gate past a threshold.
 
 ## Parameters
 
-**Value** the handle. 0..1, smoothed on its way to the output.
+**Value** The handle, from 0 to 1. The inlet sets it and the outlet sends it.
 
-**Min / Max** the range the outlet travels. Min above Max is allowed and inverts the throw.
+**Min** The number the bottom of the throw stands for. Min above Max inverts the throw.
 
-**Log scale** makes the travel geometric instead of linear - each equal move multiplies rather than adds, which is the natural feel for frequencies and rates (20 to 20000 with the midpoint at 632, not 10010). Both ends must be above zero; otherwise the slider quietly stays linear, the same rule control routes follow.
+**Max** The number the top of the throw stands for.
 
-**Slew** how long the output takes to catch up with a move, in milliseconds. Zero snaps; long settings turn jumps into glides.
+**Slew** How long the value takes to reach a new setting, in milliseconds. At 0 it arrives at once; higher turns a jump into a glide.
+
+**Log** Bends the travel between Min and Max logarithmically, so the low end gets more room. Use it for frequencies and times; both ends must be above zero.
+
+## Recipe
+
+**Filter macro** Min 80, Max 12000, Log on, Slew 60. Right-click a Filter's Cutoff and pick Control with Slider, then right-click a Fern's Feedback and do the same with a narrower range. One fader now opens the filter and lengthens the echo together; map Value to a hardware fader through MIDI learn.
 
 ## Related Organisms
 
-Number, VCA, LFO, Gate
+Number, Sig, LFO, Gate

@@ -1,0 +1,148 @@
+[
+ {
+  "name": "Broken Lead",
+  "values": {
+   "Model": 0.0,
+   "Wave": 2.0,
+   "PulseWidth": 0.25,
+   "Cutoff": 0.5,
+   "Resonance": 10.0,
+   "Sustain": 12.0,
+   "Release": 5.0
+  }
+ },
+ {
+  "name": "Cellar Bass",
+  "values": {
+   "Model": 0.0,
+   "Wave": 2.0,
+   "PulseWidth": 0.5,
+   "Cutoff": 0.28,
+   "Resonance": 6.0,
+   "Decay": 9.0,
+   "Sustain": 8.0,
+   "Release": 4.0
+  }
+ },
+ {
+  "name": "Glass Triangle",
+  "values": {
+   "Wave": 0.0,
+   "Filter": 0.0,
+   "Attack": 1.0,
+   "Sustain": 12.0,
+   "Release": 8.0
+  }
+ },
+ {
+  "name": "Ring Tower",
+  "values": {
+   "Wave": 0.0,
+   "Ring": 1.0,
+   "Filter": 0.0,
+   "Decay": 10.0,
+   "Sustain": 4.0,
+   "Release": 9.0
+  }
+ },
+ {
+  "name": "Sync Rip",
+  "values": {
+   "Wave": 1.0,
+   "Sync": 1.0,
+   "Cutoff": 0.65,
+   "Resonance": 8.0,
+   "Sustain": 11.0
+  }
+ },
+ {
+  "name": "Grit Sweep",
+  "values": {
+   "Wave": 3.0,
+   "FilterMode": 1.0,
+   "Cutoff": 0.4,
+   "Resonance": 13.0,
+   "Attack": 4.0,
+   "Sustain": 10.0,
+   "Release": 10.0
+  }
+ },
+ {
+  "name": "Twin Saw",
+  "values": {
+   "Wave": 1.0,
+   "Chips": 1.0,
+   "TwinDetune": 8.0,
+   "Cutoff": 0.75,
+   "Sustain": 12.0,
+   "Release": 6.0,
+   "ModelB": 1.0
+  }
+ },
+ {
+  "name": "Twin Chain Bass",
+  "values": {
+   "Model": 0.0,
+   "Wave": 2.0,
+   "PulseWidth": 0.35,
+   "Chips": 1.0,
+   "Chain": 1.0,
+   "TwinDetune": 4.0,
+   "Cutoff": 0.32,
+   "Resonance": 9.0,
+   "Sustain": 9.0
+  }
+ },
+ {
+  "name": "Silk Revision",
+  "values": {
+   "Model": 1.0,
+   "Wave": 1.0,
+   "FilterMode": 1.0,
+   "Cutoff": 0.55,
+   "Resonance": 7.0,
+   "Attack": 2.0,
+   "Sustain": 11.0,
+   "Release": 7.0
+  }
+ },
+ {
+  "name": "Dust Organ",
+  "values": {
+   "Wave": 0.0,
+   "Cutoff": 0.8,
+   "Attack": 1.0,
+   "Sustain": 13.0,
+   "Release": 4.0,
+   "Chips": 1.0,
+   "TwinDetune": 3.0
+  }
+ },
+ {
+  "name": "Pale Pad",
+  "values": {
+   "Wave": 2.0,
+   "PulseWidth": 0.42,
+   "Attack": 9.0,
+   "Sustain": 12.0,
+   "Release": 12.0,
+   "Cutoff": 0.45,
+   "Chips": 1.0,
+   "TwinDetune": 11.0,
+   "ModelB": 1.0
+  }
+ },
+ {
+  "name": "Cave Drip",
+  "values": {
+   "Wave": 2.0,
+   "PulseWidth": 0.12,
+   "Attack": 0.0,
+   "Decay": 5.0,
+   "Sustain": 0.0,
+   "Release": 6.0,
+   "Cutoff": 0.6,
+   "Resonance": 11.0
+  }
+ }
+]

@@ -1,30 +1,44 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <atomic>
 #include <cstdint>
 #include <string>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Graph.h"
+#include "hum/caps/Midi.h"
 #include "hum/HeldNotes.h"
 #include "hum/Organism.h"
 #include "hum/dsp/Formula.h"
+#include "hum/dsp/Prepared.h"
 
 namespace hum {
 
-class MathNode : public Organism, public ControlSource, public MidiNode {
+class MathNode : public Organism, public ControlSource, public MidiNode, public PinKinds {
 public:
+    bool controlOutlet(int) const override { return true; }
     int numAudioInputs() const override { return 2; }
     int numAudioOutputs() const override { return 2; }
     int numMidiInputs() const override { return 1; }
     int numMidiOutputs() const override { return 0; }
 
-    void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; reset(); }
+    void prepare(double sampleRate, int) override {
+        sampleRate_ = sampleRate;
+        syncExpression();
+        reset();
+    }
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        syncExpression();
+    }
+    void onTextChanged(const std::string& param, const std::string& text) override;
     void reset() override {
         rng_ = 0x9e3779b9u;
         prev_.fill(0.0f);
         t_ = 0.0;
         beat_ = 0.0;
-        for (auto& st : state_) st.fill(0.0f);
+        for (auto& st : state_) { st.fill(0.0f); seedFormulaState(st.data(), prog_); }
         held_.clear();
         knobsPrimed_ = false;
         gateEnv_ = 0.0f;
@@ -45,11 +59,15 @@ public:
     }
 
 private:
+    static FormulaProgram compileExpression(const std::string& text, const FormulaProgram& last);
+    void syncExpression();
+
     FormulaProgram prog_;
-    std::string cachedText_;
+    Prepared<FormulaProgram> pendingProg_;
+    std::string appliedText_;
     std::atomic<float> ctl_{0.5f};
     std::uint32_t rng_ = 0x9e3779b9u;
-    std::array<std::array<float, FormulaProgram::kMaxOps>, 2> state_{};
+    std::array<std::array<float, FormulaProgram::kStateSlots>, 2> state_{};
     std::array<float, 2> prev_{};
     double t_ = 0.0, beat_ = 0.0;
 

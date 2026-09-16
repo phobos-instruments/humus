@@ -1,0 +1,25 @@
+{
+  "classes": [
+    {
+      "class": "Sig",
+      "category": "Primitives",
+      "params": [
+        {
+          "name": "Value",
+          "min": -128.0,
+          "max": 128.0,
+          "def": 0.0,
+          "socket": true
+        },
+        {
+          "name": "Slew",
+          "min": 0.0,
+          "max": 2000.0,
+          "def": 5.0,
+          "unit": "ms"
+        }
+      ],
+      "editor": "layout:sig-editor.json"
+    }
+  ]
+}

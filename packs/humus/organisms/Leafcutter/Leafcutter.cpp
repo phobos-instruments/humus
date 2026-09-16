@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Leafcutter/Leafcutter.h"
 
 #include <algorithm>
@@ -57,6 +59,7 @@ void Leafcutter::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     loadFromFile({});
     applyPending();
+    syncEdits();
     reset();
 }
 
@@ -244,10 +247,7 @@ void Leafcutter::process(const float* const*, int, float* const* out, int numOut
                          int numSamples, const Transport& transport) {
     if (numOut < 1) return;
     applyPending();
-    if (const auto* p = params.byName("SliceEdits"); p != nullptr && p->text != editsCache_) {
-        editsCache_ = p->text;
-        edits_ = parseSliceEdits(editsCache_);
-    }
+    pendingEdits_.adopt(edits_);
     float* left = out[0];
     float* right = numOut > 1 ? out[1] : nullptr;
     std::memset(left, 0, sizeof(float) * (size_t) numSamples);

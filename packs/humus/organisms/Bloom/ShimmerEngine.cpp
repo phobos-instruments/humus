@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ShimmerEngine.h"
 
 #include <cmath>
@@ -206,7 +208,7 @@ void ShimmerEngine::updateDerivedParameters()
 
     const float highCutHz = clampf (params.highCutHz * kColorHighCutScale[colorModeIndex],
                                     200.0f, static_cast<float> (sampleRate) * 0.49f);
-    dampingCoefficient.setTarget (std::exp (-hum::kTwoPi * highCutHz / static_cast<float> (sampleRate)));
+    dampingCoefficient.setTarget (static_cast<float> (std::exp (-hum::kTwoPi * highCutHz / sampleRate)));
 
     for (int ch = 0; ch < kNumChannels; ++ch)
     {

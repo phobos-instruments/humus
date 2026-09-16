@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <atomic>
 #include <cstdint>
@@ -5,13 +7,15 @@
 #include <string>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
+#include "hum/caps/Files.h"
 #include "hum/Organism.h"
+#include "hum/dsp/LevelMeter.h"
 #include "hum/dsp/LiveWavWriter.h"
 
 namespace hum {
 
-class FileRecorder : public Organism, public Recorder {
+class FileRecorder : public Organism, public Recorder, public LevelMeterSource {
 public:
     using RecordTarget = Recorder::RecordTarget;
 
@@ -31,9 +35,13 @@ public:
     bool isRecording() const override;
     int channels() const override { return channels_; }
 
+    int meterChannels() const override { return channels_; }
+    float meterLevel(int channel) const override { return meter_.level(channel); }
+
     bool consumeAutoStop() override { return autoStop_.exchange(false); }
 
 private:
+    LevelMeter meter_;
     int channels_ = 2;
     std::vector<float> zero_;
     std::vector<const float*> writePtrs_;

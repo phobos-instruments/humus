@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "FileRecorder/FileRecorder.h"
 
 #include <algorithm>
@@ -7,6 +9,7 @@ namespace hum {
 
 void FileRecorder::prepare(double sampleRate, int maxBlock) {
     sampleRate_ = sampleRate;
+    meter_.prepare(sampleRate);
     zero_.assign((size_t) std::max(1, maxBlock), 0.0f);
     writePtrs_.assign((size_t) channels_, nullptr);
 }
@@ -54,6 +57,7 @@ bool FileRecorder::isRecording() const {
 void FileRecorder::process(const float* const* in, int numIn,
                            float* const* out, int numOut,
                            int numSamples, const Transport&) {
+    meter_.measure(in, std::min(numIn, channels_), numSamples);
     if (!writers_.empty()) {
         const bool overLimit = limitSamples_ > 0 && recorded_ >= limitSamples_;
         if (!overLimit) {

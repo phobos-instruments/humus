@@ -1,24 +1,20 @@
 # TestGen
 
-A known sound. Everything else in a patch is trying to be interesting; this is trying to be predictable, which is what makes it useful. A steady sine tells you what a filter is actually doing to one frequency. White noise contains every frequency at once, so it tells you what the filter is doing to all of them. When something in a patch sounds wrong and you cannot tell which organism is responsible, put this at the front and the answer usually arrives within seconds.
+A predictable test signal: a sine at one frequency, or white, pink or brown noise.
 
-Use it to check a signal path, to set levels before there is any music to set them with, or to hear the shape of a filter sweep on its own.
-
-Noise is a legitimate sound source in its own right, too: it is where wind, surf, breath and every cymbal come from, once something has shaped it.
+Use it to check a signal path, to set levels before there is any music, or to hear a filter's shape on its own: a sine shows what a Filter does to one frequency, and noise contains every frequency at once and shows what it does to all of them. It takes no input and sends the same signal to both outlets, so one organism feeds a stereo chain. A pure sine reads far higher on a meter than it sounds, so trust a VuMeter rather than your ears.
 
 ## Parameters
 
-**Waveform** sine or noise. Sine is one frequency and nothing else. Noise is all of them, at equal energy per hertz.
+**Amplitude** Output level. Start low; a full-scale sine into an unknown chain is how monitors get damaged.
 
-**Frequency** the pitch of the sine, from 10 Hz to 20 kHz. Ignored when the waveform is noise.
+**Frequency** Pitch of the sine, 10 Hz to 20 kHz. Ignored while a noise waveform is selected.
 
-**Amplitude** the output level. Start low. A sine at full scale into an unknown chain is how monitors get damaged.
+**Waveform** Sine is one frequency and nothing else. White noise has equal energy per hertz, Pink noise equal energy per octave, and Brown noise falls off faster still for a low rumble.
 
-## How it works
+## Recipe
 
-It takes no input and emits two identical channels, so it feeds both sides of a stereo chain from one cord.
-
-A note on listening: a pure sine is the hardest thing in audio to judge the loudness of, because there is nothing else in it for your ear to compare against. It will read far higher on a meter than it feels. Trust the VuMeter here, not your ears.
+**Filter check** Waveform White noise, Amplitude 0.3. Cord it into a Filter, the Filter into a Spectrum and on to a SoundOut. Sweep the Filter's Frequency and the Spectrum draws the curve the filter is applying.
 
 ## Related Organisms
 

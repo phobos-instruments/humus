@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 // The AVCaptureSession video tap every camera consumer shares (Hands,
 // Skeleton, CameraIn): frames arrive as CVPixelBuffers on the capture queue,
 // retained into a FrameRef the consumer may keep. No photo output - JUCE's
@@ -15,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdio>
 
 namespace hum {

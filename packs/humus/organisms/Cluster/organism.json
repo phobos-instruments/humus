@@ -45,6 +45,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "C3 E3 G3"
         },
         {
@@ -53,6 +54,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "D3 F3 A3"
         },
         {
@@ -61,6 +63,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "E3 G3 B3"
         },
         {
@@ -69,6 +72,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "F3 A3 C4"
         },
         {
@@ -77,6 +81,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "G3 B3 D4"
         },
         {
@@ -85,6 +90,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "A3 C4 E4"
         },
         {
@@ -93,6 +99,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "B3 D4 F4"
         },
         {
@@ -101,6 +108,7 @@
           "max": 0.0,
           "def": 0.0,
           "isText": true,
+          "plainText": true,
           "text": "C3 E3 G3 B3"
         },
         {

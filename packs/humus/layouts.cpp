@@ -1,4 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include <algorithm>
+#include "hum/ParseInt.h"
 #include <map>
 #include <string>
 #include <utility>
@@ -18,8 +21,7 @@ inline LayoutSpec consoleLayout(const std::string& cls) {
         return spec;
     if (cls[0] != 'S') return spec;
     const std::string mid = cls.substr(1, cls.size() - suf.size() - 1);
-    if (mid.empty() || mid.find_first_not_of("0123456789") != std::string::npos) return spec;
-    const int n = std::stoi(mid);
+    const int n = parseBoundedInt(mid);
     if (n < 1 || n > 8) return spec;
 
     spec.controls.push_back({CT::Combo, "", "", "Inputs", 8, 4, 92, 20, 2, false,

@@ -1,0 +1,10 @@
+{
+  "width": 293,
+  "height": 96,
+  "controls": [
+    { "type": "number-field", "param": "Value", "label": "Value", "x": 12, "y": 20, "w": 150, "h": 26 },
+    { "type": "label", "label": "Slew", "x": 176, "y": 6, "w": 80, "h": 13 },
+    { "type": "number-field", "param": "Slew", "label": "", "x": 174, "y": 20, "w": 107, "h": 26 },
+    { "type": "label", "label": "Control in, audio out: the value leaves as a signal", "x": 12, "y": 60, "w": 269, "h": 16 }
+  ]
+}

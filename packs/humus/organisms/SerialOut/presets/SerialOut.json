@@ -1,0 +1,78 @@
+[
+ {
+  "name": "Two numbers per line",
+  "values": {
+   "Format": "%1 %2\\n",
+   "Values": 2,
+   "Send": 0,
+   "Scale1": 1,
+   "Int1": 0,
+   "Scale2": 1,
+   "Int2": 0
+  }
+ },
+ {
+  "name": "Named value",
+  "values": {
+   "Format": "%n1 %1\\n",
+   "Values": 1,
+   "Send": 1
+  }
+ },
+ {
+  "name": "Servo command",
+  "values": {
+   "Format": "M %(v1*180)\\r",
+   "Values": 1,
+   "Send": 1
+  }
+ },
+ {
+  "name": "Pixel ring, RGB pairs",
+  "values": {
+   "Format": "%1r%2g%3b%4q%5w%6e",
+   "Values": 6,
+   "Send": 1,
+   "BaudRate": 6,
+   "Scale1": 255,
+   "Int1": 1,
+   "Scale2": 255,
+   "Int2": 1,
+   "Scale3": 255,
+   "Int3": 1,
+   "Scale4": 255,
+   "Int4": 1,
+   "Scale5": 255,
+   "Int5": 1,
+   "Scale6": 255,
+   "Int6": 1
+  }
+ },
+ {
+  "name": "Binary packet with checksum",
+  "values": {
+   "Format": "\\xAA%c%b*%x",
+   "Values": 3,
+   "Send": 0,
+   "Scale1": 255,
+   "Scale2": 255,
+   "Scale3": 255
+  }
+ },
+ {
+  "name": "GPS-style sentence",
+  "values": {
+   "Format": "$%[HUM,%1,%2%]*%X\\r\\n",
+   "Values": 2,
+   "Send": 0
+  }
+ },
+ {
+  "name": "Command box",
+  "values": {
+   "Format": "home\\r\\nM %(v1*180)\\r\\nstop\\r",
+   "Values": 1,
+   "Send": 2
+  }
+ }
+]

@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "SoundSpace/SoundSpace.h"
 
 #include <algorithm>
+#include <utility>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -140,8 +143,9 @@ void SoundSpace::loadFromFile(const std::string&) {
 }
 
 void SoundSpace::applyPending() {
-    const juce::ScopedLock sl(loadLock_);
-    corpus_ = std::move(pending_);
+    const juce::ScopedTryLock sl(loadLock_);
+    if (!sl.isLocked()) return;
+    std::swap(corpus_, pending_);
     for (auto& v : voices_) v = Voice{};
     hasPending_.store(false);
 }

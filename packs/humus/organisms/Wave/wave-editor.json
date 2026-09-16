@@ -4,6 +4,9 @@
   "controls": [
     {
       "type": "wave-draw",
+      "position": "Position",
+      "warp": "Warp",
+      "warp-mode": "WarpMode",
       "param": "Table",
       "x": 8,
       "y": 6,

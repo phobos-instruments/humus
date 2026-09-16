@@ -1,14 +1,16 @@
 # OscMonitor
 
-A diagnostic terminal that logs OSC traffic as human-readable lines (direction, address, arguments). It has no pins at all: drop a bare OscMonitor anywhere and it watches everything crossing the app's OSC boundary, in both directions:
+A log of the OSC messages crossing the app, in both directions, as readable lines.
 
-**In** Every message arriving on the OSC input port (Settings - MIDI & OSC, default 9000) - including addresses that are NOT mapped to any parameter yet. Point any OSC app (a phone controller, a sensor bridge) at Humus and see exactly what it sends before you Learn-map anything. String-only messages show too, even though only numeric ones can drive parameters.
+It has no pins: drop one anywhere and it lists every message arriving on the OSC input port, mapped to a parameter or not, and every value an OSC-sending organism such as Hands transmits, with the address it went to. Use it to check that a phone controller or sensor bridge actually reaches the machine, to find the address a fader sends before you map it, and to confirm what a receiver should expect. The OSC input must be on in Settings for received rows to appear; the header says when it is off. Pause freezes the list and Clear empties it.
 
-**Out** Every value the OSC-out sources transmit (a Hands with its OSC toggle on), with the exact address it was sent to - handy for checking what the receiving end should expect.
+## Parameters
 
-Use the Show filter (All / Received / Sent) to narrow a busy log - a tracked hand streams continuously, so Sent traffic can flood the view. Pause freezes the display without blocking anything; Clear empties it. Filtering happens at display time, so nothing is lost while you change it.
+**Direction** Shows All, Received or Sent lines. A tracked hand streams continuously, so Sent can flood the view; lines filtered out are dropped, not kept.
 
-The OSC input must be enabled in Settings for "in" rows to appear; the header warns when it is off. Typical uses: checking that a phone controller actually reaches the machine (firewalls eat UDP silently), finding the address a fader sends before mapping it, and verifying the Hands stream while wiring up a visualizer.
+## Recipe
+
+**Finding an address** Set Direction to Received, point the controller at the machine's OSC port and move one fader. The address that appears is the one to give the parameter's OSC mapping.
 
 ## Related Organisms
 

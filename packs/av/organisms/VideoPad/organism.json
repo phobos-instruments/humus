@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "VideoPad",
+      "roles": ["clip-pads"],
       "category": "Visual",
       "editor": "layout:videopad-editor.json",
       "params": [

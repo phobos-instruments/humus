@@ -1,62 +1,42 @@
 # Halogen
 
-Plays a picture. Across is time, up is pitch, brightness is how loud - the same reading a spectrum analyser gives, run backwards. A scan head takes one column of the picture at a time and an inverse transform turns it back into sound, so what you see under the head is what you hear. Drop a file on the panel or click it to browse.
+A spectral player that turns a picture into sound: across is time, up is pitch, brightness is loudness.
 
-## Anything at all
-
-A file that will not decode as a picture is read as its own bytes instead, laid out in rows. A font, an archive, a binary: they all have a spectrum in them, and this is how you hear it. The picture on the panel is the same field the sound comes out of, so what you see is always what is playing.
-
-## Scanning
-
-Sweep walks the head across the picture at Rate, once every four seconds at the default, and Reverse sends it the other way. Free parks the head at X instead, so a knob, an envelope, a controller or a hand on the picture is the scan head - drag inside the panel to move it.
-
-## The window
-
-X and Span set which part of the width is read; Y and Height set which part of the height. Together they are a box on the picture, drawn on the panel, and everything outside it is silent. Pull them in to play one corner, one face, one cloud.
-
-## Pitch
-
-Low and High are what the bottom and the top of that box sound like, spread logarithmically between them, so a picture spans a musical range rather than a linear one. Narrow them and the picture becomes a chord; open them and it becomes weather.
-
-## Colour
-
-Gate is a brightness floor - below it a pixel is silent, which is how a photograph's dark background stops humming. Blur smooths each partial over time, so a moving head glides instead of stepping; at zero the columns arrive raw and grainy. Tilt leans the balance toward the low end or the high end, which tames a picture with a bright sky in it. Level sets the output.
-
-The dice rolls everything about the reading - where the box sits, how it is tuned, how it is coloured - and never the picture or the output level.
+A scan head reads one column of the picture at a time and an inverse transform turns it back into sound, so what sits under the head is what you hear. Drop an image on the panel or click it to browse; a file that is not a picture is read as raw bytes laid out in rows, so a font or an archive has a spectrum too. A video cord from a VideoPlayer, a CameraIn or a VideoTrack replaces the picture with the moving image, frame by frame, and the file comes back when the cord is removed. The panel shows the picture as the head hears it, after Gate, Blur and Tilt. Cord the outlet into a Fern or a Verbatim for space.
 
 ## Parameters
 
-**Picture** the file being read. Any file; pictures decode, the rest are bytes.
+**File** The picture being read. Any file: pictures decode, anything else is read as bytes.
 
-**Scan** Sweep walks the head, Free parks it at X.
+**Scan** Sweep walks the head across the window at Rate. Free parks it at X, so a knob, an envelope or a drag on the panel moves it.
 
-**Reverse** sweep the other way.
+**Reverse** Sweeps the other way.
 
-**Rate** sweeps per second.
+**Rate** Sweeps per second, 0.01 to 100. At the top the sweep itself becomes a tone.
 
-**X** where the head sits, or where the swept span starts.
+**X** Where the head sits in Free, or where the swept span starts.
 
-**Span** how much of the width is read.
+**Y** The bottom of the read band.
 
-**Y** the bottom of the read band.
+**Width** How much of the picture's width is swept.
 
-**Height** how much of the height is read.
+**Height** How much of the picture's height is read.
 
-**Low** what the bottom of the band sounds like, in hertz.
+**Lowest** What the bottom of the band sounds like, in hertz.
 
-**High** what the top of the band sounds like, in hertz.
+**Highest** What the top of the band sounds like, in hertz. The rows are spread logarithmically between the two.
 
-**Gate** brightness floor. Dark pixels below it are silent.
+**Gate** A brightness floor. Pixels below it are silent, which stops a dark background humming.
 
-**Blur** smoothing of each partial over time.
+**Blur** Softens the picture so a moving head glides through edges instead of stepping.
 
-**Tilt** low-end to high-end balance.
+**Tilt** Leans the balance towards the low end or the high end.
 
-**Level** output level.
+**Level** Output level.
 
-## Signal flow
+## Recipe
 
-Picture -> brightness field -> the column under the scan head -> partials, log-mapped between Low and High -> inverse transform, overlap-added -> Level -> Output. No input; stereo out, the two sides at different phases.
+**Slow drift** Load a photograph with a dark background. Scan Sweep, Rate 0.1, Lowest 55, Highest 4000, Gate 0.15, Blur 0.4. Cord the outlet into a Verbatim and let one sweep take ten seconds; then set Scan to Free and cord an LFO onto X to move the head.
 
 ## Related Organisms
 

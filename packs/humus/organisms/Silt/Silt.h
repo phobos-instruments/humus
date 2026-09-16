@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <mutex>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 
 #include "sid.h"
 
@@ -52,6 +55,7 @@ private:
     void applyVoiceControl(int chip, int v, bool gate);
     void noteOn(int note, int vel, const Tuning& tuning);
     void noteOff(int note);
+    void applyBend();
     void renderChunk(float* l, float* r, int n, float level);
 
     std::array<reSID::SID, 2> sid_;
@@ -63,6 +67,8 @@ private:
     std::array<double, kPerChip> voiceHz_{};
     std::array<unsigned, kPerChip> voiceAge_{};
     unsigned age_ = 0;
+    PitchBend bend_;
+    double bendRatio_ = 1.0;
 
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> staged_;
     int stagedCount_ = 0;

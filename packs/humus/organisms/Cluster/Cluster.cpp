@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Cluster/Cluster.h"
 
 #include <cctype>
@@ -96,15 +98,21 @@ void Cluster::hushChord(Emitted& slot, int offset) {
     slot.active = false;
 }
 
-void Cluster::refreshSlotTexts() {
+Cluster::Chords Cluster::parseChords() {
+    Chords chords;
     for (int s = 0; s < kSlots; ++s) {
         const std::string text = params.getText("Notes" + std::to_string(s + 1));
-        if (text == cachedText_[(size_t) s]) continue;
-        cachedText_[(size_t) s] = text;
-        if (pad_[(size_t) s].active) hushChord(pad_[(size_t) s], 0);
-        chordCount_[(size_t) s] =
-            parseNotes(text, chord_[(size_t) s].data(), kChordMax);
+        chords.changed[(size_t) s] = text != appliedText_[(size_t) s];
+        appliedText_[(size_t) s] = text;
+        chords.count[(size_t) s] = parseNotes(text, chords.notes[(size_t) s].data(), kChordMax);
     }
+    return chords;
+}
+
+void Cluster::adoptChords() {
+    if (!pendingChords_.adopt(chords_)) return;
+    for (int s = 0; s < kSlots; ++s)
+        if (chords_.changed[(size_t) s] && pad_[(size_t) s].active) hushChord(pad_[(size_t) s], 0);
 }
 
 void Cluster::hushAll(int offset) {
@@ -124,13 +132,13 @@ void Cluster::handleFireEdges(int hold) {
         if (now && !was) {
             if (hold == kHoldPedal) {
                 hushAll(0);
-                soundChord(chord_[(size_t) s].data(), chordCount_[(size_t) s],
+                soundChord(chords_.notes[(size_t) s].data(), chords_.count[(size_t) s],
                            velocity, 0, slot);
             } else if (hold == kHoldLatch && slot.active) {
                 hushChord(slot, 0);
             } else {
                 if (slot.active) hushChord(slot, 0);
-                soundChord(chord_[(size_t) s].data(), chordCount_[(size_t) s],
+                soundChord(chords_.notes[(size_t) s].data(), chords_.count[(size_t) s],
                            velocity, 0, slot);
             }
         } else if (!now && was && hold == kHoldGate && slot.active) {
@@ -151,11 +159,11 @@ void Cluster::handleEvent(const MidiEvent& e, int mode, int hold, int triggerNot
 
     if (mode == kModeFollow) {
         const int s = std::clamp(followSlot, 0, kSlots - 1);
-        const int count = chordCount_[(size_t) s];
+        const int count = chords_.count[(size_t) s];
         if (count < 1) return;
         int notes[kChordMax];
         for (int i = 0; i < count; ++i)
-            notes[i] = note + chord_[(size_t) s][(size_t) i] - chord_[(size_t) s][0];
+            notes[i] = note + chords_.notes[(size_t) s][(size_t) i] - chords_.notes[(size_t) s][0];
         if (hold != kHoldGate) {
             if (!isOn) return;
             if (hold == kHoldPedal) hushAll(offset);
@@ -178,13 +186,13 @@ void Cluster::handleEvent(const MidiEvent& e, int mode, int hold, int triggerNot
     if (isOn) {
         if (hold == kHoldPedal) {
             hushAll(offset);
-            soundChord(chord_[(size_t) s].data(), chordCount_[(size_t) s],
+            soundChord(chords_.notes[(size_t) s].data(), chords_.count[(size_t) s],
                        velocity, offset, slot);
         } else if (hold == kHoldLatch && slot.active) {
             hushChord(slot, offset);
         } else {
             if (slot.active) hushChord(slot, offset);
-            soundChord(chord_[(size_t) s].data(), chordCount_[(size_t) s],
+            soundChord(chords_.notes[(size_t) s].data(), chords_.count[(size_t) s],
                        velocity, offset, slot);
         }
     } else if (hold == kHoldGate && slot.active) {
@@ -205,7 +213,7 @@ void Cluster::process(const float* const*, int, float* const*, int, int,
         lastMode_ = mode;
         lastHold_ = hold;
     }
-    refreshSlotTexts();
+    adoptChords();
     handleFireEdges(hold);
     for (int i = 0; i < stagedCount_; ++i)
         handleEvent(staged_[(size_t) i], mode, hold, triggerNote, followSlot, velocity);

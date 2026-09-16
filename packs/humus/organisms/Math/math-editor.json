@@ -4,6 +4,11 @@
   "controls": [
     {
       "type": "formula",
+      "x-knob": "X",
+      "y-knob": "Y",
+      "z-knob": "Z",
+      "w-knob": "W",
+      "freq": "Freq",
       "param": "Expression",
       "label": "",
       "x": 8,

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Skeleton/Skeleton.h"
 
 #include "common/FrameSample.h"
@@ -90,8 +92,27 @@ Skeleton::~Skeleton() {
     updateCamera(false, 0);
 }
 
+void Skeleton::syncGestures() {
+    const std::string text = params.getText("Gestures");
+    if (text == appliedGestures_) return;
+    appliedGestures_ = text;
+    gestures_ = gvec::decode(text.c_str(), bodypose::kFeatures);
+}
+
+void Skeleton::loadFrom(const OrganismState& state) {
+    Organism::loadFrom(state);
+    syncGestures();
+}
+
+void Skeleton::onTextChanged(const std::string& param, const std::string& text) {
+    if (param != "Gestures") return;
+    appliedGestures_ = text;
+    pendingGestures_.publish(gvec::decode(text.c_str(), bodypose::kFeatures));
+}
+
 void Skeleton::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
+    syncGestures();
     if (!lifecycle_ && juce::MessageManager::getInstanceWithoutCreating() != nullptr)
         lifecycle_ = std::make_unique<Lifecycle>(*this);
 }
@@ -216,10 +237,7 @@ void Skeleton::process(const float* const*, int, float* const* out, int numOut,
     const float coef =
         (float) std::exp(-1.0 / (ms * 0.001 * sr / (double) std::max(1, numSamples)));
 
-    if (const auto* gp = params.byName("Gestures"); gp != nullptr && gp->text != cachedGestures_) {
-        gestures_ = gvec::decode(gp->text.c_str(), bodypose::kFeatures);
-        cachedGestures_ = gp->text;
-    }
+    pendingGestures_.adopt(gestures_);
     const float tol = (float) std::clamp(params.get("Tolerance", 0.35), 0.05, 1.0);
 
     float target[kSignals];

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Ph/PhOpl.h"
 
 #include <algorithm>
@@ -72,9 +74,9 @@ int toChip(int v, int span) { return std::clamp(v * span / 99, 0, span); }
 int fromChip(int v, int span) { return std::clamp(v * 99 / std::max(1, span), 0, 99); }
 }
 
-PhVoice PhOpl::voiceAt(int slot) const {
+FmVoice PhOpl::voiceAt(int slot) const {
     static const Patch fallback;
-    PhVoice v;
+    FmVoice v;
     const Patch& pt = hasEdit_ && slot == slot_ ? edited_
                       : bank_.empty()
                           ? fallback
@@ -84,7 +86,7 @@ PhVoice PhOpl::voiceAt(int slot) const {
     const int nOps = pt.fourOp ? 4 : 2;
     for (int i = 0; i < nOps; ++i) {
         const Op& o = pt.ops[(size_t) i];
-        PhVoiceOp& op = v.ops[(size_t) i];
+        FmVoiceOp& op = v.ops[(size_t) i];
         op.level = 99 - std::clamp((int) (o.ksltl & 63) * 99 / 63, 0, 99);
         op.ratio = o.avekm & 15;
         op.detune = 7;
@@ -97,13 +99,13 @@ PhVoice PhOpl::voiceAt(int slot) const {
     return v;
 }
 
-void PhOpl::setVoice(const PhVoice& v) {
+void PhOpl::setVoice(const FmVoice& v) {
     Patch p = patch();
     p.fbcon1 = (uint8_t) ((std::clamp(v.feedback, 0, 7) << 1)
                           | (std::clamp(v.algorithm - 1, 0, 31) & 1));
     const int nOps = p.fourOp ? 4 : 2;
     for (int i = 0; i < nOps; ++i) {
-        const PhVoiceOp& src = v.ops[(size_t) i];
+        const FmVoiceOp& src = v.ops[(size_t) i];
         Op& o = p.ops[(size_t) i];
         o.ksltl = (uint8_t) ((o.ksltl & 0xC0)
                              | std::clamp(63 - src.level * 63 / 99, 0, 63));
@@ -117,7 +119,7 @@ void PhOpl::setVoice(const PhVoice& v) {
     allOff();
 }
 
-void PhOpl::setMods(const PhMods& m) {
+void PhOpl::setMods(const FmMods& m) {
     if (m == mods_) return;
     mods_ = m;
     write(0x0BD, (uint8_t) (m.vibrato > 0.5 ? 0x40 : 0x00));
@@ -229,6 +231,16 @@ int PhOpl::pairOf(int ch) {
     return c9 % 3 + (ch >= 9 ? 3 : 0);
 }
 
+void PhOpl::bend(double semitones) {
+    for (int ch = 0; ch < kChannels; ++ch) {
+        chanBendSemis_[(size_t) ch] = semitones;
+        if (chanNote_[(size_t) ch] < 0) continue;
+        if (ch + 3 < kChannels && chanNote_[(size_t) (ch + 3)] == -2)
+            writeFreq(ch + 3, bentHz(ch), false);
+        writeFreq(ch, bentHz(ch), true);
+    }
+}
+
 void PhOpl::noteOn(int midinote, int velocity, double hz) {
     const Patch& pt = patch();
     hz *= std::pow(2.0, (double) pt.noteOffset / 12.0);
@@ -251,8 +263,8 @@ void PhOpl::noteOn(int midinote, int velocity, double hz) {
         chanHz_[(size_t) a] = hz;
         writeChannelPatch(a, false, velocity);
         writeChannelPatch(b, true, velocity);
-        writeFreq(b, hz, false);
-        writeFreq(a, hz, true);
+        writeFreq(b, bentHz(a), false);
+        writeFreq(a, bentHz(a), true);
         return;
     }
     static constexpr int kPrefer[kChannels] = {6, 7, 8, 15, 16, 17, 3, 4, 5,
@@ -272,7 +284,7 @@ void PhOpl::noteOn(int midinote, int velocity, double hz) {
     chanNote_[(size_t) ch] = midinote;
     chanHz_[(size_t) ch] = hz;
     writeChannelPatch(ch, false, velocity);
-    writeFreq(ch, hz, true);
+    writeFreq(ch, bentHz(ch), true);
 }
 
 void PhOpl::noteOff(int midinote) {

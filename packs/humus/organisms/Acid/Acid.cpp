@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Acid/Acid.h"
 
 #include <algorithm>
@@ -30,7 +32,7 @@ void Acid::noteOn(int note, int vel, const Tuning& tuning) {
     }
     heldNotes_[(size_t) heldCount_++] = note;
     note_ = note;
-    targetFreq_ = tuning.hz(note);
+    retune(tuning);
     gate_ = true;
     if (!legato) {
         envT_ = 0;
@@ -47,7 +49,11 @@ void Acid::noteOff(int note, const Tuning& tuning) {
     }
     if (note != note_) return;
     note_ = heldNotes_[(size_t) heldCount_ - 1];
-    targetFreq_ = tuning.hz(note_);
+    retune(tuning);
+}
+
+void Acid::retune(const Tuning& tuning) {
+    targetFreq_ = tuning.hz(note_) * bend_.ratio(bendRange_);
 }
 
 void Acid::process(const float* const*, int, float* const* out, int numOut,
@@ -64,6 +70,7 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
     const double decay = std::max(10.0, params.get("Decay", 300.0)) * 0.001 * sr;
     const double accent = params.get("Accent", 0.5);
     const double glideMs = params.get("Glide", 60.0);
+    bendRange_ = bendRangeOf(params);
     const float drive = (float) params.get("Drive", 0.3);
     const float level = (float) params.get("Level", 0.8);
     const double attackMs = std::clamp(params.get("Attack", 3.0), 0.3, 30.0);
@@ -122,7 +129,8 @@ void Acid::process(const float* const*, int, float* const* out, int numOut,
         while (ei < nEv && ev[ei].sampleOffset <= i) {
             const auto& e = ev[ei++];
             const int st = e.data[0] & 0xF0;
-            if (st == 0x90 && e.data[2] > 0) noteOn(e.data[1], e.data[2], transport.tuning());
+            if (bend_.apply(e)) { if (note_ >= 0) retune(transport.tuning()); }
+            else if (st == 0x90 && e.data[2] > 0) noteOn(e.data[1], e.data[2], transport.tuning());
             else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) noteOff(e.data[1], transport.tuning());
         }
         {

@@ -109,7 +109,15 @@
           "def": 0.8
         },
         {
+          "name": "BendRange",
+          "min": 0.0,
+          "max": 24.0,
+          "def": 2.0,
+          "int": true
+        },
+        {
           "name": "Table",
+          "random": "wave-table",
           "isText": true,
           "text": ""
         }

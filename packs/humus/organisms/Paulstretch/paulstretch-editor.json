@@ -21,6 +21,8 @@
     },
     {
       "type": "file-transport",
+      "active": "Active",
+      "loop": "Loop",
       "label": "",
       "x": 8,
       "y": 64,

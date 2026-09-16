@@ -1,27 +1,33 @@
 # Gate
 
-An audio gate that answers to whatever you point at it. The signal at the first inlet passes when the gate is open and falls to the Floor when it is shut; what opens it is the Source switch: the level of a signal, held MIDI notes, or a plain on/off you flip by hand or by control route. The smoothed open state is also published as the control value "open", so the same gate that shapes audio can fire or ride anything else in the patch.
+An audio gate opened by a signal level, by held MIDI notes or by a switch.
 
-LEVEL is the classic noise-gate move: the detector watches the second inlet (or the signal itself when nothing is patched there), opens above Threshold and closes below it with a little hysteresis. Patch a kick into the key inlet and a pad into the signal inlet for sidechain chopping. MIDI opens the gate for as long as any note is held at the MIDI inlet - play the gate like an instrument. SWITCH hands the gate to the Open toggle, which a Slider, LFO or Follower can flip through a control route with a switch shape.
-
-Duck inverts the whole sense: open becomes shut and shut becomes open, which turns any of the three sources into a ducker.
+The signal at the first inlet passes when the gate is open and falls to Floor when it is shut. Source decides what opens it: LEVEL watches the key inlet, or the signal itself when nothing is corded there, and opens above Threshold; MIDI opens for as long as any note is held at the MIDI inlet; SWITCH hands the gate to the Open toggle. The smoothed open state is published as the control value "open", so the same gate can fire or ride anything else in the patch. Cord a Kick into the key inlet and a pad into the signal inlet for sidechain chopping, or a PianoRoll into the MIDI inlet to play the gate as an instrument.
 
 ## Parameters
 
-**Source** what opens the gate: LEVEL, MIDI, or SWITCH.
+**Source** What opens the gate: LEVEL, MIDI or SWITCH.
 
-**Detector** how LEVEL listens - PEAK reacts to instantaneous swings, RMS to average loudness.
+**Detector** How LEVEL listens. PEAK reacts to instantaneous swings, RMS to average loudness.
 
-**Threshold** the level that opens the gate in LEVEL mode.
+**Threshold** The level that opens the gate in LEVEL mode.
 
-**AttackTime / HoldTime / ReleaseTime** how fast it opens, how long it stays open after the source drops, and how slowly it closes.
+**AttackTime** How fast the gate opens, in milliseconds.
 
-**Floor** how much signal still leaks through when shut. Zero is a hard gate; raise it for an expander feel.
+**HoldTime** How long the gate stays open after the source drops, in milliseconds.
 
-**Duck** swaps open and shut.
+**ReleaseTime** How slowly the gate closes, in milliseconds.
 
-**Open** the manual switch, used when Source is SWITCH.
+**Floor** How much signal still leaks through when shut. Zero is a hard gate; raise it for an expander feel.
+
+**Duck** Swaps open and shut, which turns any of the three sources into a ducker.
+
+**Open** The manual switch, used when Source is SWITCH. Cord a Slider, LFO or Follower onto it to flip the gate by control.
+
+## Recipe
+
+**Chopped pad** Cord a pad into the first inlet and a Kick into the key inlet. Source LEVEL, Detector PEAK, Threshold 0.2, AttackTime 1, HoldTime 60, ReleaseTime 80, Floor 0. The pad now sounds only on each kick; turn Duck on to have it drop out on each kick instead.
 
 ## Related Organisms
 
-NoiseGate, SideChain, VCA, Follower, Slider
+NoiseGate, SideChain, Gain, Follower

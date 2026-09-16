@@ -33,41 +33,6 @@
           "enum": true
         }
       ]
-    },
-    {
-      "class": "VHS",
-      "category": "Visual",
-      "editor": "layout:videoplayer-editor.json",
-      "params": [
-        {
-          "name": "File",
-          "min": 0.0,
-          "max": 0.0,
-          "def": 0.0,
-          "isText": true
-        },
-        {
-          "name": "Rate",
-          "min": 0.0,
-          "max": 4.0,
-          "def": 1.0,
-          "unit": "%"
-        },
-        {
-          "name": "Opacity",
-          "min": 0.0,
-          "max": 1.0,
-          "def": 1.0
-        },
-        {
-          "name": "Blend",
-          "min": 0.0,
-          "max": 3.0,
-          "def": 0.0,
-          "enum": true
-        }
-      ],
-      "hidden": true
     }
   ]
 }

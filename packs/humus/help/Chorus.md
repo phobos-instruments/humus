@@ -1,34 +1,30 @@
 # Chorus
 
-One voice into several. A copy of the sound is delayed by a few milliseconds and that delay is kept gently moving, so the copy drifts slightly sharp and slightly flat around the original. Two players never land on exactly the same pitch at exactly the same moment either, and that failure to agree is what makes a section sound bigger than a soloist. This is that failure, arranged on purpose - the gentlest way to make something sound larger without making it louder.
+A stereo chorus that thickens a sound with a slowly moving delayed copy.
 
-## The family
-
-A chorus, a flanger and a phaser are the same idea at three scales. Chorus delays long enough to hear as detuning; Flanger uses much shorter delays, so the copies comb rather than detune; Phaser does not delay at all but shifts phase. Chorus is the one that thickens, the other two sweep.
+A copy of the input is delayed by a few milliseconds and that delay is kept moving, so the copy drifts slightly sharp and flat around the original, the way two players never land on exactly the same pitch. The sweep is a triangle, and the right channel's sweep runs behind the left's by RightLFOPhaseOffset, which is what opens the image. Rate and DelaySweepDepth interact: the speed of the delay change sets how far the pitch bends, so doubling either bends it further. Cord it after a Rhizome, a Wave or a Sampler; a Flanger is the same idea at shorter delays, a Phaser the same idea with no delay at all.
 
 ## Parameters
 
-**MinDelay** the shortest the delay ever gets, the floor the sweep sits on. Small values drift toward flanging; larger ones stay clearly chorus.
+**MinDelay** The shortest the delay ever gets, in milliseconds. Small values drift towards flanging, larger ones stay clearly chorus.
 
-**DelaySweepDepth** how far the delay travels from that floor. More depth is more detuning, and past a point it goes from richness to seasickness.
+**DelaySweepDepth** How far the delay travels above MinDelay, in milliseconds. More depth is more detuning.
 
-**Rate** how fast the delay travels. Slow is a swell you feel rather than hear; fast is vibrato.
+**Rate** How fast the delay travels, in Hz. Slow is a swell, fast is vibrato.
 
-**RightLFOPhaseOffset** how far behind the left the right channel's sweep runs, in degrees. At zero both sides detune together and the result stays centred. At 90 or 180 they disagree, and the disagreement opens the image out.
+**RightLFOPhaseOffset** How far behind the left the right channel's sweep runs, in degrees. At zero both sides detune together and the result stays centred; at 90 or 180 they disagree and the image opens.
 
-**Stereoness** how wide the delayed copies are panned. Past 100 it uses phase inversion between the channels to push the sound outside the speakers - striking, but check it in mono first, because that is exactly where it will partly cancel.
+**Feedback** Returns the delayed copy to the input. Small amounts add resonance; a negative value inverts on the way round and hollows the sound instead of thickening it.
 
-**Feedback** returns the delayed copy to the input. Small amounts add resonance. It takes a negative value too, which inverts on the way round and hollows the sound instead of thickening it.
+**HFRolloffFrequency** Darkens the delayed copy from above, in Hz. Keeping the wet path duller than the dry one stops a chorus sounding glassy.
 
-**HFRolloffFrequency** darkens the delayed copies from above. Keeping the wet path duller than the dry one is what stops a chorus sounding glassy.
+**Stereoness** Reserved for the width of the wet image. The current chorus keeps each side's copy on its own side, so this knob has no audible effect yet.
 
-**WetDryMix** how much of the delayed sound is heard against the original. A chorus at full wet is not a chorus any more, because the detuning is only audible against something steady.
+**WetDryMix** How much of the delayed sound is heard against the original. At full wet the detuning has nothing steady to be heard against.
 
-## How it works
+## Recipe
 
-The sweep is a triangle, and each channel gets its own, offset by RightLFOPhaseOffset. Because a moving delay resamples what is stored in it, the pitch of the copy rises while the delay shortens and falls while it lengthens: the detuning is not added afterwards, it falls out of the movement itself. That is also why Rate and DelaySweepDepth interact - it is the speed of the change that sets how far the pitch bends, so doubling either bends it further.
-
-This organism is stereo only.
+**Wide pad** MinDelay 8, DelaySweepDepth 6, Rate 0.3, RightLFOPhaseOffset 180, Feedback 0, HFRolloffFrequency 8000, WetDryMix 0.5. Cord a sustained Rhizome chord in and the two sides drift apart around the centre.
 
 ## Related Organisms
 

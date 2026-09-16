@@ -1,5 +1,10 @@
 option(HUM_GUI "Build the JUCE GUI app" ON)
 if(HUM_GUI)
+  # JUCE renders Icon.icns / icon.ico with execute_process at configure time,
+  # so a changed PNG only reaches the bundle when CMake re-runs. Make the PNG
+  # a configure dependency or the app ships last month's icon.
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon-1024.png")
   juce_add_gui_app(hum_gui PRODUCT_NAME "Humus"
     COMPANY_NAME "Phobos Instruments"
     COMPANY_WEBSITE "https://humus.phobos-instruments.com"
@@ -13,7 +18,7 @@ if(HUM_GUI)
                              "com.apple.security.device.audio-input"
                              "com.apple.security.device.bluetooth"
     CAMERA_PERMISSION_ENABLED TRUE
-    CAMERA_PERMISSION_TEXT "Humus uses the camera for CamIn organisms - motion and pose become patchable control signals. Video never leaves the app."
+    CAMERA_PERMISSION_TEXT "Humus uses the camera for CameraIn organisms - motion and pose become patchable control signals. Video never leaves the app."
     MICROPHONE_PERMISSION_ENABLED TRUE
     MICROPHONE_PERMISSION_TEXT "Humus uses your audio input so SoundIn and the recorders can capture a microphone, instrument or line signal. Audio stays on your machine."
     BLUETOOTH_PERMISSION_ENABLED TRUE
@@ -27,7 +32,7 @@ if(HUM_GUI)
       <string>Humus connects to your AI server on the local network (Settings → AI) for the assistant, preset and sample features.</string>
       <key>UTExportedTypeDeclarations</key>
       <array><dict>
-        <key>UTTypeIdentifier</key><string>com.totel.humus.patch</string>
+        <key>UTTypeIdentifier</key><string>com.phobos-instruments.humus.patch</string>
         <key>UTTypeDescription</key><string>Humus Patch</string>
         <key>UTTypeIconFile</key><string>Icon.icns</string>
         <key>UTTypeConformsTo</key><array><string>public.xml</string></array>
@@ -41,12 +46,14 @@ if(HUM_GUI)
           <key>CFBundleTypeIconFile</key><string>Icon.icns</string>
           <key>CFBundleTypeRole</key><string>Editor</string>
           <key>LSHandlerRank</key><string>Owner</string>
-          <key>LSItemContentTypes</key><array><string>com.totel.humus.patch</string></array>
+          <key>LSItemContentTypes</key><array><string>com.phobos-instruments.humus.patch</string></array>
         </dict>
       </array>
     </dict></plist>]])
   target_sources(hum_gui PRIVATE
-    src/gui/Main.cpp
+    src/gui/app/Main.cpp
+    src/gui/app/AppCommandLine.cpp
+    src/gui/app/AppSignals.cpp
     ${HUM_GUI_SOURCES}
   )
   target_include_directories(hum_gui PRIVATE src ${HUM_GENERATED_DIR})
@@ -81,12 +88,15 @@ if(HUM_GUI)
        "${CMAKE_CURRENT_SOURCE_DIR}/../packs/humus/*"
        "${CMAKE_CURRENT_SOURCE_DIR}/../packs/av/*")
   file(GLOB_RECURSE HUM_BUNDLED_ASSET_FILES CONFIGURE_DEPENDS
-       "${CMAKE_CURRENT_SOURCE_DIR}/../assets/*")
+       "${CMAKE_CURRENT_SOURCE_DIR}/../assets/*"
+       "${CMAKE_CURRENT_SOURCE_DIR}/../examples/*")
 
   if(APPLE)
     set(HUM_GUI_ASSETS_DIR "$<TARGET_BUNDLE_CONTENT_DIR:hum_gui>/Resources/assets")
+    set(HUM_GUI_EXAMPLES_DIR "$<TARGET_BUNDLE_CONTENT_DIR:hum_gui>/Resources/examples")
   else()
     set(HUM_GUI_ASSETS_DIR "$<TARGET_FILE_DIR:hum_gui>/assets")
+    set(HUM_GUI_EXAMPLES_DIR "$<TARGET_FILE_DIR:hum_gui>/examples")
   endif()
   # The dev tree's own jams (my-*.hum) never ship.
   file(GLOB HUM_PRIVATE_PATCHES CONFIGURE_DEPENDS
@@ -140,6 +150,11 @@ if(HUM_GUI)
     COMMAND ${CMAKE_COMMAND} -E copy_directory
       "${CMAKE_CURRENT_SOURCE_DIR}/../assets" "${HUM_GUI_ASSETS_DIR}"
     COMMAND ${CMAKE_COMMAND} -DDIR=${HUM_GUI_ASSETS_DIR}
+            -P "${CMAKE_CURRENT_SOURCE_DIR}/../tools/strip_junk.cmake"
+    COMMAND ${CMAKE_COMMAND} -E rm -rf "${HUM_GUI_EXAMPLES_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+      "${CMAKE_CURRENT_SOURCE_DIR}/../examples" "${HUM_GUI_EXAMPLES_DIR}"
+    COMMAND ${CMAKE_COMMAND} -DDIR=${HUM_GUI_EXAMPLES_DIR}
             -P "${CMAKE_CURRENT_SOURCE_DIR}/../tools/strip_junk.cmake"
     ${HUM_PRIVATE_STRIP_CMD}
     ${HUM_GUI_SIGN_CMD}

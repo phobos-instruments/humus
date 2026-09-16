@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "Steps",
+      "roll": "trigger-steps",
       "category": "Sequencers",
       "editor": "layout:steps-editor.json",
       "params": [

@@ -1,71 +1,61 @@
 # Deck
 
-A DJ deck in the modern DJ-software tradition. It plays a sound file at a variable rate from a pitch fader, carries a beatgrid, and can lock to another deck. Stereo out; the stereo inlets carry a control record's tone when Timecode is on and are ignored otherwise.
+A DJ deck that plays a sound file at a variable rate from a pitch fader, carries a beatgrid, and can drive or follow the patch's tempo.
 
-Two decks, one flagged Master and one flagged Sync, is the whole classic setup: the Master drives the patch's tempo and the follower rides along, so everything else in the patch - sequencers, LFOs, delays - is already in time with the record.
-
-## Transport
-
-**Active** play / stop.
-
-**Loop** loop between the loop points.
-
-**Cue** the cue point, in samples.
-
-**Volume** deck output level.
-
-## Sync and tempo
-
-**BPM** the track's tempo, the beatgrid's rate.
-
-**GridOffset** where the grid's downbeat sits, in samples. BPM sets the spacing of the beats; this sets where they start. Both must be right or nothing will stay locked.
-
-**Master** this deck drives the whole patch's tempo. Only one should be master at a time.
-
-**Sync** follow the master deck's rate and approximate phase.
-
-**PitchPercent** the pitch fader, as a percentage.
-
-**PitchRange** how far the fader travels, from +/-8 % (the classic turntable range) up to +/-50 % for extreme effects.
-
-## Pitch modes
-
-By default the deck resamples, so pitch and tempo move together exactly as they do on a turntable - speed it up and it goes sharp. Keylock changes the tempo while holding the pitch, for beatmatching without the key drifting. Keylock needs a build with time-stretching available and quietly falls back to resampling when it is not there.
+Two decks, one flagged Master and one flagged Sync, is the classic setup: the Master drives the transport's tempo and the follower rides it, so every sequencer, LFO and delay in the patch is already in time with the record. Loading a track detects its BPM, grid offset and key; get the grid right first, because Quantize, Sync and the beat loops are all built on it. The stereo inlets are ignored unless Timecode is on, when they carry a control record's tone through a Phono organism and the record drives the platter by hand: beatmatching, scratching, backspins, and lifting the needle stops the motor. Cord the outlets into a Mixer or a Console.
 
 ## Cues and loops
 
-**HotCue_1** eight hot cues. A cue button stores the playhead the first time it is pressed and jumps there afterwards; -1 means unset.
+The hot cue buttons store the playhead the first time they are pressed and jump there afterwards; shift-click clears one. Set Cue stores the main cue point and Cue jumps to it. The 1, 4 and 8 buttons set a beat loop from the playhead, Loop switches it off and on, and /2 and x2 halve and double it while it runs. With Quantize on, every cue and loop point snaps to the nearest grid beat.
 
-**LoopIn** loop start, in samples.
+## Parameters
 
-**LoopOut** loop end, in samples.
+**File** The sound file the deck plays.
 
-**LoopBeats** beat-loop length, from a quarter beat to 32 beats.
+**Active** Play or stop.
 
-**Quantize** snaps cues and loops to the nearest grid beat, the "snap" behaviour DJs expect. On by default, and worth leaving on - an unquantised hot cue is how a mix falls apart.
+**Loop** Loops between LoopIn and LoopOut.
 
-## Timecode vinyl
+**Sync** Follows the transport's tempo and lines its beats up with the grid, so it locks to a Master deck.
 
-A control record presses a steady tone whose two channels sit a quarter turn apart, so the stylus speed and direction can be read straight off the phase. Wire the turntable through a Phono organism (the tone is cut at phono level) into the deck's inlets and switch Timecode on: the record now drives the platter - beatmatching by hand, scratching, backspins, and lifting the needle stops the motor. This is relative control (speed and direction, not absolute needle position), it works with any control record, and it sidesteps Sync and Keylock while on - the hand outranks the automatics.
+**Master** This deck drives the whole patch's tempo. Only one should be master at a time.
 
-**Timecode** the stereo inlets drive the platter.
+**Keylock** Changes the tempo while holding the pitch, for beatmatching without the key drifting. It falls back to plain resampling where time-stretching is not available, and is bypassed while Timecode is on.
 
-**TimecodeHz** the record's tone frequency at normal speed. Most press around 1000 Hz; check the sleeve.
+**HQ** Higher-quality resampling. On by default; turn it off to save CPU on a crowded patch.
 
-## Quality
+**Quantize** Snaps cues and loops to the nearest grid beat.
 
-**HQ** higher-quality resampling (sinc rather than cubic). On by default; turn it off to save CPU on a crowded patch.
+**Timecode** The stereo inlets drive the platter from a control record.
 
-**Keylock** hold pitch while changing tempo (see Pitch Modes).
+**TimecodeHz** The record's tone frequency at normal speed. Most press around 1000 Hz; check the sleeve.
 
-## Usage
+**BPM** The track's tempo, the beatgrid's spacing.
 
-Load a track, set BPM and GridOffset so the grid actually lands on the beats, then flag one deck Master and Sync the other. Get the grid right first: every other feature here, including Quantize and Sync, is built on top of it, so a wrong grid makes all of them look broken.
+**PitchPercent** The pitch fader, as a percentage. Speeding up goes sharp unless Keylock is on.
 
-## Notes
+**PitchRange** How far the fader travels, from 8 percent, the classic turntable range, up to 50 for extreme effects.
 
-Because a Master deck drives the global transport, its pitch fader moves the tempo of everything in the patch that follows the clock - that is the point, but it will surprise you the first time a sequencer speeds up with the record.
+**Volume** Deck output level.
+
+**GridOffset** Where the grid's downbeat sits, in samples. BPM sets the spacing of the beats; this sets where they start.
+
+**LoopIn** Loop start, in samples.
+
+**LoopOut** Loop end, in samples.
+
+**LoopBeats** Beat-loop length, from a quarter beat to 32 beats.
+
+**Cue** The main cue point, in samples.
+
+**Key** The key detected when the track loaded, shown on the deck.
+
+**HotCue_1** The first hot cue, in samples; -1 means unset. And so on for 2 to 8.
+
+## Recipe
+
+**Two-deck mix** Load a track on each Deck and check the grid lands on the beats. Flag the first Master and the second Sync, cord both into a Mixer, and set the second's LoopBeats to 4. Start the second on a hot cue at its first downbeat and it stays locked while you fade across.
 
 ## Related Organisms
 
-AudioTrack, Sampler, Mixer, Console, Filter
+AudioTrack, Sampler, Mixer, Console

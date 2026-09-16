@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "PinkTrombone/PinkTrombone.h"
 
 #include <algorithm>
@@ -137,6 +139,7 @@ void PinkTrombone::reset() {
     aspFilter_.clear();
     fricFilter_.clear();
     held_.clear();
+    bend_.reset();
     stagedCount_ = 0;
     fricIntensity_ = 0.0;
     velocity_ = 0.8;
@@ -148,6 +151,7 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
 
     for (int i = 0; i < stagedCount_; ++i) {
         const auto& e = staged_[(size_t) i];
+        bend_.apply(e);
         held_.apply(e);
         if ((e.data[0] & 0xF0) == 0x90 && e.data[2] > 0)
             velocity_ = e.data[2] / kMidiMaxD;
@@ -167,8 +171,7 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
 
     const bool voiced = held_.any() || drone;
     if (held_.any()) {
-        glottis_.targetFrequency =
-            midiToHz(held_.top());
+        glottis_.targetFrequency = midiToHz(held_.top()) * bend_.ratio(bendRangeOf(params));
         if (glottis_.intensity == 0.0)
             glottis_.smoothFrequency = glottis_.targetFrequency;
     }

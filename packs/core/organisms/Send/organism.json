@@ -3,6 +3,7 @@
     {
       "class": "Send",
       "category": "Buses",
+      "blurb": "A tap that mails a copy of a sound to a bus, wet next to dry.",
       "params": [
         {
           "name": "Level",

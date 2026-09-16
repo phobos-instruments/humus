@@ -1,11 +1,13 @@
 # PodOut
 
-A pod's way out. Whatever you cord into a PodOut inside the pod appears on the pod box's matching outlet pin outside - one PodOut per pin, in the order they were made.
+A pod's way out: one outlet pin on the pod's box, fed from an inlet inside.
 
-The port's editor re-classes it in place between Mono, Stereo, MIDI and Video, keeping its name so every cord survives; the pod's box grows matching pins. Add more from the pod canvas's right-click menu.
+Whatever is corded into a PodOut inside the pod appears on the pod box's matching outlet pin outside, one PodOut per pin in the order they were made. Add one from the pod canvas's right-click menu or from the Pod category. The port's editor is a single dropdown that re-classes it in place between Mono, Stereo, MIDI, Video and Control; the port keeps its name so every cord survives, and the pod's box grows a matching pin. A Control PodOut is the mirror of the Control PodIn: draw any control outlet inside the pod onto its socket and the box grows a control outlet that carries the value outside, so a pod can be a control source of its own. A Video port carries frames rather than sound and passes them on unchanged.
 
-A Video port carries no sound. Video cords are pure topology - the frames are put together on screen, not in the audio graph - so the port simply passes what reaches it on to the pod box's video pin.
+## Recipe
+
+**Pod as a control source** Inside a pod, cord a Stereo PodIn to a Follower and draw the Follower's env outlet onto a Control PodOut. Outside, cord the kick into the pod and draw the pod's new control outlet onto a Gain on the bass: the pod ducks the bass from whatever it is listening to.
 
 ## Related Organisms
 
-PodIn
+PodIn, Follower, Gain

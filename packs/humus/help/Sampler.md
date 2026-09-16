@@ -1,40 +1,58 @@
 # Sampler
 
-Polyphonic zone-mapped sample playback. Load up to 8 sound files (zones), give each a root note, and play them over MIDI - or load a whole .sf2 sample bank and play its instruments, or record straight off the patch and play that.
+A polyphonic zone-mapped sample player with eight slots, sound bank loading and recording off the patch.
 
-## Mapping modes
+Load up to eight sound files, give each a root note and play them over MIDI from a MidiIn, a PianoRoll or the on-screen keyboard. Or load a whole sound bank file (.sf2) and play its instruments; a loaded bank is the instrument, and the slots play only when no bank is loaded. Cord a signal into the audio inlet and Record captures a take straight into a slot, as a sound file that saves with the patch. It opens coarse, twelve bits at 32 kHz, in the tradition of the late-eighties rack sampler; the preset rail walks from Ancient to Pristine, moving Bits and Rate and nothing else. Velocity scales level, and past Polyphony the oldest voice is stolen.
 
-**Pitched** Zones split the keyboard at the midpoints between their root notes (classic multisampling). Notes are pitched by resampling relative to the nearest zone's root. With a single loaded zone it spans the whole keyboard.
+## Slots and banks
 
-**Kit** Each zone triggers only on exactly its root key, at native rate - map one-shots to individual keys for a drum kit.
+In Pitched mode the zones split the keyboard at the midpoints between their root notes and notes are pitched by resampling from the nearest root; one zone spans the whole keyboard. In Kit mode each zone plays only on its root key at native rate, for one-shots on individual keys. A bank brings its own key splits, loop points and envelopes, and the envelope knobs then scale those rather than replace them. Takes land in a samples folder under Documents.
 
-## Playing it
+## Parameters
 
-- The on-screen keyboard at the bottom of the editor (the computer-keyboard QWERTY piano works while it is open: A/W/S... play, Z/X shift octave).
+**Mode** Pitched spreads the zones across the keyboard by root note. Kit plays each zone on its root key only.
 
-- A hardware MIDI keyboard (Enable MIDI): the Sampler listens omni.
+**Gain** Output level.
 
-- MIDI patch cords: wire a MidiIn, PianoRoll, or a plugin's MIDI out into the Sampler's dotted MIDI inlet to sequence it.
+**BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
 
-## Sample banks
+**Attack** Rise time of every note in milliseconds. With a bank loaded it scales the zone's own attack, so the default plays the bank as written.
 
-Bank loads an .sf2 file: one file holding many instruments, each with its own key and velocity splits, tunings, loop points and envelope. Preset picks which instrument answers, listed by name. A loaded bank is the instrument - it brings all of that with it, and the eight slots are what plays when no bank is loaded. Load one and the slots fade: they are still there, still editable, and simply not what you are hearing. Banks live in your Humus folder under banks/, and a patch stores one by name rather than by path, so it finds the same bank on another machine. Browse reaches anything on disk.
+**Decay** Fall time to the Sustain level in milliseconds, scaled the same way with a bank.
 
-## Recording
+**Sustain** The held level, 0 to 1.
 
-Wire a signal into the Sampler's audio inlet, point To slot at a zone and press Record. What comes in is captured; press it again to stop, or set Max ms to stop by itself. The take is written as a sound file and dropped into that zone, so it saves with the patch, survives a reload, and can be replaced by hand like any other sample. Takes land in a samples folder beside the project's own recordings, under Documents, so they are somewhere you can find and drag from rather than buried in application data. A take is capped at thirty seconds however it is stopped - that is the size of headroom standing ready, so arming costs nothing. Max ms at 0 means that ceiling rather than no limit at all. The meter beside the row is the inlet, and it reads whether or not anything is armed - so a cord you forgot to patch looks different from a recorder that is not working. Monitor passes the inlet through to the outputs so you can hear what you are about to take; it is off by default, because a Sampler already wired into a mixer would otherwise double the signal. Start at holds an armed take until the input reaches that level, then begins. It starts just above silence by default, so a take opens on the sound rather than on the room - drag it to the far left for "any sound" if an armed take is waiting for a signal that never gets loud enough. It is the mark drawn over the meter: drag it to where the sound actually arrives, and the take opens there rather than with however long it took you to get back to the instrument. Dragged to the far left it reads "any sound", which records the moment you arm. Recording does not depend on a bank. A take always lands in a slot, and the slots play when no bank is loaded - so load a bank, sample something over it, and clear the bank to hear what you took.
+**Release** Fade time after the key is released, in milliseconds.
 
-## Grain
+**Polyphony** The number of voices sounding at once. Past it the oldest voice is stolen.
 
-The Sampler opens coarse, not clean: twelve bits at 32 kHz, which is where a late-eighties rack sampler lived. That is the instrument's voice rather than a fault to correct - set Pristine on the preset rail for an untouched file. The rail walks that history, oldest to newest: Ancient, Antique, Vintage, Classic, Modern, Pristine. Classic is what the box boots as. Each one moves Bits and kHz and nothing else, so recalling one never disturbs an envelope you set. Bits and kHz store the sample coarsely, the way hardware samplers did: fewer bits and fewer of them per second, baked into the sample rather than filtered over the top. The decimation is deliberately unfiltered - the aliasing is the point. 24 bits and 48 kHz leave the file alone. Moving either reads the file again, so the setting never piles up on itself.
+**Loop** Repeats the sample while a key is held. A file with its own loop points uses them; otherwise it loops end to end.
 
-## Envelope & voices
+**File1** The sound file in slot 1, and so on for File2 to File8.
 
-Attack / Decay / Sustain / Release shape every note; velocity scales level. Polyphony caps simultaneous voices (the oldest voice is stolen beyond it). Loop repeats while a key is held (pads, textures). A file that carries its own loop points uses them; one that does not loops end to end. With a bank loaded the zone's own envelope is the sound and these controls scale it: half the knob is half that zone's time, double is double, and at their defaults a bank plays exactly as its author wrote it. Scaling rather than adding is what makes one knob work across a bank whose zones differ - a fixed number of milliseconds is nothing on a long release and everything on a short one.
+**Root1** The MIDI note slot 1 plays at native pitch, 60 by default, and so on for Root2 to Root8. A file that records its own key sets it on load; for a kit, set each root to the key you want it on.
 
-## Notes
+**FileBank** A sound bank file. While one is loaded it is what plays.
 
-Roots default to C4, note 60. A sampled instrument that records the key it was played at sets its own root on load, so you rarely have to. For kits, set each zone's root to the key you want it on - 36, 38, 42 and so on for a standard drum layout. Sample rate is respected per file; stereo files play stereo and mono files play centred.
+**Preset** Which instrument in the bank answers, listed by name.
+
+**RecSlot** The slot a take lands in.
+
+**RecordDuration** Stops a take by itself after that many milliseconds. At 0 a take runs until you stop it or until the thirty-second ceiling.
+
+**Record** Starts a take from the audio inlet. Press it again to stop.
+
+**Bits** Sample word length, 8 to 24. Below 24 the file is stored coarsely, the way early hardware samplers did, and moving it re-reads the file.
+
+**Rate** Sample rate in kHz, 4 to 48. At 48 the file is left alone.
+
+**Monitor** Passes the inlet through to the outputs so you hear what you are about to take. Off by default, so a Sampler already on a mixer does not double the signal.
+
+**Threshold** Holds an armed take until the input reaches that level, drawn as the mark over the meter. At the far left it records the moment you arm.
+
+## Recipe
+
+**Kit from the patch** Mode Kit, Root1 36, Root2 38, Root3 42. Cord a Kick into the audio inlet, RecSlot 1, Threshold 0.05, Record on, and hit the Kick once; repeat for the other slots with other sources. Cord a Riff or a PianoRoll into the MIDI inlet and play the kit.
 
 ## Related Organisms
 

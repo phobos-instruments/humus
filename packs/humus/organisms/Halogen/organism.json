@@ -1,25 +1,114 @@
 {
-  "classes": [
+ "classes": [
+  {
+   "class": "Halogen",
+   "category": "Spectral",
+   "params": [
     {
-      "class": "Halogen",
-      "category": "Spectral",
-      "params": [
-        { "name": "File", "min": 0.0, "max": 0.0, "def": 0.0, "isText": true },
-        { "name": "Scan", "min": 0.0, "max": 1.0, "def": 0.0, "enum": true },
-        { "name": "Reverse", "min": 0.0, "max": 1.0, "def": 0.0, "bool": true },
-        { "name": "Rate", "min": 0.01, "max": 8.0, "def": 0.25, "unit": "Hz", "random": true },
-        { "name": "X", "min": 0.0, "max": 1.0, "def": 0.0, "unit": "%", "random": true },
-        { "name": "Span", "min": 0.01, "max": 1.0, "def": 1.0, "random": true },
-        { "name": "Y", "min": 0.0, "max": 1.0, "def": 0.0, "unit": "%", "random": true },
-        { "name": "Height", "min": 0.02, "max": 1.0, "def": 1.0, "random": true },
-        { "name": "Low", "min": 20.0, "max": 2000.0, "def": 55.0, "unit": "Hz", "random": true },
-        { "name": "High", "min": 200.0, "max": 16000.0, "def": 8000.0, "unit": "Hz", "random": true },
-        { "name": "Gate", "min": 0.0, "max": 1.0, "def": 0.1, "random": true },
-        { "name": "Blur", "min": 0.0, "max": 1.0, "def": 0.2, "random": true },
-        { "name": "Tilt", "min": -1.0, "max": 1.0, "def": 0.0, "random": true },
-        { "name": "Level", "min": 0.0, "max": 2.0, "def": 1.0 }
-      ],
-      "editor": "layout:halogen-editor.json"
+     "name": "File",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true
+    },
+    {
+     "name": "Scan",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "enum": true
+    },
+    {
+     "name": "Reverse",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "bool": true
+    },
+    {
+     "name": "Rate",
+     "min": 0.01,
+     "max": 100.0,
+     "def": 0.25,
+     "unit": "Hz",
+     "random": true
+    },
+    {
+     "name": "X",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "unit": "%",
+     "random": true
+    },
+    {
+     "name": "Y",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "unit": "%",
+     "random": true
+    },
+    {
+     "name": "Width",
+     "min": 0.01,
+     "max": 1.0,
+     "def": 1.0,
+     "random": true
+    },
+    {
+     "name": "Height",
+     "min": 0.02,
+     "max": 1.0,
+     "def": 1.0,
+     "random": true
+    },
+    {
+     "name": "Lowest",
+     "min": 20.0,
+     "max": 2000.0,
+     "def": 55.0,
+     "unit": "Hz",
+     "random": true
+    },
+    {
+     "name": "Highest",
+     "min": 200.0,
+     "max": 16000.0,
+     "def": 8000.0,
+     "unit": "Hz",
+     "random": true
+    },
+    {
+     "name": "Gate",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.1,
+     "random": true
+    },
+    {
+     "name": "Blur",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.2,
+     "random": true
+    },
+    {
+     "name": "Tilt",
+     "min": -1.0,
+     "max": 1.0,
+     "def": 0.0,
+     "random": true
+    },
+    {
+     "name": "Level",
+     "min": 0.0,
+     "max": 2.0,
+     "def": 1.0
     }
-  ]
+   ],
+   "editor": "layout:halogen-editor.json",
+   "blurb": "Plays a picture: across is time, up is pitch, brightness is loudness."
+  }
+ ]
 }

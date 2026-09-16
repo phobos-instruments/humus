@@ -1,24 +1,22 @@
 # VideoPlayer
 
-The video deck. Load a tape (any .mp4/.mov/.m4v) into its File slot, or drop a clip from the timeline on the slot to load that clip's tape, cord the video outlet - the video-coloured pin - into one of Lumen's video inlets, and the tape plays there, looping. Video cords are the third cord domain beside audio and MIDI, drawn in their own colour.
+A video deck that loops one tape into the video chain.
 
-Speed is the motor, read in percent (100% is the tape as recorded, 0% freezes the frame, 200% doubles it - saved in patches under its older name Rate), and Opacity and Blend (Normal, Add, Multiply, Screen) set how the layer composites at the display. All ordinary params - automatable and modulation-routable, so a Follower can drive the speed with the music. The deck plays the picture as it is; treatments belong to the shaders and the contraptions downstream.
-
-The dotted MIDI inlet is the relaunch trigger: ANY note-on rewinds and restarts the tape. One deck per launch lane - cord a Sequence, PianoRoll or keyboard into each deck to cut video in time.
-
-For heavy sets, encode your tapes as HAP (an open codec whose frames are GPU textures - most encoders offer it, including the HAP, HAP Alpha and HAP Q variants). A HAP tape costs almost nothing to decode, so many decks can run at once where an ordinary .mp4 would choke; it is the format live-visual rigs standardise on, and the deck picks it up from the same File slot with no setting to flip.
-
-Any ordinary tape plays on every platform - h264, hevc, vp9, av1, the DivX and MPEG-2 of old AVIs and DVD rips, WMV, ProRes - with the graphics card decoding where it can (the terminal says which decoder a tape got); a HAP .mov plays too. The deck rolls while its editor is open or while something downstream is watching its outlet - a Video Out, a mix, a tracker - and rests otherwise, so a tape you are not looking at costs nothing.
+Load a tape into the File slot, or drop a clip from the timeline onto it, and cord the video outlet into a Lumen layer, a VideoFX, a VideoMix or a VideoOut; the tape plays there, looping. Rate is the motor and Opacity and Blend set how the layer composites, all ordinary params, so a Follower can drive the speed with the music. The MIDI inlet is a relaunch trigger: any note-on rewinds and restarts the tape, so one deck per launch lane, fed by a Sequence or a PianoRoll, cuts video in time. The deck rolls while its editor is open or something downstream watches its outlet, and rests otherwise.
 
 ## Parameters
 
-**File** the video to play.
+**File** The video to play.
 
-**Rate** the Speed knob: how fast the motor runs, in percent. 100% is as recorded; 0% holds a still frame.
+**Rate** The Speed knob, in percent. 100% is as recorded, 0% holds a still frame, 200% doubles it.
 
-**Opacity** how strongly this layer shows over the ones beneath it.
+**Opacity** How strongly this layer shows over the ones beneath it in a Lumen.
 
-**Blend** how it combines with those layers: Normal, Add, Multiply or Screen.
+**Blend** How it combines with those layers: Normal, Add, Multiply or Screen.
+
+## Recipe
+
+**Note-cut loop** Load a short tape, cord the outlet into a VideoOut and a Sequence into the MIDI inlet with one note every bar, so the tape restarts on the downbeat. Put a slow, shallow LFO on Rate around 100% and the loop breathes against the grid.
 
 ## Related Organisms
 

@@ -1,17 +1,40 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
+#include <atomic>
+#include <cmath>
 #include <cstdint>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/Chord.h"
 #include "hum/Scale.h"
 
 namespace hum {
 
-class DNA : public Organism, public MidiNode {
+class DNA : public Organism, public MidiNode, public StepStrip {
 public:
     static constexpr int kBases = 16;
+
+    static std::uint32_t stepHash(std::int64_t idx, int seed) {
+        std::uint32_t h = (std::uint32_t) (idx * 2246822519u) ^ (std::uint32_t) (seed * 374761393u);
+        h ^= h >> 16;
+        h *= 0x85ebca6bu;
+        h ^= h >> 13;
+        h *= 0xc2b2ae35u;
+        h ^= h >> 16;
+        return h;
+    }
+
+    int stripSteps() const override { return kBases; }
+    std::int64_t stripStepAt(double beats) const override {
+        return (std::int64_t) std::floor(beats * stripStepsPerBeat_.load(std::memory_order_relaxed));
+    }
+    bool stripStepRests(std::int64_t step) const override {
+        return (stepHash(step, stripSeed_.load(std::memory_order_relaxed)) & 0xFFFF) / 65536.0
+               < stripRest_.load(std::memory_order_relaxed);
+    }
 
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 0; }
@@ -49,6 +72,10 @@ private:
         return rng_;
     }
     void grow(int seed);
+
+    std::atomic<double> stripStepsPerBeat_{4.0};
+    std::atomic<int> stripSeed_{1};
+    std::atomic<double> stripRest_{0.25};
 
     std::array<int, kBases> genome_{};
     std::uint32_t rng_ = 1u;

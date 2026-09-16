@@ -1,34 +1,24 @@
 # SpectralFreeze
 
-A phase-vocoder freeze and smear. The point of this organism is the SOUND: rather than a dead magnitude hold that sits there like a screenshot, the frozen spectrum stays alive and keeps evolving. Every control is continuous, so the whole effect morphs beautifully from the Metapad.
+A phase-vocoder freeze and smear that holds a spectrum while keeping it in motion.
 
-Feed it a pad, a vocal or a room and you can lift a single moment out of it and hold that moment forever, still breathing.
+Smear stretches how long each band's level persists across analysis frames, and Freeze latches the current spectrum and ignores the input until released. Held bands keep the phase advance measured from the source, so a frozen chord still beats and drifts. Diffusion blurs the held spectrum across neighbouring bands and adds a slow phase wander; Shimmer folds an octave-up copy back in. Smear 0 with Freeze off is an exact pass-through, and the dry path is delayed to match. Cord a Substrate, a Sampler or a vocal in and send the output on to a Verbatim or a Fern.
 
 ## Parameters
 
-**Mode** switches stereo and mono in place. Each channel keeps its own spectral state, so the image is preserved rather than collapsed.
+**Freeze** Grabs the spectrum playing right now and holds it, ignoring the input until switched off.
 
-**Smear** magnitude sustain across analysis frames, from about 1 ms to 10 s. At 0 it is transparent; as it climbs toward 1 the sound grows an ever-lengthening spectral tail. This is the knob to automate.
+**Smear** How long each band's level persists, from about a millisecond to ten seconds. At 0 the input passes unchanged; higher grows a lengthening spectral tail. This is the knob to automate.
 
-**Freeze** a latch: grab the current spectrum and hold it, ignoring the input from then on.
+**Diffusion** Blurs the held levels across bands and adds a slow random phase walk, so a freeze blooms rather than standing still. Add it after freezing, or it smears the source before you catch it.
 
-**Diffusion** blurs magnitude across bins and adds a slow per-frame phase random walk, so the freeze blooms and breathes instead of sitting perfectly still.
+**Shimmer** Mixes an octave-up copy of the held spectrum back in.
 
-**Shimmer** folds an octave-up copy of the held spectrum back in - glow.
+**Mix** How much of the frozen signal is heard against the dry.
 
-**Mix** dry/wet blend.
+## Recipe
 
-## Technical discussion
-
-A naive freeze holds each bin's magnitude and invents a phase, which is why most of them sound static and metallic. Here each bin's true per-hop phase advance is measured from the input and then integrated on output, so held partials keep their real micro-detuning and beat against each other naturally - the freeze has motion because the source had motion. The output crossfades from the input's own phase (transparent) to that integrated phase (frozen) as the effective "frozenness" rises, so there are no clicks on the way in, and Smear 0 is an exact pass-through rather than an approximation.
-
-## Notes
-
-Any Mix stays phase-coherent, and parallel cords line up on their own. Like anything spectral it carries real delay, so it is not one to monitor a live input through.
-
-## Usage
-
-For a held drone, ride Smear up and then latch Freeze at a moment you like. For a texture, leave Freeze off and let Smear alone stretch the source. Add Diffusion once it is held, or it will smear the source before you catch it.
+**Held drone** Smear 0.7, Diffusion 0.3, Shimmer 0.2, Mix 1. Cord a Sampler or a sustained pad in, play a chord, and switch Freeze on at the moment you want to keep; map Freeze to a Button or a MIDI note to grab it in time. Switch Freeze off to let the input through again.
 
 ## Related Organisms
 

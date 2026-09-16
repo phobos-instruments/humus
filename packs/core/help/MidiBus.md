@@ -1,15 +1,13 @@
 # MidiBus
 
-A plain MIDI merge junction: several dotted cords in, one time-sorted stream out. No controls - the MIDI twin of the audio Bus.
+A MIDI merge junction with no controls: several MIDI cords in, one time-sorted stream out.
 
-Use it as a hub. Fanning OUT never needs an organism (one MIDI outlet can be corded to any number of instruments); the MidiBus is for fanning in and for keeping a many-to-many patch readable: controllers and sequencers into the bus, one cord per instrument out of it. Re-pointing everything then means moving one cord.
+Fanning out never needs an organism, since one MIDI outlet can be corded to any number of instruments; the MidiBus is for fanning in. Cord controllers and sequencers into it and one cord per instrument out of it, and re-pointing everything then means moving one cord. Events from all inlets are merged in time order within each block. The Inputs dropdown in the property editor sets how many inlets it has, 2 to 8, resizing the bus in place with its name, cords and automation kept. A Tuning corded into a MidiBus scopes every instrument downstream of it, which makes it the place to hang one scale for a whole section.
 
-Tunings flow through it. A Tuning corded into a MidiBus scopes every instrument downstream of the bus, so it is the natural place to hang one scale for a whole section.
+## Recipe
 
-## Size
-
-The Inputs dropdown in the property editor sets how many inlets the bus has (2 to 8). Changing it resizes the bus in place: its name, cords (clamped to the new inlet count) and automation survive.
+**Keyboard plus sequencer** Cord a MidiIn and a Microdot into a MidiBus and the bus into a Rhizome. Played notes and sequenced notes reach the same voice, and a Tuning on a third inlet retunes both at once.
 
 ## Related Organisms
 
-Bus, MidiIn, MidiOut, MidiMonitor, Tuning
+Bus, MidiIn, MidiOut, Tuning

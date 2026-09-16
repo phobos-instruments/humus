@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <cmath>
@@ -10,7 +12,7 @@
 #include <CoreVideo/CoreVideo.h>
 #endif
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Video.h"
 
 namespace hum {
 namespace framesample {

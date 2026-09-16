@@ -1,23 +1,47 @@
 # SerialOut
 
-Streams control signals out to a serial device - a microcontroller board, a sensor rig, anything listening on a USB serial port.
+Sends control values out of a serial port in whatever text or byte form the device expects.
 
-Wire up to two control signals into its inlets: a Number, an envelope follower, an LFO. They are sampled Rate times per second and writes them to the port, so audio is never blocked by the device. Unplugging and replugging the device reconnects automatically.
+Cord Sliders, a Follower, an LFO or a Number onto its sockets and write the line they should make in the Format field: %1 to %8 print the sockets as text, %b1 to %b8 send one as a raw byte and %w1 to %w8 as a two-byte word, \n ends a line and \xNN is a raw byte. The default "%1 %2\n" prints two numbers and a newline. Scale multiplies a value before it prints and Int rounds it, so a 0 to 1 control leaves as 0 to 255. Several lines in Format are several messages, and a Message socket picks which one goes out. The readout at the bottom shows the port and the last bytes sent. SerialIn reads values back the same way.
 
 ## Parameters
 
-**Device** which serial device to talk to. Auto picks the first USB serial device found, which is the right answer whenever one board is plugged in; the rest of the list is every device present right now.
+**Device** Which serial port to talk to. Auto takes the first port found; the rest of the list is every port present.
 
-**Baud** the port's speed. It has to match what the firmware at the other end opens; 9600 and 115200 are the usual defaults.
+**BaudRate** The port speed, which has to match what the firmware opens. 9600 and 115200 are the usual choices.
 
-**Rate** values sent per second. Higher is smoother and busier; a board that cannot keep up falls behind rather than dropping values.
+**Rate** How many times a second the line goes out in Continuous mode, and the ceiling in the other two. Shown as Per second.
 
-**ASCII** on, each message is a text line - "v1 v2" and a newline - which is what firmware parsing readable numbers expects. Off sends one raw byte per inlet instead, the input clamped to 0..1 and scaled to 0..255.
+**Frame** Data bits, parity and stop bits: 8N1 is what nearly everything uses; 8E1, 8O1 and 8N2 are there for the gear that wants them.
 
-## Notes
+**Custom** Any other baud rate, typed in. 0 leaves the BaudRate list in charge.
 
-The mirror organism is SerialIn, which reads values back from the device. Serial I/O is not available on Windows yet.
+**Reset** Pulses the board's reset line when the port opens, so its program starts from the top on every connect. Off leaves the board running across a reconnect.
+
+**Reconnect** Closes the port and opens it again, for every organism sharing it.
+
+**Send** Continuous writes the line Rate times a second. On change writes it once whenever one of the shown sockets moves. On trigger writes it when the Trigger socket rises.
+
+**Values** How many sockets the organism shows, and how many count for On change. Shown as Sockets.
+
+**Value1** The first socket, and the number it sends when nothing is corded onto it. And so on for 2 to 8; %5 in Format prints Value5 whether or not its socket is shown.
+
+**Trigger** The socket On trigger reads; a Button on it sends the message once per press.
+
+**Message** Picks which line of a multi-line Format goes out, from 1. It appears once Format has more than one line.
+
+**Scale1** Multiplies Value1 before it prints or packs into a byte. And so on for 2 to 8.
+
+**Int1** Prints Value1 as a whole number instead of with decimals. And so on for 2 to 8.
+
+**Format** The message template. Besides the placeholders above, %n1 prints the name of the source on a socket, %c a count byte, %x and %X a checksum, and %(v1*180) a computed value.
+
+**Port** A port path typed in by hand, which overrides the Device choice while it is set.
+
+## Recipe
+
+**Servo from an LFO** Cord an LFO onto Value1, set Scale1 to 180 and Int1 on, Format "M %1\r", Send Continuous, Rate 30. The board reads the line and moves the servo with the LFO; slow the LFO to a bar and the arm sweeps in time with the patch.
 
 ## Related Organisms
 
-SerialIn, Number, LFO
+SerialIn, Number, Slider, Button

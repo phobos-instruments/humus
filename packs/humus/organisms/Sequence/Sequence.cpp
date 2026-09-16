@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Sequence/Sequence.h"
 
 #include <algorithm>
@@ -54,11 +56,11 @@ void Sequence::process(const float* const*, int, float* const*, int,
     const auto rows = pattern_.triggerChannels();
     const int base = kRows * std::clamp((int) params.get("Bank", 0.0), 0, kPatternBanks - 1);
     for (int r = 0; r < kRows && base + r < (int) rows.size(); ++r) {
-        const std::string sfx = std::to_string(r + 1);
-        if (params.get("Enable_" + sfx, 1.0) < 0.5) continue;
+        const auto& row = rowParams_[(size_t) r];
+        if (!row.enable.on(params, 1.0)) continue;
         const int note =
-            std::clamp((int) params.get("Note_" + sfx, kGmDefault[(size_t) r]), 0, kMidiMax);
-        const int vel = std::clamp((int) std::lround(params.get("Vel_" + sfx, 0.8) * kMidiMaxD), 1, kMidiMax);
+            std::clamp((int) row.note.get(params, kGmDefault[(size_t) r]), 0, kMidiMax);
+        const int vel = std::clamp((int) std::lround(row.vel.get(params, 0.8) * kMidiMaxD), 1, kMidiMax);
         for (int p : rows[(size_t) (base + r)]->triggers) {
             const double fireBase = (double) p + swing::delayTicks((double) p, groove);
             double k = std::ceil((tickStart - fireBase) / duration);

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<humus-document version="1">
+  <patch>
+    <clock tempo="120.0" loop-start="0.0" loop-end="0.0" loop-enabled="0"/>
+    <contraption class="SoundIn" name="SoundIn">
+      <properties>
+        <property index="0" name="Channel">
+          <int>1</int>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Follower" name="Follower">
+      <properties>
+        <property index="0" name="Attack">
+          <double>5</double>
+        </property>
+        <property index="1" name="Release">
+          <double>150</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="SerialOut" name="Ring">
+      <properties>
+        <property index="0" name="Device">
+          <int>1</int>
+        </property>
+        <property index="1" name="BaudRate">
+          <enum>8</enum>
+        </property>
+        <property index="2" name="Rate">
+          <int>30</int>
+        </property>
+        <property index="7" name="Send">
+          <enum>0</enum>
+        </property>
+        <property index="8" name="Values">
+          <int>2</int>
+        </property>
+        <property index="35" name="Format">
+          <text>F %(floor(v1*24+0.5)) %(v1) %(1-v1) 0\n</text>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value1" property-index="-1">
+          <mod-controller source-organism="Follower" source-value="env" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <audio-connection from="SoundIn" from-outlet="0" to="Follower" to-inlet="0"/>
+  </patch>
+  <contraption-views>
+    <contraption-view contraption-name="SoundIn" patcher-x="492" patcher-y="40" editor-visible="0"
+                      editor-x="40" editor-y="40"/>
+    <contraption-view contraption-name="Follower" patcher-x="492" patcher-y="126" editor-visible="1"
+                      editor-x="40" editor-y="160"/>
+    <contraption-view contraption-name="Ring" patcher-x="492" patcher-y="212" editor-visible="1"
+                      editor-x="40" editor-y="360"/>
+  </contraption-views>
+  <automation-views/>
+  <performance-boxes/>
+  <notes>The microphone's level lights the ring like a VU meter on a board running NeoPixel.ino. The Follower's env lands on SerialOut's first socket and the Format computes the whole message from it: F, then how many of the 24 pixels to light, floor(v1*24+0.5), then a colour that runs from green at rest to red at full, v1 of red and 1-v1 of green. Thirty lines a second, Continuous. Play into the microphone.</notes>
+</humus-document>

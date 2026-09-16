@@ -1,6 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Sampler/Sampler.h"
 
 #include <algorithm>
+#include <utility>
 #include <cmath>
 #include <cstddef>
 #include <cstring>
@@ -27,8 +30,6 @@ namespace { constexpr double kMaxCaptureSeconds = 30.0; }
 void Sampler::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     rootSeed_.fill(-1);
-    capture_.setSize(2, (int) (kMaxCaptureSeconds * std::max(8000.0, sampleRate)));
-    capture_.clear();
     inMeter_.prepare(sampleRate);
     loadFromFile({});
     applyPending();
@@ -37,6 +38,8 @@ void Sampler::prepare(double sampleRate, int) {
 
 void Sampler::reset() {
     for (auto& v : voices_) v = Voice{};
+    bend_.reset();
+    bendRatio_ = 1.0;
     stagedCount_ = 0;
 }
 
@@ -120,6 +123,7 @@ void Sampler::loadFromFile(const std::string&) {
 }
 
 void Sampler::publish(Kit&& kit) {
+    delete retired_.exchange(nullptr);
     delete pending_.exchange(new Kit(std::move(kit)));
 }
 
@@ -211,8 +215,8 @@ void Sampler::applyPending() {
             break;
         }
     }
-    kit_ = std::move(*fresh);
-    delete fresh;
+    std::swap(kit_, *fresh);
+    delete retired_.exchange(fresh);
     for (size_t i = 0; i < voices_.size(); ++i) {
         if (voices_[i].stage == 0) continue;
         if (moved[i] < 0) voices_[i] = Voice{};
@@ -232,6 +236,10 @@ bool Sampler::startRecording(const std::vector<RecordTarget>& targets, int,
     captureSlot_ = std::clamp((int) params.get("RecSlot", 1.0), 1, kSlots);
     const double sr = sampleRate > 0.0 ? sampleRate : sampleRate_;
     const double want = durationSeconds > 0.0 ? durationSeconds : kMaxCaptureSeconds;
+    if (capture_.getNumSamples() == 0) {
+        capture_.setSize(2, (int) (kMaxCaptureSeconds * std::max(8000.0, sr)));
+        capture_.clear();
+    }
     captureLimit_.store(std::min(capture_.getNumSamples(),
                                  (int) (std::min(want, kMaxCaptureSeconds) * sr)));
     capturePos_.store(0);
@@ -381,6 +389,7 @@ void Sampler::allOff(bool hard) {
 
 void Sampler::handleEvent(const MidiEvent& e) {
     if (e.size < 2) return;
+    if (bend_.apply(e)) { bendRatio_ = bend_.ratio(bendRangeOf(params)); return; }
     const unsigned char status = e.data[0] & 0xF0;
     if (status == 0x90 && e.size >= 3 && e.data[2] > 0)
         noteOn(e.data[1], (float) e.data[2] / kMidiMaxF);
@@ -422,7 +431,7 @@ void Sampler::renderAdd(float* left, float* right, int numSamples) {
             const float g = v.env * v.gain * master;
             left[n]  += g * v.panL * (srcL[i0] + frac * (srcL[i0 + 1] - srcL[i0]));
             right[n] += g * v.panR * (srcR[i0] + frac * (srcR[i0 + 1] - srcR[i0]));
-            v.pos += v.rate;
+            v.pos += v.rate * bendRatio_;
         }
     }
 }

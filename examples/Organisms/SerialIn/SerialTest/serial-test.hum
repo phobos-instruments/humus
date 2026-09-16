@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<humus-document version="1">
+  <patch>
+    <clock tempo="120.0" loop-start="0.0" loop-end="0.0" loop-enabled="0"/>
+    <contraption class="SerialIn" name="SerialIn">
+      <properties>
+        <property index="0" name="Device">
+          <int>1</int>
+        </property>
+        <property index="1" name="BaudRate">
+          <enum>8</enum>
+        </property>
+        <property index="2" name="Values">
+          <int>3</int>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Number" name="Ramp">
+      <properties>
+        <property index="0" name="Value">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value" property-index="0">
+          <mod-controller source-organism="SerialIn" source-value="a" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <contraption class="Number" name="Echo">
+      <properties>
+        <property index="0" name="Value">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value" property-index="0">
+          <mod-controller source-organism="SerialIn" source-value="b" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <contraption class="Number" name="A0">
+      <properties>
+        <property index="0" name="Value">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value" property-index="0">
+          <mod-controller source-organism="SerialIn" source-value="c" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <contraption class="LFO" name="LFO">
+      <properties>
+        <property index="0" name="Rate">
+          <double>0.5</double>
+        </property>
+        <property index="1" name="Waveform">
+          <enum>0</enum>
+        </property>
+        <property index="2" name="Amplitude">
+          <double>1</double>
+        </property>
+        <property index="3" name="Offset">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Button" name="Button">
+      <properties>
+        <property index="0" name="Press">
+          <double>0</double>
+        </property>
+        <property index="1" name="Latch">
+          <bool>1</bool>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="SerialOut" name="SerialOut">
+      <properties>
+        <property index="0" name="Device">
+          <int>1</int>
+        </property>
+        <property index="1" name="BaudRate">
+          <enum>8</enum>
+        </property>
+        <property index="2" name="Rate">
+          <int>20</int>
+        </property>
+        <property index="8" name="Values">
+          <int>2</int>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value1" property-index="-1">
+          <mod-controller source-organism="LFO" source-value="wave" map-minimum="0.0" map-maximum="1.0"/>
+        </property-sources>
+        <property-sources property-name="Value2" property-index="-1">
+          <mod-controller source-organism="Button" source-value="value" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+  </patch>
+  <contraption-views>
+    <contraption-view contraption-name="SerialIn" patcher-x="352" patcher-y="126" editor-visible="1"
+                      editor-x="40" editor-y="40"/>
+    <contraption-view contraption-name="Ramp" patcher-x="492" patcher-y="126" editor-visible="1"
+                      editor-x="40" editor-y="320"/>
+    <contraption-view contraption-name="Echo" patcher-x="632" patcher-y="126" editor-visible="1"
+                      editor-x="200" editor-y="320"/>
+    <contraption-view contraption-name="A0" patcher-x="352" patcher-y="188" editor-visible="1"
+                      editor-x="360" editor-y="320"/>
+    <contraption-view contraption-name="LFO" patcher-x="492" patcher-y="188" editor-visible="1"
+                      editor-x="560" editor-y="40"/>
+    <contraption-view contraption-name="Button" patcher-x="632" patcher-y="188" editor-visible="1"
+                      editor-x="560" editor-y="240"/>
+    <contraption-view contraption-name="SerialOut" patcher-x="352" patcher-y="250"
+                      editor-visible="1" editor-x="560" editor-y="400"/>
+  </contraption-views>
+  <automation-views/>
+  <performance-boxes/>
+  <notes>A self-test for the serial link, nothing to wire but the board. Flash SerialTest.ino from the guide's sketches folder and plug the board in. The sketch prints three numbers twenty times a second: a ramp that climbs once a second, whatever it last heard from Humus, and A0. SerialIn lands them on the three Numbers: the ramp proves the board is talking, the echo proves Humus is heard (it follows the LFO on SerialOut's first socket), and the Button on the second socket lights the board's built-in LED. If the ramp sits still, check the port and the baud; if the echo does, check the Format.</notes>
+</humus-document>

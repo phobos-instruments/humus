@@ -1,0 +1,523 @@
+{
+  "width": 600,
+  "height": 446,
+  "controls": [
+    {
+      "type": "label",
+      "label": "Score",
+      "x": 12,
+      "y": 8,
+      "w": 200,
+      "h": 16
+    },
+    {
+      "type": "soundfile",
+      "param": "File",
+      "label": "",
+      "kind": "Scores",
+      "filter": "*.mid;*.midi;*.kar;*.mus",
+      "x": 8,
+      "y": 26,
+      "w": 584,
+      "h": 26
+    },
+    {
+      "type": "file-transport",
+      "active": "Play",
+      "loop": "Loop",
+      "label": "",
+      "x": 8,
+      "y": 58,
+      "w": 584,
+      "h": 52
+    },
+    {
+      "type": "toggle",
+      "param": "Play",
+      "label": "Play",
+      "x": 8,
+      "y": 116,
+      "w": 90,
+      "h": 24
+    },
+    {
+      "type": "toggle",
+      "param": "Loop",
+      "label": "Loop",
+      "x": 104,
+      "y": 116,
+      "w": 90,
+      "h": 24
+    },
+    {
+      "type": "toggle",
+      "param": "FollowHost",
+      "label": "Host tempo",
+      "x": 200,
+      "y": 116,
+      "w": 132,
+      "h": 24
+    },
+    {
+      "type": "int-spinner",
+      "param": "Chips",
+      "label": "Chips",
+      "x": 340,
+      "y": 116,
+      "w": 110,
+      "h": 24
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 462,
+      "y": 112,
+      "w": 60,
+      "h": 60
+    },
+    {
+      "type": "label",
+      "label": "Voice bank",
+      "x": 12,
+      "y": 152,
+      "w": 200,
+      "h": 16
+    },
+    {
+      "type": "bank-file",
+      "param": "Bank",
+      "label": "",
+      "kind": "Banks",
+      "filter": "*.wopn;*.sf2",
+      "x": 8,
+      "y": 170,
+      "w": 440,
+      "h": 26
+    },
+    {
+      "type": "label",
+      "label": "Channels",
+      "x": 12,
+      "y": 206,
+      "w": 240,
+      "h": 16
+    },
+    {
+      "type": "label",
+      "label": "1",
+      "x": 8,
+      "y": 230,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program1",
+      "label": "",
+      "x": 38,
+      "y": 226,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute1",
+      "label": "Mute",
+      "x": 202,
+      "y": 226,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "2",
+      "x": 8,
+      "y": 256,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program2",
+      "label": "",
+      "x": 38,
+      "y": 252,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute2",
+      "label": "Mute",
+      "x": 202,
+      "y": 252,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "3",
+      "x": 8,
+      "y": 282,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program3",
+      "label": "",
+      "x": 38,
+      "y": 278,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute3",
+      "label": "Mute",
+      "x": 202,
+      "y": 278,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "4",
+      "x": 8,
+      "y": 308,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program4",
+      "label": "",
+      "x": 38,
+      "y": 304,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute4",
+      "label": "Mute",
+      "x": 202,
+      "y": 304,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "5",
+      "x": 8,
+      "y": 334,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program5",
+      "label": "",
+      "x": 38,
+      "y": 330,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute5",
+      "label": "Mute",
+      "x": 202,
+      "y": 330,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "6",
+      "x": 8,
+      "y": 360,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program6",
+      "label": "",
+      "x": 38,
+      "y": 356,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute6",
+      "label": "Mute",
+      "x": 202,
+      "y": 356,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "7",
+      "x": 8,
+      "y": 386,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program7",
+      "label": "",
+      "x": 38,
+      "y": 382,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute7",
+      "label": "Mute",
+      "x": 202,
+      "y": 382,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "8",
+      "x": 8,
+      "y": 412,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program8",
+      "label": "",
+      "x": 38,
+      "y": 408,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute8",
+      "label": "Mute",
+      "x": 202,
+      "y": 408,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "9",
+      "x": 304,
+      "y": 230,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program9",
+      "label": "",
+      "x": 334,
+      "y": 226,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute9",
+      "label": "Mute",
+      "x": 498,
+      "y": 226,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "10",
+      "x": 304,
+      "y": 256,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program10",
+      "label": "",
+      "x": 334,
+      "y": 252,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute10",
+      "label": "Mute",
+      "x": 498,
+      "y": 252,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "11",
+      "x": 304,
+      "y": 282,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program11",
+      "label": "",
+      "x": 334,
+      "y": 278,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute11",
+      "label": "Mute",
+      "x": 498,
+      "y": 278,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "12",
+      "x": 304,
+      "y": 308,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program12",
+      "label": "",
+      "x": 334,
+      "y": 304,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute12",
+      "label": "Mute",
+      "x": 498,
+      "y": 304,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "13",
+      "x": 304,
+      "y": 334,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program13",
+      "label": "",
+      "x": 334,
+      "y": 330,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute13",
+      "label": "Mute",
+      "x": 498,
+      "y": 330,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "14",
+      "x": 304,
+      "y": 360,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program14",
+      "label": "",
+      "x": 334,
+      "y": 356,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute14",
+      "label": "Mute",
+      "x": 498,
+      "y": 356,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "15",
+      "x": 304,
+      "y": 386,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program15",
+      "label": "",
+      "x": 334,
+      "y": 382,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute15",
+      "label": "Mute",
+      "x": 498,
+      "y": 382,
+      "w": 88,
+      "h": 24
+    },
+    {
+      "type": "label",
+      "label": "16",
+      "x": 304,
+      "y": 412,
+      "w": 26,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Program16",
+      "label": "",
+      "x": 334,
+      "y": 408,
+      "w": 158,
+      "h": 24
+    },
+    {
+      "type": "minitoggle",
+      "param": "Mute16",
+      "label": "Mute",
+      "x": 498,
+      "y": 408,
+      "w": 88,
+      "h": 24
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+ "classes": [
+  {
+   "class": "Var",
+   "category": "Primitives",
+   "params": [
+    {
+     "name": "Value",
+     "min": -128.0,
+     "max": 128.0,
+     "def": 0.0,
+     "socket": true,
+     "carry": true
+    },
+    {
+     "name": "Name",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "plainText": true
+    }
+   ],
+   "editor": "layout:var-editor.json"
+  }
+ ]
+}

@@ -3,7 +3,10 @@
  "height": 304,
  "controls": [
   {
-   "type": "helix-strands",
+   "type": "strands",
+   "file-prefix": "Loop",
+   "mute-prefix": "Mute",
+   "solo-prefix": "Solo",
    "x": 8,
    "y": 8,
    "w": 584,

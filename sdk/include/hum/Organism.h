@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <memory>
 #include <string>
 #include <vector>
 
+#include "hum/Extensions.h"
 #include "hum/Parameter.h"
 #include "hum/Pattern.h"
 #include "hum/Transport.h"
@@ -14,11 +17,14 @@ namespace hum {
 struct OrganismState {
     const std::vector<Parameter>& properties;
     const Pattern& pattern;
+    const OrganismStateExt* ext = nullptr;
 };
 
 class Organism {
 public:
     virtual ~Organism() = default;
+
+    virtual const void* extension(const char*) const { return nullptr; }
 
     void setName(std::string n) { name_ = std::move(n); }
     const std::string& name() const { return name_; }
@@ -38,6 +44,8 @@ public:
     virtual void loadFrom(const OrganismState& state);
 
     virtual void setPattern(const Pattern&) {}
+
+    virtual void onTextChanged(const std::string&, const std::string&) {}
 
     virtual std::string matchToken() const { return {}; }
 

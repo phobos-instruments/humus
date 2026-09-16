@@ -1,60 +1,48 @@
 # Helix
 
-A four-strand live looper. Each strand is its own loop with one main button that does everything: press to record, press again to close the loop and play, press again to overdub, press once more to just play. Hold the button while a loop plays and Helix overdubs for as long as you hold it, then falls back to play when you let go.
+A four-strand live looper with one main button per strand for record, play, overdub and play again.
 
-## Free or locked
+Each strand is its own loop of up to 30 seconds. Press Rec to record, again to close the loop and play, again to overdub, and once more to play; hold Rec while a loop plays and it overdubs only for as long as you hold it. Every overdub is a layer that Undo peels off and Redo restores. Each strand has its own Sync: Free closes the loop exactly where you press, Beat and Bar snap presses, Rev and Half to the transport grid, and a press a little late is anchored back to the gridline you meant. The main outlet carries the monitored input plus every audible strand, and outlets 3 to 10 are stereo direct outs, one pair per strand, after its Level, mute and solo. Loops are saved with the patch as sound files beside it and reopen stopped, ready for Rec or Play. Cord a SoundIn into the inlet and map each Rec to a pad or a footswitch.
 
-Each strand has its own Sync setting, and that choice is the soul of the instrument. Free closes the loop exactly where you press, with no relation to the tempo: strands drift against each other and against the song, the way pedal loopers invite out-of-time, multi-tempo layering. Beat and Bar snap your presses to the transport grid the way tabletop loop stations do, so every strand stays locked to the song (and to Link). Press a hair late and Helix forgives it, anchoring back to the gridline you meant. Mix modes freely: a bar-locked drum bed under a free-floating voice strand is one organism.
+## Parameters
 
-## Layers, undo, decay
+**Rec1** The strand's main button: record, close and play, overdub, play. Hold it during play to overdub only while held. The same for strands 2 to 4.
 
-Every overdub is a layer. Undo peels the newest layer off; Redo puts it back. Undo while recording throws the take away. Decay below 1.0 makes older layers quietly sink as you overdub new ones, so a loop stays alive instead of piling up: the endless evolving loop of the tape-echo tradition.
+**Play1** Relaunches the strand from the top of its loop, on the grid when Sync says so. It also launches a loop that Stop closed silent.
 
-## Following the song
+**Stop1** Halts the strand. While recording it closes the loop silent, ready to launch.
 
-On a synced strand, Rev and Half wait for the same gridline as the buttons, so a flip lands musically instead of mid-phrase. And the loops follow the playhead: stop the transport and they freeze in place (see Follow); press play from the top and every playing loop restarts from its beginning; relocate or resume mid-song and synced strands land on the phase the bar implies, while free strands keep drifting.
+**Undo1** Peels the newest layer off. While recording it throws the take away.
 
-## Inlets
+**Redo1** Puts the last undone layer back.
 
-**1-2** The live signal. It passes through while Monitor is on, and is written into whichever strands are recording or overdubbing.
+**Clear1** Empties the strand.
 
-## Outlets
+**Level1** The strand's level in the main mix and on its direct out.
 
-**1-2** The main mix: the monitored input plus every audible strand.
+**Mute1** M: silences the strand. It keeps running underneath, so it comes back in phase.
 
-**3-10** Stereo direct outs, one pair per strand, after its Level, mute and solo. Cord a single strand into its own effect chain, four strands onto four desk channels - and leave the main out unpatched if the strands should only live on their directs.
+**Solo1** S: hears this strand alone.
 
-## Performing it
+**Sync1** Free, Beat or Bar: what presses, Rev and Half snap to.
 
-**Rec** the strand's main button. Map each one to a pad or footswitch (right-click, MIDI Learn) and Helix plays like a hardware loop station.
+**Rev1** Plays the strand backwards. Flipping it ends an open overdub.
 
-**Play** relaunches the strand from the top of its loop, on the grid when Sync says so - retrigger a phrase on the one, or launch a loop that Stop closed silent.
+**Half1** Plays the strand at half speed, an octave down. A layer overdubbed while halved plays back at double speed when you disengage.
 
-**Stop** halts the strand; Rec starts it again from the top. While recording, Stop closes the loop silent, ready to launch.
+**Shot1** Once: the strand plays a single pass and stops. Rec launches it again.
 
-**Undo** peels the newest layer; Redo restores it.
+**Decay** How much of the older layers survives each overdub pass. Below 1 a loop keeps evolving instead of piling up.
 
-**Clear** empties the strand.
+**Monitor** Passes the live input through to the main outlet.
 
-**Level** the strand's volume in the mix.
+**Follow** Freezes every strand, silent, while the transport is stopped and picks up when it rolls, synced strands back on the bar. Off, loops keep running regardless. Recording is never interrupted.
 
-**Sync** Free, Beat or Bar, per strand.
+**Loop1** The strand's saved sound file, written beside the patch on save. The same for Loop2 to Loop4.
 
-**Rev** the strand plays backward; overdub while reversed for the classic backwards layering. Flipping it ends an open overdub.
+## Recipe
 
-**Half** the strand plays at half speed, an octave down, tape style. Overdub while halved and the layer chipmunks back up when you disengage.
-
-**M / S** mute and solo per strand, mixer style. A muted strand keeps running underneath, so it comes back in phase.
-
-**Once** one-shot: the strand plays a single pass and stops. Rec launches it again - a long stab you fire on cue.
-
-**Decay** how much of the older layers survives each overdub pass.
-
-**Monitor** pass the live input through to the output.
-
-**Follow** the strands freeze, silent, whenever the transport stops and pick up again when it rolls (synced strands back on the bar). Off, loops keep running regardless of the transport, pedal-looper style. Recording is never interrupted.
-
-Loops live up to 30 seconds per strand. Saving the document saves them too: each strand is written as a sound file in a folder beside the patch, and reopening the patch brings every loop back, stopped and ready to launch with Rec or Play.
+**Locked bed, free voice** Sync1 Bar, Sync2 Free, Follow on, Monitor on, Decay 0.85. With the transport rolling and a SoundIn corded in, press Rec1 on the one, play four bars and press it again on the next one; hold Rec1 to overdub a second pass. Press Rec2 mid-phrase for a voice strand that drifts against the grid. Cord outlets 3 and 4 into a Fern for the first strand alone.
 
 ## Related Organisms
 

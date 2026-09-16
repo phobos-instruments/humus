@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Grit/GritImpl.h"
 
 #include <cmath>
@@ -32,23 +34,24 @@ int waveSample(int wave, int i, int steps, int peak) {
 
 int Grit::voiceCount() const {
     switch (cart()) {
-        case GritCart::kVrc6: return 5;
-        case GritCart::kMmc5: return 4;
-        case GritCart::kFds: return 3;
-        case GritCart::kN163: return 6;
-        case GritCart::k5B: return 5;
-        case GritCart::kVrc7: return 8;
-        default: return 2;
+        case GritCart::kVrc6: return kConsolePulses + 3;
+        case GritCart::kMmc5: return kConsolePulses + 2;
+        case GritCart::kFds: return kConsolePulses + 1;
+        case GritCart::kN163: return kConsolePulses + 4;
+        case GritCart::k5B: return kConsolePulses + 3;
+        case GritCart::kVrc7: return kConsolePulses + 6;
+        default: return kConsolePulses;
     }
 }
 
 GritTarget Grit::target(int voice) const {
-    if (voice < 2) return {GritTarget::kPulse, voice};
-    const int x = voice - 2;
+    const int cartVoices = voiceCount() - kConsolePulses;
+    if (voice >= cartVoices) return {GritTarget::kPulse, voice - cartVoices};
+    const int x = voice;
     switch (cart()) {
         case GritCart::kVrc6:
-            return x < 2 ? GritTarget{GritTarget::kVrc6Pulse, x}
-                         : GritTarget{GritTarget::kVrc6Saw, 0};
+            return x == 0 ? GritTarget{GritTarget::kVrc6Saw, 0}
+                          : GritTarget{GritTarget::kVrc6Pulse, x - 1};
         case GritCart::kMmc5: return {GritTarget::kMmc5Pulse, x};
         case GritCart::kFds: return {GritTarget::kFds, 0};
         case GritCart::kN163: return {GritTarget::kN163, 4 + x};
@@ -142,11 +145,12 @@ void Grit::applyWavetables() {
 void Grit::applyPitch(int v) {
     const auto& vc = voices_[(size_t) v];
     if (vc.hz <= 0.0) return;
+    const double hz = vc.hz * bendRatio_;
     const auto t = target(v);
     const double c = clock();
     switch (t.kind) {
         case GritTarget::kPulse: {
-            const int p = std::clamp((int) std::lround(c / (16.0 * vc.hz)) - 1, 8, 2047);
+            const int p = std::clamp((int) std::lround(c / (16.0 * hz)) - 1, 8, 2047);
             pokeApu(t.ch * 4 + 2, p & 255);
             if ((p >> 8) != vc.lastHi) {
                 voices_[(size_t) v].lastHi = p >> 8;
@@ -155,7 +159,7 @@ void Grit::applyPitch(int v) {
             break;
         }
         case GritTarget::kMmc5Pulse: {
-            const int p = std::clamp((int) std::lround(c / (16.0 * vc.hz)) - 1, 8, 2047);
+            const int p = std::clamp((int) std::lround(c / (16.0 * hz)) - 1, 8, 2047);
             pokeExp((std::uint32_t) (0x5000 + t.ch * 4 + 2), p & 255);
             if ((p >> 8) != vc.lastHi) {
                 voices_[(size_t) v].lastHi = p >> 8;
@@ -164,20 +168,20 @@ void Grit::applyPitch(int v) {
             break;
         }
         case GritTarget::kVrc6Pulse: {
-            const int p = std::clamp((int) std::lround(c / (16.0 * vc.hz)) - 1, 0, 4095);
+            const int p = std::clamp((int) std::lround(c / (16.0 * hz)) - 1, 0, 4095);
             const std::uint32_t base = t.ch == 0 ? 0x9000u : 0xA000u;
             pokeExp(base + 1, p & 255);
             pokeExp(base + 2, 0x80 | (p >> 8));
             break;
         }
         case GritTarget::kVrc6Saw: {
-            const int p = std::clamp((int) std::lround(c / (14.0 * vc.hz)) - 1, 0, 4095);
+            const int p = std::clamp((int) std::lround(c / (14.0 * hz)) - 1, 0, 4095);
             pokeExp(0xB001, p & 255);
             pokeExp(0xB002, 0x80 | (p >> 8));
             break;
         }
         case GritTarget::kFds: {
-            const int f = std::clamp((int) std::lround(vc.hz * 65536.0 * 64.0 / c), 0,
+            const int f = std::clamp((int) std::lround(hz * 65536.0 * 64.0 / c), 0,
                                      4095);
             pokeExp(0x4082, f & 255);
             pokeExp(0x4083, f >> 8);
@@ -185,7 +189,7 @@ void Grit::applyPitch(int v) {
         }
         case GritTarget::kN163: {
             const int f = std::clamp(
-                (int) std::lround(vc.hz * 15.0 * 65536.0 * 4.0 * 32.0 / c), 0, 262143);
+                (int) std::lround(hz * 15.0 * 65536.0 * 4.0 * 32.0 / c), 0, 262143);
             const int base = 0x40 + 8 * t.ch;
             pokeExp(0xF800, (std::uint32_t) base);
             pokeExp(0x4800, f & 255);
@@ -196,7 +200,7 @@ void Grit::applyPitch(int v) {
             break;
         }
         case GritTarget::kFme7: {
-            const int p = std::clamp((int) std::lround(c / (32.0 * vc.hz)), 1, 4095);
+            const int p = std::clamp((int) std::lround(c / (32.0 * hz)), 1, 4095);
             pokeExp(0xC000, (std::uint32_t) (t.ch * 2));
             pokeExp(0xE000, p & 255);
             pokeExp(0xC000, (std::uint32_t) (t.ch * 2 + 1));
@@ -205,7 +209,7 @@ void Grit::applyPitch(int v) {
         }
         case GritTarget::kVrc7: {
             int oct = 0;
-            double f = vc.hz;
+            double f = hz;
             while (f >= 2.0 * 49716.0 * 512.0 / 524288.0 && oct < 7) {
                 f *= 0.5;
                 ++oct;
@@ -339,23 +343,26 @@ std::vector<std::uint8_t> Grit::encodeDpcm(const float* mono, int count,
     return out;
 }
 
-void Grit::loadSample() {
-    const auto* sp = params.byName("Sample");
-    const std::string path = sp != nullptr ? sp->text : std::string();
-    cachedSample_ = path;
-    impl_->rom.bytes.clear();
-    if (path.empty()) return;
+std::vector<std::uint8_t> Grit::buildSampleRom(const std::string& path) {
+    if (path.empty()) return {};
     juce::AudioBuffer<float> buf;
     SoundFileInfo info;
-    if (!loadSoundFile(path, buf, info) || buf.getNumSamples() <= 0) return;
+    if (!loadSoundFile(path, buf, info) || buf.getNumSamples() <= 0) return {};
     std::vector<float> mono((size_t) buf.getNumSamples(), 0.0f);
     for (int c = 0; c < buf.getNumChannels(); ++c) {
         const float* src = buf.getReadPointer(c);
         for (int i = 0; i < buf.getNumSamples(); ++i)
             mono[(size_t) i] += src[i] / (float) buf.getNumChannels();
     }
-    impl_->rom.bytes = encodeDpcm(mono.data(), (int) mono.size(),
-                            info.sampleRate > 0.0 ? info.sampleRate : kDefaultSampleRate);
+    return encodeDpcm(mono.data(), (int) mono.size(),
+                      info.sampleRate > 0.0 ? info.sampleRate : kDefaultSampleRate);
+}
+
+void Grit::loadSample() {
+    const std::string path = params.getText("Sample");
+    if (path == appliedSample_) return;
+    appliedSample_ = path;
+    impl_->rom.bytes = buildSampleRom(path);
 }
 
 }

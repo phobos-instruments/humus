@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/PatchWriter.h"
 
 #include <cmath>
@@ -52,7 +54,7 @@ void writeMidiModifiers(juce::XmlElement& root, const PatchDocumentModel& doc) {
 
 void writeGroove(juce::XmlElement& root, const PatchDocumentModel& doc) {
     if (auto* old = root.getChildByName("groove")) root.removeChildElement(old, true);
-    if (doc.groove <= 0.0) return;
+    if (doc.groove <= 0.0 && doc.grooveUnit == "1/16") return;
     auto* g = root.createNewChildElement("groove");
     g->setAttribute("value", doc.groove);
     g->setAttribute("unit", juce::String(doc.grooveUnit));
@@ -312,7 +314,11 @@ bool writePatchFile(const std::string& path, const PatchDocumentModel& doc, std:
     auto root = buildTree(doc, original);
     juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
     relativizeAudioClipPaths(*root, f.getParentDirectory());
-    if (!root->writeTo(f, {})) { error = "could not write " + path; return false; }
+    juce::TemporaryFile staging(f);
+    if (!root->writeTo(staging.getFile(), {}) || !staging.overwriteTargetFileWithTemporary()) {
+        error = "could not write " + path;
+        return false;
+    }
     return true;
 }
 

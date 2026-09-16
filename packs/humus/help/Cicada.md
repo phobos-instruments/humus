@@ -1,34 +1,40 @@
 # Cicada
 
-The hi-hat organism: nature's own ticker. Six square-wave oscillators at clashing ratios make the metallic cluster - it is their high harmonics beating against each other that sound like a cymbal - blended with noise and shaped by three envelopes: a short closed tick, an open ring, and a stretched crash with a breath of noise. One instrument, three voices, and the law all hats live by: a closed hit chokes the open ring dead.
+A hi-hat organism with a closed tick, an open ring and a crash from one voice.
 
-## Triggering it
-
-The Cl, Op and Cr buttons play the three voices by hand. A cord from a sequencer or keyboard into the inlet plays them by note: 42 is closed, 46 open, 49 crash - the standard drum layout - and any other note ticks closed, so a one-note pattern just works. Off 8 fires the open hat on every off-eighth while the transport runs; with a Kick set to 4/4 that is a house groove with no sequencer corded at all.
+Six square waves at clashing ratios make the metallic cluster, blended with noise and shaped by three envelopes: a short closed tick, an open ring, and a crash that rings four times longer with a splash of noise. A closed hit chokes the open ring, as on any hat. The Cl, Op and Cr buttons play the three by hand; a cord from a Microdot, a PianoRoll or a keyboard plays them by note, with 46 open, 49 crash and any other note closed, so a one-note pattern just works. OffBeat fires the open hat on every off-eighth while the transport runs, so with a Kick this is a house groove with no sequencer corded at all.
 
 ## Parameters
 
-**Tune** shifts the whole cluster in semitones. Down is heavier metal, up is smaller and glassier.
+**Tune** Shifts the whole cluster in semitones. Down is heavier, up is smaller and glassier.
 
-**Metal** the blend between the oscillator cluster and plain noise. High is the classic robot cymbal; low is airier, more like brushes.
+**Metal** The blend between the oscillator cluster and plain noise. High is the classic machine cymbal, low is airier.
 
-**Tone** tilts the filters: low is fuller and darker, high is thin and hissing.
+**Tone** Tilts the filters: low is fuller and darker, high is thin and hissing.
 
-**ClosedDecay** how fast the closed tick dies, in milliseconds.
+**ClosedDecay** How fast the closed tick dies, in milliseconds.
 
-**OpenDecay** how long the open hat rings, in milliseconds. The crash rings four times longer than this.
+**OpenDecay** How long the open hat rings, in milliseconds. The crash rings four times longer.
 
-**Drive** pushes the voice into gentle saturation - glue and grit.
+**Drive** Pushes the voice into gentle saturation.
 
-**Level** output volume.
+**Level** Output volume.
 
-**OffBeat** fires the open hat on every off-eighth while the transport runs, with no sequencer corded at all.
+**OffBeat** Fires the open hat on every off-eighth while the transport runs.
 
-**Closed** plays the closed tick by hand. The Cl button.
+**Closed** Plays the closed tick. The Cl button.
 
-**Open** plays the open hat by hand. The Op button.
+**Open** Plays the open hat. The Op button.
 
-**Crash** plays the crash by hand. The Cr button.
+**Crash** Plays the crash. The Cr button.
+
+**SwingFollow** Follow makes the OffBeat hits take the patch groove from the transport instead of the Swing knob.
+
+**Swing** Delays the OffBeat hits towards a triplet feel. Used only while SwingFollow is off.
+
+## Recipe
+
+**Two-organism groove** Cord a Kick and a Cicada into a Mixer, switch the Kick's FourFloor on and OffBeat on here. Tune -3, Metal 0.8, OpenDecay 300, Drive 0.3. Press play and ride Tone for the build.
 
 ## Related Organisms
 

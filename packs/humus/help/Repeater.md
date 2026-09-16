@@ -1,24 +1,22 @@
 # Repeater
 
-The loop roll, on live material. The Repeater is always listening, whether you are rolling or not. Hit Repeat and the last Length of audio (1/16 bar up to 4 bars) plays in repeats snapped to the transport grid, so they land on the beat. Release, and the live signal takes over again seamlessly.
+A loop roll on live audio: hold Repeat and the last stretch of sound repeats on the transport grid.
 
-## Follow vs Hold
+The Repeater is always listening. Press Repeat and the last Length of audio, from a sixteenth of a bar to four bars, plays in repeats that land on the beat; release and the live signal takes over again. By default every cycle re-grabs the freshest window, so filter moves and pattern changes keep flowing through the repeats; Hold latches one slice instead and repeats it until you let go, even if the source stops. Loop edges are crossfaded, so melodic material rolls without clicks, and with the transport stopped it still repeats the last Length ending now. Cord a Drums organism or a Deck through it.
 
-By default the roll follows the music: every cycle re-grabs the freshest window, the way DJ software rolls, so filter tweaks and pattern changes keep flowing through the repeats and everything stays locked. Switch Hold on to latch one slice instead - it repeats verbatim until you let go, even if you cut the source dead: the freeze for build-ups.
+## Parameters
 
-## Inlets
+**Repeat** Starts the roll while it is down. Map it to a pad or key for the hold-to-roll feel.
 
-**1-2** The live signal. It passes through untouched until Repeat goes down (and keeps flowing underneath the roll when Mix < 1).
+**Hold** Latches the slice caught when Repeat went down instead of following the live signal. The freeze for build-ups.
 
-## Performing it
+**Length** The size of the window, from 1/16 bar to 4 bars. Change it while rolling and the roll re-slices on the same grid.
 
-**Repeat** the roll. Map it to a pad or key (Parameter Control) for the classic hold-to-roll feel.
+**Mix** At 1 the roll replaces the signal; lower it to layer the roll over the live material.
 
-**Length** the size of the window. Change it while rolling and the roll re-slices on the same grid - walk it down 1 bar, 1/2, 1/4, 1/8 for the tightening build into a drop.
+## Recipe
 
-**Mix** 1.0 replaces the signal with the roll; lower it to layer the roll over the live material.
-
-Loop edges are spliced/crossfaded, so even melodic material rolls without clicks. With the transport stopped the Repeater still works - it repeats the last Length's worth of audio ending right now.
+**Tightening build** Cord a Drums organism in, Mix 1, Hold off. Map Repeat to a pad and, holding it, walk Length down from 1 bar through 1/2 bar and 1/4 bar to 1/8 bar over the last bars before a drop, then release on the downbeat.
 
 ## Related Organisms
 

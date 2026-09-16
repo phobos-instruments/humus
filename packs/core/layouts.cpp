@@ -1,4 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include <string>
+#include "hum/ParseInt.h"
 
 #include "hum/LayoutSpec.h"
 #include "hum/Registry.h"
@@ -25,12 +28,11 @@ inline LayoutSpec fileRecorderLayout(const std::string& cls) {
     const std::string head = cls.substr(0, cls.size() - suf.size());
     int n = 2;
     if (!head.empty()) {
-        if (head.find_first_not_of("0123456789") != std::string::npos) return spec;
-        n = std::stoi(head);
+        n = parseBoundedInt(head);
         if (n < 1 || n > 32) return spec;
     }
 
-    const int pad = 10, rowH = 22, pitch = 26, chW = 168;
+    const int pad = 10, rowH = 22, pitch = 26, chW = 118, laneW = 196;
     int y = 8;
     if (!head.empty()) {
         std::vector<std::string> sizes;
@@ -41,10 +43,14 @@ inline LayoutSpec fileRecorderLayout(const std::string& cls) {
     }
     for (int i = 1; i <= n; ++i) {
         const std::string s = std::to_string(i);
+        const int fileW = kRackFullW - 2 * pad - chW - laneW - 16;
         spec.controls.push_back({CT::SoundFile, "File_" + s, "", "File " + s,
-                                 pad, y, kRackFullW - 2 * pad - chW - 8, rowH, 0, false});
+                                 pad, y, fileW, rowH, 0, false, {}, {{"pick", "save"}}});
         spec.controls.push_back({CT::IntSpinner, "RequestedChannelCounts_" + s, "", "Ch",
-                                 kRackFullW - pad - chW, y, chW, rowH, 0, false});
+                                 pad + fileW + 8, y, chW, rowH, 0, false});
+        spec.controls.push_back({CT::TakeLane, "", "", "", kRackFullW - pad - laneW, y,
+                                 laneW, rowH, 0, false, {},
+                                 {{"track", s}, {"channels-prefix", "RequestedChannelCounts_"}}});
         y += pitch;
     }
     y += 6;
@@ -67,8 +73,7 @@ inline LayoutSpec mixerLayout(const std::string& cls) {
     const char p = cls[0];
     if (p != 'S' && p != 'M' && p != 'P') return spec;
     const std::string mid = cls.substr(1, cls.size() - 6);
-    if (mid.empty() || mid.find_first_not_of("0123456789") != std::string::npos) return spec;
-    const int n = std::stoi(mid);
+    const int n = parseBoundedInt(mid);
     if (n < 1 || n > 8) return spec;
     const bool stereo = (p == 'S');
     const bool pan = (p == 'P');

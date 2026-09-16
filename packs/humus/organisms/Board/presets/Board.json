@@ -1,0 +1,67 @@
+[
+ {
+  "name": "Arduino Uno / Nano",
+  "values": {
+   "BaudRate": 7,
+   "Analog1": 0, "Analog2": 1, "Analog3": 2, "Analog4": 3, "Analog5": 4, "Analog6": 5,
+   "Pin1": 13, "Mode1": 0,
+   "Pin2": 11, "Mode2": 1,
+   "Pin3": 10, "Mode3": 1,
+   "Pin4": 9, "Mode4": 1,
+   "Pin5": 6, "Mode5": 1,
+   "Pin6": 5, "Mode6": 1
+  }
+ },
+ {
+  "name": "Arduino Leonardo / Micro",
+  "values": {
+   "BaudRate": 7,
+   "Analog1": 0, "Analog2": 1, "Analog3": 2, "Analog4": 3, "Analog5": 4, "Analog6": 5,
+   "Pin1": 13, "Mode1": 0,
+   "Pin2": 11, "Mode2": 1,
+   "Pin3": 10, "Mode3": 1,
+   "Pin4": 9, "Mode4": 1,
+   "Pin5": 6, "Mode5": 1,
+   "Pin6": 5, "Mode6": 1
+  }
+ },
+ {
+  "name": "Arduino Mega 2560",
+  "values": {
+   "BaudRate": 7,
+   "Analog1": 0, "Analog2": 1, "Analog3": 2, "Analog4": 3, "Analog5": 4, "Analog6": 5,
+   "Pin1": 13, "Mode1": 0,
+   "Pin2": 12, "Mode2": 1,
+   "Pin3": 11, "Mode3": 1,
+   "Pin4": 10, "Mode4": 1,
+   "Pin5": 9, "Mode5": 1,
+   "Pin6": 8, "Mode6": 1
+  }
+ },
+ {
+  "name": "ESP32 dev board",
+  "values": {
+   "BaudRate": 7,
+   "Analog1": 0, "Analog2": 1, "Analog3": 2, "Analog4": 3, "Analog5": 4, "Analog6": 5,
+   "Pin1": 2, "Mode1": 0,
+   "Pin2": 4, "Mode2": 1,
+   "Pin3": 5, "Mode3": 1,
+   "Pin4": 18, "Mode4": 1,
+   "Pin5": 19, "Mode5": 1,
+   "Pin6": 21, "Mode6": 1
+  }
+ },
+ {
+  "name": "Raspberry Pi Pico",
+  "values": {
+   "BaudRate": 7,
+   "Analog1": 0, "Analog2": 1, "Analog3": 2, "Analog4": 0, "Analog5": 1, "Analog6": 2,
+   "Pin1": 25, "Mode1": 0,
+   "Pin2": 16, "Mode2": 1,
+   "Pin3": 17, "Mode3": 1,
+   "Pin4": 18, "Mode4": 1,
+   "Pin5": 19, "Mode5": 1,
+   "Pin6": 20, "Mode6": 1
+  }
+ }
+]

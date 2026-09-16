@@ -1,26 +1,24 @@
 # SoundIn
 
-The audio input organism: a live stereo feed from your audio interface, or a sound file player. Live input is the default - drop one in, pick your input, and a microphone / instrument / line signal flows straight in. (macOS asks for microphone permission the first time; if you declined it once, re-enable Humus under System Settings > Privacy > Microphone.)
+A live stereo feed from the audio interface, or a sound file played in its place.
 
-## Channel
+Drop one in, choose the input pair, and a microphone, instrument or line signal flows straight into the patch; cord its outlets to a Gain, a Fern or the Mixer. The Input dropdown lists the interface's own input names, and the meter shows what arrives before Gain. With Live input off it plays the sound file instead, which is also how a patch renders offline: with no live input available, the file is used. A mono interface fills both outlets with its single input. Drop several SoundIns pointed at different pairs to treat each pair of a multichannel interface separately. Older patches with numbered auxiliary inputs still load, each carrying its channel as a parameter.
 
-Which device input pair this SoundIn reads - the dropdown lists your interface's own input names. Default is 1/2, the main pair. Humus opens addressed channels automatically when the device has them; changing the channel applies live. A mono interface fills both outputs with the single input. The bar to its right shows the incoming level (pre-gain).
+## Parameters
 
-## Gain
+**Channel** Which device input pair this SoundIn reads, shown as Input; 1/2 is the main pair. Changing it applies live.
 
-A clean input trim - a plain level multiply, so it adds no latency and no noise, and it is bit-transparent at 12 o'clock (unity). Turn it down to tame a hot interface, up to lift a quiet source.
+**UseADC** Live input. On carries the interface input; off plays the File below instead.
 
-## Live input
+**File** The sound file used while Live input is off. It loads as soon as it is set, and a mono file fills both outlets.
 
-On (the default): SoundIn carries the live interface input. Off: it plays the sound file below instead, looping per Loop - which is also how a patch renders offline without hardware (no live input, so it uses the file).
+**Loop** Repeats the file when it reaches the end. Off, the file plays once and the outlets then go silent.
 
-## File / Loop
+**Gain** A clean input trim, unity by default. Turn it down to tame a hot interface, up to lift a quiet source; the meter reads the level before it.
 
-The sound file used when Live input is off. Set it and it loads straight away; Loop repeats it seamlessly.
+## Recipe
 
-Drop several SoundIns pointed at different pairs to treat each mic or line pair of a multichannel interface separately.
-
-Retro-compatibility: older patches use AuxIn1 to AuxIn8 for extra inputs (mono, mapped from channel 3 up). These still load - each carries its channel as a parameter behind the scenes.
+**Microphone through the patch** Set Input to the pair your microphone is on, leave Live input on, and cord the outlets into a Gain and on to a Fern before the Mixer. Set Gain so the meter sits well below the top on your loudest phrase, then load a File and switch Live input off to keep working on the patch without the microphone.
 
 ## Related Organisms
 

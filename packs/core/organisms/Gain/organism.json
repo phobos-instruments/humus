@@ -3,6 +3,7 @@
     {
       "class": "Gain",
       "category": "Mixers",
+      "blurb": "A volume knob with a mute, the plainest box on the canvas.",
       "canonical": "SGain",
       "params": [
         {

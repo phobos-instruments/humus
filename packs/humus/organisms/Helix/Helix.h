@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <atomic>
@@ -6,8 +8,9 @@
 #include <utility>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Files.h"
 #include "hum/Organism.h"
+#include "hum/ParamRef.h"
 
 namespace hum {
 
@@ -71,6 +74,11 @@ private:
         std::string loadedUri;
     };
 
+    struct StrandParams {
+        ParamRef level, mute, solo, sync, rec, stop, play, undo, redo, clear, rev, half, shot;
+    };
+    static std::array<StrandParams, kStrands> makeStrandParams();
+
     void clearStrand(Strand& s);
     void recPress(Strand& s, std::int64_t late);
     void stopPress(Strand& s, std::int64_t late);
@@ -86,6 +94,7 @@ private:
     void anchorToTransport(Strand& s, int sync, double beats, double spb);
 
     std::array<Strand, kStrands> strands_;
+    std::array<StrandParams, kStrands> strandParams_ = makeStrandParams();
     std::int64_t maxLoopSamples_ = 0;
     std::int64_t holdSamples_ = 0;
     double decay_ = 1.0;

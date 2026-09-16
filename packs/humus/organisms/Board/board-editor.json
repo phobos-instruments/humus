@@ -1,0 +1,409 @@
+{
+  "width": 600,
+  "height": 318,
+  "controls": [
+    {
+      "type": "combo",
+      "param": "Device",
+      "label": "Port",
+      "source": "serial-ports",
+      "x": 8,
+      "y": 8,
+      "w": 400,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Custom",
+      "label": "Custom",
+      "x": 416,
+      "y": 8,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "minitoggle",
+      "param": "Reset",
+      "label": "Reset",
+      "x": 534,
+      "y": 8,
+      "w": 58,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "BaudRate",
+      "label": "Baud",
+      "x": 8,
+      "y": 38,
+      "w": 150,
+      "h": 22,
+      "options": [
+        "300",
+        "1200",
+        "2400",
+        "4800",
+        "9600",
+        "19200",
+        "38400",
+        "57600",
+        "115200",
+        "230400",
+        "250000",
+        "460800",
+        "500000",
+        "921600",
+        "1000000"
+      ]
+    },
+    {
+      "type": "int-spinner",
+      "param": "Rate",
+      "label": "Read every",
+      "x": 166,
+      "y": 38,
+      "w": 150,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Outlets",
+      "label": "Outlets",
+      "x": 324,
+      "y": 38,
+      "w": 130,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Inlets",
+      "label": "Inlets",
+      "x": 462,
+      "y": 38,
+      "w": 130,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "Outlets read an analog channel, 0..1",
+      "x": 8,
+      "y": 68,
+      "w": 290,
+      "h": 16
+    },
+    {
+      "type": "label",
+      "label": "Sockets drive a pin",
+      "x": 304,
+      "y": 68,
+      "w": 288,
+      "h": 16
+    },
+    {
+      "type": "label",
+      "label": "Out 1",
+      "x": 8,
+      "y": 91,
+      "w": 40,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Analog1",
+      "label": "A",
+      "x": 52,
+      "y": 88,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "In 1",
+      "x": 304,
+      "y": 91,
+      "w": 36,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Pin1",
+      "label": "Pin",
+      "x": 344,
+      "y": 88,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Mode1",
+      "label": "Mode",
+      "x": 452,
+      "y": 88,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Digital",
+        "PWM"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Out 2",
+      "x": 8,
+      "y": 117,
+      "w": 40,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Analog2",
+      "label": "A",
+      "x": 52,
+      "y": 114,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "In 2",
+      "x": 304,
+      "y": 117,
+      "w": 36,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Pin2",
+      "label": "Pin",
+      "x": 344,
+      "y": 114,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Mode2",
+      "label": "Mode",
+      "x": 452,
+      "y": 114,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Digital",
+        "PWM"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Out 3",
+      "x": 8,
+      "y": 143,
+      "w": 40,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Analog3",
+      "label": "A",
+      "x": 52,
+      "y": 140,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "In 3",
+      "x": 304,
+      "y": 143,
+      "w": 36,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Pin3",
+      "label": "Pin",
+      "x": 344,
+      "y": 140,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Mode3",
+      "label": "Mode",
+      "x": 452,
+      "y": 140,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Digital",
+        "PWM"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Out 4",
+      "x": 8,
+      "y": 169,
+      "w": 40,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Analog4",
+      "label": "A",
+      "x": 52,
+      "y": 166,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "In 4",
+      "x": 304,
+      "y": 169,
+      "w": 36,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Pin4",
+      "label": "Pin",
+      "x": 344,
+      "y": 166,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Mode4",
+      "label": "Mode",
+      "x": 452,
+      "y": 166,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Digital",
+        "PWM"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Out 5",
+      "x": 8,
+      "y": 195,
+      "w": 40,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Analog5",
+      "label": "A",
+      "x": 52,
+      "y": 192,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "In 5",
+      "x": 304,
+      "y": 195,
+      "w": 36,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Pin5",
+      "label": "Pin",
+      "x": 344,
+      "y": 192,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Mode5",
+      "label": "Mode",
+      "x": 452,
+      "y": 192,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Digital",
+        "PWM"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Out 6",
+      "x": 8,
+      "y": 221,
+      "w": 40,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Analog6",
+      "label": "A",
+      "x": 52,
+      "y": 218,
+      "w": 110,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "In 6",
+      "x": 304,
+      "y": 221,
+      "w": 36,
+      "h": 16
+    },
+    {
+      "type": "int-spinner",
+      "param": "Pin6",
+      "label": "Pin",
+      "x": 344,
+      "y": 218,
+      "w": 100,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Mode6",
+      "label": "Mode",
+      "x": 452,
+      "y": 218,
+      "w": 140,
+      "h": 22,
+      "options": [
+        "Digital",
+        "PWM"
+      ]
+    },
+    {
+      "type": "readout",
+      "x": 8,
+      "y": 250,
+      "w": 584,
+      "h": 28,
+      "decimals": 3
+    },
+    {
+      "type": "text-readout",
+      "x": 8,
+      "y": 284,
+      "w": 484,
+      "h": 26
+    },
+    {
+      "type": "momentary",
+      "param": "Reconnect",
+      "label": "Reconnect",
+      "x": 500,
+      "y": 284,
+      "w": 92,
+      "h": 26
+    }
+  ]
+}

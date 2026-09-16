@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "PianoRoll/PianoRoll.h"
 
 #include "hum/NoteSchedule.h"
@@ -20,6 +22,7 @@ void PianoRoll::prepare(double sampleRate, int) {
 
 void PianoRoll::reset() {
     held_.fill(false);
+    bentOut_ = false;
     outCount_ = 0;
 }
 
@@ -58,16 +61,15 @@ void PianoRoll::emitCC(int offset, int controller, int value) {
     const int ch = std::clamp((int) params.get("Channel", 1.0), 1, 16) - 1;
     MidiEvent e;
     e.sampleOffset = offset;
-    e.data[0] = (unsigned char) (0xB0 | ch);
-    e.data[1] = (unsigned char) std::clamp(controller, 0, kMidiMax);
-    e.data[2] = (unsigned char) std::clamp(value, 0, kMidiMax);
-    e.size = 3;
+    fillControlEvent(e, ch, controller, value);
     outEvents_[(size_t) outCount_++] = e;
+    if (controller == kBendController) bentOut_ = value != kBendCentre;
 }
 
 void PianoRoll::flushHeldNotes(int offset) {
     for (int p = 0; p < 128; ++p)
         if (held_[(size_t) p]) emit(offset, false, p, 0);
+    if (bentOut_) emitCC(offset, kBendController, kBendCentre);
 }
 
 void PianoRoll::process(const float* const*, int, float* const*, int,

@@ -1,39 +1,49 @@
 add_library(hum_core STATIC
-  src/core/AudioGraph.cpp
-  src/core/LicenseCheck.cpp
-  src/core/Registry.cpp
-  src/core/BuiltinPacks.cpp
-  src/core/ParamSchema.cpp
-  src/core/ParamUnit.cpp
-  src/core/Categories.cpp
-  src/core/PackManifest.cpp
-  src/core/PackRegistry.cpp
-  src/core/PackLoader.cpp
-  src/core/PackUpdates.cpp
-  src/core/PluginHost.cpp
-  src/core/PluginListStore.cpp
-  src/core/ScaleLibrary.cpp
-  src/core/MtsTuning.cpp
-  src/core/TuningProbe.cpp
-  src/core/TuningProbeStore.cpp
-  src/core/HostedPlugin.cpp
-  src/core/PluginScanner.cpp
-  src/core/BridgeRing.cpp
-  src/core/BridgeClient.cpp
-  src/core/BridgeWorker.cpp
-  src/core/BridgedPlugin.cpp
-  src/core/BeatDetector.cpp
-  src/core/KeyDetector.cpp
-  src/core/PresetGenie.cpp
-  src/core/AssistantProtocol.cpp
-  src/core/OllamaWire.cpp
-  src/core/RecipeSynth.cpp
+  src/core/graph/AudioGraph.cpp
+  src/core/graph/AudioGraphLatency.cpp
+  src/core/graph/AudioGraphModulation.cpp
+  src/core/graph/AudioGraphTuning.cpp
+  src/core/graph/AudioGraphMidi.cpp
+  src/core/net/LicenseCheck.cpp
+  src/core/packs/Registry.cpp
+  src/core/packs/BuiltinPacks.cpp
+  src/core/params/ParamSchema.cpp
+  src/core/params/ParamUnit.cpp
+  src/core/packs/Categories.cpp
+  src/core/midi/RiffImport.cpp
+  src/core/midi/RiffImportMidi.cpp
+  src/core/midi/MidiClipImport.cpp
+  src/core/packs/PackManifest.cpp
+  src/core/packs/PackRegistry.cpp
+  src/core/packs/Roles.cpp
+  src/core/packs/PackLoader.cpp
+  src/core/packs/PackUpdates.cpp
+  src/core/plugins/PluginHost.cpp
+  src/core/plugins/PluginListStore.cpp
+  src/core/tuning/ScaleLibrary.cpp
+  src/core/tuning/MtsTuning.cpp
+  src/core/tuning/TuningProbe.cpp
+  src/core/tuning/TuningProbeStore.cpp
+  src/core/plugins/HostedPlugin.cpp
+  src/core/plugins/PluginScanner.cpp
+  src/core/plugins/ProcessId.cpp
+  src/core/plugins/BridgeRing.cpp
+  src/core/plugins/BridgeClient.cpp
+  src/core/plugins/BridgeWorker.cpp
+  src/core/plugins/BridgedPlugin.cpp
+  src/core/analysis/BeatDetector.cpp
+  src/core/analysis/KeyDetector.cpp
+  src/core/assistant/PresetGenie.cpp
+  src/core/assistant/AssistantProtocol.cpp
+  src/core/assistant/OllamaWire.cpp
+  src/core/assistant/RecipeSynth.cpp
   src/io/MidiExport.cpp
   src/io/PatchWriter.cpp
   src/io/PatchWriterElements.cpp
   src/io/PatchDocument.cpp
   src/io/PatchDocumentPattern.cpp
   src/io/PatchLoader.cpp
+  src/io/SignalFile.cpp
   src/io/WavWriter.cpp
   src/io/Mp3Writer.cpp
   src/io/AutosaveStore.cpp

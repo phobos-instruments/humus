@@ -1,16 +1,16 @@
 # MidiIn
 
-Feeds live MIDI from a hardware device (or another application) into the patch through its MIDI outlet.
+Live MIDI from a hardware device or another application, delivered on a MIDI outlet.
 
-## Port
+Cord its outlet into an instrument such as Rhizome, into a MidiBus, or into a MidiMonitor to see what arrives. The patch stores a port number rather than a device name, so a patch moved to another machine picks up whatever device that machine assigns to the same port; devices are assigned to the eight ports in the settings, and changing the port applies immediately. The on-screen keyboard at the bottom of the property editor plays notes straight into this organism's outlet, so the instruments behind it can be tried without hardware. Older patches use MidiIn1 to MidiIn8, which load as this organism with Port preset accordingly.
 
-Which of the eight MIDI input ports this organism listens to. Assign a device to each port on the MIDI page of the Settings dialog - the dropdown shows each port with its currently assigned device. Because the patch stores the port number (not the device name), a patch moved to another machine picks up whatever device that machine assigns to the same port.
+## Parameters
 
-Changing the port takes effect immediately; no need to stop audio.
+**Port** Which of the eight MIDI input ports this organism listens to. The dropdown shows each port with the device assigned to it.
 
-The on-screen keyboard at the bottom of the property editor injects notes directly into this organism's outlet, so you can play its downstream instruments without hardware.
+## Recipe
 
-Retro-compatibility: older patches use numbered classes (MidiIn1 to MidiIn8). These still load - each is this same organism with its Port preset to the class number.
+**Keyboard to synth** Drop a MidiIn, pick the port your keyboard is assigned to, cord it into a Rhizome and the Rhizome into the Mixer. Click the on-screen keys first to hear the voice, then play the hardware.
 
 ## Related Organisms
 

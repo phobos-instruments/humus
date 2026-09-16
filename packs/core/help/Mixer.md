@@ -1,21 +1,25 @@
 # Mixer
 
-Sums several signals into one, with per-input Gain, Mute and Solo plus a Master gain/mute.
+Sums several signals into one, with Gain, Mute and Solo per input and a master gain and mute.
 
-## Size
+Cord your sources into the numbered inlets and the outlet on to a SoundOut or a Bus. The Inputs dropdown at the top sets how many inputs it has, 2 to 8, and Mode chooses Stereo pairs, Mono channels or Pan inputs; changing either resizes the mixer in place, keeping its name and its cords. In Stereo mode the left inlet of a pair doubles as a mono jack: one cord into the left side feeds both sides of the mix, so a mono source sits in the centre, and cording the right side as well restores true stereo. Pan mode gives each mono input its own Pan knob, a balance law that leaves the centre at full level and only turns the far side down.
 
-The Inputs and Mode dropdowns at the top of the property editor set how many inputs the mixer has (2 to 8) and whether they are stereo pairs, mono channels, or pan inputs. Changing them resizes the mixer in place: its name, cords (clamped to the new inlet count), parameter values, automation and MIDI mappings all survive.
+## Parameters
 
-Behind the scenes each size is its own class (a 4-input stereo mixer is an S4Mixer), so older patches load with their mixers intact, and your documents stay readable by size.
+**MasterGain** Output level after the input gains, up to twice unity.
 
-## Mono sources
+**MasterMute** Silences the whole mix.
 
-The left inlet of each pair doubles as the mono jack, the way a desk's L/Mono input does: one cord into the left side feeds both sides of the mix, so a mono source sits centred instead of hard-left. Connecting the right side as well restores true stereo, and a cord into only the right side stays on the right. To place a mono source off centre, use the Pan mode: each input becomes mono with its own Pan knob, a balance control that leaves the centre at full level and only turns the far side down.
+**Gain_1-2** Level of input pair 1-2, and so on for 3-4 up to 7-8. Unity at the top; the strip's meter shows what arrives before it.
 
-## Solo
+**Mute_1-2** Silences input 1-2 without a click, and so on for the other pairs. A muted input stays silent even when soloed.
 
-If any input is soloed, only soloed inputs are heard. Mute always silences its input.
+**Solo_1-2** Hears input 1-2 on its own, and so on for the other pairs. While any input is soloed, only soloed inputs are heard.
+
+## Recipe
+
+**Four-source mix** Set Inputs to 4 and Mode to Stereo, cord a drum organism, a bass, a synth and a Fern return into pairs 1-2 to 7-8, and cord the outlet to the SoundOut. Pull each Gain down until the SoundOut meter keeps some headroom on the loudest bar, solo one input at a time to check each part, and set the overall level with MasterGain.
 
 ## Related Organisms
 
-Bus, Gain, Matrix
+Bus, Gain, Console

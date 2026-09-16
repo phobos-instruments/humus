@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "Kick",
+      "roles": ["mix-anchor"],
       "category": "Instruments",
       "editor": "layout:kick-editor.json",
       "params": [

@@ -1,137 +1,183 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "SerialIn/SerialIn.h"
 
-#include <cmath>
+#include <cstring>
 
-#if !JUCE_WINDOWS
-#include <errno.h>
-#include <sys/select.h>
-#include <unistd.h>
-#endif
-
-#include "hum/SerialPort.h"
+#include "hum/NamedValues.h"
 
 namespace hum {
 
+namespace {
+const char* const kSlotNames[SerialIn::kValues] = {"a", "b", "c", "d", "e", "f", "g", "h"};
+}
+
 SerialIn::~SerialIn() {
     stopThread(2000);
-    closePort();
+    link_.reset();
 }
 
 void SerialIn::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
-    reset();
+    syncText("Port", params.getText("Port"));
+    syncText("Parse", params.getText("Parse"));
     if (!isThreadRunning()) startThread();
 }
 
-void SerialIn::reset() {
-    smoothed_[0] = latest_[0].load();
-    smoothed_[1] = latest_[1].load();
+int SerialIn::controlValues(ControlVal* out, int capacity) const {
+    const int want = values_.load();
+    const int n = capacity < want ? capacity : want;
+    for (int i = 0; i < n; ++i) out[i] = {kSlotNames[i], latest_[(size_t) i].load()};
+    if (hasParse_.load() && n == want && capacity > n) {
+        out[n] = {"match", matchPulse_.load()};
+        return n + 1;
+    }
+    return n;
 }
 
-void SerialIn::process(const float* const*, int,
-                       float* const* out, int numOut,
-                       int numSamples, const Transport&) {
+int SerialIn::textLines(std::string* out, int capacity) const {
+    const juce::SpinLock::ScopedLockType sl(textLock_);
+    int n = 0;
+    if (n < capacity) out[n++] = status_.empty() ? "port: looking for a device" : status_;
+    if (n < capacity)
+        out[n++] = lastGot_.empty() ? "got: nothing yet"
+                                    : std::string(lastFit_ ? "got: " : "skipped: ") + serial::printable(lastGot_);
+    return n;
+}
+
+void SerialIn::process(const float* const*, int, float* const*, int, int, const Transport&) {
     if (const auto* p = params.byName("Device")) deviceIndex_.store((int) p->value);
-    baud_.store(serial::baudFromIndex((int) params.get("BaudRate", 8.0)));
-    if (const auto* p = params.byName("Baud")) baud_.store((int) p->value);
-    if (const auto* p = params.byName("ASCII")) ascii_.store(p->value >= 0.5);
-    if (const auto* p = params.byName("Port")) {
-        if (p->text != cachedText_) {
-            cachedText_ = p->text;
-            const juce::SpinLock::ScopedLockType sl(portLock_);
-            portPath_ = cachedText_;
+    const int custom = (int) params.get("Custom", 0.0);
+    baud_.store(custom > 0 ? custom : serial::baudFromIndex((int) params.get("BaudRate", 8.0)));
+    frame_.store(juce::jlimit(0, 3, (int) params.get("Frame", 0.0)));
+    reset_.store(params.get("Reset", 1.0) >= 0.5);
+    values_.store(juce::jlimit(1, kValues, (int) params.get("Values", 2.0)));
+    const bool held = params.get("Reconnect", 0.0) >= 0.5;
+    if (held && !reconnectHeld_) reconnects_.fetch_add(1);
+    reconnectHeld_ = held;
+    const unsigned m = matches_.load();
+    matchPulse_.store(m != seenMatches_ ? 1.0f : 0.0f);
+    seenMatches_ = m;
+}
+
+bool SerialIn::ensureOpen() {
+    std::string want;
+    {
+        const juce::SpinLock::ScopedLockType sl(textLock_);
+        want = portPath_;
+    }
+    want = serial::pickDevice(want, deviceIndex_.load());
+    serial::Settings settings;
+    settings.baud = baud_.load();
+    settings.frame = frame_.load();
+    settings.reset = reset_.load();
+    if (!link_ || want != link_->path() || settings != link_->settings()) {
+        link_ = serial::acquire(want, settings);
+        lineLen_ = 0;
+    }
+    const bool open = link_ && link_->isOpen();
+    {
+        const juce::SpinLock::ScopedLockType sl(textLock_);
+        status_ = want.empty() ? "port: no device found"
+                : open ? "port: " + want + " at " + std::to_string(settings.baud) : "port: waiting for " + want;
+    }
+    return open;
+}
+
+std::string SerialIn::currentParse() {
+    const juce::SpinLock::ScopedLockType sl(textLock_);
+    return parse_;
+}
+
+void SerialIn::publish(const serial::Reading* readings, const bool* captured) {
+    for (int v = 0; v < kValues; ++v) {
+        if (!captured[v]) continue;
+        latest_[(size_t) v].store(readings[v].value);
+        NamedValues::instance().post(readings[v].name, readings[v].value);
+    }
+    matches_.fetch_add(1);
+}
+
+void SerialIn::takeLine() {
+    line_[lineLen_] = '\0';
+    const std::string pattern = currentParse();
+    serial::Reading readings[kValues];
+    bool captured[kValues];
+    bool fit = true;
+    if (!pattern.empty()) {
+        fit = serial::matchLine(pattern, line_, readings, captured, kValues) >= 0;
+    } else {
+        const int got = serial::parseLine(line_, readings, kValues);
+        for (int v = 0; v < kValues; ++v) captured[v] = v < got;
+    }
+    {
+        const juce::SpinLock::ScopedLockType sl(textLock_);
+        lastGot_.assign(line_, lineLen_);
+        lastFit_ = fit;
+    }
+    if (fit) publish(readings, captured);
+}
+
+void SerialIn::takePackets() {
+    const std::string pattern = currentParse();
+    serial::Reading readings[kValues];
+    bool captured[kValues];
+    size_t start = 0;
+    while (start < lineLen_) {
+        size_t consumed = 0;
+        const int got = serial::matchBuffer(pattern, line_ + start, lineLen_ - start, false,
+                                            readings, captured, kValues, consumed);
+        if (got == serial::kNeedMore) break;
+        if (got < 0) { ++start; continue; }
+        {
+            const juce::SpinLock::ScopedLockType sl(textLock_);
+            lastGot_.assign(line_ + start, consumed);
+            lastFit_ = true;
+        }
+        publish(readings, captured);
+        start += consumed > 0 ? consumed : 1;
+    }
+    if (start > 0) {
+        std::memmove(line_, line_ + start, lineLen_ - start);
+        lineLen_ -= start;
+    }
+}
+
+void SerialIn::takeBytes(const char* buf, int n) {
+    const bool binary = binary_.load();
+    for (int i = 0; i < n; ++i) {
+        const char c = buf[i];
+        if (binary) {
+            if (lineLen_ + 1 >= sizeof(line_)) lineLen_ = 0;
+            line_[lineLen_++] = c;
+            continue;
+        }
+        if (c == '\n' || c == '\r') {
+            if (lineLen_ > 0) takeLine();
+            lineLen_ = 0;
+        } else if (lineLen_ + 1 < sizeof(line_)) {
+            line_[lineLen_++] = c;
+        } else {
+            lineLen_ = 0;
         }
     }
-    const double ms = params.get("Smooth", 20.0);
-    smoothK_ = ms <= 0.0 ? 1.0f
-                         : (float) (1.0 - std::exp(-1.0 / (ms * 0.001 * sampleRate_)));
-    for (int c = 0; c < 2 && c < numOut; ++c) {
-        const float target = latest_[(size_t) c].load();
-        float y = smoothed_[c];
-        float* dst = out[c];
-        for (int i = 0; i < numSamples; ++i) {
-            y += (target - y) * smoothK_;
-            dst[i] = y;
-        }
-        smoothed_[c] = y;
-    }
+    if (binary) takePackets();
 }
 
 void SerialIn::run() {
-#if !JUCE_WINDOWS
-    char line[128];
-    size_t lineLen = 0;
     while (!threadShouldExit()) {
-        std::string want;
-        {
-            const juce::SpinLock::ScopedLockType sl(portLock_);
-            want = portPath_;
-        }
-        if (want.empty()) {
-            const auto devices = serial::listDevices();
-            const int idx = deviceIndex_.load();
-            if (idx >= 2 && (size_t) (idx - 2) < devices.size())
-                want = devices[(size_t) (idx - 2)];
-            else if (!devices.empty())
-                want = devices.front();
-        }
-        const int baud = baud_.load();
-        if (fd_ < 0 || want != openedPath_ || baud != openedBaud_) {
-            closePort();
-            lineLen = 0;
-            if (want.empty() || (fd_ = serial::openPort(want, baud, false)) < 0) {
-                wait(1000);
-                continue;
-            }
-            openedPath_ = want;
-            openedBaud_ = baud;
-        }
-        fd_set set;
-        FD_ZERO(&set);
-        FD_SET(fd_, &set);
-        timeval tv{0, 200 * 1000};
-        const int ready = ::select(fd_ + 1, &set, nullptr, nullptr, &tv);
-        if (ready < 0 && errno != EINTR) { closePort(); continue; }
-        if (ready <= 0) continue;
-        char buf[64];
-        const ssize_t n = ::read(fd_, buf, sizeof(buf));
-        if (n <= 0) {
-            if (n == 0 || (errno != EAGAIN && errno != EINTR))
-                closePort();
+        if (!ensureOpen()) { wait(200); continue; }
+        if (const unsigned r = reconnects_.load(); r != seenReconnects_) {
+            seenReconnects_ = r;
+            link_->reconnect();
+            wait(200);
             continue;
         }
-        for (ssize_t i = 0; i < n; ++i) {
-            if (!ascii_.load()) {
-                latest_[0].store((float) (unsigned char) buf[i] / 255.0f);
-                continue;
-            }
-            const char c = buf[i];
-            if (c == '\n' || c == '\r') {
-                if (lineLen > 0) {
-                    line[lineLen] = '\0';
-                    float vals[2];
-                    const int got = serial::parseFloats(line, vals, 2);
-                    for (int v = 0; v < got; ++v) latest_[(size_t) v].store(vals[v]);
-                }
-                lineLen = 0;
-            } else if (lineLen + 1 < sizeof(line)) {
-                line[lineLen++] = c;
-            } else {
-                lineLen = 0;
-            }
-        }
+        char buf[128];
+        const int n = link_->read(buf, sizeof(buf), 200);
+        if (n > 0) takeBytes(buf, n);
     }
-#endif
-    closePort();
-}
-
-void SerialIn::closePort() {
-#if !JUCE_WINDOWS
-    if (fd_ >= 0) ::close(fd_);
-#endif
-    fd_ = -1;
-    openedPath_.clear();
-    openedBaud_ = 0;
+    link_.reset();
 }
 
 }

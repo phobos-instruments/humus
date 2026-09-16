@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "hum/Registry.h"
 
 #include <cctype>
@@ -71,7 +73,7 @@ void hum_register_pack_core(Registry& r) {
     r.registerClass("FileRecorder", [] { return std::make_unique<FileRecorder>(2); });
     for (int n = 1; n <= 32; ++n)
         r.registerClass(std::to_string(n) + "FileRecorder",
-                        [n] { return std::make_unique<FileRecorder>(n); });
+                        [n] { return std::make_unique<FileRecorder>(2 * n); });
 
     for (int n : {2, 3, 4, 5, 6, 7, 8}) {
         r.registerClass("S" + std::to_string(n) + "Mixer", [n] { return std::make_unique<Mixer>(n, 2); });

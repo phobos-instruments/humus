@@ -1,33 +1,25 @@
 # CameraIn
 
-The webcam as a video source. Turn on Enabled, cord the video outlet - the video-coloured pin - into one of Lumen's video inlets, a VideoMix or a VideoOut, and the live picture becomes a layer like any tape. Video cords are the third cord domain beside audio and MIDI, drawn in their own colour.
+A camera as a video source.
 
-Input picks which camera, when the machine has more than one. Mirror flips the picture left to right, which is what you want when you are performing in front of it: unmirrored, leaning left moves you right on screen.
-
-Opacity and Blend (Normal, Add, Multiply, Screen) set how the layer composites at the display, exactly as a VideoPlayer's do - so a camera feed can sit under a shader, screen over a tape, or crossfade against one in a VideoMix. Both are ordinary params, automatable and modulation-routable.
-
-## Privacy
-
-The camera opens only while Enabled is on, and the system asks permission the first time. The frames never leave Humus: they go to the display and nowhere else.
-
-## Notes
-
-CameraIn is a picture, not a controller. To play something with a camera, use Hands - it tracks a real hand skeleton and sends MIDI, which is what the motion tracking that used to live here was reaching for.
-
-Camera capture is macOS, Windows and Linux; the video display chain it feeds is macOS-only for now, so elsewhere the camera opens but the layer stays dark.
+Turn Enabled on and cord the video outlet into a Lumen layer, a VideoMix, a VideoFX or a VideoOut, and the live picture becomes a layer like any tape. The camera opens only while Enabled is on and closes when it goes off; the frames go to the display and nowhere else. It is a picture, not a controller: to play something with a camera, cord this into Hands or Skeleton, or let those open the camera themselves.
 
 ## Parameters
 
-**Enabled** opens the camera. Off means closed, not just hidden.
+**Enabled** Opens the camera. Off closes the device rather than hiding the picture.
 
-**Input** which capture device, when there is more than one.
+**Camera** Which capture device to open, when the machine has more than one.
 
-**Mirror** flips the picture left to right, so it matches your view.
+**Mirror** Flips the picture left to right, so leaning left moves you left on screen. Turn it on when you perform in front of the camera.
 
-**Opacity** how strongly this layer shows over the ones beneath it.
+**Opacity** How strongly this layer shows over the layers beneath it in a Lumen.
 
-**Blend** how it combines with those layers: Normal, Add, Multiply or Screen.
+**Blend** How the layer combines with those beneath it: Normal, Add, Multiply or Screen.
+
+## Recipe
+
+**Camera under a scene** Enabled on, Mirror on, then cord the video outlet into Lumen's first video inlet and Lumen into a VideoOut. Load a scene shader in Lumen, set SceneBlend to Add and SceneOpacity to about 0.6, so the scene glows over the live picture.
 
 ## Related Organisms
 
-Lumen, VideoMix, VideoOut, VideoPlayer, Hands
+Lumen, VideoMix, VideoOut, Hands

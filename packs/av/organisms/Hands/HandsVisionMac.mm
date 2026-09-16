@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 // Hands - macOS backends: a minimal AVCaptureSession video tap (no photo
 // output: JUCE's CameraDevice attaches one whose KVO wrapper logs
 // "NSKVONotifying_AVCapturePhotoOutput not linked" at every open), and

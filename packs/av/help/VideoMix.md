@@ -1,16 +1,18 @@
 # VideoMix
 
-The A/B crossfader. Two video inlets - inlet 1 is A, inlet 2 is B - and one outlet carrying the dissolve: Fade at 0 shows A, at 1 shows B, anywhere between a mix whose law Curve sets.
+An A/B crossfader for two video feeds.
 
-Fade is an ordinary param, which is the whole trick: map a MIDI controller to it and you have a hardware video crossfader; put an LFO modulation route on it (synced, 16 beats) and the two feeds trade places on a musical cycle; draw it in an automation lane and the cut list is part of the song.
-
-Chain them for more buses (A/B into C/D), or crossfade two whole Lumen composites for scene-to-scene transitions before the VideoOut.
+Inlet 1 is A and inlet 2 is B; the outlet carries the dissolve. Fade at 0 shows A, at 1 shows B, and anywhere between mixes the two under the law Curve sets. Fade is an ordinary param: map a controller to it for a hardware crossfader, put a synced LFO on it so the two feeds trade places every sixteen beats, or draw it in an automation lane so the cut list is part of the song. Chain two for more buses, or crossfade two whole Lumen composites before the VideoOut.
 
 ## Parameters
 
-**Fade** the dissolve. 0 is all A (inlet 1), 1 is all B (inlet 2), anywhere between is a mix shaped by Curve.
+**Fade** The dissolve. 0 is all A (inlet 1), 1 is all B (inlet 2), and between is a mix shaped by Curve.
 
-**Curve** the law of the dissolve, the same knob as on the audio Crossfader. At 0 the mix is linear, so halfway through both pictures sit at half brightness and the frame looks dim. Turn it up and each side holds its brightness further across the fade: two thirds is the equal-power law, where halfway shows both pictures near full and bright areas may clip; 1 is the hard version.
+**Curve** The law of the dissolve, the same knob as on Crossfader. At 0 it is linear, so halfway through both pictures sit at half brightness and the frame dims. Higher keeps each side bright further across the fade; two thirds is the equal-power law, and 1 is the hard version.
+
+## Recipe
+
+**Bar-synced swap** Cord a VideoPlayer into inlet 1, a CameraIn into inlet 2 and the outlet into a VideoOut. Set Curve to two thirds, then right-click Fade, choose Modulate with LFO, and sync the LFO to 8 beats with a square wave so the feeds swap on the bar.
 
 ## Related Organisms
 

@@ -32,7 +32,7 @@ target_link_libraries(hum_pack_humus PUBLIC
   juce::juce_audio_formats
   juce::juce_dsp          # SoundSpace corpus analysis (FFT features)
   juce::juce_graphics     # Halogen: decoding a picture into a spectrogram
-  juce::juce_video        # CamIn camera capture (AVFoundation-backed)
+  juce::juce_video        # CameraIn camera capture (AVFoundation-backed)
 )
 
 
@@ -64,7 +64,7 @@ if(HUM_KEYLOCK)
       GIT_REPOSITORY https://github.com/Signalsmith-Audio/linear.git
       GIT_TAG 0.3.1 GIT_SHALLOW TRUE SOURCE_SUBDIR _no_build)
     FetchContent_MakeAvailable(signalsmith_stretch signalsmith_linear)
-    target_include_directories(hum_pack_humus PUBLIC
+    target_include_directories(hum_pack_humus SYSTEM PUBLIC
       ${signalsmith_stretch_SOURCE_DIR}
       ${signalsmith_linear_SOURCE_DIR}/include)
     target_compile_definitions(hum_pack_humus PUBLIC HUM_HAS_KEYLOCK=1 HUM_STRETCH_SIGNALSMITH=1)

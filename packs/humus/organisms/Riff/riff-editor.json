@@ -4,6 +4,8 @@
   "controls": [
     {
       "type": "step-grid",
+      "nudge": "Nudge",
+      "transpose": "Transpose",
       "mode": "bassline",
       "x": 8,
       "y": 8,
@@ -24,7 +26,7 @@
       "label": "",
       "x": 52,
       "y": 166,
-      "w": 540,
+      "w": 440,
       "h": 24,
       "options": [
         "A",
@@ -36,6 +38,14 @@
         "G",
         "H"
       ]
+    },
+    {
+      "type": "bassline-import",
+      "label": "",
+      "x": 500,
+      "y": 166,
+      "w": 92,
+      "h": 24
     },
     {
       "type": "knob",
@@ -81,6 +91,15 @@
       "x": 300,
       "y": 228,
       "w": 130,
+      "h": 22
+    },
+    {
+      "type": "step-nudge",
+      "param": "Nudge",
+      "label": "Nudge",
+      "x": 440,
+      "y": 228,
+      "w": 152,
       "h": 22
     }
   ]

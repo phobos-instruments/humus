@@ -1,0 +1,398 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
+#include "gui/properties/PresetRail.h"
+
+namespace hum {
+
+PresetRail::PresetRail(PropertiesHost& host, std::string node)
+    : host_(host), node_(std::move(node)) {
+    addAndMakeVisible(recall_);
+    addAndMakeVisible(store_);
+    addAndMakeVisible(evolve_);
+    addAndMakeVisible(more_);
+    addAndMakeVisible(prev_);
+    addAndMakeVisible(next_);
+    addAndMakeVisible(field_);
+
+    recall_.setTooltip(tr("preset.recall-tip",
+                          "Recall - put the stored settings back, losing your changes"));
+    store_.setTooltip(juce::String::fromUTF8(
+        "Store - keep the current settings in this preset "
+        "(hold Alt to store a new one)"));
+    evolve_.setTooltip(juce::String::fromUTF8(
+        "Evolve - nudge the settings; press again to wander further "
+        "(one undo step)"));
+    more_.setTooltip(tr("preset.more-preset-actions", "More preset actions"));
+    prev_.setTooltip(tr("preset.previous-preset", "Previous preset"));
+    next_.setTooltip(tr("preset.next-preset", "Next preset"));
+    store_.setActiveColour(Palette::warnAmber());
+
+    recall_.onClick = [this] {
+        if (const auto r = current(); r.valid())
+            presets::recallBracketed(host_, node_,
+                                     [this, r] { host_.presets().recall(node_, r); });
+        changed();
+    };
+    store_.onClick = [this] { store(juce::ModifierKeys::currentModifiers.isAltDown()); };
+    evolve_.onClick = [this] { presets::evolve(host_, node_); changed(); };
+    more_.onClick = [this] { actMenu(more_.getScreenBounds().getBottomLeft()); };
+    prev_.onClick = [this] { step(-1); };
+    next_.onClick = [this] { step(+1); };
+    prev_.onRightClick = [this](juce::Point<int> at) {
+        showAutomateMenu(host_, node_, kPresetPrevAction, at, nullptr, false);
+    };
+    next_.onRightClick = [this](juce::Point<int> at) {
+        showAutomateMenu(host_, node_, kPresetNextAction, at, nullptr, false);
+    };
+
+    auto hover = [this](bool h) { groupHover_ = h; repaint(); };
+    prev_.onHover = hover;
+    next_.onHover = hover;
+    field_.onHover = hover;
+    field_.onBrowse  = [this] { browseMenu(); };
+    field_.onActMenu = [this](juce::Point<int> at) { actMenu(at); };
+    field_.onTextChange = [this] {
+        if (const auto r = current(); r.valid())
+            host_.presets().rename(node_, r, field_.getText().toStdString());
+        changed();
+    };
+    refresh();
+}
+
+void PresetRail::refresh() {
+    const auto* c = host_.model().byName(node_);
+    const auto all = stack();
+    const auto cur = current();
+    int idx = -1;
+    for (size_t i = 0; i < all.size(); ++i) if (all[i].ref == cur) idx = (int) i;
+    const bool has = idx >= 0;
+    const bool drift = has && c != nullptr && c->presetDirty;
+    const int count = (int) all.size();
+
+    const juce::String nm = has ? juce::String(all[(size_t) idx].name) : juce::String();
+
+    field_.setSlot(has ? idx + 1 : 0);
+    field_.setDrifted(drift);
+    field_.setColour(juce::Label::textColourId,
+                     !has  ? Palette::textDim
+                     : drift ? Palette::text
+                             : Palette::accent);
+    field_.setText(has ? (nm.isEmpty() ? juce::String(tr("preset.untitled", "(Untitled)")) : nm)
+                       : juce::String("(no preset)"),
+                   juce::dontSendNotification);
+    field_.setTooltip(has
+        ? juce::String::fromUTF8("Current preset - click to browse, "
+                                 "double-click to rename")
+        : juce::String(tr("preset.no-preset-stored-click-to", "No preset stored - click to store one")));
+
+    recall_.setEnabled(has);
+    store_.setOn(drift);
+    store_.setLead(!has);
+    prev_.setEnabled(count > 1);
+    next_.setEnabled(count > 1);
+}
+
+PresetRail::Geometry PresetRail::geometry() const {
+    return {recall_.getBounds(), store_.getBounds(), prev_.getBounds(),
+            field_.getBounds(), next_.getBounds(), evolve_.getBounds(),
+            more_.getBounds(), evolve_.isVisible()};
+}
+
+void PresetRail::paint(juce::Graphics& g) {
+    const auto r = getLocalBounds().toFloat();
+    g.setColour(Palette::background);
+    g.fillRect(r);
+    g.setColour(Palette::border.withAlpha(alpha::mid));
+    g.drawHorizontalLine(0, 0.0f, r.getWidth());
+    if (groupHover_) {
+        g.setColour(Palette::panelLight.withAlpha(alpha::muted));
+        g.fillRoundedRectangle(group_.toFloat(), 4.0f);
+        g.setColour(Palette::border);
+        g.drawRoundedRectangle(group_.toFloat().reduced(0.5f), 4.0f, 1.0f);
+    }
+}
+
+void PresetRail::resized() {
+    auto row = getLocalBounds().reduced(4, 1);
+    const int gap = row.getWidth() < 210 ? 4 : 8;
+
+    recall_.setBounds(row.removeFromLeft(kBtn));
+    row.removeFromLeft(2);
+    store_.setBounds(row.removeFromLeft(kBtn));
+    row.removeFromLeft(gap);
+
+    more_.setBounds(row.removeFromRight(kBtn));
+    evolve_.setVisible(row.getWidth() - kBtn - 2 - gap - 32 >= 60);
+    if (evolve_.isVisible()) {
+        row.removeFromRight(2);
+        evolve_.setBounds(row.removeFromRight(kBtn));
+    }
+    row.removeFromRight(gap);
+
+    group_ = row;
+    prev_.setBounds(row.removeFromLeft(kArrow));
+    next_.setBounds(row.removeFromRight(kArrow));
+    field_.setBounds(row);
+}
+
+std::vector<presets::Entry> PresetRail::stack() const {
+    return presets::stack(host_.model().byName(node_));
+}
+
+void PresetRail::changed() {
+    refresh();
+    if (onChanged) onChanged();
+}
+
+void PresetRail::step(int dir) {
+    presets::recallBracketed(host_, node_,
+                             [this, dir] { host_.presets().recallAdjacent(node_, dir); });
+    changed();
+}
+
+void PresetRail::store(bool asNew) {
+    const auto cur = current();
+    const bool fresh = asNew || !cur.valid();
+    host_.presets().store(node_, fresh ? presets::Ref{} : cur);
+    changed();
+    if (fresh) field_.showEditor();
+}
+
+void PresetRail::confirmClear(const presets::Ref& ref) {
+    const juce::String nm = juce::String(ref.name);
+    const juce::String what = nm.isEmpty()
+        ? juce::String("this preset")
+        : juce::String::fromUTF8("\xe2\x80\x9c") + nm + juce::String::fromUTF8("\xe2\x80\x9d");
+    if (ref.source == presets::Source::Shipped) return;
+    const bool mine = ref.source == presets::Source::Patch;
+    juce::AlertWindow::showOkCancelBox(
+        juce::MessageBoxIconType::QuestionIcon,
+        "Delete preset",
+        mine ? "Delete " + what + " from this patch?"
+             : "Delete " + what + " from your user presets?",
+        "Delete", "Cancel", this,
+        juce::ModalCallbackFunction::create(
+            [&host = host_, node = node_, ref,
+             sp = juce::Component::SafePointer<PresetRail>(this)](int r) {
+                if (r != 1) return;
+                host.presets().clear(node, ref);
+                if (sp) sp->changed();
+            }));
+}
+
+void PresetRail::browseMenu() {
+    const auto all = stack();
+    const auto cur = current();
+    auto item = [&](juce::PopupMenu& into, size_t i) {
+        const auto& e = all[i];
+        into.addItem((int) i + 1, e.name.empty() ? juce::String(tr("preset.untitled", "(Untitled)")) : juce::String(e.name),
+                     true, e.ref == cur);
+    };
+    auto sourceMenu = [&](juce::PopupMenu& into, presets::Source src) {
+        bool any = false;
+        for (size_t i = 0; i < all.size(); ++i)
+            if (all[i].ref.source == src && all[i].group.empty()) { item(into, i); any = true; }
+        std::vector<std::string> groups;
+        for (const auto& e : all)
+            if (e.ref.source == src && !e.group.empty()
+                && std::find(groups.begin(), groups.end(), e.group) == groups.end())
+                groups.push_back(e.group);
+        for (const auto& g : groups) {
+            juce::PopupMenu sub;
+            for (size_t i = 0; i < all.size(); ++i)
+                if (all[i].ref.source == src && all[i].group == g) item(sub, i);
+            into.addSubMenu(juce::String(g), sub);
+            any = true;
+        }
+        return any;
+    };
+    juce::PopupMenu m;
+    sourceMenu(m, presets::Source::Shipped);
+    juce::PopupMenu lib, mine;
+    if (sourceMenu(lib, presets::Source::Library)) m.addSubMenu(tr("preset.user-presets", "User Presets"), lib);
+    if (sourceMenu(mine, presets::Source::Patch)) m.addSubMenu(tr("preset.this-patch", "This patch"), mine);
+    m.addSeparator();
+    if (cur.valid() && cur.source != presets::Source::Patch)
+        m.addItem(kPin, juce::String::fromUTF8("Copy \xe2\x80\x9c") + juce::String(cur.name)
+                            + juce::String::fromUTF8("\xe2\x80\x9d into this patch"));
+    m.addItem(kSaveLib, juce::String::fromUTF8("Save as User Preset\xe2\x80\xa6"));
+    m.addItem(kBrowser, juce::String::fromUTF8("Presets window\xe2\x80\xa6"));
+    m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&field_),
+                    [sp = juce::Component::SafePointer<PresetRail>(this), all](int r) {
+        if (sp == nullptr || r == 0) return;
+        if (r == kBrowser) { if (sp->onOpenBrowser) sp->onOpenBrowser(); return; }
+        if (r == kPin) { sp->pinCurrent(); return; }
+        if (r == kSaveLib) { sp->promptSaveToLibrary(); return; }
+        if (r < 1 || r > (int) all.size()) return;
+        const auto ref = all[(size_t) r - 1].ref;
+        presets::recallBracketed(sp->host_, sp->node_,
+                                 [&sp, ref] { sp->host_.presets().recall(sp->node_, ref); });
+        sp->changed();
+    });
+}
+
+void PresetRail::pinCurrent() {
+    const auto all = stack();
+    const auto* e = presets::find(all, current());
+    if (e == nullptr) return;
+    PresetModel pm;
+    pm.name = e->name;
+    pm.properties = e->properties;
+    const int n = host_.presets().adopt(node_, std::move(pm));
+    if (n > 0) host_.presets().setCurrent(node_, {presets::Source::Patch, n, e->name});
+    changed();
+}
+
+void PresetRail::adoptFromLibrary(const std::vector<PresetDef>& lib, size_t i) {
+    if (i < lib.size()) adoptDef(lib[i]);
+}
+
+void PresetRail::adoptDef(const PresetDef& def) {
+    const auto* c = host_.model().byName(node_);
+    if (c == nullptr) return;
+    const int n = host_.presets().adopt(
+        node_, presetlib::toModel(def, schemaFor(c->classRaw), 0));
+    if (n <= 0) return;
+    const presets::Ref ref{presets::Source::Patch, n, def.name};
+    presets::recallBracketed(host_, node_,
+                             [this, ref] { host_.presets().recall(node_, ref); });
+    changed();
+}
+
+void PresetRail::exportPreset() {
+    const auto* c = host_.model().byName(node_);
+    if (c == nullptr) return;
+    juce::String nm = juce::String(c->displayClass);
+    for (const auto& pm : c->presets)
+        if (pm.number == c->currentPreset && !pm.name.empty())
+            nm = juce::String(pm.name);
+    chooser_ = std::make_unique<juce::FileChooser>(
+        "Export preset",
+        startDirFor(DirPurpose::Preset)
+            .getChildFile(juce::File::createLegalFileName(nm) + ".humpreset"),
+        "*.humpreset");
+    chooser_->launchAsync(
+        juce::FileBrowserComponent::saveMode | juce::FileBrowserComponent::canSelectFiles
+            | juce::FileBrowserComponent::warnAboutOverwriting,
+        [sp = juce::Component::SafePointer<PresetRail>(this)](const juce::FileChooser& fc) {
+            auto f = fc.getResult();
+            if (f == juce::File() || sp == nullptr) return;
+            if (!f.hasFileExtension("humpreset")) f = f.withFileExtension("humpreset");
+            if (const auto* c = sp->host_.model().byName(sp->node_))
+                f.replaceWithText(juce::JSON::toString(presetlib::presetFileVar(
+                    c->classRaw,
+                    presetlib::capture(
+                        *c, f.getFileNameWithoutExtension().toStdString()))));
+        });
+}
+
+void PresetRail::importPreset() {
+    chooser_ = std::make_unique<juce::FileChooser>(
+        "Import preset",
+        startDirFor(DirPurpose::Preset),
+        "*.humpreset");
+    chooser_->launchAsync(
+        juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+        [sp = juce::Component::SafePointer<PresetRail>(this)](const juce::FileChooser& fc) {
+            const auto f = fc.getResult();
+            if (f == juce::File() || sp == nullptr) return;
+            const auto* c = sp->host_.model().byName(sp->node_);
+            if (c == nullptr) return;
+            PresetDef def;
+            const auto cls = presetlib::parsePresetFile(
+                juce::JSON::parse(f.loadFileAsString()), def);
+            if (cls.empty() || parseClassString(cls).display != c->displayClass) {
+                juce::AlertWindow::showMessageBoxAsync(
+                    juce::MessageBoxIconType::WarningIcon, tr("preset.import-preset", "Import preset"),
+                    cls.empty()
+                        ? juce::String(tr("preset.this-is-not-a-humus", "This is not a Humus preset file."))
+                        : "This preset belongs to "
+                              + juce::String(parseClassString(cls).display) + ", not "
+                              + juce::String(c->displayClass) + ".");
+                return;
+            }
+            sp->adoptDef(def);
+        });
+}
+
+void PresetRail::promptSaveToLibrary() {
+    const auto* c = host_.model().byName(node_);
+    if (c == nullptr) return;
+    juce::String initial = tr("preset.my-preset", "My Preset");
+    for (const auto& pm : c->presets)
+        if (pm.number == c->currentPreset && !pm.name.empty())
+            initial = juce::String(pm.name);
+    auto* aw = new juce::AlertWindow(
+        "Save to Library",
+        "Name these settings. Library presets appear in every new "
+            + juce::String(c->displayClass)
+            + ". Saving to an existing name replaces it.",
+        juce::MessageBoxIconType::NoIcon);
+    aw->addTextEditor("name", initial);
+    aw->addButton(tr("preset.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
+    aw->addButton(tr("preset.cancel", "Cancel"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
+    aw->enterModalState(true, juce::ModalCallbackFunction::create(
+        [aw, sp = juce::Component::SafePointer<PresetRail>(this)](int r) {
+            const juce::String name = aw->getTextEditorContents("name").trim();
+            if (r != 1 || name.isEmpty() || sp == nullptr) return;
+            if (const auto* c = sp->host_.model().byName(sp->node_)) {
+                presetlib::save(c->classRaw, presetlib::capture(*c, name.toStdString()));
+            }
+        }), true);
+}
+
+void PresetRail::actMenu(juce::Point<int> at) {
+    const auto cur = current();
+    const bool has = cur.valid();
+    const bool mine = has && cur.source == presets::Source::Patch;
+    juce::PopupMenu m;
+    if (!evolve_.isVisible()) { m.addItem(kEvolve, tr("preset.evolve", "Evolve")); m.addSeparator(); }
+    m.addItem(kGenerate, juce::String::fromUTF8("Generate with AI\xe2\x80\xa6"));
+    m.addSeparator();
+    m.addItem(kRecall, tr("preset.recall", "Recall"), has);
+    m.addItem(kStore, tr("preset.store", "Store"), has);
+    m.addItem(kStoreNew, tr("preset.store-as-new", "Store as new"));
+    m.addItem(kSaveLib, juce::String::fromUTF8("Save as User Preset\xe2\x80\xa6"));
+    m.addItem(kRename, juce::String::fromUTF8("Rename\xe2\x80\xa6"), has);
+    m.addItem(kClear, juce::String::fromUTF8("Delete\xe2\x80\xa6"),
+              has && cur.source != presets::Source::Shipped);
+    m.addItem(kPin, tr("preset.pin-to-this-patch", "Pin to this patch"), has && !mine);
+    m.addSeparator();
+    m.addItem(kCut, tr("preset.cut", "Cut"), mine);
+    m.addItem(kCopy, tr("preset.copy", "Copy"), has);
+    m.addItem(kPaste, tr("preset.paste", "Paste"), host_.presets().canPaste(node_));
+    m.addSeparator();
+    m.addItem(kExport, juce::String::fromUTF8("Export\xe2\x80\xa6"));
+    m.addItem(kImport, juce::String::fromUTF8("Import\xe2\x80\xa6"));
+    m.addSeparator();
+    m.addItem(kBrowser, juce::String::fromUTF8("Presets window\xe2\x80\xa6"));
+    m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({at.x, at.y, 1, 1}),
+                    [sp = juce::Component::SafePointer<PresetRail>(this), cur](int r) {
+        if (sp == nullptr || r == 0) return;
+        auto& h = sp->host_;
+        const auto& n = sp->node_;
+        switch (r) {
+            case kEvolve:   presets::evolve(h, n); sp->changed(); break;
+            case kGenerate: presets::showGenie(h, n,
+                                [sp] { if (sp) sp->changed(); }); break;
+            case kRecall:   presets::recallBracketed(h, n,
+                                [&h, &n, cur] { h.presets().recall(n, cur); });
+                            sp->changed(); break;
+            case kStore:    sp->store(false); break;
+            case kStoreNew: sp->store(true); break;
+            case kSaveLib:  sp->promptSaveToLibrary(); break;
+            case kRename:   sp->field_.showEditor(); break;
+            case kClear:    sp->confirmClear(cur); break;
+            case kPin:      sp->pinCurrent(); break;
+            case kCut:      h.presets().cut(n, cur); sp->changed(); break;
+            case kCopy:     h.presets().copy(n, cur); sp->changed(); break;
+            case kPaste:    h.presets().paste(n); sp->changed(); break;
+            case kExport:   sp->exportPreset(); break;
+            case kImport:   sp->importPreset(); break;
+            case kBrowser:  if (sp->onOpenBrowser) sp->onOpenBrowser(); break;
+            default: break;
+        }
+    });
+}
+
+}

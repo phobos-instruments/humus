@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <mutex>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/PitchBend.h"
 #include "hum/dsp/Biquad.h"
 #include "hum/dsp/BlepOsc.h"
 #include "hum/dsp/Lfo.h"
@@ -15,6 +18,7 @@ public:
     static constexpr int kMaxLayers = 64;
     static constexpr int kVoices = 8;
     static constexpr int kMaxStack = 8;
+    static constexpr double kPhaseStride = 0.6180339887498949;
 
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 2; }
@@ -72,6 +76,7 @@ private:
     int lastCount_ = 0;
 
     int next_ = 0;
+    PitchBend bend_;
 };
 
 }

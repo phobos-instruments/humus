@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "ValveFilter/ValveFilter.h"
 
 #include <algorithm>
@@ -13,6 +15,9 @@ void ValveFilter::process(const float* const* in, int numIn, float* const* out, 
         return (c < numIn && in[c]) ? in[c][n] : 0.0f;
     };
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
+    const double osr = sr * os_[0].factor();
+    const double dcPole = 1.0 - (1.0 - 0.9989) / os_[0].factor();
+    const int lag = os_[0].latency();
 
     const bool legacy = params.byName("Mode") != nullptr;
     const int legacyMode = (int) params.get("Mode", 0.0);
@@ -51,7 +56,7 @@ void ValveFilter::process(const float* const* in, int numIn, float* const* out, 
         double y = std::tanh(u);
         if (hard_ > 0.0) y += hard_ * (std::clamp(u, -0.85, 0.85) - y);
         y *= norm_;
-        const double dcOut = y - dcx_[c] + 0.9989 * dcy_[c];
+        const double dcOut = y - dcx_[c] + dcPole * dcy_[c];
         dcx_[c] = y;
         dcy_[c] = dcOut;
         y = dcOut;
@@ -81,7 +86,7 @@ void ValveFilter::process(const float* const* in, int numIn, float* const* out, 
                               : 0.707 * std::pow(10.0, res01 * 1.35);
             q /= 1.0 + 1.8 * env01 * (q / 16.0);
             if (fc < 150.0) q = std::max(0.707, q * std::sqrt(fc / 150.0));
-            g_ = SvfTpt::gFor(fc, sr);
+            g_ = SvfTpt::gFor(fc, osr);
             k_ = 1.0 / q;
             const double d = std::clamp(drive01 + (efToOd ? envAmt * env01 : 0.0), 0.0, 1.0);
             vg_ = 1.0 + d * 24.0;
@@ -97,18 +102,23 @@ void ValveFilter::process(const float* const* in, int numIn, float* const* out, 
 
         double wetL, wetR;
         if (mono) {
-            const double w = stage(stage(L, 0), 1);
+            const double w = os_[0].process((float) L, [&](float u) { return (float) stage(stage(u, 0), 1); });
             wetL = wetR = w;
         } else {
-            wetL = stage(L, 0);
-            wetR = stage(R, 1);
+            wetL = os_[0].process((float) L, [&](float u) { return (float) stage(u, 0); });
+            wetR = os_[1].process((float) R, [&](float u) { return (float) stage(u, 1); });
         }
+        dry_[0][(size_t) dryPos_] = (float) L;
+        dry_[1][(size_t) dryPos_] = (float) R;
+        const int lagged = (dryPos_ - lag + kDryRing) % kDryRing;
+        const double dryL = dry_[0][(size_t) lagged], dryR = dry_[1][(size_t) lagged];
+        dryPos_ = (dryPos_ + 1) % kDryRing;
         if (invMix) {
-            wetL = L - wetL;
-            wetR = R - wetR;
+            wetL = dryL - wetL;
+            wetR = dryR - wetR;
         }
-        if (numOut > 0) out[0][n] = (float) (L * (1.0 - on_) + wetL * on_);
-        if (numOut > 1) out[1][n] = (float) (R * (1.0 - on_) + wetR * on_);
+        if (numOut > 0) out[0][n] = (float) (dryL * (1.0 - on_) + wetL * on_);
+        if (numOut > 1) out[1][n] = (float) (dryR * (1.0 - on_) + wetR * on_);
     }
 }
 

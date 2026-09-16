@@ -1,6 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <cmath>
+#include <cstdlib>
+#include <iterator>
 #include <string>
 
 #include "hum/Pattern.h"
@@ -30,6 +34,35 @@ inline double delaySteps(double step, double ticksPerStep, const Groove& g) {
 
 inline Groove grooveFor(double amount, const std::string& unit) {
     return {amount, stepTicksFor(unit)};
+}
+
+inline constexpr int kGridDenominators[] = {8, 16, 32};
+inline constexpr int kGridChoices = (int) std::size(kGridDenominators);
+
+inline constexpr bool gridsDivideTheBar() {
+    for (int d : kGridDenominators)
+        if ((Pattern::kTicksPerBeat * 4) % d != 0) return false;
+    return true;
+}
+static_assert(gridsDivideTheBar());
+
+inline int gridIndexClamped(long index) {
+    return (int) std::clamp(index, 0L, (long) kGridChoices - 1);
+}
+
+inline int gridTicksAt(long index) {
+    return (Pattern::kTicksPerBeat * 4) / kGridDenominators[gridIndexClamped(index)];
+}
+
+inline std::string gridUnitAt(long index) {
+    return "1/" + std::to_string(kGridDenominators[gridIndexClamped(index)]);
+}
+
+inline int gridIndexOf(int gridTicks) {
+    int best = 0;
+    for (int i = 1; i < kGridChoices; ++i)
+        if (std::abs(gridTicksAt(i) - gridTicks) < std::abs(gridTicksAt(best) - gridTicks)) best = i;
+    return best;
 }
 
 template <class Params, class Xport>

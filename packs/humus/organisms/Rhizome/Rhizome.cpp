@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Rhizome/Rhizome.h"
 
 #include <algorithm>
@@ -23,6 +25,8 @@ void Rhizome::reset() {
         for (auto& r : v.runners) r.osc.reset();
     }
     next_ = 0;
+    bend_.reset();
+    bendRatio_ = 1.0;
     lpL_.reset();
     lpR_.reset();
 }
@@ -54,19 +58,22 @@ void Rhizome::process(const float* const*, int, float* const* out, int numOut,
 
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
 
-    {
-        std::lock_guard<std::mutex> g(liveLock_);
+    if (std::unique_lock<std::mutex> g(liveLock_, std::try_to_lock); g.owns_lock()) {
         for (int i = 0; i < liveCount_; ++i)
             if (stagedCount_ < (int) staged_.size()) staged_[(size_t) stagedCount_++] = liveQ_[(size_t) i];
         liveCount_ = 0;
     }
     for (int i = 0; i < stagedCount_; ++i) {
         const auto& e = staged_[(size_t) i];
+        if (bend_.apply(e)) continue;
         const int st = e.data[0] & 0xF0;
         if (st == 0x90 && e.data[2] > 0) noteOn(e.data[1], e.data[2]);
         else if (st == 0x80 || (st == 0x90 && e.data[2] == 0)) noteOff(e.data[1]);
     }
     stagedCount_ = 0;
+    const double bendFrom = bendRatio_;
+    bendRatio_ = bend_.ratio(bendRangeOf(params));
+    const double bendStep = (bendRatio_ - bendFrom) / (double) std::max(1, numSamples);
 
     const int runners = std::clamp((int) std::lround(params.get("Runners", 4.0)), 1, kMaxRunners);
     const int interval = std::clamp((int) std::lround(params.get("Interval", 7.0)), 1, 24);
@@ -105,7 +112,7 @@ void Rhizome::process(const float* const*, int, float* const* out, int numOut,
             for (int k = 0; k < runners; ++k) {
                 auto& r = v.runners[(size_t) k];
                 const double det = std::pow(2.0, (creep * Lfo::sine(r.creep.tick())) / 1200.0);
-                const double dt = std::clamp(v.hz[(size_t) k] * det / sr, 0.0, 0.49);
+                const double dt = std::clamp(v.hz[(size_t) k] * det * (bendFrom + bendStep * i) / sr, 0.0, 0.49);
                 float s;
                 if (wave == 0) {
                     s = (float) std::sin(kTwoPi * r.osc.phase);

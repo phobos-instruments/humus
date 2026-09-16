@@ -1,28 +1,36 @@
-# Pink Trombone
+# PinkTrombone
 
-A human voice built from anatomy, after Pink Trombone by Neil Thapen. There is no sample and no oscillator bank in the usual sense: a model of the glottis makes the buzz of vocal folds, and a waveguide the shape of a throat, mouth and nose filters it into vowels, hums and hisses - the same physics as the thing in your neck.
+A human voice built from a model of the throat, after Pink Trombone by Neil Thapen.
 
-Play it from MIDI: the held note is the pitch, velocity leans into the loudness. The Tongue pair steers the vowel - Front slides the tongue's hump between throat and teeth, Raise arches it toward the palate; ee, ah, oh and oo all live somewhere on those two knobs. Tenseness runs from breathy whisper to pressed buzz, and the model breathes on its own - tiny wanders in pitch and pressure that keep a held note alive. Wobble exaggerates them into a seasick warble; Drone keeps the voice sounding with no note held.
-
-Squeeze pinches the tract shut at Place - lips at the top of the dial, throat at the bottom. A light squeeze makes fricatives (s, sh, f territory depending on Place), a full squeeze stops the air and releasing it pops a plosive. Nasal opens the velum so the sound escapes through the nose - hold it open for m and n hums, or colour a vowel with a little of it. Automate Tongue, Squeeze and Nasal from an LFO or a Slider and the organism babbles.
+There is no sample and no oscillator bank: a model of the glottis makes the buzz of the vocal folds, and a waveguide the shape of a throat, mouth and nose filters it into vowels, hums and hisses. Play it from MIDI: the held note is the pitch and velocity leans into the loudness. The Tongue pair steers the vowel, Squeeze pinches the tract shut at Place for fricatives and stops, and Nasal opens the passage to the nose. Small wanders in pitch and pressure keep a held note alive. Cord an LFO or a Slider onto TongueX, Squeeze and Nasal and it babbles; cord its output into a Harmonizer or a Trellis.
 
 ## Parameters
 
-**Front / Raise** where the tongue's hump sits and how high it arches - the vowel space.
+**TongueX** Front. Slides the tongue's hump between throat and teeth; with TongueY it places the vowel.
 
-**Place / Squeeze** where and how hard the tract is pinched: none for vowels, a little for fricatives, all the way for stops.
+**TongueY** Raise. Arches the tongue toward the palate.
 
-**Nasal** opens the passage to the nose.
+**Place** Where the tract is pinched: lips at the top of the dial, throat at the bottom.
 
-**Tenseness** vocal fold pressure, breath to buzz. Velocity scales the result.
+**Squeeze** How hard the tract is pinched at Place. None for vowels, a little for fricatives, all the way to stop the air so that releasing it pops a plosive.
 
-**Vibrato** depth of the deliberate pitch wave; the involuntary wander underneath never quite stops.
+**Nasal** Opens the velum so sound escapes through the nose. Hold it open for m and n hums, or colour a vowel with a little of it.
 
-**Wobble** adds a slow drunken drift to the pitch.
+**Tenseness** Vocal fold pressure, from breathy whisper to pressed buzz. Velocity scales the result.
 
-**Drone** the voice keeps sounding with no MIDI note, at the last pitch it was given.
+**Vibrato** Depth of the deliberate pitch wave and of the slow drift under it.
 
-**Level** output gain.
+**Wobble** Exaggerates the involuntary wander into a slow warble.
+
+**Drone** Keeps the voice sounding with no note held, at the last pitch it was given.
+
+**Level** Output gain.
+
+**BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
+
+## Recipe
+
+**Choir bed** Drone on, Tenseness 0.5, Vibrato 0.3, TongueX 0.3 and TongueY 0.6 for an oo. Send one MIDI note to set the pitch, cord an LFO at 0.1 Hz onto TongueX at a small depth so the vowel drifts, and cord the output through a Verbatim.
 
 ## Related Organisms
 

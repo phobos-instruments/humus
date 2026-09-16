@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <cmath>
 
@@ -38,7 +40,7 @@ public:
         float p = phase + static_cast<float> (index) / static_cast<float> (NumOutputs);
         if (p >= 1.0f)
             p -= 1.0f;
-        return std::sin (hum::kTwoPi * p);
+        return static_cast<float> (std::sin (hum::kTwoPi * p));
     }
 
 private:

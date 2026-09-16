@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<humus-document version="1">
+  <patch>
+    <clock tempo="120.0" loop-start="0.0" loop-end="0.0" loop-enabled="0"/>
+    <contraption class="Slider" name="Pixel">
+      <properties>
+        <property index="0" name="Value">
+          <double>0.0</double>
+        </property>
+        <property index="1" name="Min">
+          <double>0</double>
+        </property>
+        <property index="2" name="Max">
+          <double>1</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Slider" name="Red">
+      <properties>
+        <property index="0" name="Value">
+          <double>1.0</double>
+        </property>
+        <property index="1" name="Min">
+          <double>0</double>
+        </property>
+        <property index="2" name="Max">
+          <double>1</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Slider" name="Green">
+      <properties>
+        <property index="0" name="Value">
+          <double>0.0</double>
+        </property>
+        <property index="1" name="Min">
+          <double>0</double>
+        </property>
+        <property index="2" name="Max">
+          <double>1</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Slider" name="Blue">
+      <properties>
+        <property index="0" name="Value">
+          <double>0.0</double>
+        </property>
+        <property index="1" name="Min">
+          <double>0</double>
+        </property>
+        <property index="2" name="Max">
+          <double>1</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="SerialOut" name="Ring">
+      <properties>
+        <property index="0" name="Device">
+          <int>1</int>
+        </property>
+        <property index="1" name="BaudRate">
+          <enum>8</enum>
+        </property>
+        <property index="2" name="Rate">
+          <int>30</int>
+        </property>
+        <property index="7" name="Send">
+          <enum>1</enum>
+        </property>
+        <property index="8" name="Values">
+          <int>4</int>
+        </property>
+        <property index="19" name="Scale1">
+          <double>23</double>
+        </property>
+        <property index="20" name="Int1">
+          <bool>1</bool>
+        </property>
+        <property index="35" name="Format">
+          <text>P %1 %2 %3 %4\n</text>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value1" property-index="-1">
+          <mod-controller source-organism="Pixel" source-value="value" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+        <property-sources property-name="Value2" property-index="-1">
+          <mod-controller source-organism="Red" source-value="value" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+        <property-sources property-name="Value3" property-index="-1">
+          <mod-controller source-organism="Green" source-value="value" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+        <property-sources property-name="Value4" property-index="-1">
+          <mod-controller source-organism="Blue" source-value="value" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+  </patch>
+  <contraption-views>
+    <contraption-view contraption-name="Pixel" patcher-x="352" patcher-y="126" editor-visible="1"
+                      editor-x="40" editor-y="40"/>
+    <contraption-view contraption-name="Red" patcher-x="492" patcher-y="126" editor-visible="1"
+                      editor-x="240" editor-y="40"/>
+    <contraption-view contraption-name="Green" patcher-x="632" patcher-y="126" editor-visible="1"
+                      editor-x="440" editor-y="40"/>
+    <contraption-view contraption-name="Blue" patcher-x="352" patcher-y="188" editor-visible="1"
+                      editor-x="640" editor-y="40"/>
+    <contraption-view contraption-name="Ring" patcher-x="492" patcher-y="188" editor-visible="1"
+                      editor-x="40" editor-y="300"/>
+  </contraption-views>
+  <automation-views/>
+  <performance-boxes/>
+  <notes>Four sliders paint a 24-LED ring running NeoPixel.ino. Pixel picks which LED, scaled by 23 and rounded by SerialOut's Scale and Int, Red, Green and Blue say how much of each, and the Format sends them as one line, P 5 1 0 0, when a slider moves. Flash the sketch from this folder, wire the ring's data pin to 6, plug the board in, move a slider.</notes>
+</humus-document>

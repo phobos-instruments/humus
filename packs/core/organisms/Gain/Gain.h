@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
 #include "hum/Organism.h"
 #include "hum/dsp/LevelMeter.h"
+#include "hum/dsp/SmoothedGain.h"
 
 namespace hum {
 
@@ -12,7 +15,11 @@ public:
     int numAudioInputs() const override { return channels_; }
     int numAudioOutputs() const override { return channels_; }
 
-    void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; meter_.prepare(sampleRate); }
+    void prepare(double sampleRate, int) override {
+        sampleRate_ = sampleRate;
+        meter_.prepare(sampleRate);
+        gain_.prepare(sampleRate);
+    }
 
     int meterChannels() const override { return channels_; }
     float meterLevel(int ch) const override { return meter_.level(ch); }
@@ -23,6 +30,7 @@ public:
 private:
     int channels_;
     LevelMeter meter_;
+    SmoothedGain gain_;
 };
 
 }

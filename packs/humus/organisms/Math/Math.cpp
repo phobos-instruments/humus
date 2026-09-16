@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Math/Math.h"
 
 #include <algorithm>
@@ -8,15 +10,33 @@
 
 namespace hum {
 
+FormulaProgram MathNode::compileExpression(const std::string& source, const FormulaProgram& last) {
+    FormulaProgram prog = last;
+    std::string text = source;
+    while (!compileFormula(text.c_str(), prog) && !prog.valid() && text.size() > 1)
+        text.pop_back();
+    return prog;
+}
+
+void MathNode::syncExpression() {
+    const std::string text = params.getText("Expression");
+    if (text == appliedText_) return;
+    appliedText_ = text;
+    prog_ = compileExpression(text, prog_);
+    for (auto& st : state_) seedFormulaState(st.data(), prog_);
+}
+
+void MathNode::onTextChanged(const std::string& param, const std::string& text) {
+    if (param != "Expression") return;
+    appliedText_ = text;
+    pendingProg_.publish(compileExpression(text, prog_));
+}
+
 void MathNode::process(const float* const* in, int numIn, float* const* out, int numOut,
                        int numSamples, const Transport& transport) {
     if (numOut < 1) return;
-    if (const auto* p = params.byName("Expression"); p != nullptr && p->text != cachedText_) {
-        cachedText_ = p->text;
-        std::string text = p->text;
-        while (!compileFormula(text.c_str(), prog_) && !prog_.valid() && text.size() > 1)
-            text.pop_back();
-    }
+    if (pendingProg_.adopt(prog_))
+        for (auto& st : state_) seedFormulaState(st.data(), prog_);
     for (int c = 2; c < numOut; ++c)
         std::memset(out[c], 0, sizeof(float) * (size_t) numSamples);
     float* dst = out[0];

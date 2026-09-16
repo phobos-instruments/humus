@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <atomic>
@@ -9,12 +11,15 @@
 
 #include <juce_audio_basics/juce_audio_basics.h>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Files.h"
+#include "hum/caps/Midi.h"
+#include "hum/caps/Samples.h"
 #include "hum/Organism.h"
 #include "hum/SliceEdits.h"
 #include "hum/dsp/SliceDetect.h"
 
 #include "hum/dsp/DspMath.h"
+#include "hum/dsp/Prepared.h"
 
 namespace hum {
 
@@ -32,6 +37,15 @@ public:
                  int numSamples, const Transport& transport) override;
 
     void loadFromFile(const std::string& uri) override;
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        syncEdits();
+    }
+    void onTextChanged(const std::string& param, const std::string& text) override {
+        if (param != "SliceEdits") return;
+        appliedEdits_ = text;
+        pendingEdits_.publish(parseSliceEdits(text));
+    }
 
     int numMidiInputs() const override { return 1; }
     int numMidiOutputs() const override { return 0; }
@@ -82,8 +96,16 @@ private:
     std::array<int, kMaxSliceOnsets> perm_{};
     int lastShuffle_ = 0, lastPermCount_ = -1;
 
+    void syncEdits() {
+        const std::string text = params.getText("SliceEdits");
+        if (text == appliedEdits_) return;
+        appliedEdits_ = text;
+        edits_ = parseSliceEdits(text);
+    }
+
     std::map<int, SliceEdit> edits_;
-    std::string editsCache_;
+    Prepared<std::map<int, SliceEdit>> pendingEdits_;
+    std::string appliedEdits_;
     std::array<Voice, kVoices> voices_;
     Voice loopVoice_;
     int lastWindow_ = -1;

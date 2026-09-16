@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
 #include "hum/Organism.h"
+#include "hum/dsp/DcBlock.h"
 #include "hum/dsp/LevelMeter.h"
 
 namespace hum {
@@ -34,6 +37,7 @@ private:
     int blockLen_ = 0;
     float gainSm_ = 1.0f;
     std::vector<std::vector<float>> block_;
+    std::vector<DcBlock> dc_;
     LevelMeter meter_;
 };
 

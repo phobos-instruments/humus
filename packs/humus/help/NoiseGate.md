@@ -1,32 +1,28 @@
 # NoiseGate
 
-The doorway. A gate passes sound while it is loud enough to be worth hearing and shuts when it is not, which removes the hiss, hum, spill and room tone that live in the gaps. What you notice is not the noise leaving; it is the silence arriving, and how much room that silence leaves for everything else.
+A gate that passes sound while it is loud enough and shuts when it is not, or ducks it the other way round.
 
-Use it to clean up a recorded part between phrases, to tighten a drum by cutting its tail short, or - in Duck mode with a fast release - as a rhythmic effect rather than a repair.
-
-## Two thresholds
-
-The Threshold control has two handles because the gate has two levels: the upper is where it opens, the lower where it closes. Setting them apart is what stops a gate chattering, since a signal hovering right at the line would otherwise open and shut many times a second. Open high, close low, and a sound has to genuinely fall away before the door moves.
+It removes the hiss, hum and spill that live in the gaps between phrases, tightens a drum by cutting its tail short, and in Duck mode holds the sound down while it crosses the threshold. The Threshold control has two handles because the gate has two levels: the upper opens it, the lower closes it, and keeping them apart stops the gate chattering on a signal that hovers at the line. Detection is linked across channels, so it never chops one side out of the image. There is no key input: to gate one sound from the rhythm of another, use SideChain. Cord it after a SoundIn or before a Compressor.
 
 ## Parameters
 
-**Mode** Gate passes loud sounds and attenuates quiet ones - the usual way round, and the one that cleans up a signal. Duck does the opposite, holding a bed down under anything that crosses the threshold. The header dropdown switches stereo and mono in place; detection is linked across channels either way, so the gate cannot chop one side out of the image.
+**Mode** Off passes loud sounds and attenuates quiet ones. Duck does the opposite, holding the sound down while it crosses the threshold.
 
-**Threshold** the open level (upper handle) and the close level (lower handle). Keep them apart to stop chattering.
+**InputGain** Trims the incoming sound before detection, so material can be driven over the threshold without moving it.
 
-**Range** how much the sound is attenuated while the gate is closed. At the bottom of its travel nothing passes at all; a little way up leaves the gaps quiet rather than empty, which is usually more natural.
+**Threshold** The open level on the upper handle and the close level on the lower. Keep them apart to stop chattering.
 
-**AttackTime** how quickly the gate opens. Fast enough not to blunt the start of a note, slow enough not to click.
+**Range** How far the sound is attenuated while the gate is closed. At the bottom nothing passes; a little way up leaves the gaps quiet rather than empty.
 
-**HoldTime** how long the gate stays open after the signal falls below the close threshold. The other half of the anti-chatter story, and what lets a drum keep its body before the gate shuts.
+**AttackTime** How quickly the gate opens, in milliseconds. Fast enough not to blunt a note, slow enough not to click.
 
-**ReleaseTime** how quickly the gate closes once the hold has expired. Short is abrupt and rhythmic, long fades the tail out.
+**HoldTime** How long the gate stays open after the signal falls below the close level, in milliseconds. It lets a drum keep its body before the gate shuts.
 
-**InputGain** trims the incoming sound before detection, so you can drive material over the threshold without moving it.
+**ReleaseTime** How quickly the gate closes once the hold has expired, in milliseconds. Short is abrupt and rhythmic, long fades the tail.
 
-## Notes
+## Recipe
 
-There is no separate key input: the gate opens and closes on the sound passing through it. To gate one sound from the rhythm of a different one, use SideChain, whose key inlet exists for exactly that.
+**Tight snare** Cord the snare in. Threshold open 0.3 and close 0.15, Range 0, AttackTime 0.5, HoldTime 40, ReleaseTime 60. Lower HoldTime until the tail is cut short, and raise Range a little if the gaps sound empty.
 
 ## Related Organisms
 

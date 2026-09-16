@@ -1,32 +1,32 @@
 # Lumen
 
-The visual compositor: it listens to whatever audio you patch into its two inlets and paints it. To see it, cord its video outlet into a VideoOut and open that from Control > Video Outputs - the same way a synth needs a SoundOut to be heard. The VideoOut's Screen param owns the projector.
+A shader compositor that paints the audio it hears and stacks video layers under it.
 
-Scene takes a GLSL fragment shader (.frag) or an ISF file (.fs) and hot-reloads it whenever the file changes on disk; leave it empty for the built-in scene. Shaders see the audio as hum_Level, hum_Bands, hum_Beat/hum_BPM/hum_OnBeat, plus hum_Wave and hum_Spectrum textures; an ISF file's own float inputs ride Knob1-4. Brightness, Speed and the Knobs are ordinary params - automatable and mod-routable, so a Follower or LFO can play the picture the same way it plays a filter.
-
-Two more shader dialects load as they are. A live-visuals scene file (renderMain plus the syn_ audio vocabulary) gets the full mapping - levels, hits, beat values, the spectrum texture - including multipass scenes that feed buffers back on themselves; controls that lived in the scene's own project file arrive as uniforms reading zero. A sprite effect shader (.fsh, the v_tex_coord and u_texture vocabulary) runs with the video layers beneath as its input texture, so effect shaders become layer effects and generators simply draw; its u_ values ride the Knobs - strength on Knob1, speed and colour on Knob2, frequency, density and grids on Knob3, width and detail on Knob4, brightness on Brightness.
-
-Video: the four video inlets take VideoPlayer decks (or any video-outlet organism) over video cords - the third cord domain, in its own colour. Layers stack bottom-to-top under the Scene, which floats over them via SceneOpacity/SceneBlend. Opacity, rate, blend and wear live on each deck: the player is the clip's channel strip.
+Cord audio into its two inlets and the scene draws to it; cord its video outlet into a VideoOut to see it, the way a synth needs a SoundOut to be heard. Scene takes a fragment shader file and reloads it whenever the file changes on disk; empty runs the built-in scene. Shaders read the audio as level, bands, beat, tempo, a waveform texture and a spectrum texture, and a scene's own float inputs ride Knob1 to Knob4. The four video inlets take VideoPlayer, VideoPad, CameraIn or VideoTrack layers, stacked bottom to top, with the scene floating over them by SceneOpacity and SceneBlend. Each layer's opacity and blend live on the organism that feeds it.
 
 ## Parameters
 
-**Scene** the shader to run: .frag, .fs, .glsl or .fsh. Empty runs the built-in scene, and edits to the file reload while it plays.
+**Scene** The shader file to run: .frag, .fs, .glsl or .fsh. Empty runs the built-in scene, and edits to the file reload while it plays.
 
-**Brightness** the overall output level of the scene.
+**Brightness** The overall output level of the scene.
 
-**Speed** how fast the scene's own time runs. 0 freezes it.
+**Speed** How fast the scene's own clock runs. 0 freezes it; 2 runs at double speed.
 
-**Knob1** a value the scene reads for itself. What it does depends on the shader.
+**Knob1** A value the scene reads for itself; what it does depends on the shader. An effect shader takes its strength here.
 
-**Knob2** the second such value.
+**Knob2** The second such value. An effect shader takes speed and colour here.
 
-**Knob3** the third.
+**Knob3** The third. An effect shader takes frequency, density and grid counts here.
 
-**Knob4** the fourth.
+**Knob4** The fourth. An effect shader takes width and detail here.
 
-**SceneOpacity** how strongly the scene shows over the video layers beneath it.
+**SceneOpacity** How strongly the scene shows over the video layers beneath it.
 
-**SceneBlend** whether the scene sits Over the video layers or Adds to them.
+**SceneBlend** Over lays the scene on top of the video layers. Add sums it with them, so the dark parts of the scene vanish and the bright parts glow.
+
+## Recipe
+
+**Audio-reactive overlay** Cord the master mix into both audio inlets and a VideoPlayer into the first video inlet. Leave Scene empty, set SceneBlend to Add and SceneOpacity to 0.5, then route a Follower from the kick onto Brightness so the scene flashes with the beat. Cord the outlet into a VideoOut and open it from the Video Outputs menu.
 
 ## Related Organisms
 

@@ -1,7 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 
 #include "hum/Organism.h"
+#include "hum/ParamRef.h"
 #include "hum/dsp/Biquad.h"
 
 namespace hum {
@@ -29,6 +32,7 @@ private:
 
     int bands_;
     std::array<double, kMaxBands - 1> def_ {};
+    std::array<ParamRef, kMaxBands - 1> freq_ = numberedParams<kMaxBands - 1>("Freq");
     std::array<Split, kMaxBands - 1> splits_;
     Biquad ap_[kMaxBands - 1][kMaxBands - 1][2][2];
     std::array<double, kMaxBands - 1> lastF_ {};

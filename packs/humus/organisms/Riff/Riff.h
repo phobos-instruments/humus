@@ -1,8 +1,10 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
@@ -46,8 +48,13 @@ public:
     void process(const float* const* in, int numIn, float* const* out, int numOut,
                  int numSamples, const Transport& transport) override;
 
+    static constexpr int kAccentVelocity = 118;
+    static constexpr double kSlideOverlapSeconds = 0.003;
+    static constexpr long kMinNoteSamples = 32;
+
 private:
     void emit(int offset, bool on, int note, int vel);
+    void placeSteps(int numSamples, const Transport& transport);
 
     Pattern pattern_;
     bool stepsDirty_ = true;

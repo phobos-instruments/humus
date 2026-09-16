@@ -1,22 +1,18 @@
 # FrequencyShifter
 
-The unmooring. This is not a pitch shifter, and the difference is the whole organism: a pitch shifter multiplies every frequency by the same amount, so the harmonics stay in step and the sound keeps its identity at a new pitch. This adds the same number of hertz to every frequency instead. A harmonic series at 100, 200, 300 shifted by 50 becomes 150, 250, 350 - no longer a harmonic series at all.
+Adds a fixed number of hertz to every frequency in the signal.
 
-The sound stops being a note and becomes a bell, a scrape, a piece of metal.
-
-Small shifts of a few hertz are a slow phasing shimmer; larger ones destroy pitch entirely and leave you the texture. Automate it and material slides between the two.
+A pitch shifter multiplies every frequency by the same ratio, so harmonics stay in step and the sound keeps its identity. This organism adds the same number of hertz to each one instead: a series at 100, 200 and 300 shifted by 50 becomes 150, 250 and 350, which is no longer harmonic. Small shifts of a few hertz give a slow phasing shimmer against the dry signal; larger shifts turn a note into a bell or a scrape. It works as a single-sideband shifter, so the result stays clean rather than sounding like ring modulation, and the same oscillator drives both channels so the stereo image holds. Cord it after a Rhizome or a Sampler, or after a Fern so the repeats slide away from the note.
 
 ## Parameters
 
-**ShiftFrequency** how many hertz to add, positive or negative. At zero nothing happens. Negative shifts push the partials together rather than apart, and low harmonics can be driven down through zero and back up, which is where the strangest sounds are.
+**ShiftFrequency** How many hertz to add, positive or negative. Negative shifts push the partials together, and low harmonics can be driven down through zero and back up.
 
-**WetDryMix** how much of the shifted sound is heard against the original. Small shifts against the dry signal beat slowly against it; full wet abandons the original pitch completely.
+**WetDryMix** How much of the shifted signal is heard against the original. Small shifts against the dry signal beat slowly; full wet abandons the original pitch entirely.
 
-## How it works
+## Recipe
 
-Shifting every frequency by a fixed amount requires knowing which way each one is rotating, which a plain audio signal does not tell you. The organism builds an analytic version of the signal - the original in one hand, and a copy phase-shifted by a quarter cycle at every frequency in the other - using a Hilbert transform filter. With both, each frequency can be multiplied against a quadrature oscillator so that the unwanted mirror image cancels and only the upward or downward shift survives. That cancellation is why this is called single-sideband, and why it sounds clean rather than like ring modulation.
-
-The oscillator is shared by both channels, so the stereo image is preserved.
+**Slow shimmer** Cord a sustained pad in. ShiftFrequency 3, WetDryMix 0.5, and the shifted copy beats against the dry pad about three times a second. Cord an LFO onto ShiftFrequency with a small Amplitude to make the beating drift.
 
 ## Related Organisms
 

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "SideKick/SideKick.h"
 
 #include <algorithm>
@@ -20,10 +22,7 @@ void SideKick::process(const float* const* in, int numIn, float* const* out, int
         return;
     }
 
-    if (const auto* sp = params.byName("Shape"); sp != nullptr && sp->text != cachedText_) {
-        decodeGainShape(sp->text.c_str(), shape_);
-        cachedText_ = sp->text;
-    }
+    pendingShape_.adopt(shape_);
 
     const double mix = std::clamp(params.get("Mix", 1.0), 0.0, 1.0);
     static const double kBars[] = {1.0, 1.0 / 2, 1.0 / 4, 1.0 / 8, 1.0 / 16};

@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <cstdlib>
 #include <string>
 #include <vector>
 
 #include "hum/Pattern.h"
+#include "hum/caps/Midi.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -33,6 +36,21 @@ inline int stepTicksFor(const std::string& resolution) {
         if (denom <= 0) denom = 16;
     }
     return (Pattern::kTicksPerBeat * 4) / denom;
+}
+
+inline int wrappedNudge(int current, int by, int steps) {
+    if (steps <= 0) return 0;
+    int r = ((current + by) % steps + steps) % steps;
+    if (r > steps / 2) r -= steps;
+    return r;
+}
+
+template <class Step>
+inline std::vector<Step> rotatedSteps(const std::vector<Step>& steps, int by) {
+    const int n = (int) steps.size();
+    std::vector<Step> out(steps.size());
+    for (int i = 0; i < n; ++i) out[(size_t) (((i + by) % n + n) % n)] = steps[(size_t) i];
+    return out;
 }
 
 inline std::vector<BasslineStep> decodeBassline(const std::string& m) {
@@ -141,6 +159,26 @@ struct CCEvent {
     int value = 64;
 };
 
+inline constexpr int kBendController = 128;
+inline constexpr int kBendMax = 16383;
+inline constexpr int kBendCentre = 8192;
+
+inline int ccValueMax(int controller) { return controller == kBendController ? kBendMax : kMidiMax; }
+
+inline void fillControlEvent(MidiEvent& e, int channel, int controller, int value) {
+    e.size = 3;
+    if (controller == kBendController) {
+        const int w = value < 0 ? 0 : value > kBendMax ? kBendMax : value;
+        e.data[0] = (unsigned char) (0xE0 | (channel & 0x0F));
+        e.data[1] = (unsigned char) (w & 0x7F);
+        e.data[2] = (unsigned char) ((w >> 7) & 0x7F);
+        return;
+    }
+    e.data[0] = (unsigned char) (0xB0 | (channel & 0x0F));
+    e.data[1] = (unsigned char) (controller < 0 ? 0 : controller > kMidiMax ? kMidiMax : controller);
+    e.data[2] = (unsigned char) (value < 0 ? 0 : value > kMidiMax ? kMidiMax : value);
+}
+
 inline std::vector<CCEvent> decodeCCEvents(const std::string& text) {
     std::vector<CCEvent> out;
     const char* p = text.c_str();
@@ -160,8 +198,9 @@ inline std::vector<CCEvent> decodeCCEvents(const std::string& text) {
                         p = end;
                         CCEvent c;
                         c.tick = (int) (tick < 0 ? 0 : tick);
-                        c.controller = (int) (num < 0 ? 0 : num > kMidiMax ? kMidiMax : num);
-                        c.value = (int) (val < 0 ? 0 : val > kMidiMax ? kMidiMax : val);
+                        c.controller = (int) (num < 0 ? 0 : num > kBendController ? kBendController : num);
+                        const long top = ccValueMax(c.controller);
+                        c.value = (int) (val < 0 ? 0 : val > top ? top : val);
                         out.push_back(c);
                     }
                 }

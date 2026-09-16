@@ -1,0 +1,1 @@
+the round trip: a ramp from the board, an LFO echoed back, the LED under a Button

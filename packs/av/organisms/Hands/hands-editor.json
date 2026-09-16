@@ -136,6 +136,10 @@
     },
     {
       "type": "hand-gestures",
+      "gestures": "Gestures",
+      "tolerance": "Tolerance",
+      "note-prefix": "GNote_",
+      "threshold-prefix": "GThresh_",
       "x": 12,
       "y": 248,
       "w": 576,

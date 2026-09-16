@@ -2,7 +2,9 @@
   "classes": [
     {
       "class": "SoundOut",
+      "roles": ["audio-out", "master-out"],
       "category": "Input/Output",
+      "blurb": "The interface output, where the patch is finally heard.",
       "params": [
         {
           "name": "Channel",
@@ -16,6 +18,13 @@
           "min": 0.0,
           "max": 2.0,
           "def": 1.0
+        },
+        {
+          "name": "DcGuard",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
         }
       ],
       "editor": "layout:soundout-editor.json"

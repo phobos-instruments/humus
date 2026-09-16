@@ -1,16 +1,24 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <algorithm>
 #include <string>
+#include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
+#include "hum/caps/Graph.h"
 #include "hum/Organism.h"
+#include "hum/ParamRef.h"
 #include "hum/dsp/LevelMeter.h"
+#include "hum/dsp/SmoothedGain.h"
 
 namespace hum {
 
 class Console : public Organism, public LevelMeterSource, public WantsNullInlets {
 public:
-    Console(int numInputs, int width) : numInputs_(numInputs), width_(width) {}
+    Console(int numInputs, int width) : numInputs_(numInputs), width_(width) {
+        for (int k = 0; k < numInputs; ++k) strips_.push_back(stripParams(k, width));
+    }
 
     int numAudioInputs() const override { return numInputs_ * width_; }
     int numAudioOutputs() const override { return width_; }
@@ -18,6 +26,8 @@ public:
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
         meter_.prepare(sampleRate);
+        outputS_.prepare(sampleRate);
+        for (auto* s : {&driveS_, &xtalkS_, &stressS_}) s->prepare(sampleRate, kToneRampMs);
         reset();
     }
 
@@ -41,11 +51,15 @@ public:
                  int numSamples, const Transport& transport) override;
 
 private:
-    std::string gainSuffix(int k) const;
+    static constexpr double kToneRampMs = 30.0;
+    struct Strip { ParamRef mute, solo, gain, pan; };
+    static Strip stripParams(int k, int width);
 
     int numInputs_;
     int width_;
+    std::vector<Strip> strips_;
     LevelMeter meter_;
+    SmoothedGain outputS_, driveS_, xtalkS_, stressS_;
 
     double xtLpL_ = 0.0, xtLpR_ = 0.0;
     double sagEnv_ = 0.0;

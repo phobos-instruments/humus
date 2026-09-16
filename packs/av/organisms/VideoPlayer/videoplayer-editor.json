@@ -15,6 +15,7 @@
     },
     {
       "type": "video-transport",
+      "file": "File",
       "param": "",
       "label": "",
       "x": 12,

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Mineral/Mineral.h"
 
 #include <algorithm>
@@ -52,9 +54,12 @@ void Mineral::process(const float* const*, int, float* const* out, int numOut,
         v.phR.fill(0.0);
         sigHit_.store(1.0f, std::memory_order_relaxed);
     };
-    for (int i = 0; i < nEv; ++i)
+    for (int i = 0; i < nEv; ++i) {
+        if (bend_.apply(ev[i])) continue;
         if ((ev[i].data[0] & 0xF0) == 0x90 && ev[i].data[2] > 0)
             strikeVoice(ev[i].data[1], ev[i].data[2]);
+    }
+    const double bendRatio = bend_.ratio(bendRangeOf(params));
 
     const long strikeLen = (long) (0.002 * sr);
     for (auto& v : voices_) {
@@ -62,10 +67,9 @@ void Mineral::process(const float* const*, int, float* const* out, int numOut,
         double active = 0.0;
         for (int i = 0; i < numSamples; ++i) {
             float sl = 0.0f, sr2 = 0.0f;
-            double a = shine >= 0.97 ? 1.0 : 1.0;
             double facetAmp = 1.0;
             for (int p = 0; p < facets; ++p) {
-                const double f = v.f0 * std::pow(ratio, p);
+                const double f = v.f0 * bendRatio * std::pow(ratio, p);
                 if (f > sr * 0.45) break;
                 const double env = std::exp(-(double) v.t / (decay / (1.0 + 0.8 * p)));
                 const double det = shimmer * 0.004 * (p + 1);

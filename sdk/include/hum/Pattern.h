@@ -1,4 +1,7 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include "hum/Extensions.h"
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -41,6 +44,7 @@ struct PatternChannel {
     double fadeOutCurve = 0.0;
 
     bool audioReverse = false;
+    const PatternChannelExt* ext = nullptr;
     double audioPitch = 0.0;
 };
 

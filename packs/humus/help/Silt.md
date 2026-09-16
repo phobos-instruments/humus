@@ -1,51 +1,53 @@
 # Silt
 
-The finest sediment in the soil. Silt is the home computer's sound chip: the MOS 6581 - the SID that gave the Commodore 64 its voice - and its cleaner 8580 revision, both emulated by the reSID core, cycle by cycle, analog filter included.
+A three-voice chip synth emulating the MOS SID, the home computer sound chip, through the reSID core.
 
-Three voices share one filter, the way the hardware did. Each note takes a voice; a fourth note steals the oldest. Every voice plays the same shape - a wave, a pulse width, and the chip's own four-stage envelope in its native sixteen steps - which is what playing this chip polyphonically always meant.
-
-The filter is the famous part. The 6581's is warm, misbiased and slightly broken in a way three decades of music grew to love; the 8580's is the corrected one. Switch Model and the same patch wears both. Low, band and high modes, a sixteen-step resonance, and a cutoff that sweeps the register range the chip actually had.
-
-Ring modulation and hard sync are the chip's own tricks: each voice bends its neighbour, so with three voices sounding they chew on each other exactly as the register map intended. Ring modulation speaks through the triangle wave; sync works on all of them.
-
-Pitch comes from the patch tuning, so a microtonal scale plays on a chip that never heard of one - to the resolution of its sixteen-bit frequency registers, which is finer than a cent.
-
-Twin mode is the second chip the modders soldered in. The home computer grew MIDI through cartridge interfaces, and the boldest boards put a second SID at a mirrored address. Here the twin doubles every note, the pair detuned to straddle the pitch by Spread, one chip leading each side with a taste of the other blended in - so the beat is there whether you take one cord or two. The second chip has its own model switch, because the boards people actually built mixed a warm original with a clean revision as often as not. Chain is the other trick from those boards - the first chip's output wired into the second's audio-in pin, so the left side arrives dry and the right side arrives again through the second chip's analog filter.
-
-Play it over a MIDI cord from a PianoRoll, DNA or MidiIn, or with the QWERTY keyboard while its editor is focused.
+Both the original 6581 and the cleaner 8580 revision are emulated cycle by cycle, analog filter included. Three voices share one filter as the hardware did; a fourth note steals the oldest voice. Every voice plays the same wave, pulse width and the chip's own four-stage envelope in its native sixteen steps. Pitch comes from the patch tuning to the resolution of the chip's frequency registers, so a microtonal scale plays. Twin mode adds a second chip, as the modded boards did, doubling every note with the pair detuned across the stereo image. Play it over a MIDI cord from a PianoRoll, DNA or MidiIn, or with the keyboard while its editor is focused.
 
 ## Parameters
 
-**Model** which chip: the original with the warm, wayward filter, or the revision with the corrected one. Switching lands with a low thump - the two chips rest at different voltages, and the step between them is softened here rather than hidden, since speaking through DC steps is how this chip played samples in the first place.
+**Model** Which chip: 6581 with the warm, wayward filter, or 8580 with the corrected one. Switching fades the level in briefly to soften the step between the two chips' resting voltages.
 
-**Wave** triangle, sawtooth, pulse or noise - the chip's four.
+**Wave** TRI, SAW, PLS or NSE, the chip's four waveforms.
 
-**Width** the pulse wave's duty cycle. Only audible on pulse.
+**PulseWidth** The pulse wave's duty cycle. Only audible on PLS.
 
-**Attack, Decay, Sustain, Release** the envelope, in the chip's own sixteen steps each. Attack 0 is instant; release 15 rings for seconds.
+**Attack** Envelope attack in the chip's sixteen steps. 0 is instant.
 
-**Cutoff** where the filter closes, across the register range of the hardware.
+**Decay** Envelope decay to the sustain level, in sixteen steps.
 
-**Reso** how hard the filter sings at the cutoff.
+**Sustain** The level held while the note is down, in sixteen steps.
 
-**Filter mode** low, band or high pass.
+**Release** Envelope release after note-off, in sixteen steps. 15 rings for seconds.
 
-**Filter** takes the filter out entirely - the raw voices, brighter and louder.
+**Cutoff** Where the filter closes, across the register range of the hardware.
 
-**Ring** each voice ring-modulates with its neighbour. Metallic, clangorous; speaks through the triangle wave.
+**Resonance** How hard the filter sings at the cutoff, in sixteen steps.
 
-**Sync** each voice hard-syncs to its neighbour.
+**FilterMode** LOW, BAND or HIGH pass.
 
-**Chips** one chip, or the twin board: every note on both, one chip leading each side.
+**Filter** Takes the filter out entirely for the raw voices, brighter and louder.
 
-**B 6581 / B 8580** which chip the second one is. Mixing a warm original with the clean revision is half the reason to own two.
+**Ring** Each voice ring-modulates with its neighbour, metallic and clangorous. It speaks through the TRI wave.
 
-**Spread** how far apart the pair is detuned, in cents, straddling the note.
+**Sync** Each voice hard-syncs to its neighbour.
 
-**Chain** wires the first chip's output through the second chip's filter, the way the twin boards did on the audio-in pin. Twin only.
+**Chips** ONE chip, or TWIN: every note on both chips, one leading each side with a little of the other blended in.
 
-**Level** output level.
+**TwinDetune** How far apart the twin pair is detuned, in cents, straddling the note. Shown as Spread.
+
+**Chain** Wires the first chip's output through the second chip's filter, so the left side arrives dry and the right side through a second analog filter. TWIN only.
+
+**ModelB** Which chip the second one is, B 6581 or B 8580. Mixing a warm original with the clean revision is half the point of two.
+
+**Level** Output level.
+
+**BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
+
+## Recipe
+
+**Chip bass** Model 6581, Wave PLS, PulseWidth 0.25, Attack 0, Decay 9, Sustain 6, Release 5, FilterMode LOW, Cutoff 0.45, Resonance 8. Cord a Riff to the MIDI inlet and add an LFO onto PulseWidth at a quarter of a bar for the classic pulse sweep. Switch to TWIN with TwinDetune 8 to widen it.
 
 ## Related Organisms
 
-pH, Acid, Rhizome, PianoRoll, DNA, MidiIn
+pH, Acid, Rhizome, PianoRoll

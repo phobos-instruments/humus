@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<humus-document version="1">
+  <patch>
+    <clock tempo="120.0" loop-start="0.0" loop-end="0.0" loop-enabled="0"/>
+    <contraption class="Board" name="Board">
+      <properties>
+        <property index="0" name="Device">
+          <int>1</int>
+        </property>
+        <property index="1" name="BaudRate">
+          <enum>7</enum>
+        </property>
+        <property index="6" name="Outlets">
+          <int>1</int>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Number" name="Number">
+      <properties>
+        <property index="0" name="Value">
+          <double>0</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Value" property-index="0">
+          <mod-controller source-organism="Board" source-value="out1" map-minimum="0.0"
+                          map-maximum="1.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <contraption class="TestGen" name="TestGen">
+      <properties>
+        <property index="0" name="Amplitude">
+          <double>0.3</double>
+        </property>
+        <property index="1" name="Frequency">
+          <double>110</double>
+        </property>
+        <property index="2" name="Waveform">
+          <enum>2</enum>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <contraption class="Filter" name="Filter">
+      <properties>
+        <property index="9" name="Resonance">
+          <double>0.6</double>
+        </property>
+        <property index="13" name="Frequency">
+          <double>800</double>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources>
+        <property-sources property-name="Frequency" property-index="13">
+          <mod-controller source-organism="Number" source-value="value" map-minimum="200.0"
+                          map-maximum="8000.0"/>
+        </property-sources>
+      </modulation-sources>
+    </contraption>
+    <contraption class="SoundOut" name="SoundOut">
+      <properties>
+        <property index="0" name="Channel">
+          <int>1</int>
+        </property>
+      </properties>
+      <presets current-preset-dirty="1"/>
+      <modulation-sources/>
+    </contraption>
+    <audio-connection from="TestGen" from-outlet="0" to="Filter" to-inlet="0"/>
+    <audio-connection from="TestGen" from-outlet="1" to="Filter" to-inlet="1"/>
+    <audio-connection from="Filter" from-outlet="0" to="SoundOut" to-inlet="0"/>
+    <audio-connection from="Filter" from-outlet="1" to="SoundOut" to-inlet="1"/>
+  </patch>
+  <contraption-views>
+    <contraption-view contraption-name="Board" patcher-x="422" patcher-y="298" editor-visible="1"
+                      editor-x="40" editor-y="40"/>
+    <contraption-view contraption-name="Number" patcher-x="562" patcher-y="298" editor-visible="1"
+                      editor-x="40" editor-y="360"/>
+    <contraption-view contraption-name="TestGen" patcher-x="422" patcher-y="40" editor-visible="0"
+                      editor-x="380" editor-y="40"/>
+    <contraption-view contraption-name="Filter" patcher-x="422" patcher-y="126" editor-visible="1"
+                      editor-x="380" editor-y="200"/>
+    <contraption-view contraption-name="SoundOut" patcher-x="422" patcher-y="212" editor-visible="0"
+                      editor-x="380" editor-y="480"/>
+  </contraption-views>
+  <automation-views/>
+  <performance-boxes/>
+  <notes>A temperature sensor on A0 of a board running the standard Firmata sketch plays a filter: Board's first outlet lands on a Number so you can watch the reading, and the Number's value opens the Filter through a Control-with route. Flash StandardFirmata, plug the board in, warm the sensor.</notes>
+</humus-document>

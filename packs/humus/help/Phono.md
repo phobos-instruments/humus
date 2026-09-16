@@ -1,27 +1,21 @@
 # Phono
 
-A true phono pre-amplifier. Plug a turntable into your audio interface's line input, put Phono right after SoundIn, and the record plays back at the right level with the right tone - the RIAA de-emphasis curve, cartridge gain and a rumble filter, exactly the job the phono stage in a mixer or amplifier does.
+A phono pre-amplifier: RIAA de-emphasis, cartridge gain and a rumble filter for a turntable plugged into a line input.
 
-Why it is needed: records are cut with the bass reduced and the treble boosted (the RIAA curve, standard since 1954), and a cartridge puts out millivolts, not line level. Without correction a record sounds thin, screechy and very quiet. Phono undoes the curve and restores the level.
-
-"True" means measured, not flavoured: the de-emphasis filter is fitted to the exact analog RIAA response at your running sample rate, and the test suite holds it to a fraction of a dB across the audio band - including the top octave at 44.1 kHz, where naive digital RIAA filters go badly wrong.
+Records are cut with the bass reduced and the treble boosted, and a cartridge puts out millivolts, so a record played straight into a line input sounds thin and very quiet. Phono undoes the curve and restores the level. The de-emphasis filter is fitted to the analog RIAA response at the running sample rate, top octave included. Cord it directly after a SoundIn and before a Deck, a Console or a Mixer. If the interface channel has a phono/line switch, set it to line, or the correction is applied twice. Signal flow is de-emphasis, then rumble filter, then gain.
 
 ## Parameters
 
-**Curve** RIAA is the standard playback curve. RIAA + IEC adds the IEC amendment's gentle 20 Hz roll-off (a first-order subsonic cut some phono stages include). Flat skips the EQ and keeps only the gain - useful for archival transfers you plan to equalise later, or for 78s that predate the RIAA standard.
+**Curve** RIAA is the standard playback curve. RIAA + IEC adds a gentle 20 Hz roll-off that some phono stages include. Flat skips the equalisation and keeps only the gain, for transfers you will equalise later or for records that predate the standard.
 
-**Gain** cartridge gain in dB. A moving-magnet (MM) cartridge - every standard DJ cartridge is one - wants about 40 dB. A low-output moving-coil (MC) audiophile cartridge wants about 60 dB. Too low sounds quiet; too high clips.
+**Gain** Cartridge gain in dB. A moving-magnet cartridge, which is every standard DJ cartridge, wants about 40; a low-output moving-coil cartridge wants about 60. Too high clips.
 
-**Rumble** an 18 Hz subsonic filter (3rd-order Butterworth) that removes warp wobble and turntable rumble before they eat headroom. On by default; turn it off for measurement work.
+**Rumble** An 18 Hz high-pass that removes warp wobble and turntable rumble before they eat headroom. On by default; turn it off for measurement work.
 
-## Signal flow
+## Recipe
 
-Input -> RIAA de-emphasis -> Rumble filter -> Gain -> Output.
-
-## Notes
-
-The turntable must be plugged into a line input for this to work - if your mixer or interface channel has a phono/line switch, set it to line, or the RIAA correction will be applied twice. Software cannot provide the 47 kOhm cartridge loading a hardware phono input presents; with most MM cartridges the audible difference is a small treble tilt. Everything else - curve, gain, rumble - is fully handled here.
+**Turntable in** Cord SoundIn into Phono and Phono into a Deck or a Mixer. Curve RIAA, Rumble on, Gain 40 for a moving-magnet cartridge; raise Gain in steps of 5 until a loud passage reads just under full on the meters.
 
 ## Related Organisms
 
-Console, Gain
+Console, Gain, Deck, SoundIn

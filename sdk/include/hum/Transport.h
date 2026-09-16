@@ -1,4 +1,9 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include "hum/Extensions.h"
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <string>
 
@@ -11,6 +16,9 @@ namespace hum {
 
 class Transport {
 public:
+    const TransportExt* ext() const { return ext_; }
+    void setExt(const TransportExt* e) { ext_ = e; }
+
     void prepare(double sampleRate, double tempoBpm) {
         sampleRate_ = sampleRate;
         tempoBpm_ = tempoBpm;
@@ -22,8 +30,26 @@ public:
     bool playing() const { return playing_; }
     void setPlaying(bool p) { playing_ = p; }
 
-    double beatsPerBar() const { return beatsPerBar_; }
+    double beatsPerBar() const { return meterMapped() ? meter().quarterNotesPerBar() : beatsPerBar_; }
     void setBeatsPerBar(double b) { if (b > 0.0) beatsPerBar_ = b; }
+
+    bool meterMapped() const {
+        return extHas(ext_, (std::uint32_t) (offsetof(TransportExt, meterCount) + sizeof(std::int32_t)))
+               && ext_->meterChanges != nullptr && ext_->meterCount > 0;
+    }
+    Meter meterAt(double beat) const {
+        if (meterMapped()) return meter::at(ext_->meterChanges, ext_->meterCount, beat);
+        return Meter{(std::int32_t) (beatsPerBar_ + 0.5), 4};
+    }
+    Meter meter() const { return meterAt(beats()); }
+    double barStartBefore(double beat) const {
+        if (meterMapped()) return meter::barStartBefore(ext_->meterChanges, ext_->meterCount, beat);
+        return std::floor(beat / beatsPerBar_) * beatsPerBar_;
+    }
+    double nextBarStart(double beat) const {
+        if (meterMapped()) return meter::nextBarStart(ext_->meterChanges, ext_->meterCount, beat);
+        return (std::floor(beat / beatsPerBar_ + 1.0e-9) + 1.0) * beatsPerBar_;
+    }
 
     int64_t samplePosition() const { return samplePos_; }
     std::uint32_t seekStamp() const { return seekStamp_; }
@@ -81,8 +107,12 @@ public:
 
     double beats() const { return beatPos_; }
 
-    int bar() const { return 1 + (int) (beats() / beatsPerBar_); }
+    int bar() const {
+        if (meterMapped()) return meter::barAt(ext_->meterChanges, ext_->meterCount, beats());
+        return 1 + (int) (beats() / beatsPerBar_);
+    }
     double beatInBar() const {
+        if (meterMapped()) return meter::beatInBar(ext_->meterChanges, ext_->meterCount, beats());
         double b = beats();
         return 1.0 + (b - (double) (long) (b / beatsPerBar_) * beatsPerBar_);
     }
@@ -101,6 +131,7 @@ public:
     }
 
 private:
+    const TransportExt* ext_ = nullptr;
     double sampleRate_ = kDefaultSampleRate;
     double tempoBpm_ = 120.0;
     double beatsPerBar_ = 4.0;

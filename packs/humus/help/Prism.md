@@ -1,28 +1,26 @@
 # Prism
 
-A prism for sound. The input is split into its harmonics the way glass splits light into colours, and each colour gets a fader: unity passes the harmonic exactly as heard, zero subtracts it, and pushing above unity grows it - including harmonics the source never had. An added harmonic rides the fundamental's own envelope, so it blooms and dies with the note instead of droning over it. Feed it a voice, a bass line, or a Wave.
+A harmonic resynthesiser that splits the input into sixteen harmonics and gives each one a fader.
+
+Unity passes a harmonic as heard, zero subtracts it, and above unity grows it, including harmonics the source never had; an added harmonic rides the fundamental's own envelope, so it blooms and dies with the note. Refract rebuilds the sound one partial at a time over a pitch tracker and wants pitched, one-note-at-a-time material; Filter is a harmonic equaliser on the spectrum itself and handles chords, drums and noise. The dry path is delayed to match, so any Mix blend stays phase-coherent. The readout shows the note the tracker is locked onto, named in the patch's Tuning. Feed it a voice, a bass line or a Wave.
 
 ## Parameters
 
-**Mode** Refract rebuilds the sound one partial at a time (true additive resynthesis over a pitch tracker) - this is the engine that can add harmonics and disperse them, and it wants pitched, one-note-at-a-time material. Filter is a harmonic EQ on the spectrum itself: it handles chords, drums and noise, stereo intact, but can only reshape the harmonics that are already there.
+**Mode** Refract resynthesises the partials in mono and fades to silence when nothing pitched is heard. Filter reshapes the harmonics already present, stereo intact, and cannot add new ones.
 
-**H1..H16** the fader per harmonic, 0 to 2 with unity in the middle.
+**Dispersion** Refract only. Stretches the spacing between partials so a harmonic lands beyond its whole-number multiple of the fundamental; positive slides toward bells and metal, a touch of negative pulls the stack tighter.
 
-**Disperse** Refract only: stretches the spacing between partials, so harmonic k moves beyond k times the fundamental. Positive values slide the sound toward bells and metal; a touch of negative pulls the stack into a tighter cluster. No EQ can do this - the partials are being re-struck, not filtered.
+**Residual** Filter only. The gain of everything between the harmonics. At 0 a sound is reduced to its tone; with the faders at 0 and Residual up, the tone goes and the breath and room remain.
 
-**Residual** Filter only: the gain of everything between the harmonics. At 0 a sound is purified down to its tone; with the faders at 0 and Residual up, the tone is removed and the breath, bow noise and room remain.
+**Mix** Dry against wet.
 
-**Mix** dry/wet. The dry path is delayed to match, so any blend stays phase-coherent.
+**Level** Output level of the wet signal.
 
-**Level** output level of the refracted signal.
+**Harm_1** The fader for the first harmonic, 0 to 2 with unity in the middle, and so on for Harm_2 to Harm_16.
 
-## Signal flow
+## Recipe
 
-Input -> pitch tracker -> split (heterodyne bank or STFT) -> faders -> recombine -> Mix with the delayed dry -> Output. The editor's readout shows the note the prism is locked onto, named in the patch's Tuning.
-
-## Notes
-
-Both modes carry the same small delay, and the patch compensates for it. Refract's output is the oscillator bank alone, in mono: when the tracker hears nothing pitched, the bank fades to silence rather than chasing noise. Switch to Filter for material without one clear pitch.
+**Bell from a bass** Mode Refract, and cord a Rhizome playing single notes in. Harm_1 at 1, Harm_2 to Harm_5 at 1.6, the rest at 0, Dispersion 6, Mix 1. Each note now rings as a bell that follows the bass's own envelope.
 
 ## Related Organisms
 

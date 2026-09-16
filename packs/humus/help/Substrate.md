@@ -1,24 +1,38 @@
 # Substrate
 
-The layer everything grows on: an evolving drone/pad of stacked strata. Up to 64 detuned saw layers climb an Interval ladder above the root, each with its own slow, independent drift in pitch and level - the bed never sits still. Layers alternate across the stereo field. The preset rail carries the classic ladders (Octaves, Fifths, Thirds) and a few whole beds - recall one, then bend it.
+An evolving drone or pad of up to 64 detuned saw layers stacked on an interval ladder.
+
+Each layer climbs one rung of Interval above the root and carries its own slow drift in pitch and level; layers alternate across the stereo field. Interval is asked of the patch tuning, so under a Tuning organism the ladder walks that scale's own degrees. The ladder wraps after eight rungs, so tall Layer counts pile on as drifting unison copies, and the level holds as layers are added. Presets carry the Octaves, Fifths and Thirds ladders. Play it from a PianoRoll or a DNA, or leave Drone on and ride Cutoff from a Metapad.
 
 ## Parameters
 
-**Drone** On: sounds continuously at Note. Off: plays from MIDI (Attack/Release). Drone is always one root - it overrides Mode.
+**Drone** Off plays from MIDI through Attack and Release. On sounds continuously at Note, always as one root, whatever Mode says.
 
-**Mode** How MIDI notes become voices. Mono: one root, last note wins. Para: one envelope and one filter, but the layer pool is dealt across every held note - hold a triad with 12 layers and each note grows a 4-high stack; release a note and its strata flow back to what you still hold. Costs the same no matter how many keys are down. Poly: every note gets the full stack with its own attack/release, eight voices.
+**Note** The root while Drone is on, or while nothing has been played in Mono mode.
 
-**Interval** How many scale degrees each rung climbs, asked of the active tuning. In ordinary 12-TET, degrees are semitones - 12 stacks octaves, 7 fifths, 4 thirds, and anything between is a bed no fixed ladder offers. Under a Tuning node the same number walks that scale's own ladder, like Rhizome's Interval does. The ladder wraps after eight rungs, so tall Layer counts pile on as drifting unison copies instead of climbing away.
+**Layers** How many strata, 1 to 64. Past about 16 it stops being a chord of layers and becomes a texture.
 
-**Layers** How many strata (1-64). Past ~16 it stops being a chord of layers and becomes a texture - 64 is a supersaw bed.
+**Interval** How many scale degrees each rung climbs. In ordinary tuning 12 stacks octaves, 7 fifths and 4 thirds; anything between is a bed no fixed ladder offers.
 
-**Spread** Drift depth in cents - how far the strata wander apart.
+**Spread** Drift depth in cents, how far the strata wander apart.
 
-**Motion** How much the drift moves pitch and level. 0 = frozen.
+**Motion** How much the drift moves pitch and level. 0 freezes the bed.
 
-**Cutoff** The bed's lowpass. Automate it for the classic pad swell.
+**Cutoff** The bed's lowpass. Automate it for the pad swell.
 
-Try: Drone on, the Fifths preset, Motion high, Cutoff low - then ride Cutoff from the Metapad while DNA and Acid play over the top. Or Drone off, Para, Layers 24, and hold slow chords from a keyboard: the strata re-deal themselves to every change of harmony.
+**Attack** How long the bed takes to open, in milliseconds.
+
+**Release** How long it takes to fade after the notes lift.
+
+**Level** Output level.
+
+**BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
+
+**Mode** How MIDI notes become voices. Mono is one root, last note wins. Para deals the layer pool across every held note, so a triad with 12 layers gives each note a four-high stack, at the same cost however many keys are down. Poly gives every note the full stack with its own envelope, eight voices.
+
+## Recipe
+
+**Re-dealing pad** Drone off, Mode Para, Layers 24, Interval 7, Motion 0.6, Attack 1500, Release 3000, Cutoff 1200. Hold slow chords from a PianoRoll; the layers deal themselves across each held note and flow back to what is still held when a note lifts.
 
 ## Related Organisms
 

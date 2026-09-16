@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "VideoTrack",
+      "roles": ["video-track"],
       "category": "Visual",
       "editor": "layout:videotrack-editor.json",
       "params": [

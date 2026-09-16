@@ -1,6 +1,8 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include <cmath>
 
-#include "core/UserLibrary.h"
+#include "core/library/UserLibrary.h"
 #include "io/PatchWriteInternal.h"
 
 namespace hum {
@@ -105,6 +107,7 @@ void writeAutomationLane(juce::XmlElement& mod, const AutomationLane& lane) {
     auto* ac = ps->createNewChildElement("automation-controller");
     ac->setAttribute("mute", lane.mute ? 1 : 0);
     ac->setAttribute("record", lane.record ? 1 : 0);
+    if (lane.kind == "step") ac->setAttribute("hold", 1);
     const char* tag = lane.kind == "range" ? "range-timepoints"
                     : lane.kind == "trigger" ? "trigger-timepoints" : "double-timepoints";
     juce::String text;
@@ -304,6 +307,13 @@ void writeView(juce::XmlElement& ve, const OrganismView& v) {
         if (v.editorHalf >= 0) ve.setAttribute("editor-half", v.editorHalf);
     }
     if (v.editorCollapsed) ve.setAttribute("editor-collapsed", 1);
+    if (v.editorFloating) {
+        ve.setAttribute("editor-float", 1);
+        ve.setAttribute("float-x", v.floatX);
+        ve.setAttribute("float-y", v.floatY);
+        ve.setAttribute("float-w", v.floatW);
+        ve.setAttribute("float-h", v.floatH);
+    }
 }
 
 void writeMetapad(juce::XmlElement& root, const MetapadModel& ms) {

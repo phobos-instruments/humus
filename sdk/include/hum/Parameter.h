@@ -1,7 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include "hum/Extensions.h"
 
 namespace hum {
 
@@ -16,6 +20,7 @@ struct Parameter {
     bool userEdited = false;
 
     std::string text;
+    const ParameterExt* ext = nullptr;
 
     double minOr(double fallback) const { return isRange ? rangeMin : (value != 0.0 ? value : fallback); }
 };
@@ -42,6 +47,16 @@ public:
     Parameter* byName(const std::string& n) {
         auto it = byName_.find(n);
         return it == byName_.end() ? nullptr : &params_[it->second];
+    }
+    int slotOf(const std::string& n) const {
+        auto it = byName_.find(n);
+        return it == byName_.end() ? -1 : it->second;
+    }
+    Parameter* slot(int i) {
+        return i >= 0 && i < (int) params_.size() ? &params_[(size_t) i] : nullptr;
+    }
+    const Parameter* slot(int i) const {
+        return i >= 0 && i < (int) params_.size() ? &params_[(size_t) i] : nullptr;
     }
 
     double get(const std::string& n, double fallback) const {

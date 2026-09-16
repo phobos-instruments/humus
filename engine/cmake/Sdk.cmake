@@ -4,6 +4,10 @@ add_library(hum_sdk STATIC
   ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/Organism.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/LiveWavWriter.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/NativeCamera.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/NativePicture.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/SerialPort.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/SerialHub.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/SerialSpeed.cpp
 )
 if(APPLE)
   target_sources(hum_sdk PRIVATE

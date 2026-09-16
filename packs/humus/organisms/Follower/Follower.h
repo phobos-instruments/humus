@@ -1,16 +1,22 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <atomic>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
+#include "hum/caps/Graph.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/dsp/EnvelopeFollower.h"
 
 namespace hum {
 
-class Follower : public Organism, public ControlSource, public LevelMeterSource, public MidiNode {
+class Follower : public Organism, public ControlSource, public LevelMeterSource, public MidiNode,
+                 public PinKinds {
 public:
+    bool controlOutlet(int) const override { return true; }
     int numAudioInputs() const override { return 1; }
-    int numAudioOutputs() const override { return 2; }
+    int numAudioOutputs() const override { return 0; }
     void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; reset(); }
     void reset() override;
     void process(const float* const* in, int numIn, float* const* out, int numOut,

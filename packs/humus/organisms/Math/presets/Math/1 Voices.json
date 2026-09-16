@@ -69,5 +69,13 @@
    "Z": 0.2,
    "Auto": 0.0
   }
+ },
+ {
+  "name": "Lorenz",
+  "values": {
+   "Expression": "s := dt*freq*(0.4 + w); lx := lx + s*10*(ly - lx); ly := ly + s*(lx*(28 - lz) - ly); lz := lz + s*(lx*ly - 8/3*lz); if(ch, ly/30, lx/20)",
+   "W": 0.35,
+   "Auto": 1.0
+  }
  }
 ]

@@ -1,24 +1,26 @@
 # Paulstretch
 
-Extreme time stretch, after the public-domain Paulstretch algorithm by Nasca Octavian Paul - the sound of a song slowed fifty times without turning into a slideshow of clicks. It is not a time-stretcher for tempo work: below about 4x it smears, and that smear is the instrument. Feed it anything - a chord, a voice, a whole track - and it becomes a shimmering, phaseless cloud that keeps the harmony and lets go of the moment.
+An extreme time stretch that turns a sound file into a slow, phaseless cloud, after the public-domain Paulstretch algorithm.
 
-Load a file, set Stretch, and it plays. The playhead crawls through the source at one over Stretch speed; each step is windowed, its spectrum kept and its phases thrown away and drawn fresh, which is the whole trick - amplitude is memory, phase is time, and forgetting time is what makes it vast. The two channels draw their phases independently, so even a mono file blooms into wide stereo.
-
-Window sets the grain of the cloud: short windows keep more rhythm and gurgle, long windows dissolve everything into pad. Loop wraps the source seamlessly for infinite beds; with Loop off the cloud drifts once through the file and settles into silence.
+It is not a stretcher for tempo work: below about four times it smears, and the smear is the instrument. The playhead crawls through the file at one over Stretch speed; each step is windowed, its spectrum kept and its phases drawn fresh, so the harmony stays and the moment goes. The two channels draw their phases independently, so a mono file comes out wide. Feed it a chord, a voice or a whole track and cord the output to a Fern or a Verbatim for a bed, or straight to a Mixer. The transport strip under the file seeks through the source.
 
 ## Parameters
 
-**File** the source sound.
+**File** The source sound file.
 
-**Stretch** how many times slower than life. Eight is classic; fifty is geology.
+**Stretch** How many times slower than real time, from 1 to 100. Eight is the classic setting; fifty barely moves.
 
-**Window** the analysis window in seconds - the size of the moment it remembers at once.
+**Window** The analysis window in seconds. Short keeps some rhythm and gurgle, long dissolves everything into a pad.
 
-**Loop** wrap the source forever, or play it once.
+**Loop** Wraps the source so the cloud never ends. Off plays through once and settles into silence.
 
-**Active** the on switch.
+**Active** Switches playback on. Off is silent.
 
-**Level** output gain.
+**Level** Output gain.
+
+## Recipe
+
+**Pad from a chord** Load a two-second chord, Stretch 30, Window 0.5, Loop on. Cord the output into a Verbatim with a long tail and bring Level down until it sits under the rest of the patch.
 
 ## Related Organisms
 

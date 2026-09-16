@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/Mp3Writer.h"
 
 #include <algorithm>
@@ -14,7 +16,7 @@ namespace hum {
 namespace {
 
 constexpr int kBlock = 8192;
-constexpr double kBytesAtVzero = 30.0e3;
+constexpr double kBitsPerByte = 8.0;
 
 struct Encoder {
     lame_global_flags* flags = nullptr;
@@ -28,11 +30,14 @@ int roomFor(int frames) { return frames + frames / 4 + 7200; }
 
 }
 
-double mp3BytesPerSecond() { return kBytesAtVzero; }
+double mp3BytesPerSecond(int rate) {
+    const int step = juce::jlimit(0, kMp3RateSteps - 1, rate);
+    return kMp3KbitPerSecond[step] * 1.0e3 / kBitsPerByte;
+}
 
 bool writeMp3(const std::string& path,
               const std::vector<std::vector<float>>& channels,
-              double sampleRate) {
+              double sampleRate, int rate) {
     if (channels.empty() || channels[0].empty() || sampleRate <= 0.0) return false;
     const int wide = std::min((int) channels.size(), 2);
     const auto frames = (int) channels[0].size();
@@ -44,7 +49,7 @@ bool writeMp3(const std::string& path,
     lame_set_in_samplerate(lame.flags, (int) juce::roundToInt(sampleRate));
     lame_set_mode(lame.flags, wide == 1 ? MONO : JOINT_STEREO);
     lame_set_VBR(lame.flags, vbr_default);
-    lame_set_VBR_q(lame.flags, kMp3Quality);
+    lame_set_VBR_q(lame.flags, kMp3VbrQuality[juce::jlimit(0, kMp3RateSteps - 1, rate)]);
     lame_set_bWriteVbrTag(lame.flags, 1);
     if (lame_init_params(lame.flags) < 0) return false;
 

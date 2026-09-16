@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #if defined(__APPLE__) && __has_include(<vecLib/cblas.h>)
 #define HUMNET_BLAS 1
@@ -299,6 +301,12 @@ inline bool HumNet::parse(const uint8_t* p, size_t n) {
         return false;
     }
     const uint32_t nT = r.u32(), nO = r.u32(), nIn = r.u32(), nOut = r.u32();
+    constexpr uint32_t kMaxCounts = 1u << 16;
+    if (nT > kMaxCounts || nO > kMaxCounts || nIn > kMaxCounts || nOut > kMaxCounts) {
+        err_ = "implausible counts";
+        return false;
+    }
+    if (!r.need(4 * ((size_t) nIn + nOut) + 12)) { err_ = "truncated"; return false; }
 
     inputs_.resize(nIn);
     for (auto& v : inputs_) v = r.i32();
@@ -307,7 +315,8 @@ inline bool HumNet::parse(const uint8_t* p, size_t n) {
 
     const uint32_t tBytes = r.u32(), oBytes = r.u32(), bBytes = r.u32();
     const size_t tAt = r.at, oAt = tAt + tBytes, bAt = oAt + oBytes;
-    if (bAt + bBytes > n) { err_ = "truncated"; return false; }
+    if (bAt < tAt || bAt + bBytes > n || bAt + bBytes < bAt) { err_ = "truncated"; return false; }
+    if ((size_t) nT * 26 > tBytes) { err_ = "truncated tensor table"; return false; }
     const uint8_t* blob = p + bAt;
 
     tensors_.resize(nT);
@@ -326,6 +335,11 @@ inline bool HumNet::parse(const uint8_t* p, size_t n) {
         if (bytes == 0) { d.data.assign((size_t) d.count(), 0.0f); continue; }
         d.constant = true;
         const size_t count = (size_t) d.count();
+        const size_t elem = type == 1 ? 2 : 4;
+        if ((size_t) off + bytes > bBytes || (size_t) off + bytes < off || count * elem > bytes) {
+            err_ = "tensor data outside the blob";
+            return false;
+        }
         d.data.resize(count);
         if (type == 1) {
             for (size_t k = 0; k < count; ++k) {
@@ -347,11 +361,13 @@ inline bool HumNet::parse(const uint8_t* p, size_t n) {
     ops_.resize(nO);
     size_t at = oAt;
     for (uint32_t i = 0; i < nO; ++i) {
-        Reader o{p, n, at};
+        Reader o{p, bAt, at};
+        if (!o.need(23)) { err_ = "truncated op table"; return false; }
         auto& op = ops_[i];
         op.kind = o.u8();
         for (int k = 0; k < 5; ++k) op.p[k] = o.i32();
         const int ni = o.u8(), no = o.u8();
+        if (!o.need(4 * ((size_t) ni + no))) { err_ = "truncated op table"; return false; }
         op.in.resize((size_t) ni);
         for (auto& v : op.in) v = o.i32();
         op.out.resize((size_t) no);
@@ -680,8 +696,10 @@ inline bool HumNet::loadFile(const std::string& path, HumNet& detector,
     uint32_t parts;
     std::memcpy(&parts, raw.data() + 8, 4);
     if (parts != 2) return false;
+    if (raw.size() < 20) return false;
     uint32_t len[2];
     std::memcpy(len, raw.data() + 12, 8);
+    if ((size_t) len[0] + len[1] > raw.size() - 20 || (size_t) len[0] + len[1] < len[0]) return false;
     const uint8_t* p = raw.data() + 20;
     return detector.parse(p, len[0]) && landmarks.parse(p + len[0], len[1]);
 }

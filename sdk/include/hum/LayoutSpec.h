@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <map>
 #include <string>
@@ -48,14 +50,16 @@ struct LayoutSpec {
         EnumButtons,
         Sigil,
         RotarySwitch,
-        DnaBases,
-        DnaStrand,
+        IntervalRows,
+        StepStrip,
         NumberField,
         TextField,
         GainReduction,
         WaveDraw,
         TapTempo,
         VuMeter,
+        Readout,
+        TextReadout,
         FieldScope,
         SpectrumScope,
         VideoPreview,
@@ -64,9 +68,14 @@ struct LayoutSpec {
         SliceMap,
         PictureField,
         LfoScope,
-        HelixStrands,
+        Strands,
         ClipGrid,
         ScreenButton,
+        TakeLane,
+        StepNudge,
+        BasslineImport,
+        NumberBox,
+        Led,
     };
 
     struct Control {
@@ -91,7 +100,9 @@ struct LayoutSpec {
     int width = 280;
     int height = 220;
     Resize resize = Resize::Scale;
+    std::string skin;
     std::vector<Control> controls;
+    std::map<std::string, std::string> bind;
 };
 
 constexpr int kKnobW = 60, kKnobH = 84, kKnobPitch = 64;
@@ -124,21 +135,28 @@ inline const std::vector<ControlTypeName>& controlTypeNames() {
         {"note-field", CT::NoteField},        {"gain-shape", CT::GainShapeCurve},
         {"sequence-grid", CT::SequenceGrid},  {"hand-gestures", CT::HandGestures},
         {"enum-buttons", CT::EnumButtons},    {"sigil", CT::Sigil},
-        {"rotary-switch", CT::RotarySwitch},  {"dna-bases", CT::DnaBases},
-        {"dna-strand", CT::DnaStrand},
+        {"rotary-switch", CT::RotarySwitch},  {"interval-rows", CT::IntervalRows},
+        {"step-strip", CT::StepStrip},
         {"number-field", CT::NumberField},    {"wave-draw", CT::WaveDraw},
         {"text-field", CT::TextField},
         {"gain-reduction", CT::GainReduction},
         {"tap", CT::TapTempo},                {"vu-meter", CT::VuMeter},
+        {"readout", CT::Readout},
+        {"text-readout", CT::TextReadout},
         {"field-scope", CT::FieldScope},
         {"spectrum-scope", CT::SpectrumScope},
         {"video-preview", CT::VideoPreview},
         {"video-transport", CT::VideoTransport},  {"formula", CT::Formula},
         {"slice-map", CT::SliceMap},        {"picture-field", CT::PictureField},          {"lfo-scope", CT::LfoScope},
         {"threshold-meter", CT::ThresholdMeter},
-        {"helix-strands", CT::HelixStrands},
+        {"strands", CT::Strands},
         {"clip-grid", CT::ClipGrid},
         {"screen-button", CT::ScreenButton},
+        {"take-lane", CT::TakeLane},
+        {"step-nudge", CT::StepNudge},
+        {"bassline-import", CT::BasslineImport},
+        {"number-box", CT::NumberBox},
+        {"led", CT::Led},
     };
     return t;
 }
@@ -186,6 +204,17 @@ inline std::string toJson(const LayoutSpec& spec) {
                   + ",\"height\":" + std::to_string(spec.height);
     if (spec.resize == LayoutSpec::Resize::Stretch) o += ",\"resize\":\"stretch\"";
     if (spec.resize == LayoutSpec::Resize::Grow) o += ",\"resize\":\"grow\"";
+    if (!spec.skin.empty() && spec.skin.front() == '{') o += ",\"skin\":" + spec.skin;
+    if (!spec.bind.empty()) {
+        o += ",\"bind\":{";
+        bool firstBind = true;
+        for (const auto& [key, param] : spec.bind) {
+            if (!firstBind) o += ",";
+            firstBind = false;
+            o += jsonString(key) + ":" + jsonString(param);
+        }
+        o += "}";
+    }
     o += ",\"controls\":[";
     bool firstControl = true;
     for (const auto& c : spec.controls) {

@@ -1,22 +1,14 @@
-# What a build of this tree leaves behind. Copied in as .gitignore by
-# tools/publish_src.sh - the source zip itself carries no dotfiles, so this
-# lives here rather than being generated into the archive.
-
 # Build trees. `make build ARCH=x86_64` gives each arch its own.
 engine/build/
 engine/build-*/
 build/
-
-# Where `make dist` leaves the packaged app.
-dist/
 
 # Editor and OS scratch.
 .DS_Store
 .idea/
 .vscode/
 
-# Rebuilt by the configure step from Google's bundle (engine/CMakeLists.txt).
-# Untracked here on purpose: it is 5.5 MB of somebody else's weights, and
-# without this line every build leaves the checkout dirty - which is also
-# enough to make tools/publish_src.sh refuse the next publish.
-assets/Models/hands/hands.humnet
+# Downloaded and converted by the configure step, so a build does not leave
+# the checkout dirty.
+packs/av/assets/Models/hands/hands.humnet
+packs/av/assets/Models/body/body.humnet

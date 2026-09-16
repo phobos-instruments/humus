@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Ph/Ph.h"
 
 #include <algorithm>
@@ -13,6 +15,7 @@ void Ph::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     reset();
     loadFromFile(params.getText("File"));
+    fileVoice_.store((int) voiceOf(params.getText("File")), std::memory_order_relaxed);
 }
 
 void Ph::reset() {
@@ -20,10 +23,17 @@ void Ph::reset() {
     chip_.allOff();
     opm_.allOff();
     opl_.allOff();
-    ringL_.fill(0.0f);
-    ringR_.fill(0.0f);
-    ringWrite_ = 0;
-    ringRead_ = 0.0;
+    ring_.reset();
+    bend_.reset();
+    applyBend();
+}
+
+void Ph::applyBend() {
+    const double semitones = bend_.semitones(bendRangeOf(params));
+    six_.setBend(semitones);
+    chip_.bend(semitones);
+    opm_.bend(semitones);
+    opl_.bend(semitones);
 }
 
 namespace {
@@ -99,21 +109,32 @@ std::string opParam(int op, const char* field) {
 }
 }
 
-PhVoice Ph::readVoice(const PhVoice& fromBank) const {
-    PhVoice v;
-    v.algorithm = (int) params.get("Algorithm", (double) fromBank.algorithm);
-    v.feedback = (int) params.get("Feedback", (double) fromBank.feedback);
+std::array<Ph::OpParams, 6> Ph::makeOpParams() {
+    std::array<OpParams, 6> out;
     for (int i = 1; i <= 6; ++i) {
-        const PhVoiceOp& b = fromBank.ops[(size_t) (i - 1)];
-        PhVoiceOp& op = v.ops[(size_t) (i - 1)];
-        const bool on = params.get(opParam(i, "On"), 1.0) >= 0.5;
-        op.level = on ? (int) params.get(opParam(i, "Level"), (double) b.level) : 0;
-        op.ratio = (int) params.get(opParam(i, "Ratio"), (double) b.ratio);
-        op.detune = (int) params.get(opParam(i, "Detune"), (double) b.detune);
-        op.attack = (int) params.get(opParam(i, "Attack"), (double) b.attack);
-        op.decay = (int) params.get(opParam(i, "Decay"), (double) b.decay);
-        op.sustain = (int) params.get(opParam(i, "Sustain"), (double) b.sustain);
-        op.release = (int) params.get(opParam(i, "Release"), (double) b.release);
+        auto ref = [i](const char* field) { return ParamRef(opParam(i, field)); };
+        out[(size_t) (i - 1)] = {ref("On"),     ref("Level"), ref("Ratio"),   ref("Detune"),
+                                 ref("Attack"), ref("Decay"), ref("Sustain"), ref("Release")};
+    }
+    return out;
+}
+
+FmVoice Ph::readVoice(const FmVoice& fromBank) const {
+    FmVoice v;
+    v.algorithm = (int) algorithmRef_.get(params, (double) fromBank.algorithm);
+    v.feedback = (int) feedbackRef_.get(params, (double) fromBank.feedback);
+    for (int i = 1; i <= 6; ++i) {
+        const FmVoiceOp& b = fromBank.ops[(size_t) (i - 1)];
+        FmVoiceOp& op = v.ops[(size_t) (i - 1)];
+        const auto& r = opParams_[(size_t) (i - 1)];
+        const bool on = r.on.on(params, 1.0);
+        op.level = on ? (int) r.level.get(params, (double) b.level) : 0;
+        op.ratio = (int) r.ratio.get(params, (double) b.ratio);
+        op.detune = (int) r.detune.get(params, (double) b.detune);
+        op.attack = (int) r.attack.get(params, (double) b.attack);
+        op.decay = (int) r.decay.get(params, (double) b.decay);
+        op.sustain = (int) r.sustain.get(params, (double) b.sustain);
+        op.release = (int) r.release.get(params, (double) b.release);
     }
     return v;
 }
@@ -121,7 +142,7 @@ PhVoice Ph::readVoice(const PhVoice& fromBank) const {
 bool Ph::voiceParams(std::vector<std::pair<std::string, double>>& out) const {
     const int slot = (int) params.get("Patch", 1.0) - 1;
     const Voice voice = voiceOf(params.getText("File"));
-    const PhVoice v = voice == Voice::Chip ? chip_.voiceAt(slot)
+    const FmVoice v = voice == Voice::Chip ? chip_.voiceAt(slot)
                     : voice == Voice::Opm  ? opm_.voiceAt(slot)
                     : voice == Voice::Opl  ? opl_.voiceAt(slot)
                                            : six_.voiceAt(slot);
@@ -129,7 +150,7 @@ bool Ph::voiceParams(std::vector<std::pair<std::string, double>>& out) const {
     out.emplace_back("Algorithm", (double) v.algorithm);
     out.emplace_back("Feedback", (double) v.feedback);
     for (int i = 1; i <= 6; ++i) {
-        const PhVoiceOp& op = v.ops[(size_t) (i - 1)];
+        const FmVoiceOp& op = v.ops[(size_t) (i - 1)];
         out.emplace_back(opParam(i, "Level"), (double) op.level);
         out.emplace_back(opParam(i, "Ratio"), (double) op.ratio);
         out.emplace_back(opParam(i, "Detune"), (double) op.detune);
@@ -141,58 +162,42 @@ bool Ph::voiceParams(std::vector<std::pair<std::string, double>>& out) const {
     return true;
 }
 
-PhMods Ph::readMods() const {
-    PhMods m;
-    m.bright = params.get("Bright", 0.5);
-    m.attack = params.get("Attack", 0.5);
-    m.release = params.get("Release", 0.5);
-    m.detune = params.get("Detune", 0.0);
-    m.vibrato = params.get("Vibrato", 0.0);
-    m.speed = params.get("Speed", 0.5);
+FmMods Ph::readMods() const {
+    FmMods m;
+    m.bright = modParams_.bright.get(params, 0.5);
+    m.attack = modParams_.attack.get(params, 0.5);
+    m.release = modParams_.release.get(params, 0.5);
+    m.detune = modParams_.detune.get(params, 0.0);
+    m.vibrato = modParams_.vibrato.get(params, 0.0);
+    m.speed = modParams_.speed.get(params, 0.5);
     return m;
 }
 
 void Ph::pumpSixOp() {
     float buf[PhSixOp::kBlock];
     six_.renderBlock(buf);
-    for (int i = 0; i < PhSixOp::kBlock; ++i) {
-        ringL_[(size_t) (ringWrite_ % kRing)] = buf[i];
-        ringR_[(size_t) (ringWrite_ % kRing)] = buf[i];
-        ++ringWrite_;
-    }
+    for (int i = 0; i < PhSixOp::kBlock; ++i) ring_.push(buf[i], buf[i]);
 }
 
 void Ph::pumpChip() {
-    constexpr int kChunk = 64;
+    constexpr int kChunk = RateRing::kChunk;
     float l[kChunk], r[kChunk];
     chip_.render(l, r, kChunk);
-    for (int i = 0; i < kChunk; ++i) {
-        ringL_[(size_t) (ringWrite_ % kRing)] = l[i];
-        ringR_[(size_t) (ringWrite_ % kRing)] = r[i];
-        ++ringWrite_;
-    }
+    for (int i = 0; i < kChunk; ++i) ring_.push(l[i], r[i]);
 }
 
 void Ph::pumpOpl() {
-    constexpr int kChunk = 64;
+    constexpr int kChunk = RateRing::kChunk;
     float l[kChunk], r[kChunk];
     opl_.render(l, r, kChunk);
-    for (int i = 0; i < kChunk; ++i) {
-        ringL_[(size_t) (ringWrite_ % kRing)] = l[i];
-        ringR_[(size_t) (ringWrite_ % kRing)] = r[i];
-        ++ringWrite_;
-    }
+    for (int i = 0; i < kChunk; ++i) ring_.push(l[i], r[i]);
 }
 
 void Ph::pumpOpm() {
-    constexpr int kChunk = 64;
+    constexpr int kChunk = RateRing::kChunk;
     float l[kChunk], r[kChunk];
     opm_.render(l, r, kChunk);
-    for (int i = 0; i < kChunk; ++i) {
-        ringL_[(size_t) (ringWrite_ % kRing)] = l[i];
-        ringR_[(size_t) (ringWrite_ % kRing)] = r[i];
-        ++ringWrite_;
-    }
+    for (int i = 0; i < kChunk; ++i) ring_.push(l[i], r[i]);
 }
 
 void Ph::process(const float* const*, int, float* const* out, int numOut,
@@ -208,7 +213,7 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
         return;
     }
 
-    const Voice voice = voiceOf(params.getText("File"));
+    const Voice voice = (Voice) fileVoice_.load(std::memory_order_relaxed);
     if (voice != voice_) {
         voice_ = voice;
         patchSlot_ = -1;
@@ -242,11 +247,10 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
         else chip_.setVoice(v);
     }
     const float level = (float) params.get("Level", 0.8);
-    const double bend = std::pow(2.0, params.get("Transpose", 0.0) / 12.0
+    const double transpose = std::pow(2.0, params.get("Transpose", 0.0) / 12.0
                                           + params.get("Fine", 0.0) / 1200.0);
 
-    {
-        std::lock_guard<std::mutex> g(liveLock_);
+    if (std::unique_lock<std::mutex> g(liveLock_, std::try_to_lock); g.owns_lock()) {
         for (int i = 0; i < liveCount_; ++i)
             if (stagedCount_ < (int) staged_.size())
                 staged_[(size_t) stagedCount_++] = liveQ_[(size_t) i];
@@ -256,8 +260,10 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
     for (int i = 0; i < stagedCount_; ++i) {
         const auto& e = staged_[(size_t) i];
         const int st = e.data[0] & 0xF0;
-        if (st == 0x90 && e.data[2] > 0) {
-            const double hz = tuning.hz((double) e.data[1]) * bend;
+        if (bend_.apply(e)) {
+            applyBend();
+        } else if (st == 0x90 && e.data[2] > 0) {
+            const double hz = tuning.hz((double) e.data[1]) * transpose;
             if (voice_ == Voice::SixOp) six_.noteOn(e.data[1], e.data[2], hz);
             else if (voice_ == Voice::Opm) opm_.noteOn(e.data[1], e.data[2], hz);
             else if (voice_ == Voice::Opl) opl_.noteOn(e.data[1], e.data[2], hz);
@@ -275,30 +281,14 @@ void Ph::process(const float* const*, int, float* const* out, int numOut,
     const double ratio = (voice_ == Voice::SixOp ? PhSixOp::kRate
                           : voice_ == Voice::Opm  ? PhOpm::kRate
                           : voice_ == Voice::Opl  ? PhOpl::kRate
-                                                  : PhChip::kRate) / sr;
-    const double needUpTo = ringRead_ + (double) numSamples * ratio + 2.0;
-    while ((double) ringWrite_ < needUpTo) {
+                                                  : FmChip::kRate) / sr;
+    while (ring_.needsMore(numSamples, ratio)) {
         if (voice_ == Voice::SixOp) pumpSixOp();
         else if (voice_ == Voice::Opm) pumpOpm();
         else if (voice_ == Voice::Opl) pumpOpl();
         else pumpChip();
     }
-    for (int i = 0; i < numSamples; ++i) {
-        const auto idx = (long long) ringRead_;
-        const float frac = (float) (ringRead_ - (double) idx);
-        const auto i0 = (size_t) (idx % kRing);
-        const auto i1 = (size_t) ((idx + 1) % kRing);
-        const float l = (ringL_[i0] + (ringL_[i1] - ringL_[i0]) * frac) * level;
-        const float r = (ringR_[i0] + (ringR_[i1] - ringR_[i0]) * frac) * level;
-        if (R != L) { L[i] = l; R[i] = r; }
-        else        { L[i] = (l + r) * 0.5f; }
-        ringRead_ += ratio;
-    }
-    if (ringRead_ > 1.0e9) {
-        const auto whole = (long long) ringRead_ - (long long) ringRead_ % kRing;
-        ringRead_ -= (double) whole;
-        ringWrite_ -= (int) whole;
-    }
+    ring_.read(L, R, numSamples, ratio, level);
 }
 
 }

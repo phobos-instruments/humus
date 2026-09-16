@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <cstdint>
@@ -9,8 +11,8 @@
 #include "lfo.h"
 #undef N
 
-#include "Ph/PhMods.h"
-#include "Ph/PhVoice.h"
+#include "common/FmMods.h"
+#include "common/FmVoice.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -31,15 +33,16 @@ public:
     std::string patchName(int slot) const;
     int currentSlot() const { return currentSlot_; }
     void selectPatch(int slot);
-    void setMods(const PhMods& m);
+    void setMods(const FmMods& m);
 
-    PhVoice selectedVoice() const { return voiceAt(currentSlot_); }
-    PhVoice voiceAt(int slot) const;
-    void setVoice(const PhVoice& v);
+    FmVoice selectedVoice() const { return voiceAt(currentSlot_); }
+    FmVoice voiceAt(int slot) const;
+    void setVoice(const FmVoice& v);
 
     void noteOn(int midinote, int velocity, double hz);
     void noteOff(int midinote);
     void allOff();
+    void setBend(double semitones);
 
     void renderBlock(float* out);
 
@@ -59,7 +62,7 @@ private:
     char edited_[156] = {0};
     bool hasEdit_ = false;
     int currentSlot_ = -1;
-    PhMods mods_;
+    FmMods mods_;
     std::array<Voice, kVoices> voices_;
     int next_ = 0;
     Lfo lfo_;

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: MIT
 #pragma once
 #include "hum/dsp/Lfo.h"
 #include "hum/Organism.h"

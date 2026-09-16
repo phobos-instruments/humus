@@ -32,6 +32,7 @@
     },
     {
       "type": "slice-map",
+      "edits": "SliceEdits",
       "param": "",
       "label": "",
       "x": 12,

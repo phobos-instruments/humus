@@ -1,9 +1,12 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <vector>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/ParamRef.h"
 #include "hum/Pattern.h"
 
 namespace hum {
@@ -49,7 +52,18 @@ public:
 private:
     void emit(int port, int offset, bool on, int note, int vel);
 
+    struct RowParams { ParamRef enable, note, vel; };
+    static std::array<RowParams, kRows> makeRowParams() {
+        std::array<RowParams, kRows> out;
+        for (int r = 0; r < kRows; ++r)
+            out[(size_t) r] = {ParamRef::numbered("Enable_", r + 1),
+                               ParamRef::numbered("Note_", r + 1),
+                               ParamRef::numbered("Vel_", r + 1)};
+        return out;
+    }
+
     Pattern pattern_;
+    std::array<RowParams, kRows> rowParams_ = makeRowParams();
     std::array<std::array<MidiEvent, 64>, kPorts> outEvents_;
     std::array<int, kPorts> outCount_ = {};
     struct PendingOff { int port; int note; long samplesLeft; };

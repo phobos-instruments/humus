@@ -1,8 +1,11 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
 #include <atomic>
 
-#include "hum/Capabilities.h"
+#include "hum/caps/Audio.h"
+#include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/dsp/PitchTrack.h"
 

@@ -1,16 +1,82 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include "io/PatchLoader.h"
 
 #include <cstdlib>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "core/AdoptSlot.h"
-#include "core/ClassString.h"
-#include "core/HostedPlugin.h"
-#include "core/PluginNode.h"
-#include "core/PluginHost.h"
+#include "core/graph/AdoptSlot.h"
+#include "core/library/BankLibrary.h"
+#include "core/packs/ClassString.h"
+#include "core/plugins/HostedPlugin.h"
+#include "core/plugins/PluginNode.h"
+#include "core/plugins/PluginHost.h"
+#include "core/params/ParamSchema.h"
 #include "hum/Registry.h"
+#include "io/MeterMap.h"
+#include "io/ModRouteBuild.h"
+#include "hum/Swing.h"
 
 namespace hum {
+
+namespace {
+
+bool isLibraryRef(const std::string& text) {
+    return text.rfind(banks::kLegacyPrefix, 0) == 0 || text.rfind(kAssetScheme, 0) == 0;
+}
+
+std::string dspText(const std::string& text, const OrganismModel& cm) {
+    return isLibraryRef(text) ? banks::resolve(text, cm.displayClass) : text;
+}
+
+bool carriesLibraryRef(const OrganismModel& cm) {
+    for (const auto& p : cm.properties)
+        if (isLibraryRef(p.text)) return true;
+    return false;
+}
+
+void seedAbsentParams(Organism& c, const OrganismModel& cm) {
+    const std::string& cls = cm.classRaw.empty() ? cm.displayClass : cm.classRaw;
+    int idx = 0;
+    for (const auto& d : schemaFor(cls)) {
+        const int at = idx++;
+        if (c.params.byName(d.name) != nullptr) continue;
+        Parameter p;
+        p.index = at;
+        p.name = d.name;
+        if (d.isText) {
+            p.type = d.isPlainText ? "text" : "soundfile";
+            p.text = dspText(d.text, cm);
+        } else if (d.isRange) {
+            p.type = "range";
+            p.isRange = true;
+            p.value = d.def;
+            p.rangeMin = d.def;
+            p.rangeMax = d.defMax;
+        } else if (!d.text.empty()) {
+            p.type = "rhythmic-unit";
+            p.value = d.def;
+            p.text = d.text;
+        } else {
+            p.type = d.isBool ? "bool" : d.isEnum ? "enum" : d.isInt ? "int" : "double";
+            p.value = d.def;
+        }
+        c.params.add(p);
+    }
+}
+
+void fillLibraryDefaults(Organism& c, const OrganismModel& cm) {
+    const std::string& cls = cm.classRaw.empty() ? cm.displayClass : cm.classRaw;
+    for (const auto& d : schemaFor(cls)) {
+        if (!d.isText || !isLibraryRef(d.text)) continue;
+        if (auto* p = c.params.byName(d.name); p != nullptr && p->text.empty())
+            p->text = dspText(d.text, cm);
+    }
+}
+
+}
 
 bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& error,
                 const std::function<const Organism*(const OrganismModel&)>& reuseLookup) {
@@ -32,7 +98,17 @@ bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& e
         }
         if (!c) c = Registry::instance().create(cm.displayClass);
         c->setName(cm.name);
-        c->loadFrom(OrganismState{cm.properties, cm.pattern});
+        const bool refs = carriesLibraryRef(cm);
+        std::vector<Parameter> resolved;
+        if (refs) {
+            resolved = cm.properties;
+            for (auto& p : resolved) p.text = dspText(p.text, cm);
+        }
+        c->loadFrom(OrganismState{refs ? resolved : cm.properties, cm.pattern});
+        if (!isPluginKind(cm.kind)) {
+            seedAbsentParams(*c, cm);
+            fillLibraryDefaults(*c, cm);
+        }
         const int idx = graph.addNode(std::move(c));
         nodeIndex[cm.name] = idx;
         if (modelBypassed(cm)) graph.setNodeBypass(idx, true);
@@ -75,14 +151,14 @@ bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& e
         }
     }
     graph.setAutomation(std::move(lanes));
+    graph.setModRoutes(modRoutesFor(doc.organisms, [&](const std::string& n) {
+        auto it = nodeIndex.find(n);
+        return it == nodeIndex.end() ? -1 : it->second;
+    }));
 
     graph.transport().setLoop(doc.clock.loopStart, doc.clock.loopEnd, doc.clock.loopEnabled);
-    {
-        const auto& ts = doc.clock.timeSignature;
-        const int slash = (int) ts.find('/');
-        const int n = ts.empty() ? 0 : std::atoi(slash > 0 ? ts.substr(0, (size_t) slash).c_str() : ts.c_str());
-        if (n > 0) graph.transport().setBeatsPerBar((double) n);
-    }
+    graph.setMeterMap(meterMapOf(doc));
+    graph.transport().setGroove(swing::grooveFor(doc.groove, doc.grooveUnit));
 
     if (graph.nodeCount() == 0) { error = "patch has no organisms"; return false; }
     return true;

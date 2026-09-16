@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -5,8 +7,8 @@
 #include <string>
 #include <vector>
 
-#include "core/AppPaths.h"
-#include "core/AudioGraph.h"
+#include "core/app/AppPaths.h"
+#include "core/graph/AudioGraph.h"
 #include "hum/Number.h"
 #include "hum/Registry.h"
 #include "io/PatchDocument.h"
@@ -14,14 +16,15 @@
 #include "io/WavWriter.h"
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "core/PackLoader.h"
-#include "core/PackRegistry.h"
+#include "core/packs/PackLoader.h"
+#include "core/packs/PackRegistry.h"
 #include "hum_addon_packs.h"
-#include "core/PluginHost.h"
-#include "core/PluginListStore.h"
-#include "core/TuningProbe.h"
-#include "core/TuningProbeStore.h"
-#include "hum/Capabilities.h"
+#include "core/plugins/PluginHost.h"
+#include "core/plugins/PluginListStore.h"
+#include "core/tuning/TuningProbe.h"
+#include "core/tuning/TuningProbeStore.h"
+#include "hum/caps/Audio.h"
+#include "hum/caps/Params.h"
 
 #include <HumBuildId.h>
 

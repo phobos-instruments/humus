@@ -4,6 +4,7 @@
     {
       "class": "Mixer",
       "category": "Mixers",
+      "blurb": "Several sounds into one, each with its own level and pan.",
       "canonical": "S4Mixer",
       "params": [
         {

@@ -1,29 +1,27 @@
 # Follower
 
-An envelope follower as a patchable object: rectifies the audio at its inlet and emits its loudness contour as a control signal - around 0..1 for full-scale audio, scaled by Gain. Attack sets how fast it rises into a hit, Release how slowly it lets go.
+An envelope follower that turns the loudness of a signal into a control value and a gate.
 
-The modular route to dynamics: patch a drum bus into a Follower and its output into a VCA's control inlet and you have a gate/expander; invert the sense with a Number (1) minus the Follower (via chaining) and the VCA ducks instead. A Follower into a Filter's Frequency- driving path is the classic auto-wah move.
-
-For the finished, single-object versions of these patches, see the Dynamics category (SideChain, the Compressor family).
-
-## The sensor
-
-The second outlet is a sensor: it sits at 0 until the contour crosses Threshold, then holds at 1 until the sound has fallen back below half the threshold and Hold has run out. The same on/off is published as the control value "gate", so a cut button, a clip launcher or a toggle can follow it through a control route, and each opening sends Note from the MIDI outlet, at a velocity taken from how hard the hit landed, with the note off when the gate closes. Patch a kick into a Follower and its MIDI outlet into a VideoPad or a VideoPlayer and the picture cuts on every beat.
+It rectifies the audio at its inlet and smooths it into a contour, published as the control value "env" on the first outlet, around 0 to 1 for full-scale audio and scaled by Gain. A second outlet and the control value "gate" sit at 0 until the contour crosses Threshold, then hold at 1 until the level has fallen below half the threshold and Hold has run out. Each opening also sends Note from the MIDI outlet, with a velocity taken from the level of the hit. Cord env onto a Gain for a duck or expander, onto a Filter's Frequency for an auto-wah, or the MIDI outlet into a VideoPad to cut pictures on the beat. For finished single-organism dynamics, see SideChain and the Compressor family.
 
 ## Parameters
 
-**Attack** how quickly the output rises into a hit. Short catches transients; long smooths them into a level.
+**Attack** How quickly the contour rises into a hit, in milliseconds. Short catches transients, long smooths them into a level.
 
-**Release** how slowly it lets go afterwards, which decides how long a sound keeps holding a gate open once it stops.
+**Release** How slowly the contour falls afterwards, which decides how long a sound keeps the gate open once it stops.
 
-**Gain** scales the contour, for matching the follower's travel to whatever it drives.
+**Gain** Scales the contour so its travel matches whatever it drives.
 
-**Threshold** the level the contour must reach to open the sensor. 0 switches the sensor off.
+**Threshold** The level the contour must reach to open the gate. 0 switches the gate off.
 
-**Hold** the least time the sensor stays open once a hit has opened it, in milliseconds, so one drum does not chatter into several notes.
+**Hold** The least time the gate stays open once a hit has opened it, in milliseconds, so one drum does not chatter into several notes.
 
-**Note** the MIDI note the sensor sends on each opening.
+**Note** The MIDI note sent on each opening of the gate.
+
+## Recipe
+
+**Kick-driven cuts** Cord a kick into the Follower, Attack 2, Release 150, Threshold 0.3, Hold 100. Cord its MIDI outlet into a VideoPad and every kick fires the pad; cord env onto the Gain of a pad synth at the same time and the synth ducks under each hit.
 
 ## Related Organisms
 
-VCA, SideChain, Filter, Button, VideoPad
+Gain, SideChain, Filter, Button

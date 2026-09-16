@@ -1,49 +1,35 @@
 # Spark
 
-A riser that never arrives. Twelve micro-delay lines, six per channel, each only milliseconds long and each mixed back against the dry signal so it rings as a comb filter. Every line sweeps its comb through the same span of octaves, but each one starts at a different point in that sweep, and each fades in at the bottom and out at the top under its own gain window. Six windows evenly spread sum to a constant, so nothing seams: the pitch climbs forever without ever leaving.
+A riser that never arrives: twelve short delay lines sweep as comb filters through the same octaves without ever leaving them.
 
-## The rise
-
-Mode sets which way the lines travel. Rise climbs, Fall descends, and Free rocks back and forth around the middle of the span instead of wrapping. Rate is how fast one line crosses the whole span - a full sweep every eight seconds at the default, slower for a build that takes a whole section. Time is the shortest delay a line reaches, the top of its climb; Range is how many octaves below that the line starts. Together they set where the comb lives: short times sit up in the whistle, longer ones drop into a fluttering body.
-
-## The spark
-
-Feedback is how long each comb rings. Low, the lines colour the sound and pass on; high, each one becomes a narrow resonant tooth with a pitch of its own. Damp rolls the top off inside that loop, so long tails go warm instead of shrill.
-
-Spark is the strange one. At zero the lines are spread evenly and the rise is smooth. Turn it up and the spacing bunches: lines land on top of each other, their teeth reinforce, and notes appear that are in none of the lines on their own - the same way two ring patterns crossing on water throw up a splash where they meet. The offsets are fixed, so a given Spark setting always gives back the same notes.
-
-## The panel
-
-Spread offsets the right channel from the left, so the two sides climb out of step and the rise widens as it goes. Mix blends against the dry input - the comb wants both halves, so the middle is where it lives - and Level sets the output.
-
-The dice rolls Rate, Time, Range, Feedback, Damp, Spark and Spread; Mode, Mix and Level stay where you put them.
+Six lines per channel, each only milliseconds long and each mixed back against the dry signal so it rings as a comb. Every line sweeps its comb through the same span of octaves, but each starts at a different point and fades in at the bottom and out at the top under its own gain window; six windows evenly spread sum to a constant, so nothing seams and the pitch climbs forever. Time and Range set where the comb lives, from a whistle at short times to a fluttering body at long ones. The dice rolls Rate, Time, Range, Feedback, Damp, Spark and Spread; Mode, Mix and Level stay put. Cord a pad, a Drums organism or a whole Mixer bus through it.
 
 ## Parameters
 
-**Mode** Rise, Fall or Free.
+**Mode** Rise climbs, Fall descends, and Free rocks back and forth across the span instead of wrapping.
 
-**Rate** how fast one line crosses the span, in hertz.
+**Rate** How fast one line crosses the whole span, in Hz. The default takes about eight seconds per sweep.
 
-**Time** shortest delay reached, in milliseconds.
+**Time** The shortest delay a line reaches, in milliseconds: the top of its climb.
 
-**Range** octaves the sweep covers below Time.
+**Range** How many octaves below Time the line starts.
 
-**Feedback** how long each comb rings.
+**Feedback** How long each comb rings. Low colours the sound and passes on; high turns each line into a narrow resonant tooth with a pitch of its own.
 
-**Damp** top-end roll-off inside the feedback loop.
+**Damp** Rolls the top off inside the feedback loop, so long tails go warm instead of shrill.
 
-**Spark** phase bunching. 0 is an even spread; up is phantom notes.
+**Spark** Bunches the line spacing. At zero the lines are spread evenly and the rise is smooth; higher, lines land on top of each other and their teeth reinforce. The offsets are fixed, so a setting always gives the same result.
 
-**Spread** right-channel offset from the left.
+**Spread** Offsets the right channel from the left, so the two sides climb out of step and the image widens.
 
-**Mix** dry to combed blend.
+**Mix** Dry against combed. The comb wants both halves, so the middle is where it lives.
 
-**Level** output level.
+**Level** Output level.
 
-## Signal flow
+## Recipe
 
-Input -> six delay lines per channel, each swept and windowed, each with its own damped feedback -> summed -> Mix against dry -> Level -> Output. Stereo in, stereo out.
+**Endless build** Mode Rise, Rate 0.06, Time 2, Range 4, Feedback 0.8, Damp 0.4, Spark 0.2, Spread 0.6, Mix 0.5. Cord a sustained pad in and let it run under a section; switch Mode to Fall for the release after the drop.
 
 ## Related Organisms
 
-Fern, Flanger, SChorus
+Fern, Flanger, Chorus

@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "Tuning",
+      "roles": ["tuning"],
       "category": "Control",
       "editor": "layout:tuning-editor.json",
       "params": [

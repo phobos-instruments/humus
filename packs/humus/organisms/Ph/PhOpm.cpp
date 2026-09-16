@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "Ph/PhOpm.h"
 
 #include <algorithm>
@@ -68,9 +70,9 @@ int toChip(int v, int span) { return std::clamp(v * span / 99, 0, span); }
 int fromChip(int v, int span) { return std::clamp(v * 99 / std::max(1, span), 0, 99); }
 }
 
-PhVoice PhOpm::voiceAt(int slot) const {
+FmVoice PhOpm::voiceAt(int slot) const {
     static const Patch fallback;
-    PhVoice v;
+    FmVoice v;
     const Patch& pt = hasEdit_ && slot == slot_ ? edited_
                       : bank_.empty()
                           ? fallback
@@ -79,7 +81,7 @@ PhVoice PhOpm::voiceAt(int slot) const {
     v.feedback = pt.fb & 7;
     for (int i = 0; i < 4; ++i) {
         const Op& o = pt.ops[(size_t) i];
-        PhVoiceOp& op = v.ops[(size_t) i];
+        FmVoiceOp& op = v.ops[(size_t) i];
         op.level = 99 - std::clamp((int) o.tl * 99 / kSevenBitMax, 0, 99);
         op.ratio = o.mult;
         op.detune = std::clamp((int) o.dt1 * 2, 0, 14);
@@ -92,12 +94,12 @@ PhVoice PhOpm::voiceAt(int slot) const {
     return v;
 }
 
-void PhOpm::setVoice(const PhVoice& v) {
+void PhOpm::setVoice(const FmVoice& v) {
     Patch p = patch();
     p.alg = (uint8_t) (std::clamp(v.algorithm - 1, 0, 31) % 8);
     p.fb = (uint8_t) std::clamp(v.feedback, 0, 7);
     for (int i = 0; i < 4; ++i) {
-        const PhVoiceOp& src = v.ops[(size_t) i];
+        const FmVoiceOp& src = v.ops[(size_t) i];
         Op& o = p.ops[(size_t) i];
         o.tl = (uint8_t) std::clamp(kSevenBitMax - src.level * kSevenBitMax / 99, 0, kSevenBitMax);
         o.mult = (uint8_t) std::clamp(src.ratio, 0, 15);
@@ -112,7 +114,7 @@ void PhOpm::setVoice(const PhVoice& v) {
     allOff();
 }
 
-void PhOpm::setMods(const PhMods& m) {
+void PhOpm::setMods(const FmMods& m) {
     if (m == mods_) return;
     mods_ = m;
     writeLfo();
@@ -269,14 +271,22 @@ void PhOpm::keyOn(int ch, bool on) {
     push(0x08, (uint8_t) ((on ? 0x78 : 0x00) | ch));
 }
 
+void PhOpm::bend(double semitones) {
+    for (int ch = 0; ch < kChannels; ++ch) {
+        chanBendSemis_[(size_t) ch] = semitones;
+        if (chanNote_[(size_t) ch] >= 0) writeKey(ch, bentHz(ch));
+    }
+}
+
 void PhOpm::noteOn(int midinote, int velocity, double hz) {
     int ch = -1;
     for (int i = 0; i < kChannels; ++i)
         if (chanNote_[(size_t) i] < 0) { ch = i; break; }
     if (ch < 0) { ch = next_; next_ = (next_ + 1) % kChannels; keyOn(ch, false); }
     chanNote_[(size_t) ch] = midinote;
+    chanHz_[(size_t) ch] = hz;
     writeChannelPatch(ch, velocity);
-    writeKey(ch, hz);
+    writeKey(ch, bentHz(ch));
     keyOn(ch, true);
 }
 

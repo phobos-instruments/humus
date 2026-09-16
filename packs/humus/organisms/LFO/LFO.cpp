@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: GPL-3.0-only
 #include "LFO/LFO.h"
 
 #include <algorithm>
@@ -8,7 +10,6 @@ namespace hum {
 
 void LfoGen::process(const float* const* in, int numIn, float* const* out, int numOut,
                      int numSamples, const Transport& transport) {
-    if (numOut < 1) return;
     const double rate = std::clamp(params.get("Rate", 1.0), 0.01, 1000.0);
     const int wave = std::clamp((int) params.get("Waveform", 0.0), 0, 5);
     const double amp = std::clamp(params.get("Amplitude", 1.0), 0.0, 1.0);
@@ -20,7 +21,7 @@ void LfoGen::process(const float* const* in, int numIn, float* const* out, int n
     else      lfo_.setRate(rate, sampleRate_);
 
     const float* src = (numIn > 0 && in && in[0]) ? in[0] : nullptr;
-    float* dst = out[0];
+    float* dst = numOut > 0 ? out[0] : nullptr;
     double lastV = 0.0;
     for (int i = 0; i < numSamples; ++i) {
         const double p = lfo_.tick();
@@ -35,7 +36,7 @@ void LfoGen::process(const float* const* in, int numIn, float* const* out, int n
                        : wave == 4 ? Lfo::sawDown(p)
                        : wave == 5 ? held_
                                    : Lfo::sine(p);
-        dst[i] = (src ? src[i] : 0.0f) + (float) (off + amp * v);
+        if (dst) dst[i] = (src ? src[i] : 0.0f) + (float) (off + amp * v);
         lastV = v;
     }
     for (int c = 1; c < numOut; ++c) std::memset(out[c], 0, sizeof(float) * (size_t) numSamples);

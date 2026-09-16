@@ -1,14 +1,19 @@
 {
-  "width": 640,
+  "width": 600,
   "height": 322,
   "resize": "stretch",
   "controls": [
     {
       "type": "piano-roll",
+      "bars": "Bars",
+      "swing": "Swing",
+      "swing-follow": "SwingFollow",
+      "swing-unit": "SwingUnit",
       "x": 0,
       "y": 0,
-      "w": 640,
-      "h": 290
+      "w": 600,
+      "h": 290,
+      "fill-v": true
     },
     {
       "type": "minitoggle",

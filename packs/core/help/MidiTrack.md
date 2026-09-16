@@ -1,14 +1,16 @@
 # MidiTrack
 
-A MIDI track the timeline way: a lane with no sound of its own and no box in the patcher. The row's chip shows where it plays - click it and pick any instrument in the patch; change the pick and the same part moves to a different contraption, notes untouched. New tracks start at "(nothing)": silent on purpose, waiting for the chip.
+A timeline lane that holds a MIDI part and plays it into any instrument in the patch.
 
-The R button on the row arms it: hardware keyboards and the on-screen keys flow through the track into whatever the chip points at, and what you play can land in a clip when recording. Mute and solo work like any track, and the right-click menu renames or deletes the lane.
-
-This replaces the old two-headed arrangement where a MIDI track had to *be* its instrument. The part now lives on the lane; the player is a choice. One part auditioned through five instruments, or a keeper part safe while the patch is rebuilt around it.
+It has no sound of its own and no box in the patcher: the part lives on the lane, and the row's chip names the organism it plays into. Pick a different target and the same notes move to a different instrument, untouched, so one part can be auditioned through several synths or kept safe while the patch is rebuilt around it. New tracks start at (nothing) and stay silent until a target is chosen. The arm button on the row routes live MIDI input through the track into the target, and what you play lands in a clip while recording. Mute, solo, rename and delete work from the row like any other track.
 
 ## Parameters
 
-**Target** the instrument this track plays into, always visible on the row's chip.
+**Target** The instrument this track plays into, shown on the row's chip. The list offers every organism in the patch with a MIDI inlet; choosing one cords the track's MIDI outlet to it, and a cord drawn by hand from that outlet sets Target the same way.
+
+## Recipe
+
+**One part, two synths** Set Target to a Rhizome, arm the row and record a phrase, or draw one in the clip. Add a second instrument, switch Target to it, and the same clip plays the new synth; switch back once you have compared the two.
 
 ## Related Organisms
 

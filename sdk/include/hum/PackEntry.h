@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
+// SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <cstdint>
 
@@ -11,9 +13,8 @@
 
 extern "C" {
 HUM_PACK_EXPORT int32_t hum_pack_abi();
-HUM_PACK_EXPORT const char* hum_pack_manifest_json();
+HUM_PACK_EXPORT uint64_t hum_pack_shape();
 HUM_PACK_EXPORT void* hum_pack_create(const char* className);
-HUM_PACK_EXPORT void hum_pack_destroy(void* organism);
 
 HUM_PACK_EXPORT const char* hum_pack_layout_json(const char* genId, const char* className);
 }
