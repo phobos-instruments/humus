@@ -16,7 +16,7 @@
 #include <cstring>
 #include <vector>
 
-#include "gui/video/MovieSound.h"
+#include "gui/video/VideoSound.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -42,9 +42,9 @@ bool aacTakesRate(double rate) {
     return whole == kAacRateLow || whole == kAacRateHigh;
 }
 
-class WinMovie : public VideoEncoder {
+class WinVideo : public VideoEncoder {
 public:
-    WinMovie(const juce::File& file, int width, int height, double fps, int quality, bool live)
+    WinVideo(const juce::File& file, int width, int height, double fps, int quality, bool live)
         : width_(width & ~1), height_(height & ~1), fps_(fps > 0.0 ? fps : 30.0), live_(live) {
         if (width_ < 16 || height_ < 16) return;
         if (FAILED(MFStartup(MF_VERSION, MFSTARTUP_LITE))) return;
@@ -57,7 +57,7 @@ public:
         ready_ = true;
     }
 
-    ~WinMovie() override {
+    ~WinVideo() override {
         close();
         letGo(writer_);
         if (up_) MFShutdown();
@@ -154,7 +154,7 @@ public:
 
 private:
     bool openPicture(int quality) {
-        const auto bits = (UINT32) std::llround(movieBitsPerSecond(width_, height_, fps_, quality));
+        const auto bits = (UINT32) std::llround(videoBitsPerSecond(width_, height_, fps_, quality));
         const UINT32 num = (UINT32) std::llround(fps_ * 1000.0);
         IMFMediaType* out = nullptr;
         if (FAILED(MFCreateMediaType(&out))) return false;
@@ -245,9 +245,9 @@ private:
 
 }
 
-std::unique_ptr<VideoEncoder> makeNativeMovieWriter(const juce::File& file, int width, int height,
+std::unique_ptr<VideoEncoder> makeNativeVideoWriter(const juce::File& file, int width, int height,
                                                     double fps, int quality, bool live) {
-    return std::make_unique<WinMovie>(file, width, height, fps, quality, live);
+    return std::make_unique<WinVideo>(file, width, height, fps, quality, live);
 }
 
 }

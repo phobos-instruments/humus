@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <string>
+
 #include <juce_core/juce_core.h>
 
 #include "core/app/AppPaths.h"
@@ -28,9 +30,23 @@ inline juce::File dirPurposeHome(DirPurpose p) {
     return userPatchesDir();
 }
 
+inline juce::File keptFolder(const juce::String& key) {
+    const juce::File kept(AppSettings::instance().getString(key, ""));
+    return kept.isDirectory() ? kept : juce::File();
+}
+
+inline void keepFolder(const juce::String& key, const juce::File& chosen) {
+    const auto dir = chosen.isDirectory() ? chosen : chosen.getParentDirectory();
+    if (!dir.isDirectory()) return;
+    AppSettings::instance().set(key, dir.getFullPathName());
+}
+
+inline juce::String mediaFolderKey(const std::string& kind) {
+    return "lastDir.media." + (kind.empty() ? juce::String("sound") : juce::String(kind));
+}
+
 inline juce::File startDirFor(DirPurpose p) {
-    const juce::File kept(AppSettings::instance().getString(dirPurposeKey(p), ""));
-    if (kept.isDirectory()) return kept;
+    if (const auto kept = keptFolder(dirPurposeKey(p)); kept.isDirectory()) return kept;
     const auto home = dirPurposeHome(p);
     home.createDirectory();
     return home.isDirectory() ? home
@@ -38,9 +54,7 @@ inline juce::File startDirFor(DirPurpose p) {
 }
 
 inline void rememberDirFor(DirPurpose p, const juce::File& chosen) {
-    const auto dir = chosen.isDirectory() ? chosen : chosen.getParentDirectory();
-    if (!dir.isDirectory()) return;
-    AppSettings::instance().set(dirPurposeKey(p), dir.getFullPathName());
+    keepFolder(dirPurposeKey(p), chosen);
 }
 
 }

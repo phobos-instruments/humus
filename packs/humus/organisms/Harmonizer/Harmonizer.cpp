@@ -88,9 +88,12 @@ void Harmonizer::chooseTargets(bool voiced, int rounded) {
         int notes[kVoices];
         int n = 0;
         const int start = std::max(0, held_.count - kVoices);
-        for (int i = start; i < held_.count; ++i)
-            notes[n++] = held_.notes[(size_t) i];
-        std::sort(notes, notes + n);
+        for (int i = start; i < held_.count && n < kVoices; ++i) {
+            const int note = held_.notes[(size_t) i];
+            int at = n++;
+            for (; at > 0 && notes[at - 1] > note; --at) notes[at] = notes[at - 1];
+            notes[at] = note;
+        }
         for (int v = 0; v < n; ++v) {
             targetRatio_[(size_t) v] = std::pow(2.0, (notes[v] - rounded) / 12.0);
             targetGain_[(size_t) v] = 1.0f;

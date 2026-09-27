@@ -8,14 +8,12 @@
 #include "gui/host/BrickHost.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
-#include "hum/caps/Graph.h"
+#include "gui/editor/readouts/ControlReadings.h"
 
 namespace hum {
 
 class TextReadoutView : public PolledBrick {
 public:
-    static constexpr int kMaxLines = 4;
-
     TextReadoutView(BrickHost& host, std::string name) : PolledBrick(host, std::move(name), 4) {}
 
     void reloadValues() override {}
@@ -30,31 +28,23 @@ public:
         g.setColour(Palette::border);
         g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 4.0f, 1.0f);
         r.reduce(8, 3);
-        const int n = std::max(1, count_);
+        const int count = reading_.count();
+        const int n = std::max(1, count);
         const int lineH = std::max(12, r.getHeight() / n);
         g.setFont(juce::FontOptions(juce::Font::getDefaultMonospacedFontName(), 11.0f, juce::Font::plain));
         for (int i = 0; i < n; ++i) {
-            g.setColour(i < count_ ? Palette::text : Palette::textDim);
-            g.drawText(i < count_ ? lines_[i] : juce::String("-"), r.removeFromTop(lineH),
+            g.setColour(i < count ? Palette::text : Palette::textDim);
+            g.drawText(i < count ? juce::String(reading_.line(i)) : juce::String("-"), r.removeFromTop(lineH),
                        juce::Justification::centredLeft, true);
         }
     }
 
 private:
     void poll() override {
-        std::string fresh[kMaxLines];
-        auto* src = live<TextSource>();
-        const int n = src ? src->textLines(fresh, kMaxLines) : 0;
-        bool changed = n != count_;
-        for (int i = 0; i < n && !changed; ++i) changed = lines_[i] != juce::String(fresh[i]);
-        if (!changed) return;
-        count_ = n;
-        for (int i = 0; i < n; ++i) lines_[i] = juce::String(fresh[i]);
-        repaint();
+        if (reading_.poll(host_, name_)) repaint();
     }
 
-    int count_ = 0;
-    juce::String lines_[kMaxLines];
+    readout::TextLines reading_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(TextReadoutView)
 };

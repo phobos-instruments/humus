@@ -30,8 +30,8 @@ public:
         row(audio_, tr("bounce.audio", "Audio"), offer_.hasSound,
             tr("bounce.no-sound", "nothing in this patch reaches the master"));
         row(video_, tr("bounce.video", "Video"),
-            !offer_.videoNodes.empty() && movieKindAvailable(MovieKind::H264),
-            !movieKindAvailable(MovieKind::H264)
+            !offer_.videoNodes.empty() && videoKindAvailable(VideoKind::H264),
+            !videoKindAvailable(VideoKind::H264)
                 ? tr("bounce.no-encoder", "this build has no video encoder")
                 : offer_.cameraOnly
                       ? tr("bounce.camera-only", "a camera has no timeline to render")
@@ -116,7 +116,7 @@ public:
         if (!offer_.videoNodes.empty())
             w.videoNode = offer_.videoNodes[(size_t) juce::jlimit(
                 0, (int) offer_.videoNodes.size() - 1, out_.getSelectedItemIndex())];
-        w.kind = MovieKind::H264;
+        w.kind = VideoKind::H264;
         w.quality = kQualityCrf[juce::jlimit(0, kQualitySteps - 1,
                                              quality_.getSelectedItemIndex())];
         const int wide[4] = {1920, 1280, 960, 640};
@@ -244,7 +244,7 @@ private:
         const bool inside = picture && audio_.isEnabled() && audio_.getToggleState();
         sound_.setEnabled(audio_.isEnabled() && audio_.getToggleState() && !inside);
         audio_.setButtonText(inside ? tr("bounce.audio", "Audio") + " - "
-                                          + tr("bounce.inside-the-movie", "goes inside the movie")
+                                          + tr("bounce.inside-the-video", "goes inside the video")
                                     : tr("bounce.audio", "Audio"));
         const bool wantsMp3 = sound_.isEnabled() && w.soundKind == "mp3";
         mp3_.setVisible(wantsMp3);

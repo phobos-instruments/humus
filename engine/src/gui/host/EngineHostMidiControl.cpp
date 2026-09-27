@@ -99,15 +99,29 @@ void MidiHost::openConfiguredDevices() {
 bool MidiHost::enabled() const { return state_.enabled; }
 const MidiControlMap& MidiHost::map() const { return state_.map; }
 int  MidiHost::lastCC() const { return state_.lastCc.load(); }
+int  MidiHost::lastPort() const { return state_.lastPort.load(); }
 void MidiHost::clearLastCC() { state_.lastCc.store(-1); }
 int  MidiHost::sourceValue(int source) const {
-    return isMidiSource(source) ? state_.ccValue[source].load() : -1;
+    return isMidiSource(source) ? state_.ccValue[kAnyMidiPortRow][source].load() : -1;
 }
 std::vector<int> MidiHost::heldNotes(int except) const {
     std::vector<int> held;
-    for (int s = kNoteSourceBase; s < kMidiSourceCount; ++s)
-        if (s != except && state_.ccValue[s].load() > kHeldThreshold) held.push_back(s);
+    for (int s = kNoteSourceBase; s < kNoteSourceEnd; ++s)
+        if (s != except && state_.ccValue[kAnyMidiPortRow][s].load() > kHeldThreshold)
+            held.push_back(s);
     return held;
+}
+std::vector<int> MidiHost::recentValues(int source, double sinceMs) const {
+    std::vector<int> out;
+    for (const auto& e : state_.feed.trail())
+        if (e.source == source && e.atMs >= sinceMs) out.push_back(e.value);
+    return out;
+}
+double MidiHost::lastSeenMs(int source) const {
+    const auto& trail = state_.feed.trail();
+    for (auto it = trail.rbegin(); it != trail.rend(); ++it)
+        if (it->source == source) return it->atMs;
+    return -1.0;
 }
 void MidiHost::setModifier(int source, bool latching, bool ownAction) {
     state_.map.setModifier(source, latching, ownAction);
@@ -125,20 +139,39 @@ bool MidiHost::anyRecordTarget() const {
     return !state_.recordTargets.empty();
 }
 
+std::string MidiHost::deviceForPort(int port) const {
+    if (port < 0 || port >= kMidiPorts) return {};
+    for (size_t i = 0; i < state_.inputs.size() && i < state_.inputPorts.size(); ++i)
+        if (state_.inputPorts[i] == port && state_.inputs[i])
+            return state_.inputs[i]->getName().toStdString();
+    return {};
+}
+
+int MidiHost::portForDevice(const std::string& device) const {
+    if (device.empty()) return kAnyMidiPort;
+    for (size_t i = 0; i < state_.inputs.size() && i < state_.inputPorts.size(); ++i)
+        if (state_.inputs[i] && state_.inputs[i]->getName().toStdString() == device)
+            return state_.inputPorts[i];
+    return kMidiPorts;
+}
+
+std::vector<std::string> MidiHost::inputDevices() const {
+    std::vector<std::string> out;
+    for (const auto& in : state_.inputs)
+        if (in) out.push_back(in->getName().toStdString());
+    return out;
+}
+
 void MidiHost::syncMapFromModel() {
     state_.map.clearAll();
     for (auto& c : doc_.document().organisms)
         for (auto& s : c.midiSources) {
-            const MidiSource src(s.cc, s.held);
+            const MidiSource src(s.cc, s.held, portForDevice(s.device), s.channel);
             state_.map.set(src, c.name, s.propertyName, s.mapMin, s.mapMax);
-            ControlShape sh;
-            sh.smoothing = s.smoothing;
-            sh.curve = s.curve;
-            sh.isSwitch = s.isSwitch || paramIsSwitch(host_, c.name, s.propertyName);
-            sh.inverted = s.inverted;
-            sh.toggle = s.toggle;
-            sh.threshold = s.threshold;
-            if (!sh.isSwitch) sh.logScale = paramIsLog(host_, c.name, s.propertyName);
+            ControlShape sh = s.shape;
+            if (!sh.isButton() && paramIsSwitch(host_, c.name, s.propertyName) && !sh.isEncoder())
+                sh.type = ControlType::Button;
+            sh.logScale = sh.isFader() && paramIsLog(host_, c.name, s.propertyName);
             if (!sh.isDefault()) state_.map.setShape(src, c.name, s.propertyName, sh);
         }
     for (const auto& m : doc_.document().midiModifiers)
@@ -155,7 +188,10 @@ void MidiHost::syncMapToModel() {
                          const MidiSource& src) -> const MidiControllerSource* {
         const std::string key = name + "\t" + param;
         for (auto& p : prior)
-            if (p.propertyName == key && p.cc == src.cc && p.held == src.held) return &p;
+            if (p.propertyName == key && p.cc == src.cc && p.held == src.held
+                && midiChannelSlot(p.channel) == src.channel
+                && portForDevice(p.device) == midiPortRow(src.port))
+                return &p;
         return nullptr;
     };
     for (const auto& e : state_.map.entries()) {
@@ -171,14 +207,13 @@ void MidiHost::syncMapToModel() {
             if (pr.name == e.param) { s.propertyIndex = pr.index; break; }
         s.cc = e.cc;
         s.held = e.held;
+        s.channel = e.channel;
+        if (e.port < 0) s.device.clear();
+        else if (const auto named = deviceForPort(e.port); !named.empty()) s.device = named;
         s.mapMin = e.min;
         s.mapMax = e.max;
-        s.smoothing = e.shape.smoothing;
-        s.curve = e.shape.curve;
-        s.isSwitch = e.shape.isSwitch;
-        s.inverted = e.shape.inverted;
-        s.toggle = e.shape.toggle;
-        s.threshold = e.shape.threshold;
+        s.shape = e.shape;
+        s.shape.logScale = false;
         cm->midiSources.push_back(std::move(s));
     }
     doc_.document().midiModifiers.clear();
@@ -186,27 +221,22 @@ void MidiHost::syncMapToModel() {
         doc_.document().midiModifiers.push_back({m.source, m.latching, m.ownAction});
 }
 
-juce::String MidiHost::mapCC(const MidiSource& src, const std::string& organism,
-                             const std::string& param, double min, double max, bool steal) {
+std::string MidiHost::mapCC(const MidiSource& src, const std::string& organism,
+                            const std::string& param, double min, double max, bool steal) {
     if (!isMidiSource(src.cc)) return {};
-    juce::String stolenText;
-    if (steal) {
-        const auto stolen = state_.map.steal(src, organism, param);
-        for (const auto& [sc, sp] : stolen) {
-            if (stolenText.isNotEmpty()) stolenText << ", ";
-            stolenText << juce::String(sc) << "/" << juce::String(sp);
-        }
-    }
+    std::string stolenText;
+    if (steal)
+        for (const auto& [sc, sp] : state_.map.steal(src, organism, param))
+            stolenText += (stolenText.empty() ? "" : ", ") + sc + "/" + sp;
     state_.map.set(src, organism, param, min, max);
     if (const auto* sh = state_.map.shapeOf(src, organism, param))
         if (sh->isDefault()) {
             ControlShape d;
-            if (paramIsSwitch(host_, organism, param)) d.isSwitch = true;
+            if (paramIsSwitch(host_, organism, param)) d.type = ControlType::Button;
             else d.logScale = paramIsLog(host_, organism, param);
             if (!d.isDefault()) state_.map.setShape(src, organism, param, d);
         }
     doc_.flagDirty();
-    if (!isActionTarget(host_, organism, param)) host_.automation().add(organism, param);
     doc_.pokeLiveRefresh();
     return stolenText;
 }
@@ -220,9 +250,28 @@ void MidiHost::setShape(const MidiSource& src, const std::string& organism,
 void MidiHost::clearCC(const MidiSource& src, const std::string& organism,
                        const std::string& param) {
     state_.map.clear(src, organism, param);
+    dropIdleLane(organism, param);
     doc_.flagDirty();
     doc_.pokeLiveRefresh();
 }
+
+void MidiHost::dropIdleLane(const std::string& organism, const std::string& param) {
+    for (const auto& e : state_.map.entries())
+        if (e.organism == organism && e.param == param) return;
+    for (const auto& e : host_.osc().map().entries())
+        if (e.organism == organism && e.param == param) return;
+    for (const auto& e : host_.mod().map().entries())
+        if (e.organism == organism && e.param == param) return;
+    const auto* cm = doc_.document().byName(organism);
+    if (cm == nullptr) return;
+    for (const auto& l : cm->automation)
+        if (l.propertyName == param) {
+            if (l.points.size() > 1) return;
+            host_.automation().remove(organism, param);
+            return;
+        }
+}
+
 
 void MidiHost::clearForOrganism(const std::string& organism) {
     state_.map.clearOrganism(organism);
@@ -243,6 +292,83 @@ void MidiHost::setReceiveMode(const std::string& name, int mode, int channel) {
     const juce::ScopedLock ml(state_.targetsLock);
     for (auto& t : state_.targets)
         if (t.hp == hp) { t.mode = cm->midiReceiveMode; t.channel = cm->midiReceiveChannel; }
+}
+
+void MidiHost::armInlet(const std::string& name, bool armed) {
+    bool existing = false;
+    {
+        const juce::ScopedLock ml(state_.targetsLock);
+        for (auto& t : state_.recordTargets)
+            if (t.node == name) {
+                existing = true;
+                t.inlet = armed;
+            }
+    }
+    if (!existing && armed) {
+        setRecordTarget(name, true, 0, kClipOnDemand, false);
+        const juce::ScopedLock ml(state_.targetsLock);
+        for (auto& t : state_.recordTargets)
+            if (t.node == name) t.inlet = true;
+    } else if (existing && !armed) {
+        setRecordTarget(name, false);
+    }
+    if (auto* g = audio_.graph(); g != nullptr && !armed) {
+        const juce::ScopedLock sl(audio_.graphLock());
+        g->setMidiInletTap(g->indexOf(name), false);
+    }
+    nodes_.refreshArmedInputs();
+}
+
+void MidiHost::disarmInstruments() {
+    const juce::ScopedLock ml(state_.targetsLock);
+    auto& v = state_.recordTargets;
+    v.erase(std::remove_if(v.begin(), v.end(),
+                           [](const MidiState::RecordTarget& t) { return !t.inlet && t.fromInput; }),
+            v.end());
+    for (auto& t : v)
+        if (t.inlet) {
+            t.clip = kClipOnDemand;
+            t.grow = false;
+            t.takeColour = kNoColour;
+        }
+}
+
+void MidiHost::setTrackInput(const std::string& name, int input) {
+    auto* cm = doc_.document().byName(name);
+    if (cm == nullptr || cm->trackInput == input) return;
+    host_.pushUndo();
+    cm->trackInput = input;
+    doc_.flagDirty();
+    nodes_.refreshArmedInputs();
+}
+
+int MidiHost::trackInput(const std::string& name) const {
+    const auto* cm = doc_.document().byName(name);
+    return cm != nullptr ? cm->trackInput : OrganismModel::kTrackInputAuto;
+}
+
+unsigned MidiHost::inputActivity(const std::string& name) const {
+    unsigned hits = 0;
+    {
+        const juce::ScopedLock ml(state_.targetsLock);
+        if (const auto it = state_.keyboardHits.find(name); it != state_.keyboardHits.end()) hits = it->second;
+    }
+    if (auto* g = audio_.graph()) hits += g->nodeMidiInletCount(g->indexOf(name));
+    return hits;
+}
+
+bool MidiHost::anyInletArmed() const {
+    const juce::ScopedLock ml(state_.targetsLock);
+    for (const auto& t : state_.recordTargets)
+        if (t.inlet) return true;
+    return false;
+}
+
+bool MidiHost::inletArmed(const std::string& name) const {
+    const juce::ScopedLock ml(state_.targetsLock);
+    for (const auto& t : state_.recordTargets)
+        if (t.node == name && t.inlet) return true;
+    return false;
 }
 
 void MidiHost::setRecordTarget(const std::string& name, bool armed, int quantizeTicks,

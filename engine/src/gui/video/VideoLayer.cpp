@@ -11,6 +11,14 @@ namespace hum {
 std::unique_ptr<VideoLayer> VideoLayer::createPlatform() { return nullptr; }
 #endif
 
+#if !defined(HUM_FFMPEG)
+std::unique_ptr<VideoLayer> VideoLayer::createFfmpeg() { return nullptr; }
+#endif
+
+#if !JUCE_MAC
+bool VideoLayer::systemCanPlay(const juce::File&) { return true; }
+#endif
+
 #if !JUCE_MAC
 double VideoLayer::probeLengthSeconds(const juce::File&) { return 0.0; }
 std::unique_ptr<VideoLayer> VideoLayer::createOffline() { return createPlatform(); }
@@ -24,8 +32,12 @@ public:
 
     void load(const juce::String& path) override {
         const bool wantHap = hap::open(juce::File(path)).ok;
-        if (wantHap != isHap_ || inner_ == nullptr) {
+        const bool wantFfmpeg = !wantHap && !VideoLayer::systemCanPlay(juce::File(path))
+                                && VideoLayer::createFfmpeg() != nullptr;
+        if (wantHap != isHap_ || wantFfmpeg != isFfmpeg_ || inner_ == nullptr) {
+            isFfmpeg_ = wantFfmpeg;
             inner_ = wantHap    ? std::make_unique<HapVideoLayer>()
+                   : wantFfmpeg ? VideoLayer::createFfmpeg()
                      : offline_ ? VideoLayer::createOffline()
                                 : VideoLayer::createPlatform();
             isHap_ = wantHap;
@@ -78,7 +90,7 @@ public:
 private:
     std::unique_ptr<VideoLayer> inner_;
     LoopRange range_;
-    bool isHap_ = false;
+    bool isHap_ = false, isFfmpeg_ = false;
     const bool offline_;
 };
 

@@ -67,6 +67,8 @@ public:
     bool consumeAutoStop() override { return autoStop_.exchange(false); }
     int channels() const override { return 2; }
 
+    int publishCountForTest() const { return publishes_.load(std::memory_order_relaxed); }
+
     bool reloadsOn(const std::string& param) const override {
         return param == "Bits" || param == "Rate";
     }
@@ -116,6 +118,7 @@ private:
         float attackInc = 1.0f, decayCoef = 0.0f, releaseCoef = 0.0f, sustain = 1.0f;
         float panL = 1.0f, panR = 1.0f;
         int endIdx = 0, loopLen = 0;
+        float fadeLen = 0.0f, loopFade = 0.0f;
     };
 
     void applyPending();
@@ -123,6 +126,8 @@ private:
     int rootOf(const Zone& z) const;
     int selectedPreset() const;
     void buildBank(const std::string& uri, Kit& out);
+    void buildLibraryBank(const std::string& uri, Kit& out);
+    static void thinLoops(Kit& kit, int sampleIndex, double ratio);
     void startVoice(const Zone& zone, int zoneIndex, int note, float velocity);
     void refreshVoiceEnvelopes();
     void updateVoice(Voice& v);
@@ -145,6 +150,7 @@ private:
     std::array<std::string, kSlots> slotUri_;
     std::array<SoundFileInfo, kSlots> slotInfo_;
     mutable std::array<int, kSlots> rootSeed_{};
+    std::array<double, kSlots> slotRatio_{};
 
     LevelMeter inMeter_;
     juce::AudioBuffer<float> capture_;
@@ -158,6 +164,8 @@ private:
     bool captureReady_ = false;
 
     int lastBits_ = 24, lastRate_ = 48;
+    bool published_ = false;
+    std::atomic<int> publishes_{0};
 
     Kit bankCache_;
     std::string bankUri_;

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include <algorithm>
 #include "gui/host/EngineHost.h"
+
+#include "core/params/ValueText.h"
 #include "io/ModRouteBuild.h"
 #include "core/params/ParamSchema.h"
 #include "core/packs/ClassString.h"
@@ -86,6 +88,22 @@ std::string EngineHost::controlOutletValue(const std::string& name, int outlet) 
     int k = 0;
     for (int i = 0; i < n; ++i)
         if (pins->controlOutlet(i) && k++ == outlet) return vals[i].name;
+    return {};
+}
+
+std::string EngineHost::controlOutletReading(const std::string& name, int outlet) {
+    auto* live = liveNode(name);
+    const auto* pins = dynamic_cast<const PinKinds*>(live);
+    const auto* src = dynamic_cast<const ControlSource*>(live);
+    if (pins == nullptr || src == nullptr) return {};
+    ControlSource::ControlVal vals[32];
+    const int n = src->controlValues(vals, 32);
+    int k = 0;
+    for (int i = 0; i < n; ++i) {
+        if (!pins->controlOutlet(i)) continue;
+        if (k++ != outlet) continue;
+        return decimalText((double) vals[i].value, 3);
+    }
     return {};
 }
 

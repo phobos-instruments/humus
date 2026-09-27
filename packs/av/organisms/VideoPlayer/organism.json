@@ -17,7 +17,22 @@
           "min": 0.0,
           "max": 4.0,
           "def": 1.0,
-          "unit": "%"
+          "unit": "%",
+          "socket": true
+        },
+        {
+          "name": "Follow",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Position",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "socket": true
         },
         {
           "name": "Opacity",

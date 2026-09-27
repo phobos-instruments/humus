@@ -3,6 +3,7 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <limits>
 #include <string>
 
 #include "common/NumberFormat.h"
@@ -32,8 +33,13 @@ public:
     }
 
 private:
+    void rollOnBeat(int numSamples, const Transport& transport, double syncBeats);
+    void rollFree(int numSamples, double syncedEvery);
+
     double sampleRate_ = 48000.0;
+    static constexpr long long kNoCell = std::numeric_limits<long long>::min();
     double due_ = 0.0;
+    long long beatCell_ = kNoCell;
     bool triggerHeld_ = false;
     bool pending_ = true;
     std::uint64_t state_ = 0;

@@ -1,11 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "hum/SerialPort.h"
+#include "hum/FileBytes.h"
 
 #include <algorithm>
 #include <cstdint>
+#include <filesystem>
+#include <string>
+#include <system_error>
 
-#if JUCE_WINDOWS
+#if defined(_WIN32)
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
@@ -24,7 +28,7 @@ namespace hum::serial {
 
 void applyCustomSpeed(int fd, int baud);
 
-#if JUCE_WINDOWS
+#if defined(_WIN32)
 
 std::vector<std::string> listDevices() {
     std::vector<std::string> out;
@@ -110,8 +114,12 @@ bool Port::write(const void* buf, int n) {
 std::vector<std::string> listDevices() {
     std::vector<std::string> out;
     for (const char* pattern : {"tty.usbmodem*", "tty.usbserial*", "ttyACM*", "ttyUSB*"}) {
-        auto found = juce::File("/dev").findChildFiles(juce::File::findFiles, false, pattern);
-        for (const auto& f : found) out.push_back(f.getFullPathName().toStdString());
+        const std::string prefix(pattern, std::char_traits<char>::length(pattern) - 1);
+        std::error_code ec;
+        for (std::filesystem::directory_iterator it("/dev", ec), end; !ec && it != end; it.increment(ec)) {
+            const auto name = utf8Text(it->path().filename());
+            if (name.rfind(prefix, 0) == 0 && !it->is_directory(ec)) out.push_back(utf8Text(it->path()));
+        }
     }
     std::sort(out.begin(), out.end());
     return out;

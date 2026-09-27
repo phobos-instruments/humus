@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
-#include <juce_core/juce_core.h>
+#include "core/xml/Xml.h"
 
 #include "io/PatchDocument.h"
 
 namespace hum {
 
-void parsePattern(juce::XmlElement& pe, Pattern& pat);
+void parsePattern(xml::Element& pe, Pattern& pat);
 
-void parseModulationSources(juce::XmlElement& mod, OrganismModel& c);
+void parseModulationSources(xml::Element& mod, OrganismModel& c);
 
-void parseMidiSettings(juce::XmlElement& organismEl, OrganismModel& c);
+void parseMidiSettings(xml::Element& organismEl, OrganismModel& c);
 
 }

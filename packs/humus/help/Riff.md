@@ -6,7 +6,7 @@ Each step carries a note, a gate, an accent and a slide, the pattern language of
 
 ## The grid
 
-Drag in the note lane to set a step's pitch, which also gates it; right-click a step to rest it. The A and S rows toggle accent and slide. A slide into the same note ties it instead of striking it again. Right-click the A or S rows for Random, Clear, Nudge, Import pattern file and Copy to another bank. Load riffs, or a drop on the grid, reads MIDI files and acid-box pattern dumps into the bank shown and the ones after it.
+Drag in the note lane to set a step's pitch, which also gates it; right-click a step to rest it. The A and S rows toggle accent and slide. A slide into the same note ties it instead of striking it again. Right-click the A or S rows for Random, Clear, Nudge, Load riffs and Copy to another bank. Load riffs opens a browser over your Riffs library folder, with the ones you loaded before under Recent and Open a file for anything else. The riff you pick, or a file dropped on the grid, reads MIDI files and acid-box pattern dumps into the bank shown and the ones after it.
 
 ## Parameters
 

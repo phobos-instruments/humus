@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/style/Colours.h"
 #include "gui/style/LookAndFeel.h"
+#include "gui/style/PlatformFont.h"
 
 namespace hum {
 
@@ -97,7 +98,11 @@ void setAppearanceAdjustments(double brightness, double contrast) {
 double brightnessAdjustment() { return gBrightness; }
 double contrastAdjustment() { return gContrast; }
 
-HumLookAndFeel::HumLookAndFeel() { gLaf = this; recomputePalette(); }
+HumLookAndFeel::HumLookAndFeel() {
+    gLaf = this;
+    if (const auto face = platformUiTypeface(); face.isNotEmpty()) setDefaultSansSerifTypefaceName(face);
+    recomputePalette();
+}
 HumLookAndFeel::~HumLookAndFeel() { if (gLaf == this) gLaf = nullptr; }
 
 void HumLookAndFeel::refreshColours() {

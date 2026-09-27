@@ -13,6 +13,10 @@ namespace hum {
 namespace {
 constexpr int kRefract = 3;
 
+float chordFloor(double sensitivity) {
+    return (float) (0.30 - 0.22 * sensitivity);
+}
+
 int nearestMidi(double hz) { return (int) std::lround(hum::hzToMidi(hz)); }
 
 int velFromLevel(double level) {
@@ -24,11 +28,17 @@ int velFromLevel(double level) {
 void Decomposer::prepare(double sampleRate, int maxBlock) {
     sampleRate_ = sampleRate;
     tracker_.prepare(sampleRate);
+    chords_.prepare(sampleRate);
     reset();
 }
 
 void Decomposer::reset() {
     tracker_.reset();
+    chords_.reset();
+    heard_.fill(0);
+    missed_.fill(0);
+    sounding_.fill(false);
+    rChordCount_.store(0);
     curNote_ = -1;
     candNote_ = -1;
     candFrames_ = 0;
@@ -78,12 +88,81 @@ void Decomposer::process(const float* const* in, int numIn, float* const*, int,
         case 2: confirmFrames_ = 3; releaseFrames_ = 4; break;
         default: confirmFrames_ = 2; releaseFrames_ = 3; break;
     }
+    voices_ = std::clamp((int) params.get("Voices", 1.0), 1, ChordTracker::kMaxVoices);
     const float* x = (numIn > 0 && in && in[0]) ? in[0] : nullptr;
     const int end = std::max(0, numSamples - 1);
     if (!x) return;
+    if (voices_ > 1) {
+        if (curNote_ >= 0) allNotesOff(end);
+        chords_.setRange(loNote_, hiNote_);
+        chords_.setVoices(voices_);
+        chords_.setVoiceFloor(chordFloor(std::clamp(params.get("Sensitivity", 0.35), 0.0, 1.0)));
+        if (chords_.push(x, numSamples) > 0) segmentChord(end);
+        return;
+    }
+    if (rChordCount_.load() > 0) silenceChord(end);
     tracker_.setHzRange(midiToHz(loNote_) * 0.98, midiToHz(hiNote_) * 1.02);
     const int fresh = tracker_.push(x, numSamples);
     if (fresh > 0) segmentMono(end);
+}
+
+void Decomposer::silenceChord(int offset) {
+    for (int note = 0; note <= kMidiMax; ++note)
+        if (sounding_[(size_t) note]) { emit(offset, false, note, 0); sounding_[(size_t) note] = false; }
+    heard_.fill(0);
+    missed_.fill(0);
+    rChordCount_.store(0);
+}
+
+void Decomposer::publishChord() {
+    int at = 0;
+    for (int note = 0; note <= kMidiMax && at < ChordDetectSource::kMaxChordNotes; ++note)
+        if (sounding_[(size_t) note]) rChord_[(size_t) at++].store(note);
+    rChordCount_.store(at);
+    rNote_.store(at > 0 ? rChord_[0].load() : -1);
+    rHz_.store(at > 0 ? (float) midiToHz(rChord_[0].load()) : 0.0f);
+}
+
+void Decomposer::segmentChord(int blockEndOffset) {
+    const double sens = std::clamp(params.get("Sensitivity", 0.35), 0.0, 1.0);
+    const double levelFloor = 0.0015 + (1.0 - sens) * 0.02;
+    const double level = chords_.level();
+    const bool quiet = level <= levelFloor;
+
+    rLevel_.store((float) std::clamp(level * 4.0, 0.0, 1.0));
+    rClar_.store(chords_.tonality());
+
+    std::array<bool, kMidiMax + 1> seen{};
+    if (!quiet)
+        for (const auto& voice : chords_.voices())
+            if (voice.note >= 0 && voice.note <= kMidiMax) seen[(size_t) voice.note] = true;
+
+    for (int note = loNote_; note <= hiNote_; ++note) {
+        const auto slot = (size_t) note;
+        if (seen[slot]) {
+            missed_[slot] = 0;
+            if (heard_[slot] < 255) ++heard_[slot];
+            if (!sounding_[slot] && heard_[slot] >= confirmFrames_) {
+                sounding_[slot] = true;
+                emit(blockEndOffset, true, note, chordVelocity(note));
+            }
+        } else {
+            heard_[slot] = 0;
+            if (!sounding_[slot]) continue;
+            if (missed_[slot] < 255) ++missed_[slot];
+            if (missed_[slot] >= releaseFrames_) {
+                sounding_[slot] = false;
+                emit(blockEndOffset, false, note, 0);
+            }
+        }
+    }
+    publishChord();
+}
+
+int Decomposer::chordVelocity(int note) const {
+    for (const auto& voice : chords_.voices())
+        if (voice.note == note) return velFromLevel(voice.salience * 0.5);
+    return velFromLevel(chords_.level());
 }
 
 void Decomposer::segmentMono(int blockEndOffset) {

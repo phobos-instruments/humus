@@ -1,0 +1,948 @@
+{
+  "width": 600,
+  "height": 186,
+  "scroll-from": 60,
+  "controls": [
+    {
+      "type": "label",
+      "label": "Everything else",
+      "x": 320,
+      "y": 10,
+      "w": 104,
+      "h": 20
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Others",
+      "label": "",
+      "x": 428,
+      "y": 9,
+      "w": 160,
+      "h": 22,
+      "options": [
+        "Pass",
+        "Block"
+      ],
+      "tooltip": "What happens to messages no rule matches: pitch bend, pressure, program changes and any note or controller left over."
+    },
+    {
+      "type": "label",
+      "label": "In",
+      "x": 32,
+      "y": 40,
+      "w": 84,
+      "h": 18
+    },
+    {
+      "type": "label",
+      "label": "From",
+      "x": 124,
+      "y": 40,
+      "w": 84,
+      "h": 18
+    },
+    {
+      "type": "label",
+      "label": "Up to",
+      "x": 216,
+      "y": 40,
+      "w": 84,
+      "h": 18
+    },
+    {
+      "type": "label",
+      "label": "Do",
+      "x": 316,
+      "y": 40,
+      "w": 108,
+      "h": 18
+    },
+    {
+      "type": "label",
+      "label": "Target",
+      "x": 432,
+      "y": 40,
+      "w": 84,
+      "h": 18
+    },
+    {
+      "type": "label",
+      "label": "1",
+      "x": 12,
+      "y": 62,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In1=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 62,
+      "w": 16,
+      "h": 24,
+      "show-when": "In1=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In1",
+      "label": "",
+      "x": 32,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins."
+    },
+    {
+      "type": "note-field",
+      "param": "Low1",
+      "label": "",
+      "x": 124,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "show-when": "In1=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low1",
+      "label": "",
+      "x": 124,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "show-when": "In1=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High1",
+      "label": "",
+      "x": 216,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "show-when": "In1=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High1",
+      "label": "",
+      "x": 216,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "show-when": "In1=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do1",
+      "label": "",
+      "x": 316,
+      "y": 62,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In1=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target1",
+      "label": "",
+      "x": 432,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In1=Off&Do1=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target1",
+      "label": "",
+      "x": 432,
+      "y": 62,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In1=Off&Do1=To CC"
+    },
+    {
+      "type": "label",
+      "label": "2",
+      "x": 12,
+      "y": 92,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In2=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 92,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In1=Off&In2=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In2",
+      "label": "",
+      "x": 32,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In1=Off|!In2=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low2",
+      "label": "",
+      "x": 124,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "show-when": "In2=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low2",
+      "label": "",
+      "x": 124,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "show-when": "In2=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High2",
+      "label": "",
+      "x": 216,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "show-when": "In2=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High2",
+      "label": "",
+      "x": 216,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "show-when": "In2=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do2",
+      "label": "",
+      "x": 316,
+      "y": 92,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In2=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target2",
+      "label": "",
+      "x": 432,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In2=Off&Do2=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target2",
+      "label": "",
+      "x": 432,
+      "y": 92,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In2=Off&Do2=To CC"
+    },
+    {
+      "type": "label",
+      "label": "3",
+      "x": 12,
+      "y": 122,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In3=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 122,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In2=Off&In3=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In3",
+      "label": "",
+      "x": 32,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In2=Off|!In3=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low3",
+      "label": "",
+      "x": 124,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "show-when": "In3=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low3",
+      "label": "",
+      "x": 124,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "show-when": "In3=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High3",
+      "label": "",
+      "x": 216,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "show-when": "In3=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High3",
+      "label": "",
+      "x": 216,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "show-when": "In3=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do3",
+      "label": "",
+      "x": 316,
+      "y": 122,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In3=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target3",
+      "label": "",
+      "x": 432,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In3=Off&Do3=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target3",
+      "label": "",
+      "x": 432,
+      "y": 122,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In3=Off&Do3=To CC"
+    },
+    {
+      "type": "label",
+      "label": "4",
+      "x": 12,
+      "y": 152,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In4=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 152,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In3=Off&In4=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In4",
+      "label": "",
+      "x": 32,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In3=Off|!In4=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low4",
+      "label": "",
+      "x": 124,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "show-when": "In4=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low4",
+      "label": "",
+      "x": 124,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "show-when": "In4=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High4",
+      "label": "",
+      "x": 216,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "show-when": "In4=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High4",
+      "label": "",
+      "x": 216,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "show-when": "In4=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do4",
+      "label": "",
+      "x": 316,
+      "y": 152,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In4=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target4",
+      "label": "",
+      "x": 432,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In4=Off&Do4=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target4",
+      "label": "",
+      "x": 432,
+      "y": 152,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In4=Off&Do4=To CC"
+    },
+    {
+      "type": "label",
+      "label": "5",
+      "x": 12,
+      "y": 182,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In5=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 182,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In4=Off&In5=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In5",
+      "label": "",
+      "x": 32,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In4=Off|!In5=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low5",
+      "label": "",
+      "x": 124,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "show-when": "In5=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low5",
+      "label": "",
+      "x": 124,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "show-when": "In5=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High5",
+      "label": "",
+      "x": 216,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "show-when": "In5=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High5",
+      "label": "",
+      "x": 216,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "show-when": "In5=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do5",
+      "label": "",
+      "x": 316,
+      "y": 182,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In5=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target5",
+      "label": "",
+      "x": 432,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In5=Off&Do5=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target5",
+      "label": "",
+      "x": 432,
+      "y": 182,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In5=Off&Do5=To CC"
+    },
+    {
+      "type": "label",
+      "label": "6",
+      "x": 12,
+      "y": 212,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In6=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 212,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In5=Off&In6=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In6",
+      "label": "",
+      "x": 32,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In5=Off|!In6=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low6",
+      "label": "",
+      "x": 124,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "show-when": "In6=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low6",
+      "label": "",
+      "x": 124,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "show-when": "In6=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High6",
+      "label": "",
+      "x": 216,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "show-when": "In6=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High6",
+      "label": "",
+      "x": 216,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "show-when": "In6=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do6",
+      "label": "",
+      "x": 316,
+      "y": 212,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In6=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target6",
+      "label": "",
+      "x": 432,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In6=Off&Do6=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target6",
+      "label": "",
+      "x": 432,
+      "y": 212,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In6=Off&Do6=To CC"
+    },
+    {
+      "type": "label",
+      "label": "7",
+      "x": 12,
+      "y": 242,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In7=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 242,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In6=Off&In7=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In7",
+      "label": "",
+      "x": 32,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In6=Off|!In7=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low7",
+      "label": "",
+      "x": 124,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "show-when": "In7=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low7",
+      "label": "",
+      "x": 124,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "show-when": "In7=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High7",
+      "label": "",
+      "x": 216,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "show-when": "In7=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High7",
+      "label": "",
+      "x": 216,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "show-when": "In7=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do7",
+      "label": "",
+      "x": 316,
+      "y": 242,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In7=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target7",
+      "label": "",
+      "x": 432,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In7=Off&Do7=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target7",
+      "label": "",
+      "x": 432,
+      "y": 242,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In7=Off&Do7=To CC"
+    },
+    {
+      "type": "label",
+      "label": "8",
+      "x": 12,
+      "y": 272,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In8=Off"
+    },
+    {
+      "type": "label",
+      "label": "+",
+      "x": 12,
+      "y": 272,
+      "w": 16,
+      "h": 24,
+      "show-when": "!In7=Off&In8=Off"
+    },
+    {
+      "type": "combo",
+      "param": "In8",
+      "label": "",
+      "x": 32,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "options": [
+        "Off",
+        "Note",
+        "CC"
+      ],
+      "tooltip": "What this rule listens for. Pick Note or CC to add a rule, Off to remove it. Rules are checked top to bottom and the first match wins.",
+      "show-when": "!In7=Off|!In8=Off"
+    },
+    {
+      "type": "note-field",
+      "param": "Low8",
+      "label": "",
+      "x": 124,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "show-when": "In8=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "Low8",
+      "label": "",
+      "x": 124,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "show-when": "In8=CC"
+    },
+    {
+      "type": "note-field",
+      "param": "High8",
+      "label": "",
+      "x": 216,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "show-when": "In8=Note"
+    },
+    {
+      "type": "number-field",
+      "param": "High8",
+      "label": "",
+      "x": 216,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "show-when": "In8=CC"
+    },
+    {
+      "type": "combo",
+      "param": "Do8",
+      "label": "",
+      "x": 316,
+      "y": 272,
+      "w": 108,
+      "h": 24,
+      "options": [
+        "Block",
+        "To note",
+        "To CC"
+      ],
+      "show-when": "!In8=Off",
+      "tooltip": "Block stops it. To note or To CC sends it on as that note or controller."
+    },
+    {
+      "type": "note-field",
+      "param": "Target8",
+      "label": "",
+      "x": 432,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In8=Off&Do8=To note"
+    },
+    {
+      "type": "number-field",
+      "param": "Target8",
+      "label": "",
+      "x": 432,
+      "y": 272,
+      "w": 84,
+      "h": 24,
+      "show-when": "!In8=Off&Do8=To CC"
+    }
+  ]
+}

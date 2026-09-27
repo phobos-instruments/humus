@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "SoundIn/SoundIn.h"
 
 #include <algorithm>
@@ -28,7 +29,7 @@ void SoundIn::loadFromFile(const std::string& uriIn) {
     std::string uri = uriIn;
     if (!uri.empty()) {
         if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-        juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+        auto f = fileAt(uri);
         if (f.existsAsFile()) {
             juce::AudioFormatManager fm;
             fm.registerBasicFormats();

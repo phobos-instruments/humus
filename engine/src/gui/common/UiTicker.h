@@ -40,20 +40,25 @@ public:
         }
     }
 
-    void setBusy(bool busy) {
-        if (busy == busy_) return;
-        busy_ = busy;
-        if (isTimerRunning()) startTimerHz(rateHz(foreground_, busy_));
+    void hold() {
+        if (holds_++ == 0 && isTimerRunning()) startTimerHz(rateHz(foreground_, true));
     }
 
-    bool busy() const { return busy_; }
+    void release() {
+        if (holds_ > 0 && --holds_ == 0 && isTimerRunning())
+            startTimerHz(rateHz(foreground_, false));
+    }
+
+    void setBusy(bool busy) { busy ? hold() : release(); }
+
+    bool busy() const { return holds_ > 0; }
 
 private:
     void timerCallback() override {
         const bool fg = juce::Process::isForegroundProcess();
         if (fg != foreground_) {
             foreground_ = fg;
-            startTimerHz(rateHz(fg, busy_));
+            startTimerHz(rateHz(fg, busy()));
         }
         if (perf::enabled()) {
             static double lastTick = 0.0;
@@ -75,7 +80,7 @@ private:
     std::vector<std::pair<int, std::function<void()>>> callbacks_;
     int lastId_ = 0;
     bool foreground_ = true;
-    bool busy_ = false;
+    int holds_ = 0;
 };
 
 }

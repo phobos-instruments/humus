@@ -6,7 +6,7 @@ A sine at Tune starts higher by Punch and falls over PitchDecay, its body fades 
 
 ## Parameters
 
-**Tune** The body's resting frequency, 30 to 90 Hz.
+**Tune** The body's resting frequency, 30 to 90 Hz. The box beside the knob shows it as a note: click it and press a key, on a MIDI keyboard or on the piano that opens, to tune the kick to that note.
 
 **Punch** How far the pitch starts above Tune. More is a harder attack.
 

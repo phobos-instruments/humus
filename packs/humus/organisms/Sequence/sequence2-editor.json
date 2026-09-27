@@ -1,0 +1,91 @@
+{
+  "width": 600,
+  "height": 300,
+  "resize": "stretch",
+  "controls": [
+    {
+      "type": "sequence-grid",
+      "enable-prefix": "Enable_",
+      "note-prefix": "Note_",
+      "velocity-prefix": "Vel_",
+      "param": "",
+      "x": 8,
+      "y": 26,
+      "w": 520,
+      "h": 60,
+      "rows": 2
+    },
+    {
+      "type": "swing",
+      "x": 412,
+      "y": 2,
+      "w": 180,
+      "h": 20
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 532,
+      "y": 30,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "label",
+      "label": "Bank",
+      "x": 8,
+      "y": 256,
+      "w": 40,
+      "h": 13
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Bank",
+      "label": "",
+      "x": 48,
+      "y": 250,
+      "w": 400,
+      "h": 24,
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Rows",
+      "x": 462,
+      "y": 256,
+      "w": 36,
+      "h": 13
+    },
+    {
+      "type": "combo",
+      "param": "",
+      "label": "",
+      "x": 500,
+      "y": 250,
+      "w": 92,
+      "h": 24,
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "reclass": "inputs",
+      "tooltip": "How many rows, and so how many row outlets, this sequencer has."
+    }
+  ]
+}

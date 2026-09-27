@@ -17,6 +17,8 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_core/juce_core.h>
 
+#include "core/audio/PreviewVoice.h"
+#include "core/xml/Xml.h"
 #include "core/graph/AudioGraph.h"
 #include "core/graph/PodModel.h"
 #include "core/midi/MidiControl.h"
@@ -30,6 +32,7 @@
 #include "hum/dsp/DcBlock.h"
 #include "hum/dsp/DynamicsCore.h"
 #include "hum/dsp/LiveWavWriter.h"
+#include "hum/dsp/SmoothedGain.h"
 #include "io/PatchDocument.h"
 #include "io/MediaRefs.h"
 
@@ -54,6 +57,8 @@
 #include "gui/host/EngineHostMetapad.h"
 #include "gui/host/EngineHostMidiControl.h"
 #include "gui/host/GamepadHost.h"
+#include "gui/host/HostAudioIo.h"
+#include "gui/host/HostScheduler.h"
 #include "gui/host/ModHost.h"
 #include "gui/host/OscHost.h"
 #include "gui/host/EngineHostFiles.h"
@@ -62,8 +67,6 @@
 #include "gui/host/EngineHostRecord.h"
 
 #include "hum/dsp/DspMath.h"
-
-namespace juce { class Component; }
 
 namespace hum {
 
@@ -84,12 +87,18 @@ class EngineHost final : public virtual BrickHost,
                          private juce::MidiInputCallback {
 public:
     EngineHost();
+    explicit EngineHost(HostScheduler& scheduler);
+    EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> audio);
     ~EngineHost() override;
 
     void newDocument(juce::Point<int> masterPos = {520, 360});
-    bool loadFile(const std::string& path, std::string& error);
+    bool loadFile(const std::string& path, std::string& error) { return loadFileAs(path, path, error); }
+    bool loadFileAs(const std::string& path, const std::string& documentPath, std::string& error);
     bool saveFile(const std::string& path, std::string& error);
+    bool saveIntoProject(const std::string& chosen, std::string& landed, std::string& error);
     bool saveCopy(const std::string& path, std::string& error);
+    bool writeSnapshot(const std::string& path, std::string& error);
+    void keepDocumentPath(const std::string& path) { docPath_ = path; }
     juce::uint64 changeStamp() const override { return changeStamp_; }
     unsigned laneStamp() const { return laneStamp_; }
     unsigned locateStamp() const override { return locateStamp_; }
@@ -140,6 +149,8 @@ public:
     void removeOrganism(const std::string& name) override;
     bool renameOrganism(const std::string& oldName, const std::string& newName) override;
     std::string replaceOrganism(const std::string& name, const std::string& newClass) override;
+    void keepMidiTailOutlets(const std::string& name, const std::string& oldClass, const std::string& newClass,
+                             const MidiNode* now);
 
     std::string substituteOrganism(const std::string& name, const std::string& newClass) override;
     std::string insertBefore(const std::string& name, const std::string& newClass) override;
@@ -154,6 +165,7 @@ public:
     bool soloed(const std::string& name) const override { return solo_.count(name) != 0; }
     bool anySoloed() const { return !solo_.empty(); }
     void applySolo();
+    void refreshSilencedRows();
     void setSoloable(std::vector<std::string> rows) override { soloable_ = std::move(rows); applySolo(); }
 
     void setBypass(const std::string& name, bool on) override;
@@ -167,6 +179,8 @@ public:
     void applyBypass(const std::string& name, bool on);
     void applyTrackMute(const std::string& name, bool on);
     void fireRandom(const std::string& name, bool high);
+    void firePodRandom(const std::string& pod, bool high);
+    void renamePodActions(const std::string& oldPod, const std::string& newPod);
     void fireTransport(const std::string& action, bool high);
     void firePresetStep(const std::string& name, int dir, bool high);
     void pullVoiceParams(const std::string& name);
@@ -182,6 +196,7 @@ public:
     int controlOutletsOf(const std::string& name) override;
     std::string controlInletParam(const std::string& name, int inlet) const override;
     std::string controlOutletValue(const std::string& name, int outlet) override;
+    std::string controlOutletReading(const std::string& name, int outlet) override;
     void connectControl(const std::string& src, int outlet, const std::string& dst, int inlet) override;
     void disconnectControl(const std::string& src, int outlet, const std::string& dst, int inlet) override;
     std::vector<ControlCord> controlCords();
@@ -210,6 +225,13 @@ public:
         return cm != nullptr && cm->rollLocked.count(param) > 0;
     }
     void setRollLocked(const std::string& organism, const std::string& param, bool locked) override;
+    RangeMode rangeMode(const std::string& organism, const std::string& param) const override {
+        const auto* cm = model_.byName(organism);
+        if (cm == nullptr) return RangeMode::ValueSpread;
+        const auto it = cm->rangeModes.find(rangeBaseOf(param));
+        return it == cm->rangeModes.end() ? RangeMode::ValueSpread : rangeModeNamed(it->second);
+    }
+    void setRangeMode(const std::string& organism, const std::string& param, RangeMode mode) override;
 
     void setParamRange(const std::string& organism, const std::string& param,
                        double min, double max) override;
@@ -266,10 +288,16 @@ public:
         return liveTargets_;
     }
 
-    void injectLiveMidi(const juce::MidiMessage& m) override;
-    void injectLiveMidiToNode(const std::string& node, const juce::MidiMessage& m) override;
+    void injectLiveMidi(const juce::MidiMessage& m);
+    void injectLiveMidiToNode(const std::string& node, const juce::MidiMessage& m);
+    void injectLiveMidi(const MidiEvent& e) override { injectLiveMidi(juce::MidiMessage(e.data, e.size)); }
+    void injectLiveMidiToNode(const std::string& node, const MidiEvent& e) override {
+        injectLiveMidiToNode(node, juce::MidiMessage(e.data, e.size));
+    }
     void sendMidiOut(const std::string& organism, const std::string& param, double value);
+    void panic();
     void flushMidiRecording(bool finalize = false) override;
+    unsigned fadedRebuildsForChecks() const { return fadedRebuilds_; }
     static constexpr int kClipOnDemand = MidiHost::kClipOnDemand;
     void finishOnDemandClips();
     void syncPluginStateToModel();
@@ -290,18 +318,18 @@ public:
 
     std::function<void(const std::string& organism, const std::string& param)>
         openParameterControl;
-    std::function<void(const std::string& organism)> openVisuals;
-    void showVisuals(const std::string& organism) override { if (openVisuals) openVisuals(organism); }
+    std::function<void(const std::string& organism, int width, int height)> openVisuals;
+    void showVisuals(const std::string& organism, int width = 0, int height = 0) override {
+        if (openVisuals) openVisuals(organism, width, height);
+    }
     bool canShowParameterControl() const override { return static_cast<bool>(openParameterControl); }
     void showParameterControl(const std::string& organism, const std::string& param) override {
         if (openParameterControl) openParameterControl(organism, param);
     }
     void noteNodeRolled(const std::string& organism) override { if (onNodeRolled) onNodeRolled(organism); }
-    std::function<void(std::unique_ptr<juce::Component>)> showCard;
-    void presentCard(std::unique_ptr<juce::Component> card) override {
-        if (showCard) showCard(std::move(card));
-    }
     void rollNode(const std::string& name) override;
+    bool firedRecently(const std::string& organism, const std::string& param) const override;
+    static constexpr double kFiredShowsMs = 220.0;
 
     std::function<void(const std::string& organism)> onNodeRolled;
     std::function<void(const std::string& organism)> onPanelEdit;
@@ -315,12 +343,16 @@ public:
     RecordHost& record() override { return record_; }
     void keepLast(int bars);
     const std::string& documentPath() const override { return docPath_; }
-    juce::File documentDir() const override;
+    juce::File documentDir() const;
+    std::string documentFolder() const override { return documentDir().getFullPathName().toStdString(); }
     std::vector<media::Ref> missingMedia() const;
     int relocateMedia(const media::Ref& located, const juce::File& found);
     bool isLiveTracked(const std::string& organism, const std::string& param) const override;
     bool isExternallyControlled(const std::string& organism,
                                const std::string& param) const override;
+    std::string controlSummary(const std::string& organism, const std::string& param) const override;
+    std::string varDrivingKnob(const std::string& organism, const std::string& param) const;
+    std::string translated(const std::string& key, const std::string& written) const override;
 
     PatternHost& patterns() override { return patterns_; }
 
@@ -341,6 +373,8 @@ public:
     void pushParamStep() override;
     void beginTransaction() override;
     void endTransaction() override;
+    void beginUndoGroup() override;
+    void endUndoGroup() override;
     void requestRebuild();
     unsigned rebuildCount() const { return rebuilds_; }
     bool canUndo() const override { return !undo_.empty(); }
@@ -378,6 +412,12 @@ public:
         EngineHost& host_;
         bool prev_;
     };
+    struct MidiOnlyEditScope {
+        explicit MidiOnlyEditScope(EngineHost& h) : host_(h), prev_(h.midiOnlyEdit_) { h.midiOnlyEdit_ = true; }
+        ~MidiOnlyEditScope() { host_.midiOnlyEdit_ = prev_; }
+        EngineHost& host_;
+        bool prev_;
+    };
     struct NoLatchScope {
         explicit NoLatchScope(EngineHost& h) : host_(h), prev_(h.noLatch_) { h.noLatch_ = true; }
         ~NoLatchScope() { host_.noLatch_ = prev_; }
@@ -389,7 +429,13 @@ public:
 
     std::string clockNodeName() override;
     std::function<std::string()> noteCaptureHint;
-    std::string noteCaptureTarget() const override;
+    std::vector<InputReach> rowsReachedByInput() override;
+    std::vector<std::string> ensureTracksFeeding(const std::vector<InputReach>& played) override;
+    void refreshArmedInputs() override;
+    bool nodePlaysNotes(const std::string& name);
+    bool nodeIsMidiTrack(const std::string& name) const override;
+    bool nodeHoldsNotes(const std::string& name);
+    bool nodePassesMidiOn(const std::string& name);
     std::string audioCaptureTarget() const;
     bool commitRetroactiveAudio(double startBeat, double nowBeat, double beats);
 
@@ -411,6 +457,8 @@ public:
     void nodeActivity(const std::string& name, float& audioPeak, float& midiCount) override;
 
     int nodeMeter(const std::string& name, float* levels, int maxCh) override;
+    int nodeInletMeter(const std::string& name, float* levels, int maxCh) override;
+    unsigned nodePictureGeneration(const std::string& name) override;
 
     bool audioAlive() const override {
         return juce::Time::getMillisecondCounterHiRes()
@@ -442,6 +490,7 @@ public:
     std::string masterOutputName();
     int connectToMaster(const std::string& node) override;
     std::vector<std::string> arrangeableNodes() override;
+    std::vector<std::string> recorderNodes() override;
     bool nodeRecordsAudio(const std::string& name) override;
     bool nodeRecordsVideo(const std::string& name) override;
     bool nodeRecordsMedia(const std::string& name) override {
@@ -454,7 +503,7 @@ public:
     void stopAudio();
     bool audioRunning() const { return audioRunning_; }
     bool audioStarting() const { return audioStarting_; }
-    juce::AudioDeviceManager& audioDevices() override { return devices_; }
+    juce::AudioDeviceManager& audioDevices() override { return audio_->manager(); }
     int maxTrackHeldForTest() const { return graph_ ? graph_->maxTrackHeld() : 0; }
     void resetMaxTrackHeldForTest() { if (graph_) graph_->resetMaxTrackHeld(); }
     void startDeviceForTest(juce::AudioIODevice& d) { audioDeviceAboutToStart(&d); }
@@ -506,6 +555,7 @@ public:
     double groove() const override { return model_.groove; }
     std::string grooveUnit() const override { return model_.grooveUnit; }
 
+    PreviewVoice& preview() { return preview_; }
     void setMetronome(bool on) { metronome_.store(on, std::memory_order_relaxed); }
     bool metronome() const { return metronome_.load(std::memory_order_relaxed); }
     void setMetronomeGain(float g) { metroGain_.store(juce::jlimit(0.0f, 1.0f, g)); }
@@ -528,10 +578,12 @@ public:
     void pumpOscOut();
     double sampleRate() const override { return sampleRate_; }
     int blockSize() const override { return block_; }
+    int outputLatencySamples() const override { return outputLatency_; }
 
     void play() override;
     void playFromStart() override;
     void stop() override;
+    void stopPlayingFiles();
     void goToStart();
     void setPositionBeats(double beat) override;
     bool isPlaying() const override { return playing_; }
@@ -567,6 +619,10 @@ public:
     std::string printToTimeline(const std::string& node, std::string& error, int atTick = -1,
                                 const std::string& preferredTarget = {}) override;
     std::vector<std::string> noteTargets(const std::string& node) override;
+    std::vector<AudioTakeInfo> audioTakesOf(const std::string& node) override;
+    std::string exportAudioTake(const std::string& node, int take, const std::string& folder = {}) override;
+    int audioToTimeline(const std::string& node, int take, std::string& error, int atTick = -1,
+                        const std::string& folder = {}) override;
 
     bool renderToFile(const std::string& path, double seconds, std::string& error);
     using SoundSink = std::function<bool(const float* const*, int, int)>;
@@ -593,6 +649,17 @@ public:
     bool graphSelfDriven() const { return audioRunning_ && !audioHeld_; }
 
 private:
+    static void adoptTextParam(OrganismModel& cm, const std::string& param, const std::string& text);
+    bool setRangeEnd(const std::string& organism, const std::string& param, double value);
+    bool storedSpan(const std::string& organism, const std::string& param,
+                    double& lo, double& hi) const;
+    static std::string spanKey(const std::string& organism, const std::string& param) {
+        return organism + '\n' + param;
+    }
+    std::map<std::string, std::pair<double, double>> spanIntent_;
+    bool ownSpanIntent_ = false;
+
+    HostScheduler& scheduler_;
     MetaEditor metapad_{*this, *this};
     ClipEditor clips_{*this, *this};
     DeckHost decks_{*this, *this};
@@ -602,15 +669,41 @@ private:
     AutomationHost automation_{*this, *this};
     MidiState midiState_;
     MidiHost midi_{*this, *this, midiState_};
-    OscHost osc_{*this, *this};
+    OscHost osc_{*this, *this, scheduler_};
     ModHost mod_{*this, *this};
-    GamepadHost gamepads_{*this};
+    GamepadHost gamepads_{*this, scheduler_};
     RecordHost record_{*this, *this};
+public:
+    struct Loading {
+        enum class Stage { Reading, Listening };
+        std::string organism, file, path;
+        Stage stage = Stage::Reading;
+        float progress = 0.0f;
+        double startMs = 0.0;
+        Organism* node = nullptr;
+        bool again = false;
+    };
+    struct LoadFaultNote { std::string organism, file, message; };
+    std::vector<Loading> loadsInFlight();
+    void abandonLoads();
+    std::vector<LoadFaultNote> takeLoadFaults();
+    void waitForLoads(bool abandon = false);
+private:
     std::string docPath_;
 
     void onFileNodeChanged(const std::string& organism, const std::string& filePath,
                            bool sourceMoved = true, const std::string& fileParam = "File");
+    bool loadInBackground(const std::string& organism, const std::string& path);
+    void noteMediaLength(Organism* c, const std::string& path);
+    void forgetCompanionSound(const std::string& organism, Organism* live);
     void autoDetectDeckGrid(const std::string& organism, const std::string& filePath);
+    bool gridAlreadyScanned(const std::string& organism, const std::string& filePath);
+    void noteLoadStage(const std::string& organism, Loading::Stage stage);
+    bool loadsOutliveGraph() const;
+    void noteLoadFault(const std::string& organism, const std::string& path,
+                       const std::string& message);
+    void queueDeferredLoads();
+    void finishLoad(const std::string& organism, Organism* c);
     void applyGroove();
     bool setClockGroove(const std::string& organism, const std::string& param, double value);
     void restoreUnautomatedGroove(bool amountLane, bool gridLane);
@@ -660,6 +753,11 @@ private:
     void capturePointAt(const std::string& organism, const std::string& param,
                         double lo, double hi, bool isRange, double beat);
     void noteTouch(const std::string& organism, const std::string& param);
+    void noteFired(const std::string& organism, const std::string& param);
+    double markerBeat(const std::string& organism, int slot) const;
+    void setMarkerBeat(const std::string& organism, int slot, double beat);
+    void fireMarker(const std::string& organism, int slot, bool high);
+    void fireMarkerStep(const std::string& organism, int dir, bool high);
     void clearTouches() override;
     struct CapturePass {
         double firstBeat, lastBeat, highBeat;
@@ -672,6 +770,7 @@ private:
     bool capturing_ = false;
 public:
     void extendLatchPasses();
+    void releaseQuietTouches(double nowMs);
     void setLatchMode(bool on) { latch_ = on; }
     bool latchMode() const { return latch_; }
 private:
@@ -687,6 +786,11 @@ private:
     };
     std::vector<PerfGesture> perfRing_;
     std::set<std::pair<std::string, std::string>> touched_;
+    std::map<std::pair<std::string, std::string>, double> lastTouchMs_;
+    std::map<std::pair<std::string, std::string>, double> lastFiredMs_;
+    std::map<std::string, bool> markerHigh_;
+    std::set<std::pair<std::string, std::string>> letGoThisCapture_;
+    void closeCapturePass(const std::pair<std::string, std::string>& key);
     std::vector<float> perfAudioL_, perfAudioR_;
     std::atomic<std::int64_t> perfAudioWrite_{0};
     void trimPerfRings();
@@ -702,7 +806,7 @@ private:
 
     PatchDocumentModel model_;
     std::map<std::string, juce::Point<int>> positions_;
-    std::unique_ptr<juce::XmlElement> original_;
+    std::unique_ptr<xml::Element> original_;
 
     bool modelSwapped_ = false;
     std::unique_ptr<AudioGraph> graph_;
@@ -720,6 +824,12 @@ private:
     std::set<std::string> solo_;
     std::vector<std::string> soloable_;
     std::atomic<double> liveBeats_{0.0};
+    bool midiOnlyEdit_ = false;
+    unsigned fadedRebuilds_ = 0;
+    std::string trackFeeding(const std::string& instrument);
+    std::string makeTrackFor(const std::string& instrument, const std::vector<int>& ports);
+    void drainInletTap(std::vector<TimedMidi>& into);
+    std::vector<TimedMidi> carryUnfinishedNotes(const std::vector<TimedMidi>& events, bool finalize);
     std::atomic<double> liveSeconds_{0.0};
     std::atomic<int> liveBar_{1};
     std::atomic<double> liveBeatInBar_{1.0};
@@ -729,6 +839,12 @@ private:
     std::atomic<float> audioLoad_{0.0f};
     std::atomic<unsigned> deviceRestarts_{0};
     juce::CriticalSection lock_;
+    static constexpr int kLoaderThreads = 4;
+    juce::ThreadPool loaders_{kLoaderThreads};
+    juce::CriticalSection loadingLock_;
+    std::vector<Loading> loading_;
+    std::vector<LoadFaultNote> faults_;
+    std::map<std::string, std::string> gridScanned_;
 
     struct ParamRevert {
         std::string organism;
@@ -761,6 +877,8 @@ private:
     bool inTxn_ = false;
     bool txnPushed_ = false;
     int txnDepth_ = 0;
+    int undoGroupDepth_ = 0;
+    bool groupPushed_ = false;
     bool rebuildDue_ = false;
     unsigned rebuilds_ = 0;
     bool dirty_ = false;
@@ -769,6 +887,7 @@ private:
     bool writeDocumentTo(const std::string& path, std::string& error,
                          bool pullPluginState = true);
     void storeSessionAudioTo(const std::string& path);
+    void gatherRecordingsFor(const std::string& path);
     bool liveControl_ = false;
     bool derivedControl_ = false;
     bool noLatch_ = false;
@@ -788,7 +907,7 @@ private:
     double preparedSampleRate_ = 0.0;
     int preparedBlock_ = 0;
 
-    juce::AudioDeviceManager devices_;
+    std::unique_ptr<HostAudioIo> audio_;
     bool audioHeld_ = false;
     bool audioRunning_ = false;
     bool audioStarting_ = false;
@@ -813,6 +932,9 @@ public:
     static bool headless() { return headless_; }
     static void setHeadless() { headless_ = true; }
 
+    static bool linkAllowed() { return linkAllowed_; }
+    static void allowLink() { linkAllowed_ = true; }
+
     void requestFadeIn();
 
     void pumpDeviceBlockForChecks(float* const* out, int numOut, int numSamples) {
@@ -823,6 +945,7 @@ public:
 private:
     static inline bool ignoreSavedFormat_ = false;
     static inline bool headless_ = false;
+    static inline bool linkAllowed_ = false;
     bool auxCheckPending_ = false;
     std::shared_ptr<bool> hostAlive_ = std::make_shared<bool>(true);
     std::atomic<bool> playing_{false};
@@ -854,7 +977,7 @@ private:
     bool setLiveControl(bool on) override { return std::exchange(liveControl_, on); }
     bool setDerivedControl(bool on) override { return std::exchange(derivedControl_, on); }
     void noteTopologyChanged() override {
-        if (onTopologyChanged) juce::MessageManager::callAsync([cb = onTopologyChanged] { cb(); });
+        if (onTopologyChanged) scheduler_.post([cb = onTopologyChanged] { cb(); });
     }
     void syncTransportEvent(bool starting);
     bool syncHandleMidi(const juce::MidiMessage& m);
@@ -881,6 +1004,7 @@ private:
     int patternBatch_ = 0;
     std::set<std::string> patternPending_;
     std::map<std::string, std::vector<float>> oscOutLast_;
+    PreviewVoice preview_;
     std::atomic<bool> metronome_ {false};
     std::atomic<float> metroGain_ {1.0f};
     double metroNextBeat_ = -1.0;
@@ -899,6 +1023,9 @@ private:
     double countInTick_ = 0.0;
     double countInBar_ = 0.0;
     float fadeGain_ = 0.0f;
+    static constexpr double kMasterRampMs = 25.0;
+    hum::SmoothedGain masterGain_;
+    double masterRate_ = 0.0;
 };
 
 }

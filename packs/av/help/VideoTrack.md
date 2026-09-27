@@ -2,21 +2,21 @@
 
 A video track on the timeline that plays its clips against the transport and records what reaches its inlet.
 
-Add one from the timeline's add-track menu, or drop a movie onto the arrangement and a track appears for it. Clips cut, trim, move, loop and fade like audio clips, and the outlet shows whatever sits under the playhead: stop and it holds that frame, locate and it jumps there, loop the song and it loops with it. Warp stretches a clip to the song's tempo against its source tempo, Reverse plays it backwards and fades are fades to black. Each clip wears a strip of frames from its tape, and right-click a clip for Media Info to read its codec, size and frame rate. Cord the outlet into a VideoOut, a VideoFX or a Lumen layer; two tracks are two layers.
+Add one from the timeline's add-track menu, or drop a video onto the arrangement and a track appears for it. Clips cut, trim, move, loop and fade like audio clips, and the outlet shows whatever sits under the playhead: stop and it holds that frame, locate and it jumps there, loop the song and it loops with it. Warp stretches a clip to the song's tempo against its source tempo, Reverse plays it backwards and fades are fades to black. Each clip wears a strip of frames from its tape, and right-click a clip for Media Info to read its codec, size and frame rate. Cord the outlet into a VideoOut, a VideoFX or a Lumen layer; two tracks are two layers.
 
 ## Recording
 
-Cord a CameraIn, a VideoFX chain, a VideoPad or another track into the inlet, arm the track with Record and press record on the transport: whatever reaches the inlet is written as a movie in the recordings folder while the transport rolls and lands on the timeline as a clip at the beat it started, one lap per pass of a loop. Sound is not part of the picture; arm an audio track beside it. The recording size is set in Settings, under Video.
+Cord a CameraIn, a VideoFX chain, a VideoPad or another track into the inlet, arm the track with Record and press record on the transport: whatever reaches the inlet is written as a video in the recordings folder while the transport rolls and lands on the timeline as a clip at the beat it started, one lap per pass of a loop. Sound is not part of the picture; arm an audio track beside it. The recording size is set in Settings, under Video.
 
 ## Parameters
 
 **Record** Arms the track. While it is armed, the next transport record writes a take from the inlet.
 
-**Monitor** What the outlet shows. In always shows the inlet, Off always shows the clips, and Auto shows the inlet while the track is armed or the transport is stopped and the clips while it rolls.
+**Monitor** What the outlet shows. In always shows the inlet, Off always shows the clips, and Auto shows the inlet while the track is armed or the transport is stopped and the clips while it rolls. It only has anything to choose between while something is corded into the inlet: with nothing there, the clips show whatever this says.
 
-**Opacity** How strongly the track's picture shows over the layers beneath it in a Lumen.
+**Opacity** How strongly the track's picture shows. Over layers beneath it in a Lumen, or over another source sharing the same inlet, it fades between them; with nothing to show over, it fades the picture towards black. Either way it is applied exactly once, wherever it lands.
 
-**Blend** How it combines with those layers: Normal, Add, Multiply or Screen.
+**Blend** How it combines with the layers beneath it: Normal, Add, Multiply or Screen. Unlike Opacity this one needs something underneath to combine with, so it does nothing on a track cabled straight to a VideoOut or into one side of a VideoMix.
 
 ## Recipe
 

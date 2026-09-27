@@ -13,8 +13,7 @@
 #include "hum/Organism.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/common/UiTicker.h"
-#include "hum/caps/Graph.h"
-#include "hum/dsp/GainShape.h"
+#include "gui/editor/grids/GainShapeModel.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
@@ -22,35 +21,15 @@ namespace hum {
 class GainShapeBrick : public juce::Component, public juce::SettableTooltipClient {
 public:
     GainShapeBrick(BrickHost& host, std::string organism, std::string param)
-        : host_(host), cn_(std::move(organism)), pn_(std::move(param)) {
-        if (!decodeGainShape(host_.liveParamText(cn_, pn_).c_str(), shape_))
-            shape_ = gainShapePreset(0);
-        for (int i = 0; i < kGainShapePresets; ++i)
-            if (encodeGainShape(shape_) == encodeGainShape(gainShapePreset(i))) activePreset_ = i;
+        : model_(host, std::move(organism), std::move(param)) {
         tickerId_ = UiTicker::instance().add([this] { pollPlayhead(); });
     }
     ~GainShapeBrick() override { UiTicker::instance().remove(tickerId_); }
 
-    bool playheadShowing() const { return playhead_ >= 0.0f; }
-    float playheadPhase() const { return playhead_; }
+    const grids::GainShapeModel& model() const { return model_; }
 
     void pollPlayhead() {
-        float phase = -1.0f, gain = playGain_;
-        if (auto* cs = dynamic_cast<ControlSource*>(host_.liveOrganism(cn_)); cs != nullptr
-                                                                             && host_.isPlaying()) {
-            ControlSource::ControlVal vals[4];
-            const int n = cs->controlValues(vals, 4);
-            for (int i = 0; i < n; ++i) {
-                if (juce::String(vals[i].name) == "phase") phase = vals[i].value;
-                if (juce::String(vals[i].name) == "gain") gain = vals[i].value;
-            }
-        }
-        const int w = juce::jmax(1, curveArea().getWidth());
-        if ((int) (phase * w) == (int) (playhead_ * w) && std::abs(gain - playGain_) < 0.004f)
-            return;
-        playhead_ = phase;
-        playGain_ = gain;
-        repaint(curveArea());
+        if (model_.followPlayhead(curveArea().getWidth())) repaint(curveArea());
     }
 
     void paint(juce::Graphics& g) override {
@@ -92,7 +71,7 @@ public:
         const int steps = juce::jmax(64, (int) area.getWidth() / 2);
         for (int i = 0; i <= steps; ++i) {
             const double ph = (double) i / steps;
-            const double v = drawing_ ? slotValue(ph) : shape_.eval(ph);
+            const double v = model_.valueAt(ph);
             if (i == 0) curve.startNewSubPath(xOf(ph), yOf(v)); else curve.lineTo(xOf(ph), yOf(v));
         }
         juce::Path fill(curve);
@@ -107,12 +86,12 @@ public:
         g.fillPath(fill);
         g.setColour(Palette::accent);
         g.strokePath(curve, juce::PathStrokeType(kStroke));
-        if (playhead_ >= 0.0f) {
-            const float x = xOf(playhead_);
+        if (model_.playhead() >= 0.0f) {
+            const float x = xOf(model_.playhead());
             g.setColour(Palette::text.withAlpha(alpha::mid));
             g.drawVerticalLine((int) x, area.getY() + 2, area.getBottom() - 2);
             g.setColour(Palette::text);
-            g.fillEllipse(x - 3.0f, yOf(playGain_) - 3.0f, 6.0f, 6.0f);
+            g.fillEllipse(x - 3.0f, yOf(model_.playGain()) - 3.0f, 6.0f, 6.0f);
         }
         g.restoreState();
         g.setColour(Palette::border);
@@ -120,7 +99,7 @@ public:
 
         for (int i = 0; i < kGainShapePresets; ++i) {
             const auto r = tileRect(i).toFloat();
-            const bool on = i == activePreset_;
+            const bool on = i == model_.activePreset();
             g.setColour(on ? Palette::accent : Palette::panelLight);
             g.fillRoundedRectangle(r, 4.0f);
             juce::Path mp;
@@ -146,42 +125,32 @@ public:
         return r;
     }
 
-    void reverse() { replace(reversedGainShape(shape_)); }
-    void invert() { replace(invertedGainShape(shape_)); }
-    void nudge(double delta) { replace(rotatedGainShape(shape_, delta)); }
+    void reverse() { model_.reverse(); repaint(); }
+    void invert() { model_.invert(); repaint(); }
+    void nudge(double delta) { model_.nudge(delta); repaint(); }
 
     void mouseDown(const juce::MouseEvent& e) override {
-        const double step = e.mods.isShiftDown() ? kBigNudge : kNudge;
+        const double step = e.mods.isShiftDown() ? grids::GainShapeModel::kBigNudge : grids::GainShapeModel::kNudge;
         if (toolRect(0).contains(e.getPosition())) { nudge(-step); return; }
         if (toolRect(1).contains(e.getPosition())) { nudge(step); return; }
         if (toolRect(2).contains(e.getPosition())) { reverse(); return; }
         if (toolRect(3).contains(e.getPosition())) { invert(); return; }
         for (int i = 0; i < kGainShapePresets; ++i)
             if (tileRect(i).contains(e.getPosition())) {
-                shape_ = gainShapePreset(i);
-                activePreset_ = i;
-                push();
+                model_.choosePreset(i);
                 repaint();
                 return;
             }
         if (curveArea().contains(e.getPosition())) {
-            drawing_ = true;
-            for (int i = 0; i < kSlots; ++i)
-                slots_[(size_t) i] = (float) shape_.eval((double) i / (kSlots - 1));
-            lastSlot_ = -1;
+            model_.beginDrawing();
             paintSlot(e);
         }
     }
     void mouseDrag(const juce::MouseEvent& e) override {
-        if (drawing_) paintSlot(e);
+        if (model_.drawing()) paintSlot(e);
     }
     void mouseUp(const juce::MouseEvent&) override {
-        if (!drawing_) return;
-        drawing_ = false;
-        simplifyIntoShape();
-        activePreset_ = -1;
-        push();
-        repaint();
+        if (model_.endDrawing()) repaint();
     }
     void mouseMove(const juce::MouseEvent& e) override {
         setMouseCursor(curveArea().contains(e.getPosition())
@@ -200,15 +169,12 @@ public:
     }
 
 private:
-    static constexpr int kSlots = 129;
     static constexpr int kTileRows = 2, kTileCols = 5, kTileH = 26, kTileGap = 4;
 
     static constexpr float kStroke = 2.0f;
     static constexpr int kAxisW = 34;
     static constexpr std::pair<double, const char*> kAxis[] = {
         {0.0, "0 dB"}, {-3.0, "-3"}, {-6.0, "-6"}, {-12.0, "-12"}, {-24.0, "-24"}};
-    static constexpr double kNudge = 1.0 / 32.0;
-    static constexpr double kBigNudge = 1.0 / 8.0;
 
     juce::Rectangle<float> plotArea() const {
         return curveArea().toFloat().reduced(kStroke, kStroke);
@@ -221,14 +187,6 @@ private:
         if (i < 2) return {2 + i * (w / 2 + 1), top, w / 2 - 1, 16};
         return {2, top + (i - 1) * 19, w, 16};
     }
-    void replace(const GainShape& next) {
-        shape_ = next;
-        activePreset_ = -1;
-        for (int i = 0; i < kGainShapePresets; ++i)
-            if (encodeGainShape(shape_) == encodeGainShape(gainShapePreset(i))) activePreset_ = i;
-        push();
-        repaint();
-    }
     juce::Rectangle<int> tileRect(int i) const {
         const int row = i / kTileCols, col = i % kTileCols;
         const int span = getWidth() - kAxisW;
@@ -239,78 +197,13 @@ private:
 
     void paintSlot(const juce::MouseEvent& e) {
         const auto area = curveArea();
-        const int slot = juce::jlimit(
-            0, kSlots - 1,
-            (int) std::lround((double) (e.x - area.getX()) / area.getWidth() * (kSlots - 1)));
-        const float v = (float) juce::jlimit(
-            0.0, 1.0, 1.0 - (double) (e.y - area.getY()) / area.getHeight());
-        if (lastSlot_ < 0) {
-            slots_[(size_t) slot] = v;
-        } else {
-            const int a = juce::jmin(lastSlot_, slot), b = juce::jmax(lastSlot_, slot);
-            for (int i = a; i <= b; ++i) {
-                const float t = b == a ? 1.0f : (float) (i - a) / (float) (b - a);
-                const float from = slot >= lastSlot_ ? lastVal_ : v;
-                const float to = slot >= lastSlot_ ? v : lastVal_;
-                slots_[(size_t) i] = from + (to - from) * t;
-            }
-        }
-        lastSlot_ = slot;
-        lastVal_ = v;
+        model_.drawAt(grids::GainShapeModel::slotAt(e.x, area.getX(), area.getWidth()),
+                      grids::GainShapeModel::levelAt(e.y, area.getY(), area.getHeight()));
         repaint();
     }
 
-    double slotValue(double phase) const {
-        const double f = phase * (kSlots - 1);
-        const int i = juce::jlimit(0, kSlots - 2, (int) f);
-        const double t = f - i;
-        return slots_[(size_t) i] * (1.0 - t) + slots_[(size_t) i + 1] * t;
-    }
-
-    void simplifyIntoShape() {
-        double eps = 0.008;
-        for (;;) {
-            GainShape g;
-            int anchor = 0;
-            g.add(0.0f, slots_[0]);
-            while (anchor < kSlots - 1) {
-                int j = anchor + 1;
-                for (int cand = anchor + 2; cand < kSlots; ++cand) {
-                    bool ok = true;
-                    for (int k = anchor + 1; k < cand && ok; ++k) {
-                        const double t = (double) (k - anchor) / (cand - anchor);
-                        const double lin = slots_[(size_t) anchor]
-                                         + (slots_[(size_t) cand] - slots_[(size_t) anchor]) * t;
-                        ok = std::abs(lin - slots_[(size_t) k]) <= eps;
-                    }
-                    if (!ok) break;
-                    j = cand;
-                }
-                if (g.n >= GainShape::kMaxPoints) break;
-                g.add((float) j / (kSlots - 1), slots_[(size_t) j]);
-                anchor = j;
-            }
-            if (anchor >= kSlots - 1 && g.n <= GainShape::kMaxPoints) {
-                shape_ = g;
-                return;
-            }
-            eps *= 1.7;
-        }
-    }
-
-    void push() { host_.setParamText(cn_, pn_, encodeGainShape(shape_)); }
-
-    BrickHost& host_;
-    std::string cn_, pn_;
-    GainShape shape_;
-    int activePreset_ = -1;
-    bool drawing_ = false;
-    float slots_[kSlots] = {};
-    int lastSlot_ = -1;
-    float lastVal_ = 0.0f;
+    grids::GainShapeModel model_;
     int tickerId_ = 0;
-    float playhead_ = -1.0f;
-    float playGain_ = 1.0f;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(GainShapeBrick)
 };

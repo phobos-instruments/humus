@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "gui/host/NodeRandomize.h"
 #include "gui/patcher/PatcherCanvas.h"
 #include "io/PatchFormat.h"
 #include "core/packs/Categories.h"
@@ -50,7 +51,7 @@ void PatcherCanvas::showNewPodDialog(juce::Point<int> at) {
 }
 
 void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenPos) {
-    enum { Open = 1, Rename, Duplicate, Cut, Copy, Delete_, Disconnect, Ungroup };
+    enum { Open = 1, Rename, Duplicate, Cut, Copy, Delete_, Disconnect, Ungroup, Randomise, Protect, MapRandom };
     static constexpr int kInsBefore = 3000000, kInsAfter = 4000000;
     static constexpr int kSearchBase = 8000000;
 
@@ -86,10 +87,18 @@ void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenP
         menu.addSubMenu(tr("patcher-canvas-menus.insert-after", "Insert After"), pickerSubmenu(kInsAfter, 2, false));
     }
     menu.addSeparator();
+    const auto rollers = rollCandidates(host_);
+    const bool rolls = !rollscope::members(rollers, pod).empty();
+    const bool guarded = rollscope::allGuarded(rollers, pod);
+    menu.addItem(Randomise, tr("patcher-canvas-menus.randomise-pod", "Randomise This Pod"),
+                 !rollscope::targets(rollers, pod).empty());
+    menu.addItem(Protect, tr("patcher-canvas-menus.protect-pod", "Protect From Random"), rolls, guarded);
+    menu.addItem(MapRandom, tr("patcher-canvas-menus.map-pod-random", "Map Randomise This Pod..."), rolls);
+    menu.addSeparator();
     menu.addItem(Disconnect, tr("patcher-canvas-menus.disconnect", "Disconnect"));
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
-                       [this, pod, classOrder, screenPos](int r) {
+                       [this, pod, classOrder, screenPos, guarded](int r) {
         if (r == 0) return;
         const int sz = (int) classOrder.size();
         auto classAt = [&](int base) -> const std::string& {
@@ -120,6 +129,11 @@ void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenP
             case Copy:      select(pod); copySelection(); break;
             case Delete_:   select(pod); deleteSelection(); break;
             case Disconnect: host_.disconnectPod(pod); refresh(); break;
+            case Randomise: if (onRandomisePod) onRandomisePod(pod); break;
+            case Protect:   protectPod(host_, pod, !guarded); refresh(); break;
+            case MapRandom:
+                if (onMapPodRandom) onMapPodRandom(pod, screenPos);
+                break;
             case Ungroup:
                 host_.ungroupPod(pod);
                 selection_.clear();

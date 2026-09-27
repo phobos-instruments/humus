@@ -10,6 +10,20 @@
 
 namespace hum {
 
+inline void keepTailOutlets(std::vector<ConnectionModel>& cords, const std::string& name,
+                            int oldOutlets, int newOutlets, int tail) {
+    if (tail <= 0 || oldOutlets == newOutlets || oldOutlets < tail || newOutlets < tail) return;
+    const int oldTail = oldOutlets - tail, newTail = newOutlets - tail;
+    cords.erase(std::remove_if(cords.begin(), cords.end(),
+                               [&](const ConnectionModel& c) {
+                                   return c.src == name && c.srcOutlet >= newTail && c.srcOutlet < oldTail;
+                               }),
+                cords.end());
+    for (auto& c : cords)
+        if (c.src == name && c.srcOutlet >= oldTail && c.srcOutlet < oldOutlets)
+            c.srcOutlet = newTail + (c.srcOutlet - oldTail);
+}
+
 inline void reclaimCordsForResize(std::vector<ConnectionModel>& cords,
                                   const std::string& name, int dstPorts, int srcPorts) {
     auto identical = [](const ConnectionModel& a, const ConnectionModel& b) {

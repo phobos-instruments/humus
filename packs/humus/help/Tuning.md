@@ -2,7 +2,7 @@
 
 The patch's tuning: every organism that turns a note into a frequency asks this what the answer is.
 
-It makes no sound and sends no notes. Equal temperaments, just intonation from exact ratios, the overtone series and any .scl scale file are on one preset list, and Map decides how ordinary note numbers find their pitch in a scale without twelve steps. The native instruments, Rhizome, Substrate, Wave, pH, Mineral, Acid, Microdot and Trellis, follow it directly; hosted plugins are told over MIDI as the Plugins row describes. The piano roll still draws twelve rows per octave, so under Map Degrees in a non-12 scale its labels no longer match the pitches, though the notes are correct.
+It makes no sound and sends no notes. Equal temperaments, just intonation from exact ratios, the overtone series and any .scl scale file are all in one scale browser, and Map decides how ordinary note numbers find their pitch in a scale without twelve steps. The native instruments, Rhizome, Substrate, Wave, pH, Mineral, Acid, Microdot and Trellis, follow it directly; hosted plugins are told over MIDI as the Plugins row describes. The piano roll still draws twelve rows per octave, so under Map Every step in a non-12 scale its labels no longer match the pitches, though the notes are correct.
 
 ## Reaching organisms
 
@@ -10,17 +10,17 @@ Cord its MIDI outlet to an instrument and that instrument plays in this tuning. 
 
 ## Parameters
 
-**Preset** The scale. 12-TET (standard), 19-EDO, 24-EDO (quarter tones), 31-EDO and Bohlen-Pierce, which repeats at a 3:1 tritave with no octave at all; Custom EDO with its own Divisions; Just - 5-limit, Just - 7-limit and Just - 17-limit built from exact ratios; Harmonics 8-16, one octave of the overtone series; Pythagorean, everything from pure fifths; and Scala file (.scl).
+**Preset** The mode, at the bottom of the box. Scale file, the default, plays the scale chosen in the browser at the top, and a new Tuning starts there on 12-TET, ordinary tuning, which is a scale file like any other. Custom EDO divides the octave into its own number of equal Divisions and dims the browser, keeping its scale for when you come back. The scales this list used to hold - 12-TET, 19, 24 and 31-EDO, Bohlen-Pierce, the 5, 7 and 17-limit just scales, Harmonics 8-16 and Pythagorean - are in the browser now, note for note the same. A patch saved on one of them still opens on it, shows its name here and plays as it always did.
 
-**Divisions** Equal steps per octave for Custom EDO, 5 to 64. Dimmed for the other presets, which set it themselves.
+**Divisions** Equal steps per octave for Custom EDO, 1 to 128. One is octaves only, two adds the tritone, and 128 is the most a scale can hold. Dimmed in Scale file mode, where the file decides.
 
 **Root** The MIDI note pinned to RootHz. 69 is A4.
 
 **RootHz** What that note sounds at. 440 is standard.
 
-**Map** How a note number finds its pitch. Degrees (1:1) is the raw index, so changing the scale transposes the patch. Keyboard spans one period across a normal twelve-key octave and sounds the degree nearest each key's own position, so a seven-note just scale lands on the white keys and the octave key stays a true octave.
+**Map** How a key finds its note when the scale does not have twelve of them. Every step plays the next note of the scale on each key, so every note is reachable, a 19-note octave takes 19 keys, and changing the scale moves everything. Fit to 12 keys spreads one period of the scale over an ordinary twelve-key octave and sounds the note nearest each key's usual place, so a seven-note just scale lands on the white keys and the octave key stays a true octave; with more than twelve notes some have no key. With a twelve-note scale the two are the same.
 
-**File** The .scl file for the Scala file preset. Browse opens the scale library beside your packs folder; picking a scale also selects the preset. A missing file plays as plain 12-TET.
+**File** The scale, at the top of the box: the .scl file Scale file mode plays. Click the name to open the scale browser: the scales that ship with the app, your own, the ones you brought in from elsewhere and the ones you used lately, each with its note count and description, and a search that reads all of it. The arrows step to the next and previous scale. Picking a scale also selects the preset. A missing file is marked in amber and plays as plain 12-TET.
 
 **Plugins** How hosted plugins are told. MTS SysEx sends single-note tuning messages to plugins that understand the standard. Pitch bend puts each note on its own channel with a bend for the remainder, which works almost everywhere but limits polyphony and takes over the bend wheel. Auto (probe) tests each plugin once and remembers the verdict.
 

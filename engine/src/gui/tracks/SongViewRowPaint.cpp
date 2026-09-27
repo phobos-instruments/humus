@@ -58,11 +58,11 @@ void SongView::paintRow(juce::Graphics& g, int row) {
         if (b.getWidth() > 0 && b.getRight() >= cb.getX() && b.getX() <= cb.getRight()) {
             const bool sel = (row == selClipRow_ && ci.index == selClip_)
                              || clipSelected(row, ci.id);
-            g.setColour(sel ? cFill(ci.color).brighter(0.4f) : cFill(ci.color));
-            g.fillRoundedRectangle(b.toFloat(), 3.0f);
+            timelinechrome::paintGummy(g, b.toFloat(), sel ? cFill(ci.color).brighter(0.4f) : cFill(ci.color));
             if (ci.isAudio)      paintWaveform(g, b, unclampedLeft, ci, cCol(ci.color));
-            else if (showsFilmstrip(ci)) paintFilmstrip(g, b, ci, cCol(ci.color));
+            else if (showsFramestrip(ci)) paintFramestrip(g, b, ci, cCol(ci.color));
             else                 paintNotes(g, b, unclampedLeft, node, ci, cCol(ci.color));
+            timelinechrome::paintGummyShine(g, b.toFloat());
             if (sel) {
                 g.setColour(Palette::text.withAlpha(alpha::veil));
                 g.fillRoundedRectangle(b.toFloat(), 3.0f);
@@ -123,7 +123,10 @@ void SongView::paintRow(juce::Graphics& g, int row) {
         }
     }
 
-    if (!wantsBoxRow(row)) paintBoxes(g, row);
+    if (!wantsBoxRow(row)) {
+        paintFoldedLanes(g, row, {kStripW, y, getWidth() - kStripW, rowH_ - 1});
+        paintBoxes(g, row);
+    }
 
     if (const double takeStart = takeStartBeat(node); takeStart >= 0.0) {
         const float x0 = std::max(beatToX(takeStart), (float) kStripW);
@@ -177,11 +180,12 @@ void SongView::paintRowHeader(juce::Graphics& g, int row, int y) {
     g.drawText(shown, nameX, y + 2, kStripW - nameX - 82, 18,
                juce::Justification::centredLeft, true);
     const bool rowHeld = host().automation().anyHeld(node);
-    if (ncm != nullptr && classHasRole(ncm->classRaw, role::kMidiTrack))
-        timelinechrome::paintMidiDestChip(
-            g, {nameX, y + 18, kStripW - nameX - (rowHeld ? 30 : 8), 17},
-            host().model(), node);
-    else
+    if (ncm != nullptr && classHasRole(ncm->classRaw, role::kMidiTrack)) {
+        if (const auto in = inputBox(row); !in.isEmpty())
+            timelinechrome::paintMidiInputChip(g, in, host().midi().trackInput(node), inputLitAt_.count(node) != 0);
+        if (const auto out = destRect(row, node); !out.isEmpty())
+            timelinechrome::paintMidiDestChip(g, out, host().model(), node);
+    } else
         timelinechrome::paintDestChip(
             g, {nameX, y + 21, kStripW - nameX - (rowHeld ? 30 : 8), 13},
             host().model(), node);
@@ -192,8 +196,7 @@ void SongView::paintRowHeader(juce::Graphics& g, int row, int y) {
     if (const auto* cm = host().model().byName(node))
         for (const auto& p : cm->properties)
             if (p.name == "Record") { recParam = p.value >= 0.5; break; }
-    const bool armed = host().nodeRecordsMedia(node) ? recParam
-                                                    : host().midi().isRecordTarget(node);
+    const bool armed = host().nodeRecordsMedia(node) ? recParam : host().midi().inletArmed(node);
     auto box = [&](juce::Rectangle<int> r, const char* t, bool on, juce::Colour onCol) {
         g.setColour(on ? onCol : Palette::panelLight);
         g.fillRect(r);
@@ -206,7 +209,7 @@ void SongView::paintRowHeader(juce::Graphics& g, int row, int y) {
     box(muteBox(row), "M", muted, Palette::accent);
     if (arrangeable_.count(node) != 0)
         box(soloBox(row), "S", host().soloed(node), Palette::warnAmber());
-    box(recBox(row), "R", armed, ink::state::armed);
+    if (recordable(node)) timelinechrome::paintRecButton(g, recBox(row).toFloat(), armed);
 }
 
 void SongView::paintAutoLane(juce::Graphics& g, const trackslayout::Slot& slot) {

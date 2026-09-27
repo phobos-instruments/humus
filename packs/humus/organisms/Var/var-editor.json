@@ -5,7 +5,7 @@
     {
       "type": "text-field",
       "param": "Name",
-      "label": "name",
+      "label": "$",
       "x": 12,
       "y": 20,
       "w": 120,

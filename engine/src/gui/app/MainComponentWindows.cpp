@@ -11,7 +11,6 @@
 #include "gui/assistant/AssistantPane.h"
 #include "gui/app/DocSwitcherView.h"
 #include "gui/help/HelpBrowser.h"
-#include "gui/app/LibraryPane.h"
 #include "gui/app/NotesView.h"
 #include "gui/properties/ParameterControlView.h"
 #include "gui/settings/SettingsComponent.h"
@@ -59,7 +58,7 @@ void MainComponent::buildWorkspaceRail() {
         else helpWindow_.reset();
     };
     viewLibrary_.onClick = [this] {
-        if (viewLibrary_.getToggleState()) openLibrary();
+        if (viewLibrary_.getToggleState()) browseLibrary();
         else libraryWindow_.reset();
     };
     viewDocSwitcher_.onClick = [this] {
@@ -143,16 +142,6 @@ void MainComponent::openNotes() {
     notesWindow_->toFront(true);
 }
 
-void MainComponent::openLibrary() {
-    if (!libraryWindow_) {
-        libraryWindow_ = std::make_unique<FreeWindow>("Library", new LibraryPane());
-        libraryWindow_->onClose = [this] { libraryWindow_.reset(); };
-        wireGlobalKeys(*libraryWindow_);
-    }
-    libraryWindow_->setVisible(true);
-    libraryWindow_->toFront(true);
-}
-
 void MainComponent::openDocSwitcher() {
     if (!docSwitcherWindow_) {
         DocSwitcherView::Actions a;
@@ -177,8 +166,8 @@ void MainComponent::openAssistant() {
             canvas_->refresh();
             propsPane_->reload();
             refreshTimelinePanes();
-            setStatus(tr("main-windows.assistant-edited-the-patch-one", "Assistant edited the patch (one undo step)"));
-        });
+            notify(tr("main-windows.assistant-edited-the-patch-one", "Assistant edited the patch (one undo step)"));
+        }, [this](std::unique_ptr<juce::Component> card) { cards::present(host_, std::move(card)); });
     }
     assistantWin_->setVisible(true);
     assistantWin_->toFront(true);

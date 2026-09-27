@@ -14,6 +14,7 @@
 #include "core/plugins/PluginNode.h"
 #include "core/plugins/PluginHost.h"
 #include "core/params/ParamSchema.h"
+#include "hum/caps/Files.h"
 #include "hum/Registry.h"
 #include "io/MeterMap.h"
 #include "io/ModRouteBuild.h"
@@ -79,7 +80,8 @@ void fillLibraryDefaults(Organism& c, const OrganismModel& cm) {
 }
 
 bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& error,
-                const std::function<const Organism*(const OrganismModel&)>& reuseLookup) {
+                const std::function<const Organism*(const OrganismModel&)>& reuseLookup,
+                bool deferMedia) {
     registerBuiltinOrganisms();
     std::unordered_map<std::string, int> nodeIndex;
 
@@ -98,6 +100,8 @@ bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& e
         }
         if (!c) c = Registry::instance().create(cm.displayClass);
         c->setName(cm.name);
+        if (deferMedia)
+            if (auto* defers = dynamic_cast<DefersLoading*>(c.get())) defers->deferLoading(true);
         const bool refs = carriesLibraryRef(cm);
         std::vector<Parameter> resolved;
         if (refs) {

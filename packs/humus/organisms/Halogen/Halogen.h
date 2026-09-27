@@ -15,6 +15,7 @@
 #include "hum/caps/Video.h"
 #include "hum/Organism.h"
 #include "hum/PixelField.h"
+#include "hum/PixelFieldImage.h"
 
 #include "hum/dsp/DspMath.h"
 

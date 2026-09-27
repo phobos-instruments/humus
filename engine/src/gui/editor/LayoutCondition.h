@@ -14,6 +14,7 @@ public:
     struct Clause {
         bool invert = false;
         bool flag = false;
+        bool fact = false;
         std::string name;
         bool equals = false;
         double value = 0.0;
@@ -27,12 +28,20 @@ public:
     std::vector<std::string> params() const;
     std::vector<Clause> clauses() const;
 
-    template <class ValueOf, class FlagOf>
-    bool holds(ValueOf&& valueOf, FlagOf&& flagOf) const {
+    bool wantsFacts() const {
+        for (const auto& group : anyOf_)
+            for (const auto& c : group)
+                if (c.fact) return true;
+        return false;
+    }
+
+    template <class ValueOf, class FlagOf, class FactOf>
+    bool holds(ValueOf&& valueOf, FlagOf&& flagOf, FactOf&& factOf) const {
         for (const auto& group : anyOf_) {
             bool all = true;
             for (const auto& c : group) {
-                const bool on = c.flag     ? flagOf(c.name)
+                const bool on = c.fact     ? factOf(c.name)
+                                : c.flag   ? flagOf(c.name)
                                 : c.equals ? std::abs(valueOf(c.name) - c.value) < 0.5
                                            : valueOf(c.name) >= 0.5;
                 if (on == c.invert) { all = false; break; }

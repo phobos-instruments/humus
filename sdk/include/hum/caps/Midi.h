@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "hum/Extensions.h"
 
@@ -25,6 +26,16 @@ public:
     virtual int collectMidi(int port, MidiEvent* out, int capacity) = 0;
 };
 
+inline constexpr int kLiveMidiAllPorts = -2;
+
+class NoteRecorder {
+public:
+    virtual ~NoteRecorder() = default;
+    virtual std::string recordSwitch() const = 0;
+    virtual std::string loopSwitch() const = 0;
+    virtual std::string quantizeSwitch() const = 0;
+};
+
 class LiveMidiIn {
 public:
     virtual ~LiveMidiIn() = default;
@@ -32,6 +43,12 @@ public:
     virtual int liveMidiPort() const { return 0; }
     virtual bool monitorsAllPorts() const { return false; }
     virtual void pushLiveMidi(const MidiEvent& e, int) { pushLiveMidi(e); }
+};
+
+class HeldKeys {
+public:
+    virtual ~HeldKeys() = default;
+    virtual std::uint64_t heldKeys(int half) const = 0;
 };
 
 class PendingMidiOut {
@@ -51,6 +68,23 @@ public:
     virtual ~MidiLogSource() = default;
     virtual int consumeLog(Logged* dest, int maxEvents) = 0;
     virtual unsigned logGeneration() const = 0;
+};
+
+class RingFace {
+public:
+    virtual ~RingFace() = default;
+    virtual int ringCount() const = 0;
+    virtual int ringSteps(int ring) const = 0;
+    virtual bool ringHits(int ring, int step) const = 0;
+    virtual int ringStepNow(int ring) const = 0;
+    virtual unsigned ringFired(int ring) const = 0;
+};
+
+class KeyedTape {
+public:
+    virtual ~KeyedTape() = default;
+    virtual int tapeRuns(int* units, bool* on, int capacity) const = 0;
+    virtual int tapeRunNow() const = 0;
 };
 
 class StepStrip {

@@ -25,10 +25,10 @@ public:
             current_.reset();
         }
         file_ = juce::File(path);
-        movie_ = hap::open(file_);
+        vid_ = hap::open(file_);
         position_ = 0.0;
         lastShown_ = -1;
-        if (movie_.ok) startThread();
+        if (vid_.ok) startThread();
     }
 
     void setRate(float rate) override { rate_.store(rate); }
@@ -42,7 +42,7 @@ public:
     double positionSeconds() override { return shownPosition_.load(); }
 
     double lengthSeconds() override {
-        return movie_.ok ? (double) movie_.samples.size() / movie_.fps : 0.0;
+        return vid_.ok ? (double) vid_.samples.size() / vid_.fps : 0.0;
     }
 
     void chase(double seconds, double rate) override {
@@ -74,7 +74,7 @@ private:
         bool chasing = false;
         while (!threadShouldExit()) {
             const auto nowMs = juce::Time::getMillisecondCounterHiRes();
-            const double span = (double) movie_.samples.size() / movie_.fps;
+            const double span = (double) vid_.samples.size() / vid_.fps;
             const auto range = loopWindow(loopIn_.load(), loopOut_.load(), span);
             const double len = range.second > range.first ? range.second - range.first : 1.0;
             if (rewind_.exchange(false)) { position_ = range.first; chasing = false; }
@@ -102,24 +102,24 @@ private:
                 while (position_ < range.first) position_ += len;
             }
             shownPosition_.store(position_);
-            const int idx = juce::jlimit(0, (int) movie_.samples.size() - 1,
-                                         (int) (position_ * movie_.fps));
+            const int idx = juce::jlimit(0, (int) vid_.samples.size() - 1,
+                                         (int) (position_ * vid_.fps));
             if (idx != lastShown_) {
-                const auto& s = movie_.samples[(size_t) idx];
+                const auto& s = vid_.samples[(size_t) idx];
                 raw.resize(s.size);
                 in.setPosition(s.offset);
                 if (in.read(raw.data(), (int) raw.size()) == (int) raw.size()) {
                     hap::Frame decoded;
                     if (hap::decodeFrame(raw.data(), raw.size(), decoded)) {
                         auto frame = std::make_shared<Frame>();
-                        frame->width = movie_.width;
-                        frame->height = movie_.height;
+                        frame->width = vid_.width;
+                        frame->height = vid_.height;
                         frame->fmt = decoded.tex == hap::Tex::DXT1 ? Frame::DXT1
                                    : decoded.tex == hap::Tex::DXT5
                                        ? Frame::DXT5
                                        : Frame::YCoCgDXT5;
                         frame->blocks = std::move(decoded.blocks);
-                        frame->pts = (double) idx / movie_.fps;
+                        frame->pts = (double) idx / vid_.fps;
                         const juce::ScopedLock sl(lock_);
                         current_ = std::move(frame);
                     }
@@ -131,7 +131,7 @@ private:
     }
 
     juce::File file_;
-    hap::Movie movie_;
+    hap::Vid vid_;
     std::atomic<float> rate_{1.0f};
     std::atomic<double> loopIn_{0.0};
     std::atomic<double> loopOut_{0.0};

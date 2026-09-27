@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/video/VisualGlCanvas.h"
 
+#include <cmath>
+
 namespace hum {
 
 const char* GlCanvas::builtinScene() {
@@ -40,6 +42,49 @@ void GlCanvas::drawNoSignal(int w, int h) {
     g.drawText(tr("visual-gl-canvas.this-output-is-bypassed", "this output is bypassed"),
                r.translated(0, (int) (unit * 0.075f)),
                juce::Justification::centred, false);
+}
+
+void GlCanvas::drawStamps(int w, int h, const std::vector<std::string>& lines) {
+    if (w <= 0 || h <= 0 || lines.empty()) return;
+    std::unique_ptr<juce::LowLevelGraphicsContext> gl(
+        juce::createOpenGLGraphicsContext(ctx_, w, h));
+    if (gl == nullptr) return;
+    juce::Graphics g(*gl);
+    const float unit = (float) juce::jmin(w, h);
+    const float size = juce::jmax(11.0f, unit * 0.04f);
+    const juce::Font font(juce::FontOptions(size).withStyle("Bold"));
+    int widest = 0;
+    for (const auto& line : lines)
+        widest = juce::jmax(widest, (int) std::ceil(juce::TextLayout::getStringWidth(
+                                        font, juce::String(line))));
+    auto area = juce::Rectangle<int>(0, 0, w, h).reduced((int) (unit * 0.03f));
+    const int lineH = (int) (size * 1.45f);
+    auto box = area.removeFromBottom(lineH * (int) lines.size())
+                   .removeFromRight(widest + (int) size);
+    g.setColour(juce::Colours::black.withAlpha(alpha::muted));
+    g.fillRoundedRectangle(box.toFloat(), size * 0.25f);
+    g.setColour(juce::Colours::white);
+    g.setFont(font);
+    for (const auto& line : lines)
+        g.drawText(juce::String(line), box.removeFromTop(lineH),
+                   juce::Justification::centred, false);
+}
+
+void GlCanvas::fadeStep(float opacity) {
+    using namespace juce::gl;
+    if (opacity >= 0.999f || presentProgram_ == nullptr) return;
+    const float over = 1.0f - juce::jlimit(0.0f, 1.0f, opacity);
+    presentProgram_->use();
+    const auto pid = presentProgram_->getProgramID();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texBlack_);
+    glUniform1i(glGetUniformLocation(pid, "tex"), 0);
+    glUniform1f(glGetUniformLocation(pid, "fade"), 1.0f);
+    glEnable(GL_BLEND);
+    glBlendColor(0.0f, 0.0f, 0.0f, over);
+    glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+    drawQuad(pid);
+    glDisable(GL_BLEND);
 }
 
 void GlCanvas::drawQuad(unsigned int programId) {
@@ -129,7 +174,24 @@ void GlCanvas::ensurePrograms() {
             "uniform vec2 pos;\n"
             "uniform float scale, rotate, aspect;\n"
             "uniform float brightness, contrast, saturation, hue, invert, pixelate;\n"
+            "uniform float flash;\n"
+            "uniform vec3 flashColour;\n"
             "uniform int mirror;\n"
+            "uniform sampler2D lutTex;\n"
+            "uniform float lutSize, lutMix;\n"
+            "uniform vec3 lutMin, lutMax;\n"
+            "vec3 graded(vec3 c) {\n"
+            "    float n = lutSize;\n"
+            "    vec3 t = clamp((c - lutMin) / max(lutMax - lutMin, vec3(1.0e-6)), 0.0, 1.0);\n"
+            "    float b = t.b * (n - 1.0);\n"
+            "    float b0 = floor(b), f = b - b0;\n"
+            "    float b1 = min(b0 + 1.0, n - 1.0);\n"
+            "    float xr = t.r * (n - 1.0) + 0.5;\n"
+            "    float y = (t.g * (n - 1.0) + 0.5) / n;\n"
+            "    vec3 lo = texture2D(lutTex, vec2((b0 * n + xr) / (n * n), y)).rgb;\n"
+            "    vec3 hi = texture2D(lutTex, vec2((b1 * n + xr) / (n * n), y)).rgb;\n"
+            "    return mix(lo, hi, f);\n"
+            "}\n"
             "vec3 hueShift(vec3 c, float a) {\n"
             "    const vec3 k = vec3(0.57735);\n"
             "    float s = sin(a), co = cos(a);\n"
@@ -156,6 +218,8 @@ void GlCanvas::ensurePrograms() {
             "    col = mix(vec3(l), col, saturation);\n"
             "    col = hueShift(col, hue);\n"
             "    col = mix(col, 1.0 - col, invert);\n"
+            "    if (lutSize > 1.5) col = mix(col, graded(clamp(col, 0.0, 1.0)), lutMix);\n"
+            "    col = mix(col, flashColour, flash);\n"
             "    gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);\n"
             "}\n", nullptr);
     if (presentProgram_ == nullptr)

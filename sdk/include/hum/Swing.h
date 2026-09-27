@@ -36,8 +36,11 @@ inline Groove grooveFor(double amount, const std::string& unit) {
     return {amount, stepTicksFor(unit)};
 }
 
-inline constexpr int kGridDenominators[] = {8, 16, 32};
+inline constexpr int kGridDenominators[] = {4, 6, 8, 12, 16, 24, 32, 48, 64};
+inline constexpr const char* kGridLabels[] = {"1/4", "1/4T", "1/8", "1/8T", "1/16",
+                                              "1/16T", "1/32", "1/32T", "1/64"};
 inline constexpr int kGridChoices = (int) std::size(kGridDenominators);
+static_assert(std::size(kGridLabels) == std::size(kGridDenominators));
 
 inline constexpr bool gridsDivideTheBar() {
     for (int d : kGridDenominators)
@@ -56,6 +59,10 @@ inline int gridTicksAt(long index) {
 
 inline std::string gridUnitAt(long index) {
     return "1/" + std::to_string(kGridDenominators[gridIndexClamped(index)]);
+}
+
+inline std::string gridLabelAt(long index) {
+    return kGridLabels[gridIndexClamped(index)];
 }
 
 inline int gridIndexOf(int gridTicks) {

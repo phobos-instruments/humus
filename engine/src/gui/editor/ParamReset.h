@@ -5,19 +5,10 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "core/params/ParamSchema.h"
+#include "gui/editor/ParamRanges.h"
 #include "gui/host/BrickHost.h"
-#include "io/PatchDocument.h"
 
 namespace hum {
-
-inline bool paramDefault(BrickHost& host, const std::string& organism,
-                         const std::string& param, double& def, double& defMax) {
-    if (auto* cm = host.model().byName(organism))
-        for (const auto& d : schemaFor(cm->classRaw))
-            if (d.name == param) { def = d.def; defMax = d.isRange ? d.defMax : d.def; return true; }
-    return false;
-}
 
 inline void enableDoubleClickReset(juce::Slider& s, BrickHost& host,
                                    const std::string& organism, const std::string& param) {

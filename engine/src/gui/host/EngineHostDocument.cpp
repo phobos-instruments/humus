@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "gui/host/EngineHost.h"
 #include "core/library/BankLibrary.h"
 #include "core/library/UserLibrary.h"
@@ -19,6 +20,7 @@
 #include "io/PatchWriter.h"
 #include "io/ModRouteBuild.h"
 #include "io/PatchLoader.h"
+#include "core/project/ProjectFolder.h"
 #include "gui/app/AppSettings.h"
 
 namespace hum {
@@ -45,10 +47,10 @@ void EngineHost::newDocument(juce::Point<int> masterPos) {
     dirty_ = false;
 }
 
-bool EngineHost::loadFile(const std::string& path, std::string& error) {
+bool EngineHost::loadFileAs(const std::string& path, const std::string& documentPath, std::string& error) {
     stopAudio();
     PatchDocumentModel m;
-    std::unique_ptr<juce::XmlElement> raw;
+    std::unique_ptr<xml::Element> raw;
     if (!parsePatchFile(path, m, error, &raw)) return false;
     discardLiveGraph();
     model_ = std::move(m);
@@ -58,13 +60,14 @@ bool EngineHost::loadFile(const std::string& path, std::string& error) {
             if (p.name == "Record") p.value = 0.0;
     pods::resolvePodVideoCords(model_);
     original_ = std::move(raw);
-    docPath_ = path;
+    docPath_ = documentPath;
     positions_.clear();
     midi().syncMapFromModel();
     osc().syncMapFromModel();
     mod().syncMapFromModel();
     perfbox::derive(model_);
     applyLoadedLayout();
+    if (model_.metapad.present) metapad_.completeMask();
     requestRebuild();
     undo_.clear();
     redo_.clear();
@@ -182,14 +185,13 @@ bool EngineHost::writeDocumentTo(const std::string& path, std::string& error,
 }
 
 void EngineHost::storeSessionAudioTo(const std::string& path) {
-    const juce::File doc(juce::String(juce::CharPointer_UTF8(path.c_str())));
-    const auto dir = doc.getParentDirectory()
-                        .getChildFile(doc.getFileNameWithoutExtension() + " Loops");
+    const auto doc = fileAt(path);
+    const juce::File dir(juce::String(project::loopsDirFor(path)));
     for (auto& cm : model_.organisms) {
         auto* sa = dynamic_cast<SessionAudio*>(liveOrganism(cm.name));
         if (sa == nullptr) continue;
         const auto prefix = dir.getChildFile(juce::File::createLegalFileName(
-            juce::String(juce::CharPointer_UTF8(cm.name.c_str()))));
+            juce::String(cm.name)));
         std::vector<std::pair<std::string, std::string>> vals;
         if (!sa->storeSessionAudio(prefix.getFullPathName().toStdString(), vals)) continue;
         for (const auto& [param, text] : vals) {
@@ -205,7 +207,7 @@ void EngineHost::storeSessionAudioTo(const std::string& path) {
                 slot = &cm.properties.back();
             }
             if (text.empty() && !slot->text.empty()) {
-                const juce::File old(juce::String(juce::CharPointer_UTF8(slot->text.c_str())));
+                const auto old = fileAt(slot->text);
                 if (old.isAChildOf(dir)) old.deleteFile();
             }
             slot->text = text;
@@ -232,12 +234,22 @@ void EngineHost::storeSessionAudioTo(const std::string& path) {
 }
 
 bool EngineHost::saveFile(const std::string& path, std::string& error) {
+    gatherRecordingsFor(path);
     if (!writeDocumentTo(path, error)) return false;
     dirty_ = false;
     for (auto& s : undo_) s.wasDirty = true;
     for (auto& s : redo_) s.wasDirty = true;
     docPath_ = path;
     return true;
+}
+
+bool EngineHost::writeSnapshot(const std::string& path, std::string& error) {
+    syncViewsFromPositions();
+    midi().syncMapToModel();
+    osc().syncMapToModel();
+    mod().syncMapToModel();
+    if (!(audioRunning_ && playing_)) syncPluginStateToModel();
+    return writePatchFile(path, model_, error, original_.get());
 }
 
 bool EngineHost::saveCopy(const std::string& path, std::string& error) {

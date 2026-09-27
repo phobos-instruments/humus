@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/midi/MidiFormat.h"
 #include "core/params/ParamUnit.h"
 #include "gui/style/LookAndFeel.h"
 
@@ -20,10 +21,8 @@ public:
         const double n = hzToMidi(hz);
         const int note = (int) std::lround(n);
         if (note < 0 || note > 135) return {};
-        static const char* kNames[12] = {"C",  "C#", "D",  "D#", "E",  "F",
-                                         "F#", "G",  "G#", "A",  "A#", "B"};
         const int cents = (int) std::lround((n - note) * 100.0);
-        juce::String s = juce::String(kNames[note % 12]) + juce::String(note / 12 - 1);
+        juce::String s(noteName(note));
         if (cents != 0) s << " " << (cents > 0 ? "+" : "") << cents << "c";
         return s;
     }

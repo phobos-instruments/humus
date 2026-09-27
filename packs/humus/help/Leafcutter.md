@@ -2,7 +2,7 @@
 
 A loop chopper that cuts a sound file at its transients and plays the slices in time with the transport at their original pitch.
 
-Load a loop and it is cut at its transients; the slices then ride the transport tempo with no time-stretching, so a break stays clean at any tempo. Faster tempos truncate each slice, slower ones leave air between the cuts. Files in the sliced-loop formats load with their own slice map, tempo and beat count. The MIDI inlet plays slices like a kit, C3 for the first slice and each key up for the next, so a PianoRoll or a keyboard can finger the loop with or without the self-playing loop underneath. Cord the outlet into a Filter or a Fern.
+Load a loop and it is cut at its transients; the slices then ride the transport tempo with no time-stretching, so a break stays clean at any tempo. Faster tempos truncate each slice, slower ones leave air between the cuts. Sliced loop files, .rx2 and the older .rex, load with their own slice map, tempo and beat count. The MIDI inlet plays slices like a kit, C3 for the first slice and each key up for the next, so a PianoRoll or a keyboard can finger the loop with or without the self-playing loop underneath. Cord the outlet into a Filter or a Fern.
 
 ## The map
 
@@ -34,7 +34,7 @@ The map shows the loop with a marker at every cut and lights the slice that is p
 
 ## Recipe
 
-**Rechopped break** Load a two-bar drum loop, Beats 8, Sense 0.6, Gate 0.7, Shuffle 17, Decay 0.2. Press play and the break plays rearranged in time; roll the dice for another order and cord the outlet into a Filter with LfoSync on.
+**Rechopped break** Load a two-bar drum loop, Beats 8, Sense 0.6, Gate 0.7, Shuffle 17, Decay 0.2. Press play and the break plays rearranged in time; press Random for another order and cord the outlet into a Filter with LfoSync on.
 
 ## Related Organisms
 

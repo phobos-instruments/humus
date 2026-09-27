@@ -54,7 +54,7 @@ inline void unityMatrix(Bytes& b) {
     u32(b, 0x40000000);
 }
 
-inline constexpr std::uint32_t kMovieScale = 1000;
+inline constexpr std::uint32_t kVideoScale = 1000;
 inline constexpr int kSoundBits = 24;
 
 struct Picture {
@@ -200,8 +200,8 @@ inline Bytes sampleTable(const Bytes& entry, std::uint32_t count, std::uint32_t 
     return box("stbl", stbl);
 }
 
-inline std::uint32_t movieTicks(double seconds) {
-    return (std::uint32_t) std::max(0LL, std::llround(seconds * (double) kMovieScale));
+inline std::uint32_t videoTicks(double seconds) {
+    return (std::uint32_t) std::max(0LL, std::llround(seconds * (double) kVideoScale));
 }
 
 inline Bytes pictureTrack(const Picture& p) {
@@ -222,7 +222,7 @@ inline Bytes pictureTrack(const Picture& p) {
     raw(mdia, box("minf", minf));
 
     Bytes trak;
-    raw(trak, trackHeader(1, movieTicks(seconds), p.width, p.height, 0));
+    raw(trak, trackHeader(1, videoTicks(seconds), p.width, p.height, 0));
     raw(trak, box("mdia", mdia));
     return box("trak", trak);
 }
@@ -246,14 +246,14 @@ inline Bytes soundTrack(const Sound& s) {
     raw(mdia, box("minf", minf));
 
     Bytes trak;
-    raw(trak, trackHeader(2, movieTicks(seconds), 0, 0, 0x0100));
+    raw(trak, trackHeader(2, videoTicks(seconds), 0, 0, 0x0100));
     raw(trak, box("mdia", mdia));
     return box("trak", trak);
 }
 
 }
 
-inline Bytes movieHeader(const Picture& p, const Sound& s) {
+inline Bytes videoHeader(const Picture& p, const Sound& s) {
     const auto count = (std::uint32_t) p.sizes.size();
     const double picture = p.timescale > 0 ? (double) count * p.delta / p.timescale : 0.0;
     const double sound = s.channels > 0 && s.sampleRate > 0.0 ? (double) s.frames / s.sampleRate
@@ -261,8 +261,8 @@ inline Bytes movieHeader(const Picture& p, const Sound& s) {
     Bytes mvhd;
     u32(mvhd, 0);
     u32(mvhd, 0);
-    u32(mvhd, kMovieScale);
-    u32(mvhd, detail::movieTicks(std::max(picture, sound)));
+    u32(mvhd, kVideoScale);
+    u32(mvhd, detail::videoTicks(std::max(picture, sound)));
     u32(mvhd, 0x00010000);
     u16(mvhd, 0x0100);
     zeros(mvhd, 10);

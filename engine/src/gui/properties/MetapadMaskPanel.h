@@ -7,6 +7,8 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/graph/PodModel.h"
+#include "core/params/MetapadScope.h"
 #include "gui/host/PropertiesHost.h"
 #include "gui/style/LookAndFeel.h"
 
@@ -29,6 +31,9 @@ public:
         rows_.clear();
         content_.removeAllChildren();
         const auto& ms = host_.model().metapad;
+        const auto podNames = pods::podsIn(host_.model(), "");
+        rows_.push_back(std::make_unique<ScopeRow>(*this, std::string()));
+        for (const auto& pod : podNames) rows_.push_back(std::make_unique<ScopeRow>(*this, pod));
         for (const auto& c : host_.model().organisms) {
             std::vector<const MetapadMaskEntry*> entries;
             for (const auto& e : ms.mask)
@@ -65,6 +70,51 @@ private:
         b.setColour(juce::TextButton::textColourOffId, Palette::text);
         b.setColour(juce::TextButton::textColourOnId, Palette::background);
     }
+
+    void scope(metascope::Scope to, const std::string& pod) {
+        host_.metapad().scopeMask(to, pod);
+        rebuild();
+    }
+
+    struct ScopeRow : juce::Component {
+        ScopeRow(MetapadMaskPanel& p, std::string podName) : panel(p), pod(std::move(podName)) {
+            const auto mask = panel.host_.metapad().maskEntries();
+            lbl.setText(pod.empty() ? juce::String("Whole patch") : juce::String(pod), juce::dontSendNotification);
+            lbl.setColour(juce::Label::textColourId, pod.empty() ? Palette::textDim : Palette::text);
+            lbl.setFont(juce::FontOptions(12.0f).withStyle("Bold"));
+            addAndMakeVisible(lbl);
+            if (pod.empty()) {
+                addAndMakeVisible(only);
+                panel.styleBtn(only);
+                only.setButtonText("everything");
+                only.setTooltip("Let the pad move every knob again");
+                only.onClick = [this] { panel.scope(metascope::Scope::Everything, {}); };
+                return;
+            }
+            for (auto* b : {&only, &out}) { addAndMakeVisible(*b); panel.styleBtn(*b); }
+            only.setButtonText("only");
+            out.setButtonText("out");
+            only.setTooltip("The pad moves only this pod");
+            out.setTooltip("The pad leaves this pod alone");
+            only.setToggleState(metascope::onlyPod(mask, pod), juce::dontSendNotification);
+            out.setToggleState(metascope::stateOf(mask, pod) == metascope::PodState::AllOut, juce::dontSendNotification);
+            only.onClick = [this] { panel.scope(metascope::Scope::OnlyPod, pod); };
+            out.onClick = [this] { panel.scope(metascope::Scope::WithoutPod, pod); };
+        }
+        void resized() override {
+            auto r = getLocalBounds();
+            if (pod.empty()) {
+                only.setBounds(r.removeFromRight(84).reduced(1));
+            } else {
+                auto btns = r.removeFromRight(84);
+                only.setBounds(btns.removeFromLeft(42).reduced(1));
+                out.setBounds(btns.removeFromLeft(42).reduced(1));
+            }
+            lbl.setBounds(r.reduced(2, 0));
+        }
+        MetapadMaskPanel& panel; std::string pod;
+        juce::Label lbl; juce::TextButton only, out;
+    };
 
     struct GroupRow : juce::Component {
         GroupRow(MetapadMaskPanel& p, std::string c) : panel(p), organism(std::move(c)) {

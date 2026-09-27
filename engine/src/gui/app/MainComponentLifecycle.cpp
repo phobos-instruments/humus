@@ -5,6 +5,7 @@
 #include "gui/app/AppUpdater.h"
 #include "gui/app/DeviceNotice.h"
 #include "gui/app/UpdateNotice.h"
+#include "gui/app/UsageLog.h"
 #include "gui/app/SetupWizard.h"
 
 #include "core/packs/PackLoader.h"
@@ -63,7 +64,6 @@ void MainComponent::startupCheckin() {
     if (juce::JUCEApplication::getInstance() == nullptr) return;
     const auto lic = LicenseStore::current();
     if (AppSettings::instance().getInt("updates.auto", 0) == 0) {
-        if (!lic.valid) maybeShowNag();
         return;
     }
     HubClient::checkin(lic.valid ? lic.licenseId : std::string(),
@@ -86,32 +86,16 @@ void MainComponent::startupCheckin() {
             safe->showUpdateNotice(r.updateVersion, r.updateUrl, r.updateNotes,
                                    r.updateSha256);
         });
-    if (!lic.valid) maybeShowNag();
 }
 
-void MainComponent::maybeShowNag() {
-    auto& st = AppSettings::instance();
-    if (st.getInt("setup.completed", 0) == 0) return;
-    const int n = st.getInt("license.bootCount", 0) + 1;
-    st.set("license.bootCount", n);
-    if (n % 10 != 0) return;
-    nagCard_ = std::make_unique<NagCard>();
-    nagCard_->onEnterLicense = [this] {
-        dismissNag();
-        openSettings(SettingsComponent::kLicense);
-    };
-    nagCard_->onLater = [this] { dismissNag(); };
-    addAndMakeVisible(*nagCard_);
-    placeUpdateNotice();
-    nagCard_->toFront(false);
+void MainComponent::noteOpenTime() {
+    const auto now = juce::Time::currentTimeMillis();
+    if (openSinceMs_ > 0 && now > openSinceMs_) usagelog::addOpenSeconds((double) (now - openSinceMs_) / 1000.0);
+    openSinceMs_ = now;
 }
 
-void MainComponent::dismissNag() {
-    if (auto* n = nagCard_.release()) {
-        n->setVisible(false);
-        juce::MessageManager::callAsync([n] { delete n; });
-        placeUpdateNotice();
-    }
+void MainComponent::noteBounce(double seconds) {
+    usagelog::write(usage::afterBounce(usagelog::read(), seconds));
 }
 
 void MainComponent::flushTelemetry() {
@@ -130,19 +114,22 @@ void MainComponent::flushTelemetry() {
 
 void MainComponent::checkForUpdatesManually() {
     if (juce::JUCEApplication::getInstance() == nullptr) return;
-    setStatus(tr("main-lifecycle.checking-for-updates", "checking for updates..."));
+    notifyOn("updates", tr("main-lifecycle.checking-for-updates", "checking for updates..."));
     HubClient::checkin("",
         [safe = juce::Component::SafePointer<MainComponent>(this)](
             bool ok, hubproto::CheckinResult r) {
             if (safe == nullptr) return;
-            if (!ok) { safe->setStatus(tr("main-lifecycle.could-not-reach-the-update", "could not reach the update server")); return; }
+            if (!ok) {
+                safe->notifyErrorOn("updates", tr("main-lifecycle.could-not-reach-the-update", "could not reach the update server"));
+                return;
+            }
             if (r.hasUpdate) {
-                safe->setStatus({});
+                safe->notifyOn("updates", {});
                 safe->showUpdateNotice(r.updateVersion, r.updateUrl, r.updateNotes,
                                    r.updateSha256);
             } else {
-                safe->setStatus(tr("main-lifecycle.humus", "Humus ") + juce::String(HubClient::appVersion())
-                                + " is up to date");
+                safe->notifyOn("updates", tr("main-lifecycle.humus", "Humus ") + juce::String(HubClient::appVersion())
+                                              + tr("main-lifecycle.up-to-date", " is up to date"));
             }
         });
 }
@@ -172,7 +159,8 @@ void MainComponent::showUpdateNotice(const std::string& version,
                                             ok ? AppUpdater::revealVerb() : tr("main-lifecycle.try-again", "Try again"));
         };
         updateNotice_->setProgress(0.0);
-        updater_->start(juce::String(url), juce::String(sha256), juce::String(version));
+        updater_->start(juce::String(url), juce::String(sha256), juce::String(version),
+                        juce::String(HubClient::instanceId()));
     };
     updateNotice_->onCancel = [this] {
         if (updater_) updater_->cancel();
@@ -189,13 +177,10 @@ void MainComponent::showUpdateNotice(const std::string& version,
 }
 
 void MainComponent::placeUpdateNotice() {
-    if (updateNotice_ && nagCard_) dismissNag();
-    if (auto* card = updateNotice_ ? (juce::Component*) updateNotice_.get()
-                                   : (juce::Component*) nagCard_.get())
-        card->setTopLeftPosition(getWidth() - card->getWidth() - 14,
-                                 getHeight() - card->getHeight() - 40);
-    const auto* notice = updateNotice_ ? (juce::Component*) updateNotice_.get()
-                                       : (juce::Component*) nagCard_.get();
+    auto* notice = (juce::Component*) updateNotice_.get();
+    if (notice != nullptr)
+        notice->setTopLeftPosition(getWidth() - notice->getWidth() - 14,
+                                   getHeight() - notice->getHeight() - 40);
     cards_.placeAbove(getLocalBounds().withTrimmedRight(14),
                       notice != nullptr ? notice->getY() - CardStack::kGap : getHeight() - 40);
 }
@@ -209,11 +194,13 @@ void MainComponent::showDeviceNotice(const DeviceChange& change) {
         placeUpdateNotice();
         openSettings(category);
     };
-    card->onIgnore = [this, raw] {
-        cards_.remove(raw);
-        placeUpdateNotice();
-    };
-    host_.showCard(std::move(card));
+    presentCard(std::move(card));
+}
+
+void MainComponent::presentCard(std::unique_ptr<juce::Component> card) {
+    cards_.push(std::move(card));
+    placeUpdateNotice();
+    cards_.toFront(false);
 }
 
 void MainComponent::dismissUpdateNotice() {

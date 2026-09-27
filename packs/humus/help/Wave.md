@@ -6,7 +6,7 @@ The display is the sound: draw on it, start from the sine, triangle, saw or squa
 
 ## The display
 
-Drag on the wave to draw the frame nearest Position; the rest of a seeded table is untouched, so a grown wave can be retouched frame by frame. Random rolls a fresh spread of partials. Drop a file on the display or use Seed file: a sound file is chopped into up to sixteen frames, one cycle per slice, and any other file is read as a shape. + frame and - frame build a table by hand, and the strip under the display shows every frame with the current one lit; click a slice to jump to it. The same seed always grows the same table, saved with the patch.
+Drag on the wave to draw the frame nearest Position; the rest of a seeded table is untouched, so a grown wave can be retouched frame by frame. Random rolls a fresh spread of partials. Drop a file on the display or use Seed file: a wavetable file, one cycle of 2048 samples per frame as most synths share them, is read frame for frame, and a long one is thinned to sixteen frames that keep its first and last; a recording is chopped into up to sixteen frames, one cycle per slice; and any other file is read as a shape. + frame and - frame build a table by hand, and the strip under the display shows every frame with the current one lit; click a slice to jump to it. The same seed always grows the same table, saved with the patch.
 
 ## Parameters
 
@@ -16,7 +16,7 @@ Drag on the wave to draw the frame nearest Position; the rest of a seeded table 
 
 **Sub** A pure sine one octave below every voice, for weight without changing the drawn cycle. 0 is off.
 
-**Unison** How many detuned copies each voice plays, 1 to 7. One is dead centre; more thicken and widen.
+**Unison** How many detuned copies each voice plays, 1 to 16. One is dead centre; more thicken and widen, and past eight the cost is in CPU rather than in sound.
 
 **Detune** How far apart in pitch the unison copies sit.
 
@@ -42,7 +42,7 @@ Drag on the wave to draw the frame nearest Position; the rest of a seeded table 
 
 **BendRange** How far the pitch wheel reaches at full travel, in semitones. Two is the common default; zero ignores the wheel.
 
-**Table** The table itself, saved with the patch. The dice rolls it along with the shaping knobs, and undo brings back the wave you had.
+**Table** The table itself, saved with the patch. Random rolls it along with the shaping knobs, and undo brings back the wave you had.
 
 ## Recipe
 

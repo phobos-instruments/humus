@@ -9,6 +9,7 @@
 #include "core/timeline/ClipOps.h"
 #include "gui/common/Localisation.h"
 #include "gui/host/EngineHostAutomation.h"
+#include "gui/pianoroll/NoteColourMenu.h"
 #include "gui/pianoroll/NoteEdit.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/tracks/ClipColors.h"
@@ -19,6 +20,7 @@
 #include "gui/tracks/NotePlot.h"
 #include "gui/tracks/TimelineChips.h"
 #include "gui/tracks/TimelineGrid.h"
+#include "core/midi/MidiFormat.h"
 
 namespace hum {
 
@@ -62,7 +64,7 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
             const int pitch = rp.topPitch - i;
             if (pitch < 0 || pitch > kMidiMax) continue;
             const float y = rp.yFor(pitch);
-            g.setColour(timelinechrome::isBlackKey(pitch) ? Palette::background.brighter(0.02f)
+            g.setColour(isBlackKey(pitch) ? Palette::background.brighter(0.02f)
                                                           : Palette::background.brighter(0.055f));
             g.fillRect((float) f.getX(), y, (float) f.getWidth(), rp.hFor(pitch));
             g.setColour(Palette::border.withAlpha(noteedit::laneRuleAlpha(pitch)));
@@ -127,9 +129,11 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
             if (y + nh < (float) f.getY() || y > (float) f.getBottom()) continue;
             const float x0 = std::max(x, (float) tracksgeo::kStripW);
             const float w0 = std::min(x + w, (float) getWidth()) - x0;
-            g.setColour(showVel ? col.withBrightness(juce::jlimit(
-                                      0.25f, 1.0f, 0.45f + 0.55f * n.velocity / kMidiMaxF))
-                                : col.withAlpha(alpha::heavy));
+            const float shade = juce::jlimit(0.25f, 1.0f, 0.45f + 0.55f * n.velocity / kMidiMaxF);
+            const auto own = notecolour::fill(n.colour, col);
+            const auto lit = n.colour >= 0 ? own.withMultipliedBrightness(shade)
+                                           : col.withBrightness(shade);
+            g.setColour(showVel ? lit : own.withAlpha(alpha::heavy));
             if (rp.rowH >= 5.0f)
                 g.fillRoundedRectangle(x0, y, w0, std::max(2.0f, nh - 1.0f), 2.0f);
             else
@@ -137,7 +141,7 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
             noteedit::paintNoteName(g, {x0, y, w0, nh - 1.0f}, n.pitch,
                                     Palette::background.withAlpha(alpha::strong));
             if (rp.rowH >= 7.0f && w0 >= 6.0f) {
-                g.setColour(col.darker(0.5f));
+                g.setColour(own.darker(0.5f));
                 g.drawRoundedRectangle(x0, y, w0, nh - 1.0f, 2.0f, 1.0f);
             }
         }
@@ -190,11 +194,11 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
         g.setFont(juce::FontOptions(9.0f));
         g.drawText("vel", 4, top + 3, kKeyW - 8, 10, juce::Justification::centredLeft, false);
         for (const auto& ci : clips) {
-            const auto col = ci.color > 0 ? clipColour(ci.color) : accent;
-            g.setColour(col.withAlpha(alpha::dim));
+            const auto clipCol = ci.color > 0 ? clipColour(ci.color) : accent;
             for (const auto& n : host().clips().notes(node_, ci.index)) {
                 const float x = tickToX(ci.startTick + n.tick);
                 if (x < (float) tracksgeo::kStripW || x > (float) getWidth()) continue;
+                const auto col = notecolour::fill(n.colour, clipCol);
                 const float h = ((float) velH_ - 6.0f) * n.velocity / kMidiMaxF;
                 const float barTop = (float) (top + velH_ - 3) - h;
                 g.setColour(col.withAlpha(alpha::dim));

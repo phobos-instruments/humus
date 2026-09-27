@@ -10,13 +10,13 @@
           "name": "Preset",
           "min": 0.0,
           "max": 11.0,
-          "def": 0.0,
+          "def": 11.0,
           "int": true
         },
         {
           "name": "Divisions",
-          "min": 5.0,
-          "max": 64.0,
+          "min": 1.0,
+          "max": 128.0,
           "def": 12.0,
           "int": true
         },
@@ -43,7 +43,7 @@
         {
           "name": "File",
           "isText": true,
-          "text": ""
+          "text": "asset:Scales/Equal Divisions/edo-12.scl"
         },
         {
           "name": "Plugins",

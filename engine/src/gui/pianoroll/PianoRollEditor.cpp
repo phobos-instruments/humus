@@ -4,6 +4,7 @@
 #include "gui/host/EngineHostPattern.h"
 #include "gui/host/EngineHostClips.h"
 #include "gui/host/EngineHostMidiControl.h"
+#include "gui/host/LiveMidi.h"
 #include "gui/style/Colours.h"
 
 #include <algorithm>
@@ -28,72 +29,7 @@ PianoRollEditor::PianoRollEditor(BrickHost& host, std::string organism, Params p
     startTimerHz(30);
 }
 
-PianoRollEditor::~PianoRollEditor() {
-    releaseKey();
-    if (host_.midi().isRecordTarget(name_)) host_.midi().setRecordTarget(name_, false);
-}
-
-void PianoRollEditor::loopTap() {
-    const bool armed = host_.midi().isRecordTarget(name_);
-    if (armed && loopTakeOpen_) {
-        host_.midi().setRecordTarget(name_, false);
-        loopTakeOpen_ = false;
-        const int bars = looperCloseBars(host_.positionBeats(), 4);
-        const int L = bars * 4 * Pattern::kTicksPerBeat;
-        host_.clips().setNotes(name_, clip_, wrapNotesIntoLoop(notes(), L), L);
-        reloadValues();
-    } else if (armed) {
-        host_.midi().setRecordTarget(name_, false);
-    } else if (notes().empty()) {
-        host_.ensureAudio();
-        host_.pushUndo();
-        host_.clips().setNotes(name_, clip_, {}, 64 * 4 * Pattern::kTicksPerBeat);
-        host_.setPositionBeats(0.0);
-        if (!host_.isPlaying()) host_.play();
-        host_.midi().setRecordTarget(name_, true,
-            quantize_.getToggleState() ? snapTicks() : 0, clip_, true);
-        loopTakeOpen_ = true;
-    } else {
-        host_.ensureAudio();
-        if (!host_.isPlaying()) host_.play();
-        host_.midi().setRecordTarget(name_, true,
-            quantize_.getToggleState() ? snapTicks() : 0, clip_, true);
-    }
-    updateLoopButton();
-}
-
-void PianoRollEditor::loopClear() {
-    juce::PopupMenu m;
-    m.addItem(1, tr("piano-roll-editor.clear-loop", "Clear loop"));
-    m.showMenuAsync(juce::PopupMenu::Options(), [this](int r) {
-        if (r != 1) return;
-        if (host_.midi().isRecordTarget(name_)) host_.midi().setRecordTarget(name_, false);
-        loopTakeOpen_ = false;
-        host_.pushUndo();
-        host_.clips().setNotes(name_, clip_, {}, 4 * 4 * Pattern::kTicksPerBeat);
-        reloadValues();
-        updateLoopButton();
-    });
-}
-
-void PianoRollEditor::updateLoopButton() {
-    const auto st = loopState();
-    const char* text = "Loop";
-    juce::Colour on = Palette::accentDim;
-    bool lit = true;
-    switch (st) {
-        case LooperState::Empty: text = "Loop"; lit = false; break;
-        case LooperState::Rec:   text = "Rec";  on = ink::state::armed; break;
-        case LooperState::Play:  text = "Play"; on = Palette::accentDim; break;
-        case LooperState::Dub:   text = "Dub";  on = ink::state::overdubbing; break;
-    }
-    juce::String t(text);
-    if (st == LooperState::Rec)
-        t << " " << juce::jmax(1, (int) std::lround(host_.positionBeats() / 4.0));
-    loop_.setButtonText(t);
-    loop_.setColour(juce::TextButton::buttonOnColourId, on);
-    loop_.setToggleState(lit, juce::dontSendNotification);
-}
+PianoRollEditor::~PianoRollEditor() { releaseKey(); }
 
 void PianoRollEditor::buildToolbar() {
     for (auto* l : {&barsLabel_, &snapLabel_}) {
@@ -106,44 +42,22 @@ void PianoRollEditor::buildToolbar() {
         if (bars <= 0) return;
         host_.pushUndo();
         host_.setParam(name_, params_.bars, bars);
-        host_.clips().setNotes(name_, clip_, notes(), bars * 4 * Pattern::kTicksPerBeat);
+        host_.clips().setNotes(name_, clip_, model_.notes(), bars * 4 * Pattern::kTicksPerBeat);
         repaint();
     };
     addAndMakeVisible(bars_);
 
+    snap_.addItem(tr("tracks-pane.snap-free", "Free"), kSnapFreeId);
     int id = 1;
     for (const char* s : {"1/4", "1/8", "1/16", "1/32"}) snap_.addItem(s, id++);
     snap_.setSelectedId(3, juce::dontSendNotification);
-    snap_.onChange = [this] { repaint(); };
+    snap_.onChange = [this] {
+        host_.midi().setRecordGrid(name_, snapTicks());
+        repaint();
+    };
     addAndMakeVisible(snap_);
 
-    loop_.setClickingTogglesState(false);
-    loop_.setTooltip(tr("piano-roll-editor.loop-recorder",
-                        "Loop recorder: tap to record, tap to close the loop, "
-                        "tap to overdub (R). Right-click: clear."));
-    loop_.onClick = [this] { loopTap(); };
-    loop_.onRightClick = [this] { loopClear(); };
-    addAndMakeVisible(loop_);
-    updateLoopButton();
-
-    record_.setClickingTogglesState(true);
-    record_.setColour(juce::TextButton::buttonOnColourId, ink::state::armed);
-    record_.setTooltip(tr("piano-roll-editor.record-incoming-midi-into-this", "Record incoming MIDI into this clip"));
-    record_.onClick = [this] {
-        const bool on = record_.getToggleState();
-        if (on) {
-            host_.ensureAudio();
-            if (!host_.isPlaying()) host_.play();
-        }
-        host_.midi().setRecordTarget(name_, on,
-                                  quantize_.getToggleState() ? snapTicks() : 0, clip_);
-    };
-    addAndMakeVisible(record_);
-
-    quantize_.setClickingTogglesState(true);
-    quantize_.setToggleState(true, juce::dontSendNotification);
-    quantize_.setTooltip(tr("piano-roll-editor.quantize-recorded-notes-to-the", "Quantize recorded notes to the snap grid"));
-    addAndMakeVisible(quantize_);
+    buildRecordButtons();
 
     struct { ToolButton* b; Tool t; const char* tip; } tools[] = {
         {&toolP_, Tool::Pointer, "Pointer: select, marquee, move (1)"},
@@ -162,20 +76,13 @@ void PianoRollEditor::buildToolbar() {
 
 void PianoRollEditor::setClip(int clip) {
     clip_ = juce::jmax(0, clip);
+    model_.ccSelection.clear();
     reloadValues();
     fitPitch();
 }
 
 void PianoRollEditor::fitPitch() {
-    if (pitchScrolled_) return;
-    const auto n = notes();
-    if (n.empty()) return;
-    int lo = kMidiMax, hi = 0;
-    for (const auto& e : n) { lo = std::min(lo, e.pitch); hi = std::max(hi, e.pitch); }
-    const int rows = juce::jmax(1, (gridBottom() - gridTop()) / kRowH);
-    const int want = hi + (rows - (hi - lo + 1)) / 2;
-    topPitch_ = juce::jlimit(juce::jmax(0, rows - 1), kMidiMax,
-                             hi - lo + 1 <= rows ? want : hi + 1);
+    model_.fitPitch(geometry().rows());
     repaint();
 }
 
@@ -212,13 +119,13 @@ void PianoRollEditor::soundKey(int pitch) {
     if (pitch == keyNote_) return;
     releaseKey();
     keyNote_ = pitch;
-    host_.injectLiveMidiToNode(name_, juce::MidiMessage::noteOn(1, pitch, (juce::uint8) 100));
+    host_.injectLiveMidiToNode(name_, noteOnEvent(1, pitch, 100));
     repaintKeys();
 }
 
 void PianoRollEditor::releaseKey() {
     if (keyNote_ < 0) return;
-    host_.injectLiveMidiToNode(name_, juce::MidiMessage::noteOff(1, keyNote_));
+    host_.injectLiveMidiToNode(name_, noteOffEvent(1, keyNote_));
     keyNote_ = -1;
     repaintKeys();
 }
@@ -240,35 +147,22 @@ void PianoRollEditor::resized() {
     record_.setBounds(r.removeFromRight(40));
 }
 
-int PianoRollEditor::durationTicks() const {
-    const auto cs = host_.clips().list(name_);
-    if (clip_ >= 0 && clip_ < (int) cs.size()) return cs[(size_t) clip_].lengthTicks;
-    if (auto* cm = host_.model().byName(name_))
-        if (cm->pattern.present && cm->pattern.duration > 0) return cm->pattern.duration;
-    return 4 * 4 * Pattern::kTicksPerBeat;
+std::vector<roll::ClipSpan> PianoRollEditor::clipSpans() const {
+    std::vector<roll::ClipSpan> spans;
+    for (const auto& c : host_.clips().list(name_)) spans.push_back({c.startTick, c.lengthTicks, c.looped});
+    return spans;
 }
 
-double PianoRollEditor::playheadClipTick() const {
-    const auto cs = host_.clips().list(name_);
-    if (clip_ < 0 || clip_ >= (int) cs.size()) return -1.0;
-    const auto& ci = cs[(size_t) clip_];
-    double rel = host_.positionBeats() * Pattern::kTicksPerBeat - ci.startTick;
-    if (rel < 0.0) return -1.0;
-    if (ci.looped) return std::fmod(rel, (double) ci.lengthTicks);
-    return rel < (double) ci.lengthTicks ? rel : -1.0;
+int PianoRollEditor::durationTicks() const {
+    const auto* cm = host_.model().byName(name_);
+    const int patternTicks = cm != nullptr && cm->pattern.present ? cm->pattern.duration : 0;
+    return roll::durationOf(clipSpans(), clip_, patternTicks);
 }
+
+double PianoRollEditor::playheadClipTick() const { return roll::clipTick(clipSpans(), clip_, host_.positionBeats()); }
 
 PianoRollEditor::Playhead PianoRollEditor::playhead() const {
-    if (const double onClip = playheadClipTick(); onClip >= 0.0) return {onClip, false};
-    if (!host_.clips().list(name_).empty()) return {};
-    const double span = (double) juce::jmax(1, durationTicks());
-    const double beats = juce::jmax(0.0, host_.positionBeats());
-    return {std::fmod(beats * Pattern::kTicksPerBeat, span), true};
-}
-
-double PianoRollEditor::ppt() const {
-    const int w = juce::jmax(120, getWidth() - kKeyW);
-    return (double) w / (double) juce::jmax(1, durationTicks());
+    return roll::playheadAt(clipSpans(), clip_, host_.positionBeats(), durationTicks(), host_.isPlaying());
 }
 
 int PianoRollEditor::snapTicks() const {
@@ -280,42 +174,11 @@ int PianoRollEditor::snapTicks() const {
     }
 }
 
-int PianoRollEditor::snapTick(int tick) const {
-    const int s = snapTicks();
-    return juce::jlimit(0, durationTicks() - 1, (tick / s) * s);
-}
-
-void PianoRollEditor::commit(const std::vector<NoteEvent>& n) {
-    host_.clips().setNotes(name_, clip_, n, durationTicks());
-    repaint();
-}
-
-int PianoRollEditor::noteAt(int tick, int pitch, noteedit::Grab& grab, int x) const {
-    const auto n = notes();
-    grab = noteedit::Grab::Miss;
-    for (int i = (int) n.size() - 1; i >= 0; --i) {
-        const auto& e = n[(size_t) i];
-        if (e.pitch != pitch) continue;
-        if (tick < e.tick || tick >= e.tick + e.lengthTicks) continue;
-        const auto b = noteBounds(e);
-        grab = noteedit::grabAt(b, {(float) x, b.getCentreY()});
-        return i;
-    }
-    return -1;
-}
-
 void PianoRollEditor::timerCallback() {
+    syncRecordButtons();
     if (++loopTick_ % 8 == 0) updateLoopButton();
     if (host_.midi().isRecordTarget(name_)) {
-        const auto n = notes();
-        if (!n.empty()) {
-            const int rows = juce::jmax(1, (gridBottom() - gridTop()) / kRowH);
-            const int p = n.back().pitch;
-            if (p > topPitch_)
-                topPitch_ = juce::jlimit(rows - 1, kMidiMax, p + 4);
-            else if (p < topPitch_ - rows + 1)
-                topPitch_ = juce::jlimit(rows - 1, kMidiMax, p + rows / 2);
-        }
+        model_.followRecording(geometry().rows());
     }
     const double tick = playhead().tick;
     if (std::abs(tick - lastPlayheadTick_) > 0.5 || host_.midi().isRecordTarget(name_)) {

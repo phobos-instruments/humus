@@ -3,12 +3,19 @@
 #include "gui/bricks/WaveDrawBrick.h"
 
 #include <cmath>
+#include <cstdint>
+#include <vector>
+
+#include "core/app/AppPaths.h"
+#include "hum/FileBytes.h"
+#include "hum/dsp/WaveTableFile.h"
 
 namespace hum {
 
 WaveDrawBrick::WaveDrawBrick(BrickHost& host, std::string organism, std::string param, const Bindings& bound)
-    : PolledBrick(host, std::move(organism), 4), pn_(std::move(param)), positionParam_(bound(bind::kPosition)), warpParam_(bound(bind::kWarp)), warpModeParam_(bound(bind::kWarpMode)) {
-    pull(host_.liveParamText(name_, pn_));
+    : PolledBrick(host, organism, 4),
+      wave_(host, organism, {std::move(param), bound(bind::kPosition), bound(bind::kWarp), bound(bind::kWarpMode)}) {
+    repaint();
 }
 
 void WaveDrawBrick::paint(juce::Graphics& g) {
@@ -27,7 +34,7 @@ void WaveDrawBrick::paint(juce::Graphics& g) {
     p.startNewSubPath(area.getX(), cy);
     for (int i = 0; i <= steps; ++i) {
         const double ph = (double) i / steps;
-        const float v = valueAt(ph);
+        const float v = wave_.valueAt(ph);
         p.lineTo(area.getX() + (float) ph * area.getWidth(),
                  cy - v * area.getHeight() * 0.46f);
     }
@@ -38,13 +45,11 @@ void WaveDrawBrick::paint(juce::Graphics& g) {
     g.setColour(Palette::accent);
     g.strokePath(p, juce::PathStrokeType(2.0f));
 
-    const int wm = (int) host_.liveParamValue(name_, warpModeParam_);
-    const float wa = (float) host_.liveParamValue(name_, warpParam_);
+    const int wm = wave_.warpMode();
+    const float wa = wave_.warpAmount();
     if (wm > 0 && wa > 0.0f) {
         static thread_local float disp[kWaveTableLen];
-        int df0, df1; float dfr; blend(df0, df1, dfr);
-        for (int k = 0; k < kWaveTableLen; ++k)
-            disp[k] = frames_[df0][k] + dfr * (frames_[df1][k] - frames_[df0][k]);
+        wave_.blended(disp);
         juce::Path wp;
         for (int i = 0; i <= steps; ++i) {
             const double ph = (double) i / steps;
@@ -69,7 +74,7 @@ void WaveDrawBrick::paint(juce::Graphics& g) {
 
     for (int i = 0; i < kWaveTablePresets; ++i) {
         const auto r = tileRect(i).toFloat();
-        const bool on = i == activePreset_;
+        const bool on = i == wave_.activePreset();
         g.setColour(on ? Palette::accent : Palette::panelLight);
         g.fillRoundedRectangle(r, 4.0f);
         float mini[32];
@@ -98,7 +103,7 @@ void WaveDrawBrick::paint(juce::Graphics& g) {
         const auto r = tileRect(kWaveTablePresets + t).toFloat();
         g.setColour(Palette::panelLight);
         g.fillRoundedRectangle(r, 4.0f);
-        g.setColour(frameCount_ >= (t == 2 ? kMaxFrames : 2) ? Palette::textDim : Palette::text);
+        g.setColour(wave_.frameCount() >= (t == 2 ? kMaxFrames : 2) ? Palette::textDim : Palette::text);
         g.setFont(juce::FontOptions(15.0f));
         g.drawText(t == 2 ? tr("wave-draw.frame", "+ frame") : tr("wave-draw.frame-2", "- frame"), r, juce::Justification::centred);
     }
@@ -124,31 +129,17 @@ void WaveDrawBrick::filesDropped(const juce::StringArray& files, int, int) {
     repaint();
 }
 
-juce::String WaveDrawBrick::sourceText() const {
-    juce::String frames = frameCount_ > 1
-        ? juce::String("frame ") + juce::String(curFrame() + 1) + " / "
-              + juce::String(frameCount_)
-        : juce::String("1 frame  -  Seed a file for a wavetable");
-    if (seededKind_.empty()) return frames;
-    juce::String from = juce::String(seededKind_);
-    if (!seededLabel_.empty()) from += ": " + juce::String(seededLabel_);
-    return from + "  -  " + frames;
-}
+juce::String WaveDrawBrick::sourceText() const { return juce::String(wave_.sourceText()); }
 
 void WaveDrawBrick::mouseDown(const juce::MouseEvent& e) {
     for (int i = 0; i < kWaveTablePresets; ++i)
         if (tileRect(i).contains(e.getPosition())) {
-            waveTablePreset(i, frames_[curFrame()], kWaveTableLen);
-            activePreset_ = i;
-            push();
+            wave_.choosePreset(i);
             repaint();
             return;
         }
     if (tileRect(kWaveTablePresets).contains(e.getPosition())) {
-        waveTableRandom((uint32_t) juce::Random::getSystemRandom().nextInt(),
-                        frames_[curFrame()], kWaveTableLen);
-        activePreset_ = -1;
-        push();
+        wave_.randomize((std::uint32_t) juce::Random::getSystemRandom().nextInt());
         repaint();
         return;
     }
@@ -156,32 +147,30 @@ void WaveDrawBrick::mouseDown(const juce::MouseEvent& e) {
         chooseSeed();
         return;
     }
-    if (tileRect(kWaveTablePresets + 2).contains(e.getPosition())) { addFrame(); return; }
-    if (tileRect(kWaveTablePresets + 3).contains(e.getPosition())) { removeFrame(); return; }
-    if (frameCount_ > 1 && stripRect().contains(e.getPosition())) {
-        const int n = frameCount_;
-        const int f = juce::jlimit(0, n - 1,
-            (e.x - stripRect().getX()) * n / std::max(1, stripRect().getWidth()));
-        host_.setParam(name_, positionParam_, n > 1 ? (double) f / (n - 1) : 0.0);
+    if (tileRect(kWaveTablePresets + 2).contains(e.getPosition())) {
+        if (wave_.addFrame()) repaint();
+        return;
+    }
+    if (tileRect(kWaveTablePresets + 3).contains(e.getPosition())) {
+        if (wave_.removeFrame()) repaint();
+        return;
+    }
+    if (wave_.frameCount() > 1 && stripRect().contains(e.getPosition())) {
+        wave_.pickFrame(e.x, stripRect().getX(), stripRect().getWidth());
         return;
     }
     if (waveArea().contains(e.getPosition())) {
-        drawing_ = true;
-        lastIdx_ = -1;
+        wave_.beginDrawing();
         paintSample(e);
     }
 }
 
 void WaveDrawBrick::mouseDrag(const juce::MouseEvent& e) {
-    if (drawing_) paintSample(e);
+    if (wave_.drawing()) paintSample(e);
 }
 
 void WaveDrawBrick::mouseUp(const juce::MouseEvent&) {
-    if (!drawing_) return;
-    drawing_ = false;
-    activePreset_ = -1;
-    push();
-    repaint();
+    if (wave_.endDrawing()) repaint();
 }
 
 void WaveDrawBrick::mouseMove(const juce::MouseEvent& e) {
@@ -204,7 +193,7 @@ juce::Rectangle<int> WaveDrawBrick::waveArea() const {
 
 juce::Rectangle<int> WaveDrawBrick::frameSlot(int f) const {
     const auto s = stripRect();
-    const int n = std::max(1, frameCount_);
+    const int n = std::max(1, wave_.frameCount());
     const int w = s.getWidth() / n;
     return {s.getX() + f * w, s.getY(), w - 1, s.getHeight()};
 }
@@ -214,69 +203,9 @@ juce::Rectangle<int> WaveDrawBrick::tileRect(int i) const {
     return {i * (w + kTileGap), getHeight() - kTileH, w, kTileH};
 }
 
-void WaveDrawBrick::blend(int& f0, int& f1, float& fr) const {
-    const double fp = pos_ * (frameCount_ - 1);
-    f0 = juce::jlimit(0, frameCount_ - 1, (int) fp);
-    f1 = juce::jmin(f0 + 1, frameCount_ - 1);
-    fr = (float) (fp - f0);
-}
-
-float WaveDrawBrick::valueAt(double phase) const {
-    int f0, f1; float fr; blend(f0, f1, fr);
-    const double f = phase * (kWaveTableLen - 1);
-    const int i = juce::jlimit(0, kWaveTableLen - 2, (int) f);
-    const float t = (float) (f - i);
-    auto samp = [&](int fi) { return frames_[fi][i] * (1.0f - t) + frames_[fi][i + 1] * t; };
-    return samp(f0) + fr * (samp(f1) - samp(f0));
-}
-
 void WaveDrawBrick::paintSample(const juce::MouseEvent& e) {
     const auto area = waveArea();
-    const int idx = juce::jlimit(
-        0, kWaveTableLen - 1,
-        (int) std::lround((double) (e.x - area.getX()) / area.getWidth()
-                          * (kWaveTableLen - 1)));
-    const float v = (float) juce::jlimit(
-        -1.0, 1.0,
-        ((double) area.getCentreY() - e.y) / (area.getHeight() * 0.46));
-    float* frame = frames_[curFrame()];
-    if (lastIdx_ < 0) {
-        frame[idx] = v;
-    } else {
-        const int a = juce::jmin(lastIdx_, idx), b = juce::jmax(lastIdx_, idx);
-        for (int i = a; i <= b; ++i) {
-            const float t = b == a ? 1.0f : (float) (i - a) / (float) (b - a);
-            const float from = idx >= lastIdx_ ? lastVal_ : v;
-            const float to = idx >= lastIdx_ ? v : lastVal_;
-            frame[i] = from + (to - from) * t;
-        }
-    }
-    lastIdx_ = idx;
-    lastVal_ = v;
-    repaint();
-}
-
-void WaveDrawBrick::addFrame() {
-    if (frameCount_ >= kMaxFrames) return;
-    const int at = curFrame();
-    for (int f = frameCount_; f > at + 1; --f)
-        std::copy(frames_[f - 1], frames_[f - 1] + kWaveTableLen, frames_[f]);
-    std::copy(frames_[at], frames_[at] + kWaveTableLen, frames_[at + 1]);
-    ++frameCount_;
-    push();
-    host_.setParam(name_, positionParam_, frameCount_ > 1 ? (double) (at + 1) / (frameCount_ - 1) : 0.0);
-    repaint();
-}
-
-void WaveDrawBrick::removeFrame() {
-    if (frameCount_ <= 1) return;
-    const int at = curFrame();
-    for (int f = at; f + 1 < frameCount_; ++f)
-        std::copy(frames_[f + 1], frames_[f + 1] + kWaveTableLen, frames_[f]);
-    --frameCount_;
-    push();
-    const int nc = juce::jmin(at, frameCount_ - 1);
-    host_.setParam(name_, positionParam_, frameCount_ > 1 ? (double) nc / (frameCount_ - 1) : 0.0);
+    wave_.drawAt(e.x, e.y, area.getX(), area.getWidth(), area.getCentreY(), area.getHeight());
     repaint();
 }
 
@@ -284,14 +213,15 @@ void WaveDrawBrick::paintStrip(juce::Graphics& g) {
     const auto s = stripRect();
     g.setColour(Palette::background.darker(0.1f));
     g.fillRoundedRectangle(s.toFloat(), 3.0f);
-    if (frameCount_ <= 1) {
+    const int frameCount = wave_.frameCount();
+    if (frameCount <= 1) {
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.0f));
         g.drawText(tr("wave-draw.one-frame", "one frame"), s, juce::Justification::centred);
         return;
     }
-    const int cur = curFrame();
-    for (int f = 0; f < frameCount_; ++f) {
+    const int cur = wave_.currentFrame();
+    for (int f = 0; f < frameCount; ++f) {
         const auto slot = frameSlot(f).toFloat().reduced(1.0f, 2.0f);
         if (f == cur) {
             g.setColour(Palette::accent.withAlpha(alpha::scrim));
@@ -303,7 +233,7 @@ void WaveDrawBrick::paintStrip(juce::Graphics& g) {
         for (int k = 0; k <= steps; ++k) {
             const double ph = (double) k / steps;
             const int idx = juce::jlimit(0, kWaveTableLen - 1, (int) (ph * (kWaveTableLen - 1)));
-            const float y = cy - frames_[f][idx] * slot.getHeight() * 0.42f;
+            const float y = cy - wave_.frame(f)[idx] * slot.getHeight() * 0.42f;
             const juce::Point<float> pt(slot.getX() + (float) ph * slot.getWidth(), y);
             if (k == 0) mp.startNewSubPath(pt); else mp.lineTo(pt);
         }
@@ -313,120 +243,62 @@ void WaveDrawBrick::paintStrip(juce::Graphics& g) {
 }
 
 void WaveDrawBrick::chooseSeed() {
-    chooser_ = std::make_unique<juce::FileChooser>(
-        "Seed a wave from any file", juce::File(), "*");
-    const auto flags = juce::FileBrowserComponent::openMode
-                     | juce::FileBrowserComponent::canSelectFiles;
-    chooser_->launchAsync(flags, [this](const juce::FileChooser& fc) {
-        const auto f = fc.getResult();
-        if (f == juce::File()) return;
-        seedFromFile(f);
+    files::FilePick request;
+    request.title = "Seed a wave from any file";
+    request.patterns = "*";
+    picker_.pick(request, [this](const std::vector<std::string>& paths) {
+        if (!paths.empty()) seedFromFile(juce::File(juce::String::fromUTF8(paths.front().c_str())));
     });
 }
 
 void WaveDrawBrick::seedFromFile(const juce::File& f) {
-    seededKind_.clear();
-    seededLabel_.clear();
     if (const auto img = juce::ImageFileFormat::loadFrom(f); img.isValid()) {
         const int w = juce::jmin(img.getWidth(), 4096);
         std::vector<float> row((size_t) w);
         const int y = img.getHeight() / 2;
-        for (int x = 0; x < w; ++x)
-            row[(size_t) x] = img.getPixelAt(x, y).getBrightness() * 2.0f - 1.0f;
-        waveTableFromCycle(row.data(), w, frames_[0], kWaveTableLen);
-        frameCount_ = 1;
-    } else if (juce::AudioBuffer<float> buf; loadAudioSeed(f, buf)) {
-    } else if (signalfile::Signal sig; signalfile::load(f, sig) && seedFromSignal(sig)) {
+        for (int x = 0; x < w; ++x) row[(size_t) x] = img.getPixelAt(x, y).getBrightness() * 2.0f - 1.0f;
+        wave_.seedCycle(row.data(), w);
+    } else if (loadAudioSeed(f)) {
+    } else if (signalfile::Signal sig;
+               signalfile::load(f, sig) && wave_.seedSignal(sig.samples, signalfile::kindName(sig.kind), sig.label)) {
     } else if (juce::FileInputStream in(f); in.openedOk() && in.getTotalLength() > 0) {
         const auto size = in.getTotalLength();
         const int take = (int) juce::jmin(size, (juce::int64) 65536);
         in.setPosition((size - take) / 2);
         std::vector<uint8_t> bytes((size_t) take);
         in.read(bytes.data(), take);
-        waveTableFromBytes(bytes.data(), take, frames_[0], kWaveTableLen);
-        frameCount_ = 1;
+        wave_.seedBytes(bytes.data(), take);
     } else {
         return;
     }
-    activePreset_ = -1;
-    push();
     repaint();
 }
 
-bool WaveDrawBrick::seedFromSignal(const signalfile::Signal& sig) {
-    const int n = (int) sig.samples.size();
-    if (n < kWaveTableLen / 4) return false;
-    const int frames = juce::jlimit(1, kMaxFrames, n / (kWaveTableLen / 4));
-    const int win = n / frames;
-    for (int f = 0; f < frames; ++f)
-        waveTableFromCycle(sig.samples.data() + (size_t) f * win, win,
-                           frames_[f], kWaveTableLen);
-    frameCount_ = frames;
-    waveTableAlignFrames(&frames_[0][0], frameCount_, kWaveTableLen);
-    seededKind_ = signalfile::kindName(sig.kind);
-    seededLabel_ = sig.label;
-    return true;
-}
-
-bool WaveDrawBrick::loadAudioSeed(const juce::File& f, juce::AudioBuffer<float>& buf) {
+bool WaveDrawBrick::loadAudioSeed(const juce::File& f) {
+    juce::AudioBuffer<float> buf;
     double fileSr = 0.0;
-    if (!loadSoundFile(f.getFullPathName().toStdString(), buf, fileSr)
-        || buf.getNumSamples() < 256)
-        return false;
+    if (!loadSoundFile(f.getFullPathName().toStdString(), buf, fileSr) || buf.getNumSamples() < 64) return false;
     const int n = buf.getNumSamples();
-    const int take = juce::jmin(n, (int) (2.0 * fileSr));
+    std::vector<std::uint8_t> bytes;
+    int frameLen = 0;
+    if (n <= kWaveFileFrameLen * kWaveFileMaxFrames && readFileBytes(pathOf(f), bytes))
+        frameLen = waveTableFrameLenFromRiff(bytes.data(), bytes.size());
+    const bool wholeFile = frameLen > 0 || n <= kWaveFileFrameLen * kWaveFileMaxFrames;
+    const int take = wholeFile ? n : juce::jmin(n, (int) (2.0 * fileSr));
     const int start = (n - take) / 2;
     std::vector<float> mono((size_t) take, 0.0f);
     for (int c = 0; c < buf.getNumChannels(); ++c) {
         const float* src = buf.getReadPointer(c, start);
-        for (int i = 0; i < take; ++i)
-            mono[(size_t) i] += src[i] / (float) buf.getNumChannels();
+        for (int i = 0; i < take; ++i) mono[(size_t) i] += src[i] / (float) buf.getNumChannels();
     }
-    frameCount_ = waveTableFramesFromSignal(mono.data(), take, fileSr,
-                                            &frames_[0][0], kWaveTableLen, kMaxFrames);
-    waveTableAlignFrames(&frames_[0][0], frameCount_, kWaveTableLen);
-    if (frameCount_ <= 0) {
-        waveTableFromCycle(mono.data(), juce::jmin(take, 4096), frames_[0], kWaveTableLen);
-        frameCount_ = 1;
-    }
+    if (frameLen == 0) frameLen = waveTableFrameLenGuess(mono.data(), take);
+    if (frameLen > 0) wave_.seedTable(mono, frameLen);
+    else wave_.seedAudio(mono, fileSr);
     return true;
 }
 
-void WaveDrawBrick::pull(const std::string& text) {
-    cachedText_ = text;
-    seededKind_.clear();
-    seededLabel_.clear();
-    const int n = decodeWaveFrames(text.c_str(), &frames_[0][0], kWaveTableLen, kMaxFrames);
-    frameCount_ = n > 0 ? n : 1;
-    waveTableAlignFrames(&frames_[0][0], frameCount_, kWaveTableLen);
-    if (n <= 0) waveTablePreset(0, frames_[0], kWaveTableLen);
-    activePreset_ = -1;
-    if (frameCount_ == 1)
-        for (int i = 0; i < kWaveTablePresets; ++i) {
-            float t[kWaveTableLen];
-            waveTablePreset(i, t, kWaveTableLen);
-            const bool empty = text.empty() && i == 0;
-            if (empty || text == encodeWaveTable(t, kWaveTableLen)) { activePreset_ = i; break; }
-        }
-    repaint();
-}
-
-void WaveDrawBrick::push() {
-    cachedText_ = encodeWaveFrames(&frames_[0][0], frameCount_, kWaveTableLen);
-    host_.setParamText(name_, pn_, cachedText_);
-}
-
 void WaveDrawBrick::poll() {
-    if (drawing_) return;
-    const auto text = host_.liveParamText(name_, pn_);
-    if (text != cachedText_) pull(text);
-    const int wm = (int) host_.liveParamValue(name_, warpModeParam_);
-    const float wa = (float) host_.liveParamValue(name_, warpParam_);
-    const double pos = host_.liveParamValue(name_, positionParam_);
-    if (wm != lastWm_ || std::abs(wa - lastWa_) > 1e-3f || std::abs(pos - pos_) > 1e-3) {
-        lastWm_ = wm; lastWa_ = wa; pos_ = pos;
-        repaint();
-    }
+    if (wave_.poll()) repaint();
 }
 
 }

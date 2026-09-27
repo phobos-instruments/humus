@@ -32,28 +32,37 @@ void EngineHost::routeLiveMidi(const juce::MidiMessage& m, int port) {
     }
     if (routable)
         for (auto* in : liveMidiIns_)
-            if (port < 0 || in->liveMidiPort() == port) in->pushLiveMidi(ev);
-    if (!midiState_.recordTargets.empty() && playing_ && routable
-        && (m.isNoteOn() || m.isNoteOff())) {
+            if (port < 0 || in->liveMidiPort() == kLiveMidiAllPorts || in->liveMidiPort() == port)
+                in->pushLiveMidi(ev);
+    const bool note = m.isNoteOn() || m.isNoteOff();
+    auto sounds = [&](const std::string& node) {
+        return !m.isNoteOn() || midiState_.silenced.count(node) == 0;
+    };
+    auto thruNow = [&](const MidiState::RecordTarget& tg) {
+        return tg.thru && tg.hearsPort(port) && (tg.inlet || (playing_ && note));
+    };
+    if (!routable) return;
+    if (m.isNoteOn())
+        for (const auto& tg : midiState_.recordTargets)
+            if (tg.inlet && tg.hearsPort(port)) ++midiState_.keyboardHits[tg.node];
+    for (const auto& tg : midiState_.recordTargets)
+        if (thruNow(tg) && sounds(tg.node))
+            for (auto& [nm, in] : namedLiveIns_)
+                if (nm == tg.node) { in->pushLiveMidi(ev); break; }
+    if (!midiState_.recordTargets.empty() && playing_ && note) {
         TimedMidi t;
         t.beat = liveBeats_.load();
         t.status = ev.data[0]; t.d1 = ev.data[1]; t.d2 = ev.data[2];
+        t.port = port;
         midiState_.capture.push_back(t);
-        for (const auto& tg : midiState_.recordTargets)
-            if (tg.thru)
-                for (auto& [nm, in] : namedLiveIns_)
-                    if (nm == tg.node) { in->pushLiveMidi(ev); break; }
     }
-    if (routable)
-        for (const auto& target : liveTargets_) {
-            bool already = false;
-            if (playing_ && (m.isNoteOn() || m.isNoteOff()))
-                for (const auto& tg : midiState_.recordTargets)
-                    if (tg.thru && tg.node == target) already = true;
-            if (already) continue;
-            for (auto& [nm, in] : namedLiveIns_)
-                if (nm == target) { in->pushLiveMidi(ev); break; }
-        }
+    for (const auto& target : liveTargets_) {
+        const bool already = std::any_of(midiState_.recordTargets.begin(), midiState_.recordTargets.end(),
+                                          [&](const MidiState::RecordTarget& tg) { return thruNow(tg) && tg.node == target; });
+        if (already || !sounds(target)) continue;
+        for (auto& [nm, in] : namedLiveIns_)
+            if (nm == target) { in->pushLiveMidi(ev); break; }
+    }
 }
 
 void EngineHost::pushToMonitors(const juce::MidiMessage& m, int port) {
@@ -120,104 +129,21 @@ void EngineHost::injectLiveMidiToNode(const std::string& node, const juce::MidiM
     routeLiveMidi(m);
 }
 
-namespace {
-bool targetAccepts(const OrganismModel* cm, unsigned char status) {
-    if (!cm) return true;
-    return captureAccepts(cm->midiReceiveMode, cm->midiReceiveChannel, status);
-}
-}
 
-void EngineHost::flushMidiRecording(bool finalize) {
-    std::vector<MidiState::RecordTarget> targets;
-    std::vector<TimedMidi> events;
+void EngineHost::panic() {
     {
-        const juce::ScopedLock ml(midiState_.targetsLock);
-        if (midiState_.recordTargets.empty() || midiState_.capture.empty()) return;
-        targets = midiState_.recordTargets;
-        events.swap(midiState_.capture);
+        const juce::ScopedLock sl(lock_);
+        if (graph_ != nullptr) graph_->panic();
     }
-    {
-        std::vector<TimedMidi> remaining;
-        assembleRecordedNotes(events, 4 * 4 * Pattern::kTicksPerBeat, 0, finalize,
-                              Pattern::kTicksPerBeat / 4, remaining);
-        if (!remaining.empty()) {
-            const juce::ScopedLock ml(midiState_.targetsLock);
-            midiState_.capture.insert(midiState_.capture.begin(), remaining.begin(), remaining.end());
+    const juce::ScopedLock ml(midiState_.targetsLock);
+    for (int port = 0; port < MidiState::kPorts; ++port) {
+        auto* out = midiState_.outForPort(port);
+        if (out == nullptr) continue;
+        for (int channel = 1; channel <= kMidiChannels; ++channel) {
+            for (const int cc : {kSustainController, kAllSoundOffController, kAllNotesOffController})
+                out->sendMessageNow(juce::MidiMessage::controllerEvent(channel, cc, 0));
+            out->sendMessageNow(juce::MidiMessage::pitchWheel(channel, kBendCentre));
         }
-    }
-
-    const int barTicks = automation().timeSigNumerator() * Pattern::kTicksPerBeat;
-    const double nowBeat = liveBeats_.load();
-    for (auto& tg : targets) {
-        if (tg.clip == kClipOnDemand) {
-            double first = -1.0;
-            for (const auto& e : events)
-                if ((e.status & 0xF0) == 0x90 && e.d2 > 0) { first = e.beat; break; }
-            if (first < 0.0) continue;
-            if (!midiState_.recordUndoPushed) { pushUndo(); midiState_.recordUndoPushed = true; }
-            const int start = (int) std::floor(first * Pattern::kTicksPerBeat / barTicks) * barTicks;
-            tg.clip = clips().add(tg.node, start, barTicks);
-            tg.grow = true;
-            const juce::ScopedLock ml(midiState_.targetsLock);
-            for (auto& live : midiState_.recordTargets)
-                if (live.node == tg.node && live.clip == kClipOnDemand) {
-                    live.clip = tg.clip;
-                    live.grow = true;
-                }
-        }
-        if (!tg.grow || tg.clip < 0) continue;
-        const auto cs = clips().list(tg.node);
-        if (tg.clip >= (int) cs.size()) continue;
-        const auto& ci = cs[(size_t) tg.clip];
-        double last = nowBeat;
-        for (const auto& e : events) last = std::max(last, e.beat);
-        const int need = (int) std::ceil((last * Pattern::kTicksPerBeat - ci.startTick) / barTicks)
-                         * barTicks;
-        if (need > ci.lengthTicks) clips().resize(tg.node, tg.clip, need, false);
-    }
-
-    std::vector<std::string> dead;
-    for (const auto& tg : targets) {
-        if (tg.clip == kClipOnDemand) continue;
-        auto* cm = model_.byName(tg.node);
-        if (!cm) { dead.push_back(tg.node); continue; }
-        double offsetBeats = 0.0;
-        bool wrap = true;
-        int dur = cm->pattern.present && cm->pattern.duration > 0
-                      ? cm->pattern.duration : 4 * 4 * Pattern::kTicksPerBeat;
-        if (tg.clip >= 0) {
-            const auto cs = clips().list(tg.node);
-            if (tg.clip >= (int) cs.size()) { dead.push_back(tg.node); continue; }
-            offsetBeats = cs[(size_t) tg.clip].startTick / (double) Pattern::kTicksPerBeat;
-            wrap = cs[(size_t) tg.clip].looped;
-            dur = cs[(size_t) tg.clip].lengthTicks;
-        }
-        std::vector<TimedMidi> filtered;
-        for (const auto& e : events)
-            if (targetAccepts(cm, e.status)) filtered.push_back(e);
-        if (filtered.empty()) continue;
-        std::vector<TimedMidi> unused;
-        auto fresh = assembleRecordedNotes(filtered, dur, tg.quantize, finalize,
-                                           tg.quantize > 0 ? tg.quantize : Pattern::kTicksPerBeat / 4,
-                                           unused, offsetBeats, wrap);
-        if (fresh.empty()) continue;
-        if (!midiState_.recordUndoPushed) { pushUndo(); midiState_.recordUndoPushed = true; }
-        if (tg.clip >= 0) {
-            auto all = clips().notes(tg.node, tg.clip);
-            all.insert(all.end(), fresh.begin(), fresh.end());
-            clips().setNotes(tg.node, tg.clip, all, 0);
-        } else {
-            auto all = patterns().noteEvents(tg.node);
-            all.insert(all.end(), fresh.begin(), fresh.end());
-            patterns().setNoteEvents(tg.node, all, dur);
-        }
-    }
-    if (!dead.empty()) {
-        const juce::ScopedLock ml(midiState_.targetsLock);
-        auto& v = midiState_.recordTargets;
-        v.erase(std::remove_if(v.begin(), v.end(), [&](const MidiState::RecordTarget& t) {
-            return std::find(dead.begin(), dead.end(), t.node) != dead.end();
-        }), v.end());
     }
 }
 

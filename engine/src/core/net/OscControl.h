@@ -20,11 +20,7 @@ struct OscMapEntry {
     double pendingT = -1.0;
 };
 
-struct OscParamUpdate {
-    std::string organism;
-    std::string param;
-    double value = 0.0;
-};
+using OscParamUpdate = ControlUpdate;
 
 class OscControlMap {
 public:
@@ -112,10 +108,9 @@ public:
         std::vector<OscParamUpdate> out;
         for (auto& e : entries_) {
             if (e.address != address) continue;
-            if (e.shape.smoothing > 1e-6) { e.pendingT = value01; continue; }
-            const double shaped = advanceControlShape(e.shape, e.state, value01, 0.0);
-            if (shaped >= 0.0)
-                out.push_back({e.organism, e.param, shapedToRange(e.shape, e.min, e.max, shaped)});
+            if (e.shape.isFader() && e.shape.smoothing > 1e-6) { e.pendingT = value01; continue; }
+            const auto a = advanceControl(e.shape, e.state, value01, 0.0);
+            if (!a.none()) out.push_back(controlUpdate(e.organism, e.param, e.shape, e.min, e.max, a));
         }
         return out;
     }
@@ -123,9 +118,8 @@ public:
         std::vector<OscParamUpdate> out;
         for (auto& e : entries_) {
             if (e.pendingT < 0.0) continue;
-            const double shaped = advanceControlShape(e.shape, e.state, e.pendingT, dt);
-            if (shaped >= 0.0)
-                out.push_back({e.organism, e.param, shapedToRange(e.shape, e.min, e.max, shaped)});
+            const auto a = advanceControl(e.shape, e.state, e.pendingT, dt);
+            if (!a.none()) out.push_back(controlUpdate(e.organism, e.param, e.shape, e.min, e.max, a));
         }
         return out;
     }

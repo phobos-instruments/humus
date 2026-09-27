@@ -17,8 +17,7 @@ void GamepadHost::setEnabled(bool on) {
     enabled_ = on;
     last_.clear();
     names_.clear();
-    if (on) startTimer(33);
-    else stopTimer();
+    polling_ = on ? scheduler_.repeat(kPollMs, [this] { poll(); }) : nullptr;
 }
 
 std::string GamepadHost::statusText() const {
@@ -29,7 +28,7 @@ std::string GamepadHost::statusText() const {
     return s;
 }
 
-void GamepadHost::timerCallback() {
+void GamepadHost::poll() {
     std::vector<GamepadSnapshot> pads;
     gamepadPlatformPoll(pads);
     if (pads.size() != last_.size()) last_.assign(pads.size(), Last{});

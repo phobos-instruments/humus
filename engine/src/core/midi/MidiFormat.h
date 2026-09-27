@@ -7,11 +7,24 @@
 
 namespace hum {
 
-inline std::string midiNoteName(int note) {
+inline const char* pitchClassName(int note) {
     static const char* kNames[12] = {"C",  "C#", "D",  "D#", "E",  "F",
                                      "F#", "G",  "G#", "A",  "A#", "B"};
+    return kNames[((note % 12) + 12) % 12];
+}
+
+inline bool isBlackKey(int note) {
+    switch (((note % 12) + 12) % 12) {
+        case 1: case 3: case 6: case 8: case 10: return true;
+        default: return false;
+    }
+}
+
+inline std::string noteName(int note) { return std::string(pitchClassName(note)) + std::to_string(note / 12 - 1); }
+
+inline std::string midiNoteName(int note) {
     if (note < 0 || note > kMidiMax) return "?";
-    return std::string(kNames[note % 12]) + std::to_string(note / 12 - 1);
+    return noteName(note);
 }
 
 inline std::string midiCcName(int cc) {

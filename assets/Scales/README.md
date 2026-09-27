@@ -10,5 +10,5 @@ anything you drop there appears alongside these and wins if it has the same
 name. Nothing here is ever copied there, so an update can improve these
 without touching yours.
 
-A patch refers to one by name - `asset:scales/Just Intonation/just-major.scl`,
+A patch refers to one by name - `asset:Scales/Just Intonation/just-major.scl`,
 not a path - so a patch using a shipped scale opens on anyone's computer.

@@ -14,8 +14,8 @@
 #include "gui/bricks/PolledBrick.h"
 #include "io/SignalFile.h"
 #include "hum/dsp/SoundFileBuffer.h"
-#include "hum/dsp/WaveTable.h"
-#include "hum/dsp/WaveWarp.h"
+#include "gui/editor/grids/WaveDrawModel.h"
+#include "gui/editor/juce/JuceFilePicker.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
@@ -24,7 +24,10 @@ class WaveDrawBrick : public PolledBrick, public juce::FileDragAndDropTarget {
 public:
     WaveDrawBrick(BrickHost& host, std::string organism, std::string param, const Bindings& bound);
 
-    void reloadValues() override { pull(host_.liveParamText(name_, pn_)); }
+    void reloadValues() override {
+        wave_.pull(wave_.liveText());
+        repaint();
+    }
     void refreshAutomatedValues() override {}
     int preferredContentWidth() const override { return 584; }
     int preferredContentHeight(int) const override { return 150; }
@@ -40,7 +43,7 @@ public:
     void filesDropped(const juce::StringArray& files, int, int) override;
 
     void seedFileForTest(const juce::File& f) { seedFromFile(f); }
-    int frameCountForTest() const { return frameCount_; }
+    int frameCountForTest() const { return wave_.frameCount(); }
     juce::String sourceTextForTest() const { return sourceText(); }
 
     juce::String sourceText() const;
@@ -59,15 +62,7 @@ private:
     juce::Rectangle<int> frameSlot(int f) const;
     juce::Rectangle<int> tileRect(int i) const;
 
-    int curFrame() const { return juce::jlimit(0, frameCount_ - 1,
-                                                (int) std::lround(pos_ * (frameCount_ - 1))); }
-    void blend(int& f0, int& f1, float& fr) const;
-    float valueAt(double phase) const;
-
     void paintSample(const juce::MouseEvent& e);
-
-    void addFrame();
-    void removeFrame();
 
     void paintStrip(juce::Graphics& g);
 
@@ -75,32 +70,14 @@ private:
 
     void seedFromFile(const juce::File& f);
 
-    bool seedFromSignal(const signalfile::Signal& sig);
-
-    bool loadAudioSeed(const juce::File& f, juce::AudioBuffer<float>& buf);
-
-    void pull(const std::string& text);
-
-    void push();
+    bool loadAudioSeed(const juce::File& f);
 
     void poll() override;
 
-    static constexpr int kMaxFrames = 16;
-    std::string seededKind_, seededLabel_;
+    static constexpr int kMaxFrames = grids::WaveDrawModel::kMaxFrames;
+    grids::WaveDrawModel wave_;
     bool dropping_ = false;
-    std::string pn_;
-    std::string positionParam_, warpParam_, warpModeParam_;
-    float frames_[kMaxFrames][kWaveTableLen] = {};
-    int frameCount_ = 1;
-    double pos_ = 0.0;
-    std::string cachedText_;
-    int activePreset_ = -1;
-    int lastWm_ = -1;
-    float lastWa_ = -1.0f;
-    bool drawing_ = false;
-    int lastIdx_ = -1;
-    float lastVal_ = 0.0f;
-    std::unique_ptr<juce::FileChooser> chooser_;
+    JuceFilePicker picker_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(WaveDrawBrick)
 };

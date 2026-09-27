@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "io/AutosaveStore.h"
 
+#include "core/xml/Xml.h"
 #include "io/PatchFormat.h"
 
 #include "core/app/AppPaths.h"
@@ -29,11 +30,10 @@ juce::File AutosaveStore::metaFileFor(const juce::File& autosave) const {
 
 void AutosaveStore::writeMeta(const juce::String& originalPath) {
     dir_.createDirectory();
-    juce::XmlElement xml("autosave-session");
-    xml.setAttribute("original", originalPath);
-    xml.setAttribute("saved-at",
-                     juce::String(juce::Time::getCurrentTime().toMilliseconds()));
-    xml.writeTo(metaFileFor(autosaveFile()));
+    xml::Element meta("autosave-session");
+    meta.setAttribute("original", originalPath.toStdString());
+    meta.setAttribute("saved-at", std::to_string(juce::Time::getCurrentTime().toMilliseconds()));
+    xml::writeFile(metaFileFor(autosaveFile()).getFullPathName().toStdString(), meta);
 }
 
 void AutosaveStore::clear() {
@@ -53,9 +53,9 @@ std::vector<AutosaveStore::Recovery> AutosaveStore::findOrphans() const {
         Recovery r;
         r.autosave = f;
         r.meta = metaFileFor(f);
-        if (auto xml = juce::parseXML(r.meta)) {
-            r.originalPath = xml->getStringAttribute("original");
-            r.savedAt = juce::Time((juce::int64) xml->getDoubleAttribute("saved-at"));
+        if (auto meta = xml::parseFile(r.meta.getFullPathName().toStdString())) {
+            r.originalPath = juce::String::fromUTF8(meta->attribute("original").c_str());
+            r.savedAt = juce::Time((juce::int64) meta->doubleAttribute("saved-at"));
         }
 
         const juce::File original(r.originalPath);

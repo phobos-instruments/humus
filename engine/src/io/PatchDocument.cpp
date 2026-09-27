@@ -6,46 +6,47 @@
 #include "core/timeline/ClipOps.h"
 #include "core/library/UserLibrary.h"
 
-#include <juce_core/juce_core.h>
+#include <algorithm>
 
 #include "core/packs/ClassString.h"
 #include "io/PatchFormat.h"
 #include "io/PatchParseInternal.h"
+#include "io/XmlText.h"
 
 namespace hum {
 
 namespace {
 
-void parseClass(const juce::String& classRaw, OrganismModel& c) {
-    c.classRaw = classRaw.toStdString();
+void parseClass(const std::string& classRaw, OrganismModel& c) {
+    c.classRaw = classRaw;
     const auto id = parseClassString(c.classRaw);
     c.displayClass = id.display;
     c.kind = id.kind;
 }
 
-Parameter parseProperty(juce::XmlElement& p) {
+Parameter parseProperty(xml::Element& p) {
     Parameter param;
-    param.index = p.getIntAttribute("index", -1);
-    param.name = p.getStringAttribute("name").toStdString();
-    for (auto* v : p.getChildIterator()) {
-        const juce::String tag = v->getTagName();
-        param.type = tag.toStdString();
+    param.index = p.intAttribute("index", -1);
+    param.name = p.attribute("name");
+    for (auto* v : p.children()) {
+        const std::string tag = v->tag();
+        param.type = tag;
         if (tag == "double" || tag == "int") {
-            param.value = v->getAllSubText().getDoubleValue();
+            param.value = xmltext::textDouble(*v);
         } else if (tag == "bool") {
-            param.value = v->getAllSubText().trim() == "1" ? 1.0 : 0.0;
+            param.value = xmltext::trimmed(v->allSubText()) == "1" ? 1.0 : 0.0;
         } else if (tag == "enum") {
-            param.value = v->getAllSubText().getDoubleValue();
+            param.value = xmltext::textDouble(*v);
         } else if (tag == "range") {
             param.isRange = true;
-            if (auto* mn = v->getChildByName("min")) param.rangeMin = mn->getAllSubText().getDoubleValue();
-            if (auto* mx = v->getChildByName("max")) param.rangeMax = mx->getAllSubText().getDoubleValue();
+            if (auto* mn = v->child("min")) param.rangeMin = xmltext::textDouble(*mn);
+            if (auto* mx = v->child("max")) param.rangeMax = xmltext::textDouble(*mx);
             param.value = param.rangeMin;
         } else if (tag == "rhythmic-unit" || tag == "soundfile") {
             param.text = library::resolve(
-                juce::URL::removeEscapeChars(v->getAllSubText().trim()).toStdString());
+                xmltext::urlUnescaped(xmltext::trimmed(v->allSubText())));
         } else {
-            param.text = v->getAllSubText().trim().toStdString();
+            param.text = xmltext::trimmed(v->allSubText());
         }
         break;
     }
@@ -54,46 +55,46 @@ Parameter parseProperty(juce::XmlElement& p) {
 
 }
 
-SnapshotValue parseSnapshotValue(juce::XmlElement& ps) {
+SnapshotValue parseSnapshotValue(xml::Element& ps) {
     SnapshotValue v;
-    v.propertyIndex = ps.getIntAttribute("property-index", -1);
-    if (auto* c = ps.getFirstChildElement()) {
-        v.type = c->getTagName().toStdString();
+    v.propertyIndex = ps.intAttribute("property-index", -1);
+    if (auto* c = ps.childAt(0)) {
+        v.type = c->tag();
         if (v.type == "range") {
-            if (auto* mn = c->getChildByName("min")) v.value = mn->getAllSubText().getDoubleValue();
-            if (auto* mx = c->getChildByName("max")) v.value2 = mx->getAllSubText().getDoubleValue();
+            if (auto* mn = c->child("min")) v.value = xmltext::textDouble(*mn);
+            if (auto* mx = c->child("max")) v.value2 = xmltext::textDouble(*mx);
         } else {
-            v.value = c->getAllSubText().getDoubleValue();
+            v.value = xmltext::textDouble(*c);
         }
     }
     return v;
 }
 
-void parseMetapad(juce::XmlElement& root, MetapadModel& ms) {
-    auto* msEl = root.getChildByName("metasurface");
-    auto* snapsEl = root.getChildByName("document-snapshots");
-    if (!snapsEl && msEl) snapsEl = msEl->getChildByName("document-snapshots");
+void parseMetapad(xml::Element& root, MetapadModel& ms) {
+    auto* msEl = root.child("metasurface");
+    auto* snapsEl = root.child("document-snapshots");
+    if (!snapsEl && msEl) snapsEl = msEl->child("document-snapshots");
     if (auto* snaps = snapsEl) {
         ms.present = true;
-        for (auto* se : snaps->getChildIterator()) {
-            if (!se->hasTagName("document-snapshot")) continue;
+        for (auto* se : snaps->children()) {
+            if (!se->hasTag("document-snapshot")) continue;
             DocumentSnapshot s;
-            s.index = se->getIntAttribute("index", 0);
-            s.name = se->getStringAttribute("name").toStdString();
-            s.colour = se->getStringAttribute("colour").toStdString();
-            for (auto* ce : se->getChildIterator()) {
-                if (ce->hasTagName("pattern-snapshot")) {
+            s.index = se->intAttribute("index", 0);
+            s.name = se->attribute("name");
+            s.colour = se->attribute("colour");
+            for (auto* ce : se->children()) {
+                if (ce->hasTag("pattern-snapshot")) {
                     SnapshotPattern sp;
-                    sp.organismName = ce->getStringAttribute("contraption-name").toStdString();
-                    if (auto* pat = ce->getChildByName("pattern")) parsePattern(*pat, sp.pattern);
+                    sp.organismName = ce->attribute("contraption-name");
+                    if (auto* pat = ce->child("pattern")) parsePattern(*pat, sp.pattern);
                     s.patterns.push_back(std::move(sp));
                     continue;
                 }
-                if (!ce->hasTagName("contraption-snapshot")) continue;
+                if (!ce->hasTag("contraption-snapshot")) continue;
                 SnapshotOrganism sc;
-                sc.organismName = ce->getStringAttribute("contraption-name").toStdString();
-                for (auto* pe : ce->getChildIterator())
-                    if (pe->hasTagName("property-snapshot")) sc.values.push_back(parseSnapshotValue(*pe));
+                sc.organismName = ce->attribute("contraption-name");
+                for (auto* pe : ce->children())
+                    if (pe->hasTag("property-snapshot")) sc.values.push_back(parseSnapshotValue(*pe));
                 s.organisms.push_back(std::move(sc));
             }
             ms.snapshots.push_back(std::move(s));
@@ -101,43 +102,27 @@ void parseMetapad(juce::XmlElement& root, MetapadModel& ms) {
     }
     if (!msEl) return;
     ms.present = true;
-    ms.temperature = msEl->getDoubleAttribute("temperature", 1.0);
-    if (auto* mask = msEl->getChildByName("document-snapshot-restore-mask"))
-        for (auto* ce : mask->getChildIterator()) {
-            if (!ce->hasTagName("contraption-snapshot-restore-mask")) continue;
-            const auto cn = ce->getStringAttribute("contraption-name").toStdString();
-            for (auto* pe : ce->getChildIterator())
-                if (pe->hasTagName("property-snapshot-restore-mask"))
-                    ms.mask.push_back({cn, pe->getIntAttribute("property-index", -1),
-                                       pe->getIntAttribute("restore", 1) != 0});
+    ms.temperature = msEl->doubleAttribute("temperature", 1.0);
+    if (auto* mask = msEl->child("document-snapshot-restore-mask"))
+        for (auto* ce : mask->children()) {
+            if (!ce->hasTag("contraption-snapshot-restore-mask")) continue;
+            const auto cn = ce->attribute("contraption-name");
+            for (auto* pe : ce->children())
+                if (pe->hasTag("property-snapshot-restore-mask"))
+                    ms.mask.push_back({cn, pe->intAttribute("property-index", -1),
+                                       pe->intAttribute("restore", 1) != 0});
         }
-    if (auto* pts = msEl->getChildByName("metasurface-points"))
-        for (auto* pe : pts->getChildIterator())
-            if (pe->hasTagName("metasurface-point"))
-                ms.points.push_back({pe->getIntAttribute("snapshot-index", 0),
-                                     pe->getDoubleAttribute("x", 0.0), pe->getDoubleAttribute("y", 0.0)});
-    if (auto* mp = msEl->getChildByName("morph-path"))
-        for (auto* pe : mp->getChildIterator())
-            if (pe->hasTagName("morph-point"))
-                ms.morphPath.push_back({pe->getDoubleAttribute("beat", 0.0),
-                                        pe->getDoubleAttribute("x", 0.5),
-                                        pe->getDoubleAttribute("y", 0.5)});
-}
-
-bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::string& error,
-                  std::unique_ptr<juce::XmlElement>* rawOut) {
-    juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
-    if (!f.existsAsFile()) { error = "file not found: " + path; return false; }
-    if (!parsePatchText(f.loadFileAsString().toStdString(), out, error, rawOut)) return false;
-    const auto dir = f.getParentDirectory();
-    for (auto& c : out.organisms)
-        for (auto& ch : c.pattern.channels)
-            if (!ch.audioFile.empty()
-                && !juce::File::isAbsolutePath(juce::String(ch.audioFile)))
-                ch.audioFile = dir.getChildFile(fromDocumentPath(juce::String(ch.audioFile)))
-                                   .getFullPathName().toStdString();
-    migrateLegacyControl(out);
-    return true;
+    if (auto* pts = msEl->child("metasurface-points"))
+        for (auto* pe : pts->children())
+            if (pe->hasTag("metasurface-point"))
+                ms.points.push_back({pe->intAttribute("snapshot-index", 0),
+                                     pe->doubleAttribute("x", 0.0), pe->doubleAttribute("y", 0.0)});
+    if (auto* mp = msEl->child("morph-path"))
+        for (auto* pe : mp->children())
+            if (pe->hasTag("morph-point"))
+                ms.morphPath.push_back({pe->doubleAttribute("beat", 0.0),
+                                        pe->doubleAttribute("x", 0.5),
+                                        pe->doubleAttribute("y", 0.5)});
 }
 
 void migrateMorphPath(PatchDocumentModel& out) {
@@ -179,165 +164,179 @@ void migrateMorphPath(PatchDocumentModel& out) {
 }
 
 bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::string& error,
-                  std::unique_ptr<juce::XmlElement>* rawOut) {
-    juce::XmlDocument doc{juce::String(juce::CharPointer_UTF8(xmlText.c_str()))};
-    std::unique_ptr<juce::XmlElement> root(doc.getDocumentElement());
-    if (!root) { error = doc.getLastParseError().toStdString(); return false; }
-    if (!isPatchRootTag(root->getTagName().toStdString())) {
-        error = "not a patch document: <" + root->getTagName().toStdString() + "> is not a document root";
+                    std::unique_ptr<xml::Element>* rawOut) {
+    auto root = xml::parse(xmlText);
+    if (!root) { error = "not a readable XML document"; return false; }
+    if (!isPatchRootTag(root->tag())) {
+        error = "not a patch document: <" + root->tag() + "> is not a document root";
         return false;
     }
 
-    out.version = root->getStringAttribute("version").toStdString();
-    out.newerFormat = root->getStringAttribute("version").getIntValue()
-                      > PatchDocumentModel::kFormatVersion;
-    out.applicationPath = root->getStringAttribute("application-path").toStdString();
-    out.documentPath = root->getStringAttribute("document-path").toStdString();
-    if (auto* notes = root->getChildByName("notes"))
-        out.notes = notes->getAllSubText().toStdString();
-    if (auto* ml = root->getChildByName("master-level"))
-        out.masterLevel = juce::jlimit(0.0, 1.0, ml->getDoubleAttribute("value", 1.0));
-    if (auto* lim = root->getChildByName("master-limiter"))
-        out.masterLimiter = lim->getIntAttribute("value", 0) != 0;
-    if (auto* gr = root->getChildByName("groove")) {
-        out.groove = juce::jlimit(0.0, 1.0, gr->getDoubleAttribute("value", 0.0));
-        const auto u = gr->getStringAttribute("unit", "1/16");
-        if (u.isNotEmpty()) out.grooveUnit = u.toStdString();
+    out.version = root->attribute("version");
+    out.newerFormat = xml::intValue(root->attribute("version")) > PatchDocumentModel::kFormatVersion;
+    out.applicationPath = root->attribute("application-path");
+    out.documentPath = root->attribute("document-path");
+    if (auto* notes = root->child("notes"))
+        out.notes = notes->allSubText();
+    if (auto* ml = root->child("master-level"))
+        out.masterLevel = std::clamp(ml->doubleAttribute("value", 1.0), 0.0, 1.0);
+    if (auto* lim = root->child("master-limiter"))
+        out.masterLimiter = lim->intAttribute("value", 0) != 0;
+    if (auto* gr = root->child("groove")) {
+        out.groove = std::clamp(gr->doubleAttribute("value", 0.0), 0.0, 1.0);
+        const auto u = gr->attribute("unit", "1/16");
+        if (!u.empty()) out.grooveUnit = u;
     }
-    if (auto* mods = root->getChildByName("midi-modifiers"))
-        for (auto* me : mods->getChildIterator()) {
-            if (!me->hasTagName("modifier")) continue;
+    if (auto* mods = root->child("midi-modifiers"))
+        for (auto* me : mods->children()) {
+            if (!me->hasTag("modifier")) continue;
             MidiModifierModel m;
-            m.source = me->getIntAttribute("number", -1);
-            m.latching = me->getIntAttribute("latching", 0) != 0;
-            m.ownAction = me->getIntAttribute("own-action", 0) != 0;
+            m.source = me->intAttribute("number", -1);
+            m.latching = me->intAttribute("latching", 0) != 0;
+            m.ownAction = me->intAttribute("own-action", 0) != 0;
             if (m.source >= 0) out.midiModifiers.push_back(m);
         }
 
-    auto* patch = root->getChildByName("patch");
+    auto* patch = root->child("patch");
     if (!patch) { error = "no <patch>"; return false; }
 
-    if (auto* clk = patch->getChildByName("clock")) {
-        out.clock.tempo = clk->getDoubleAttribute("tempo", 120.0);
-        out.clock.loopStart = clk->getDoubleAttribute("loop-start", 0.0);
-        out.clock.loopEnd = clk->getDoubleAttribute("loop-end", 0.0);
-        out.clock.loopEnabled = clk->getIntAttribute("loop-enabled", 0) != 0;
-        out.clock.songLength = clk->getDoubleAttribute("song-length", 0.0);
-        if (auto* ts = clk->getChildByName("time-signature-timepoints"))
-            out.clock.timeSignature = ts->getAllSubText().toStdString();
+    if (auto* clk = patch->child("clock")) {
+        out.clock.tempo = clk->doubleAttribute("tempo", 120.0);
+        out.clock.loopStart = clk->doubleAttribute("loop-start", 0.0);
+        out.clock.loopEnd = clk->doubleAttribute("loop-end", 0.0);
+        out.clock.loopEnabled = clk->intAttribute("loop-enabled", 0) != 0;
+        out.clock.songLength = clk->doubleAttribute("song-length", 0.0);
+        if (auto* ts = clk->child("time-signature-timepoints"))
+            out.clock.timeSignature = ts->allSubText();
     }
 
-    for (auto* el : patch->getChildIterator()) {
-        if (el->hasTagName("contraption")) {
+    for (auto* el : patch->children()) {
+        if (el->hasTag("contraption")) {
             OrganismModel c;
-            c.name = el->getStringAttribute("name").toStdString();
-            c.internal = el->getIntAttribute("internal", 0) != 0;
-            parseClass(el->getStringAttribute("class"), c);
-            if (auto* props = el->getChildByName("properties")) {
-                for (auto* p : props->getChildIterator()) {
-                    if (p->hasTagName("property")) {
+            c.name = el->attribute("name");
+            c.internal = el->intAttribute("internal", 0) != 0;
+            parseClass(el->attribute("class"), c);
+            if (auto* props = el->child("properties")) {
+                for (auto* p : props->children()) {
+                    if (p->hasTag("property")) {
                         c.properties.push_back(parseProperty(*p));
-                        if (auto* pat = p->getChildByName("pattern")) parsePattern(*pat, c.pattern);
-                    } else if (p->hasTagName("au-class-info")) {
+                        if (auto* pat = p->child("pattern")) parsePattern(*pat, c.pattern);
+                    } else if (p->hasTag("au-class-info")) {
                         c.hasBlob = true;
-                    } else if (p->hasTagName("vst3-class-info") || p->hasTagName("lv2-class-info")
-                               || p->hasTagName("au-state")) {
-                        c.pluginState = p->getAllSubText().trim().toStdString();
+                    } else if (p->hasTag("vst3-class-info") || p->hasTag("lv2-class-info")
+                               || p->hasTag("au-state")) {
+                        c.pluginState = xmltext::trimmed(p->allSubText());
                         c.hasBlob = true;
                     }
                 }
             }
-            if (auto* nr = el->getChildByName("no-random"))
-                for (auto* pe : nr->getChildIterator())
-                    if (pe->hasTagName("property"))
-                        c.rollLocked.insert(pe->getStringAttribute("name").toStdString());
-            if (auto* presets = el->getChildByName("presets")) {
-                c.currentPreset = presets->getIntAttribute("current-preset", 0);
-                c.presetDirty = presets->getIntAttribute("current-preset-dirty", 0) != 0;
+            if (auto* nr = el->child("no-random"))
+                for (auto* pe : nr->children())
+                    if (pe->hasTag("property"))
+                        c.rollLocked.insert(pe->attribute("name"));
+            if (auto* re = el->child("range-ends"))
+                for (auto* pe : re->children())
+                    if (pe->hasTag("property"))
+                        c.rangeModes[pe->attribute("name")] = "ends";
+            if (auto* rm = el->child("range-mode"))
+                for (auto* pe : rm->children())
+                    if (pe->hasTag("property"))
+                        c.rangeModes[pe->attribute("name")] = pe->attribute("mode", "span");
+            if (auto* ti = el->child("track-input")) {
+                const auto port = ti->attribute("port", "");
+                if (port == "all") c.trackInput = OrganismModel::kTrackInputAll;
+                else if (port == "none") c.trackInput = OrganismModel::kTrackInputNone;
+                else if (const int n = ti->intAttribute("port", 0); n >= 1 && n <= 8) c.trackInput = n - 1;
+            }
+            if (auto* placed = el->child("timeline-row"))
+                c.timelineRow = std::max(-1, placed->intAttribute("index", -1));
+            if (auto* presets = el->child("presets")) {
+                c.currentPreset = presets->intAttribute("current-preset", 0);
+                c.presetDirty = presets->intAttribute("current-preset-dirty", 0) != 0;
                 c.currentPresetName =
-                    presets->getStringAttribute("current-preset-name").toStdString();
+                    presets->attribute("current-preset-name");
                 c.currentPresetSource =
-                    presets->getStringAttribute("current-preset-source").toStdString();
-                for (auto* pe : presets->getChildIterator()) {
-                    if (!pe->hasTagName("preset")) continue;
+                    presets->attribute("current-preset-source");
+                for (auto* pe : presets->children()) {
+                    if (!pe->hasTag("preset")) continue;
                     PresetModel pm;
-                    pm.number = pe->getIntAttribute("number", (int) c.presets.size() + 1);
-                    pm.name = pe->getStringAttribute("name").toStdString();
-                    for (auto* p : pe->getChildIterator())
-                        if (p->hasTagName("property")) pm.properties.push_back(parseProperty(*p));
+                    pm.number = pe->intAttribute("number", (int) c.presets.size() + 1);
+                    pm.name = pe->attribute("name");
+                    for (auto* p : pe->children())
+                        if (p->hasTag("property")) pm.properties.push_back(parseProperty(*p));
                     c.presets.push_back(std::move(pm));
                 }
             }
-            if (auto* mod = el->getChildByName("modulation-sources")) parseModulationSources(*mod, c);
+            if (auto* mod = el->child("modulation-sources")) parseModulationSources(*mod, c);
             parseMidiSettings(*el, c);
             out.organisms.push_back(std::move(c));
-        } else if (el->hasTagName("audio-connection") || el->hasTagName("midi-connection")
-                   || el->hasTagName("video-connection")) {
+        } else if (el->hasTag("audio-connection") || el->hasTag("midi-connection")
+                   || el->hasTag("video-connection")) {
             ConnectionModel m;
-            m.src = el->getStringAttribute("from").toStdString();
-            m.srcOutlet = el->getIntAttribute("from-outlet", 0);
-            m.dst = el->getStringAttribute("to").toStdString();
-            m.dstInlet = el->getIntAttribute("to-inlet", 0);
-            m.midiChannel = el->getIntAttribute("channel", 0);
-            (el->hasTagName("midi-connection")
+            m.src = el->attribute("from");
+            m.srcOutlet = el->intAttribute("from-outlet", 0);
+            m.dst = el->attribute("to");
+            m.dstInlet = el->intAttribute("to-inlet", 0);
+            m.midiChannel = el->intAttribute("channel", 0);
+            (el->hasTag("midi-connection")
                  ? out.midiConnections
-                 : el->hasTagName("video-connection") ? out.videoConnections
+                 : el->hasTag("video-connection") ? out.videoConnections
                                                       : out.connections).push_back(m);
         }
     }
 
-    if (auto* cviews = root->getChildByName("contraption-views"))
-            for (auto* ve : cviews->getChildIterator()) {
-                if (!ve->hasTagName("contraption-view")) continue;
+    if (auto* cviews = root->child("contraption-views"))
+            for (auto* ve : cviews->children()) {
+                if (!ve->hasTag("contraption-view")) continue;
                 OrganismView v;
-                v.organismName = ve->getStringAttribute("contraption-name").toStdString();
-                v.patcherX = ve->getIntAttribute("patcher-x", 0);
-                v.patcherY = ve->getIntAttribute("patcher-y", 0);
+                v.organismName = ve->attribute("contraption-name");
+                v.patcherX = ve->intAttribute("patcher-x", 0);
+                v.patcherY = ve->intAttribute("patcher-y", 0);
                 v.hasEditor = ve->hasAttribute("editor-visible");
-                v.editorVisible = ve->getIntAttribute("editor-visible", 0) != 0;
-                v.editorX = ve->getIntAttribute("editor-x", 0);
-                v.editorY = ve->getIntAttribute("editor-y", 0);
-                v.editorMode = ve->getIntAttribute("editor-mode", -1);
-                v.editorW = ve->getIntAttribute("editor-w", 0);
-                v.editorH = ve->getIntAttribute("editor-h", 0);
+                v.editorVisible = ve->intAttribute("editor-visible", 0) != 0;
+                v.editorX = ve->intAttribute("editor-x", 0);
+                v.editorY = ve->intAttribute("editor-y", 0);
+                v.editorMode = ve->intAttribute("editor-mode", -1);
+                v.editorW = ve->intAttribute("editor-w", 0);
+                v.editorH = ve->intAttribute("editor-h", 0);
                 v.editorHalf = ve->hasAttribute("editor-half")
-                                   ? (ve->getIntAttribute("editor-half", 0) != 0 ? 1 : 0)
+                                   ? (ve->intAttribute("editor-half", 0) != 0 ? 1 : 0)
                                    : -1;
-                v.editorCollapsed = ve->getIntAttribute("editor-collapsed", 0) != 0;
-                v.editorFloating = ve->getIntAttribute("editor-float", 0) != 0;
-                v.floatX = ve->getIntAttribute("float-x", 0);
-                v.floatY = ve->getIntAttribute("float-y", 0);
-                v.floatW = ve->getIntAttribute("float-w", 0);
-                v.floatH = ve->getIntAttribute("float-h", 0);
+                v.editorCollapsed = ve->intAttribute("editor-collapsed", 0) != 0;
+                v.editorFloating = ve->intAttribute("editor-float", 0) != 0;
+                v.floatX = ve->intAttribute("float-x", 0);
+                v.floatY = ve->intAttribute("float-y", 0);
+                v.floatW = ve->intAttribute("float-w", 0);
+                v.floatH = ve->intAttribute("float-h", 0);
                 out.views.push_back(std::move(v));
             }
 
-    if (auto* aviews = root->getChildByName("automation-views"))
-        for (auto* ae : aviews->getChildIterator()) {
-            if (!ae->hasTagName("automation-view")) continue;
+    if (auto* aviews = root->child("automation-views"))
+        for (auto* ae : aviews->children()) {
+            if (!ae->hasTag("automation-view")) continue;
             AutomationView v;
-            v.organismName = ae->getStringAttribute("contraption-name").toStdString();
-            v.propertyName = ae->getStringAttribute("property-name").toStdString();
-            v.propertyIndex = ae->getIntAttribute("property-index", -1);
-            v.index = ae->getIntAttribute("index", 0);
-            v.height = ae->getIntAttribute("height", 50);
-            v.snapTo = ae->getIntAttribute("snap-to", 0) != 0;
+            v.organismName = ae->attribute("contraption-name");
+            v.propertyName = ae->attribute("property-name");
+            v.propertyIndex = ae->intAttribute("property-index", -1);
+            v.index = ae->intAttribute("index", 0);
+            v.height = ae->intAttribute("height", 50);
+            v.snapTo = ae->intAttribute("snap-to", 0) != 0;
             out.automationViews.push_back(std::move(v));
         }
 
-    if (auto* boxes = root->getChildByName("performance-boxes"))
-        for (auto* be : boxes->getChildIterator()) {
-            if (!be->hasTagName("performance-box")) continue;
+    if (auto* boxes = root->child("performance-boxes"))
+        for (auto* be : boxes->children()) {
+            if (!be->hasTag("performance-box")) continue;
             PerformanceBox b;
-            b.organism = be->getStringAttribute("contraption").toStdString();
-            b.startBeat = be->getDoubleAttribute("start", 0.0);
-            b.endBeat = be->getDoubleAttribute("end", 0.0);
+            b.organism = be->attribute("contraption");
+            b.startBeat = be->doubleAttribute("start", 0.0);
+            b.endBeat = be->doubleAttribute("end", 0.0);
             out.perfBoxes.push_back(std::move(b));
         }
 
-    if (auto* av = root->getChildByName("application-view"))
-        if (auto* mv = av->getChildByName("metasurface-view"))
-            out.metapad.interpolateMode = mv->getIntAttribute("interpolate-mode", 0);
+    if (auto* av = root->child("application-view"))
+        if (auto* mv = av->child("metasurface-view"))
+            out.metapad.interpolateMode = mv->intAttribute("interpolate-mode", 0);
 
     parseMetapad(*root, out.metapad);
     migrateMorphPath(out);

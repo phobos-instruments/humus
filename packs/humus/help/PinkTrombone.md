@@ -1,6 +1,6 @@
 # PinkTrombone
 
-A human voice built from a model of the throat, after Pink Trombone by Neil Thapen.
+A human voice built from a model of the throat, after [Pink Trombone](https://dood.al/pinktrombone/) by Neil Thapen.
 
 There is no sample and no oscillator bank: a model of the glottis makes the buzz of the vocal folds, and a waveguide the shape of a throat, mouth and nose filters it into vowels, hums and hisses. Play it from MIDI: the held note is the pitch and velocity leans into the loudness. The Tongue pair steers the vowel, Squeeze pinches the tract shut at Place for fricatives and stops, and Nasal opens the passage to the nose. Small wanders in pitch and pressure keep a held note alive. Cord an LFO or a Slider onto TongueX, Squeeze and Nasal and it babbles; cord its output into a Harmonizer or a Trellis.
 
@@ -23,6 +23,10 @@ There is no sample and no oscillator bank: a model of the glottis makes the buzz
 **Wobble** Exaggerates the involuntary wander into a slow warble.
 
 **Drone** Keeps the voice sounding with no note held, at the last pitch it was given.
+
+**Width** Spreads the voice across the stereo outlets. At 0 both sides carry the same voice; turned up, the sides drift apart like one singer in a room, and summed back to mono the voice is unchanged.
+
+**Pan** Places the voice left or right. Centre passes both sides at full level; off centre only turns the far side down.
 
 **Level** Output gain.
 

@@ -56,7 +56,10 @@ LayoutCondition LayoutCondition::parse(const std::string& expr, const LayoutSpec
             Clause c;
             c.invert = text[0] == '!';
             std::string gate = c.invert ? text.substr(1) : text;
-            if (!gate.empty() && gate[0] == '@') {
+            if (!gate.empty() && gate[0] == '?') {
+                c.fact = true;
+                c.name = gate.substr(1);
+            } else if (!gate.empty() && gate[0] == '@') {
                 c.flag = true;
                 c.name = gate.substr(1);
             } else if (const auto eq = gate.find('='); eq != std::string::npos) {
@@ -93,7 +96,7 @@ std::vector<LayoutCondition::Clause> LayoutCondition::clauses() const {
 std::vector<std::string> LayoutCondition::params() const {
     std::vector<std::string> out;
     for (const auto& c : clauses())
-        if (!c.flag) out.push_back(c.name);
+        if (!c.flag && !c.fact) out.push_back(c.name);
     return out;
 }
 

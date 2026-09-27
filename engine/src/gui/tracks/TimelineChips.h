@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <cmath>
 #include <string>
 
@@ -85,15 +86,56 @@ inline void paintMidiDestChip(juce::Graphics& g, juce::Rectangle<int> r,
     std::string dest;
     for (const auto& c : m.midiConnections)
         if (c.src == node && c.srcOutlet == 0) { dest = c.dst; break; }
-    const auto label = midiDestLabel(m, node);
     g.setFont(juce::FontOptions(12.0f));
-    r = midiDestChipRect(r, m, node);
     g.setColour(Palette::panelLight);
     g.fillRoundedRectangle(r.toFloat(), 2.0f);
     g.setColour(Palette::border);
     g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 2.0f, 1.0f);
     g.setColour(dest.empty() ? Palette::textDim : Palette::accent);
-    g.drawText(label, r.reduced(3, 0), juce::Justification::centredLeft, true);
+    g.drawText(midiDestLabel(m, node), r.reduced(3, 0), juce::Justification::centredLeft, true);
+}
+
+inline void paintGummy(juce::Graphics& g, juce::Rectangle<float> r, juce::Colour fill, float radius = 3.0f) {
+    juce::ColourGradient body(fill.brighter(0.3f), 0.0f, r.getY(), fill.darker(0.3f), 0.0f, r.getBottom(), false);
+    g.setGradientFill(body);
+    g.fillRoundedRectangle(r, radius);
+}
+
+inline void paintGummyShine(juce::Graphics& g, juce::Rectangle<float> r, float radius = 3.0f) {
+    const auto gloss = r.reduced(1.5f, 1.0f).withHeight(std::min(r.getHeight() * 0.45f, 14.0f));
+    juce::ColourGradient shine(juce::Colours::white.withAlpha(alpha::veil), 0.0f, gloss.getY(),
+                               juce::Colours::white.withAlpha(alpha::none), 0.0f, gloss.getBottom(), false);
+    g.setGradientFill(shine);
+    g.fillRoundedRectangle(gloss, radius);
+    g.setColour(juce::Colours::black.withAlpha(alpha::mist));
+    g.drawHorizontalLine((int) r.getBottom() - 2, r.getX() + radius, r.getRight() - radius);
+}
+
+inline juce::String midiInputLabel(int input) {
+    const juce::String name = input == OrganismModel::kTrackInputAuto   ? juce::String("Auto")
+                            : input == OrganismModel::kTrackInputAll    ? juce::String("All")
+                            : input == OrganismModel::kTrackInputNone   ? juce::String("None")
+                                                                        : "In " + juce::String(input + 1);
+    return name + juce::String::fromUTF8(" \xe2\x96\xbe");
+}
+
+inline juce::Rectangle<int> midiInputChipRect(juce::Rectangle<int> r, int input) {
+    const juce::Font f{juce::FontOptions(11.0f)};
+    const int wanted = (int) textWidth(f, midiInputLabel(input)) + 21;
+    return r.withWidth(juce::jmin(r.getWidth(), juce::jmax(40, wanted)));
+}
+
+inline void paintMidiInputChip(juce::Graphics& g, juce::Rectangle<int> r, int input, bool lit) {
+    g.setColour(Palette::panelLight);
+    g.fillRoundedRectangle(r.toFloat(), 2.0f);
+    g.setColour(Palette::border);
+    g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 2.0f, 1.0f);
+    const auto led = juce::Rectangle<float>(6.0f, 6.0f).withCentre({r.getX() + 7.0f, r.getCentreY() + 0.0f});
+    g.setColour(lit ? ink::state::ok : Palette::textDim.withAlpha(alpha::dim));
+    g.fillEllipse(led);
+    g.setColour(input == OrganismModel::kTrackInputNone ? Palette::textDim : Palette::text);
+    g.setFont(juce::FontOptions(11.0f));
+    g.drawText(midiInputLabel(input), r.withTrimmedLeft(13).reduced(2, 0), juce::Justification::centredLeft, true);
 }
 
 inline void paintHeldBadge(juce::Graphics& g, juce::Rectangle<int> r, bool on = true) {
@@ -104,6 +146,24 @@ inline void paintHeldBadge(juce::Graphics& g, juce::Rectangle<int> r, bool on = 
     g.setColour(on ? amber.darker(0.9f) : Palette::textDim);
     g.setFont(juce::FontOptions(9.5f));
     g.drawText("H", r, juce::Justification::centred);
+}
+
+inline void paintRecButton(juce::Graphics& g, juce::Rectangle<float> r, bool armed) {
+    g.setColour(Palette::panelLight);
+    g.fillRect(r);
+    g.setColour(Palette::border);
+    g.drawRect(r, 1.0f);
+    const float d = std::min(r.getWidth(), r.getHeight()) * 0.56f;
+    const auto dot = r.withSizeKeepingCentre(d, d);
+    if (armed) {
+        g.setColour(ink::state::armed.withAlpha(alpha::scrim));
+        g.fillEllipse(dot.expanded(2.0f));
+        g.setColour(ink::state::armed.brighter(0.25f));
+        g.fillEllipse(dot);
+    } else {
+        g.setColour(Palette::textDim);
+        g.drawEllipse(dot.reduced(0.6f), 1.3f);
+    }
 }
 
 inline juce::String autoPointLabel(const std::string& kind, double value, double valueMax,

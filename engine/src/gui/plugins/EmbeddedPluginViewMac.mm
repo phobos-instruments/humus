@@ -29,6 +29,13 @@
 - (NSView*)hitTest:(NSPoint)point { (void) point; return nil; }
 @end
 
+@interface HumusEmbedProbeView : NSView
+@end
+
+@implementation HumusEmbedProbeView
+- (BOOL)isFlipped { return YES; }
+@end
+
 namespace hum {
 
 static NSView* findPluginNSView(juce::Component& c) {
@@ -40,11 +47,28 @@ static NSView* findPluginNSView(juce::Component& c) {
     return nullptr;
 }
 
+static bool resistsZoom(NSView* v) {
+    Class selfSizing = NSClassFromString(@"MTKView");
+    if (selfSizing != Nil && [v isKindOfClass:selfSizing]
+        && [v.layer isKindOfClass:[CAMetalLayer class]]
+        && ![v.layer.contentsGravity isEqualToString:kCAGravityResize])
+        return true;
+    for (NSView* sub in v.subviews)
+        if (resistsZoom(sub)) return true;
+    return false;
+}
+
+bool embeddedViewResistsZoom(juce::Component& editor) {
+    NSView* v = findPluginNSView(editor);
+    return v != nil && resistsZoom(v);
+}
+
 // Zoom is AppKit's frame-vs-bounds transform: bounds span the unscaled source, frame the scaled on-screen rect.
 bool embeddedClipUpdate(juce::Component& editor, juce::ComponentPeer& peer,
                         juce::Rectangle<int> clipRegionInPeer,
                         juce::Point<int> editorOriginInPeer,
-                        float scale, juce::Colour background, void*& handle) {
+                        float scale, juce::Colour background, void*& handle,
+                        juce::Point<int> panInPlugin) {
     if (std::getenv("HUM_EMBED_NOWRAP") != nullptr) return false;
     NSView* plugin = findPluginNSView(editor);
     if (!plugin) return false;
@@ -90,12 +114,12 @@ bool embeddedClipUpdate(juce::Component& editor, juce::ComponentPeer& peer,
             [clip addSubview:plate positioned:NSWindowBelow relativeTo:plugin];
             [plate release];
         }
-        // editorOriginInPeer, not plugin.frame: the movement watcher can run before JUCE has moved the plugin view.
         const NSRect want = NSMakeRect(editorOriginInPeer.x, editorOriginInPeer.y,
-                                       plugin.frame.size.width,
-                                       plugin.frame.size.height);
+                                       plugin.frame.size.width, plugin.frame.size.height);
         if (!NSEqualRects(plate.frame, want)) plate.frame = want;
     }
+    const NSPoint at = NSMakePoint(editorOriginInPeer.x, editorOriginInPeer.y);
+    if (!NSEqualPoints(plugin.frame.origin, at)) [plugin setFrameOrigin:at];
     const CGFloat s = scale > 0.01f ? (CGFloat) scale : 1.0;
     const NSRect r = NSMakeRect(clipRegionInPeer.getX(), clipRegionInPeer.getY(),
                                 clipRegionInPeer.getWidth(), clipRegionInPeer.getHeight());
@@ -103,11 +127,33 @@ bool embeddedClipUpdate(juce::Component& editor, juce::ComponentPeer& peer,
     if (!NSEqualRects(clip.frame, r)) [clip setFrame:r];
     const NSSize bs = NSMakeSize(r.size.width / s, r.size.height / s);
     if (!NSEqualSizes(clip.bounds.size, bs)) [clip setBoundsSize:bs];
-    const NSPoint bo = NSMakePoint(
-        editorOriginInPeer.x + (r.origin.x - editorOriginInPeer.x) / s,
-        editorOriginInPeer.y + (r.origin.y - editorOriginInPeer.y) / s);
+    const NSPoint bo = NSMakePoint(at.x + (r.origin.x - editorOriginInPeer.x) / s + panInPlugin.x,
+                                   at.y + (r.origin.y - editorOriginInPeer.y) / s + panInPlugin.y);
     if (!NSEqualPoints(clip.bounds.origin, bo)) [clip setBoundsOrigin:bo];
     return true;
+}
+
+bool embeddedHitLocal(juce::Component& editor, juce::ComponentPeer& peer,
+                      juce::Point<float> pointInPeer, juce::Point<float>& local) {
+    NSView* plugin = findPluginNSView(editor);
+    NSView* peerView = (__bridge NSView*) peer.getNativeHandle();
+    if (plugin == nil || peerView == nil || peerView.window == nil) return false;
+    const NSPoint inWindow = [peerView convertPoint:NSMakePoint(pointInPeer.x, pointInPeer.y)
+                                             toView:nil];
+    const NSPoint inPlugin = [plugin convertPoint:inWindow fromView:nil];
+    local = {(float) inPlugin.x, (float) inPlugin.y};
+    NSView* hit = [peerView.window.contentView hitTest:inWindow];
+    for (NSView* v = hit; v != nil; v = v.superview)
+        if (v == plugin) return true;
+    return false;
+}
+
+void* embeddedProbeViewMake(int w, int h) {
+    return (void*) [[HumusEmbedProbeView alloc] initWithFrame:NSMakeRect(0, 0, w, h)];
+}
+
+void embeddedProbeViewRelease(void* view) {
+    if (view != nullptr) [(NSView*) view release];
 }
 
 bool embeddedClipHide(void*& handle) {
@@ -150,7 +196,20 @@ bool embeddedViewIsRemote(juce::Component& editor) {
 static void dumpViewTree(NSView* v, int depth, juce::String& into) {
     into << juce::String::repeatedString("  ", depth)
          << [NSStringFromClass([v class]) UTF8String]
-         << (v.layer ? " (layer)" : "")
+         << " < " << [NSStringFromClass([v superclass]) UTF8String]
+         << (v.layer ? juce::String(" layer=") + [NSStringFromClass([v.layer class]) UTF8String]
+                     : juce::String(" no-layer"))
+         << ([v respondsToSelector:@selector(openGLContext)] ? " GL" : "")
+         << " sublayers=" << (int) v.layer.sublayers.count
+         << " onscreen=" << (int) [v convertRect:v.bounds toView:nil].size.width
+         << "x" << (int) [v convertRect:v.bounds toView:nil].size.height
+         << " layerFrame=" << (int) v.layer.frame.size.width << "x" << (int) v.layer.frame.size.height
+         << " layerInRoot=" << (int) [v.layer convertRect:v.layer.bounds toLayer:nil].size.width
+         << " gravity=" << (v.layer ? [v.layer.contentsGravity UTF8String] : "-")
+         << " contentsScale=" << juce::String(v.layer.contentsScale, 2)
+         << " drawable=" << ([v.layer isKindOfClass:[CAMetalLayer class]]
+                                 ? juce::String((int) ((CAMetalLayer*) v.layer).drawableSize.width)
+                                 : juce::String("-"))
          << " " << (int) v.frame.size.width << "x" << (int) v.frame.size.height << "\n";
     for (NSView* s in v.subviews) dumpViewTree(s, depth + 1, into);
 }
@@ -272,6 +331,16 @@ bool debugCaptureOwnWindow(juce::ComponentPeer* peer, const juce::File& out) {
     return ok;
 }
 
+static bool repHasVariety(NSBitmapImageRep* rep) {
+    const NSInteger w = rep.pixelsWide, h = rep.pixelsHigh;
+    if (w < 4 || h < 4) return false;
+    NSColor* first = [rep colorAtX:2 y:2];
+    for (NSInteger y = 2; y < h; y += h / 16 + 1)
+        for (NSInteger x = 2; x < w; x += w / 16 + 1)
+            if (![[rep colorAtX:x y:y] isEqual:first]) return true;
+    return false;
+}
+
 // GPU-layer content does not render through cacheDisplayInRect, so a uniform result may just be gpu-only.
 bool embeddedDebugDumpNSView(juce::Component& editor, const juce::File& out) {
     NSView* v = findPluginNSView(editor);
@@ -282,13 +351,16 @@ bool embeddedDebugDumpNSView(juce::Component& editor, const juce::File& out) {
     NSData* png = [rep representationUsingType:NSBitmapImageFileTypePNG properties:@{}];
     [png writeToFile:[NSString stringWithUTF8String:out.getFullPathName().toRawUTF8()]
           atomically:YES];
-    const NSInteger w = rep.pixelsWide, h = rep.pixelsHigh;
-    if (w < 4 || h < 4) return false;
-    NSColor* first = [rep colorAtX:2 y:2];
-    for (NSInteger y = 2; y < h; y += h / 16 + 1)
-        for (NSInteger x = 2; x < w; x += w / 16 + 1)
-            if (![[rep colorAtX:x y:y] isEqual:first]) return true;
-    return false;
+    return repHasVariety(rep);
+}
+
+bool embeddedViewDrawsContent(juce::Component& editor) {
+    NSView* v = findPluginNSView(editor);
+    if (v == nil) return false;
+    NSBitmapImageRep* rep = [v bitmapImageRepForCachingDisplayInRect:[v bounds]];
+    if (rep == nil) return false;
+    [v cacheDisplayInRect:[v bounds] toBitmapImageRep:rep];
+    return repHasVariety(rep);
 }
 
 }  // namespace hum

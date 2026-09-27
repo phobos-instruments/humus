@@ -2,15 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include <cmath>
 
-#include <juce_gui_basics/juce_gui_basics.h>
-
 #include "gui/app/AppSettings.h"
 #include "gui/host/EngineHost.h"
 
 namespace hum {
 
 void EngineHost::setLinkEnabled(bool on) {
-    if (on && juce::JUCEApplication::getInstance() == nullptr) return;
+    if (on && !linkAllowed_) return;
     if (on && link_ == nullptr) {
         const juce::ScopedLock sl(lock_);
         link_.reset(new LinkSync());

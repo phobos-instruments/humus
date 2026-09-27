@@ -35,6 +35,7 @@ bool MainComponent::keyPressed(const juce::KeyPress& k) {
     if (k == KeyPress('d', cmd, 0)) { canvas_->duplicateSelection(); return true; }
     if (k == KeyPress('r', cmd, 0)) { host_.record().captureToggle(); return true; }
     if (k == KeyPress(juce::KeyPress::F2Key)) { canvas_->renameSelection(); return true; }
+    if (k == KeyPress('b', cmd, 0)) { bounce(); return true; }
     if (k == KeyPress('s', cmdShift, 0)) { savePatchAs(); return true; }
     if (k == KeyPress('s', cmd, 0)) { savePatch(); return true; }
     if (k == KeyPress('n', cmd, 0)) { newPatch(); return true; }
@@ -130,6 +131,8 @@ void MainComponent::resized() {
     const bool showDsp = shed < ShedDsp, showQwerty = shed < ShedSetup;
     const bool showLimiter = shed < ShedLimiter, showKeep = shed < ShedKeep;
     const bool showCaptions = shed < ShedCaptions;
+    const bool showPanic = shed < ShedPanic;
+    panicBtn_.setVisible(showPanic);
     goStartBtn_.setVisible(showLocate); goEndBtn_.setVisible(showLocate);
     loopBtn_.setVisible(showLocate);
     tapBtn_.setVisible(showTaps); beat1Btn_.setVisible(showTaps);
@@ -156,8 +159,10 @@ void MainComponent::resized() {
         iconW(row2, goStartBtn_, kNavW); iconW(row2, goEndBtn_, kNavW); iconW(row2, loopBtn_, kNavW);
         sep(row2);
     }
-    if (showKeep) { iconIn(row2, globalDiceBtn_); iconIn(row2, keepBtn_); }
+    if (showPanic) iconW(row2, panicBtn_, 28);
+    if (showKeep) iconIn(row2, keepBtn_);
     iconIn(row2, undoBtn_); iconIn(row2, redoBtn_);
+    if (showKeep) iconIn(row2, globalDiceBtn_);
     sep(row2);
     meter_.setBounds(row2.removeFromRight(kMeterW).reduced(0, 6));
     row2.removeFromRight(6);
@@ -165,13 +170,13 @@ void MainComponent::resized() {
         dspLabel_.setBounds(row2.removeFromRight(58));
         row2.removeFromRight(2);
     }
+    if (showLimiter) {
+        limiterBtn_.setBounds(row2.removeFromRight(kLimW).reduced(0, 3));
+        row2.removeFromRight(4);
+    }
     masterLevel_.setBounds(row2.removeFromRight(kOutW));
     if (showCaptions) masterCaption_.setBounds(row2.removeFromRight(kOutCaptionW));
     row2.removeFromRight(4);
-    if (showLimiter) {
-        limiterBtn_.setBounds(row2.removeFromRight(kLimW).reduced(0, 6));
-        row2.removeFromRight(4);
-    }
     groove_.setBounds(row2.removeFromRight(groove_.preferredWidth()));
     row2.removeFromRight(8);
     const int wellX = row2.getX();
@@ -198,8 +203,6 @@ void MainComponent::resized() {
     iconIn(row2, enableAudioBtn_); iconIn(row2, enableMidiBtn_);
     if (showQwerty) iconIn(row2, qwertyBtn_);
     if (shed > 0) iconIn(row2, overflowBtn_);
-    row2.removeFromLeft(8);
-    statusLabel_.setBounds(row2);
 
     auto rail = area.removeFromLeft(kRailW);
     {

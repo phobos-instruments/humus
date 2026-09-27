@@ -7,6 +7,32 @@
 
 namespace hum {
 
+void knobDimple(juce::Graphics& g, juce::Point<float> centre, float knobR, float angle, juce::Colour mark) {
+    const float halfPi = juce::MathConstants<float>::halfPi;
+    const juce::Point<float> p(centre.x + knobR * 0.60f * std::cos(angle - halfPi),
+                               centre.y + knobR * 0.60f * std::sin(angle - halfPi));
+    const float dr = juce::jmax(2.0f, knobR * 0.18f);
+    if (knobR >= 8.0f) {
+        juce::ColourGradient dim(juce::Colours::black.withAlpha(alpha::dim), p.x, p.y,
+                                 juce::Colours::transparentBlack, p.x + dr, p.y + dr, true);
+        g.setGradientFill(dim);
+        g.fillEllipse(p.x - dr, p.y - dr, dr * 2.0f, dr * 2.0f);
+        juce::Path lip;
+        lip.addCentredArc(p.x, p.y, dr - 0.5f, dr - 0.5f, 0.0f, 1.1f, 2.8f, true);
+        g.setColour(juce::Colours::white.withAlpha(alpha::scrim));
+        g.strokePath(lip, juce::PathStrokeType(1.0f));
+    }
+    g.setColour(mark);
+    const float sd = dr * 0.55f;
+    g.fillEllipse(p.x - sd, p.y - sd, sd * 2.0f, sd * 2.0f);
+}
+
+void knobFace(juce::Graphics& g, juce::Point<float> centre, float knobR, float angle, juce::Colour mark) {
+    if (knobR <= 3.0f) return;
+    pebbleBody(g, {centre.x - knobR, centre.y - knobR, knobR * 2.0f, knobR * 2.0f}, Palette::panelLight, false);
+    knobDimple(g, centre, knobR, angle, mark);
+}
+
 void pebbleBody(juce::Graphics& g, juce::Rectangle<float> b, juce::Colour base, bool active) {
     const float w = b.getWidth(), h = b.getHeight() * 0.96f;
     juce::Rectangle<float> body(b.getX(), b.getY() + (b.getHeight() - h) * 0.7f, w, h);
@@ -107,9 +133,10 @@ void paintVerticalFader(juce::Graphics& g, juce::Rectangle<float> b, float thumb
                  muted ? Palette::textDim : Palette::text);
 }
 
-void paintHorizontalFader(juce::Graphics& g, juce::Rectangle<float> b, float thumbX, bool muted) {
+void paintHorizontalFader(juce::Graphics& g, juce::Rectangle<float> b, float thumbX, bool muted, bool fromCentre) {
     thumbX = juce::jlimit(b.getX(), b.getRight(), thumbX);
-    paintFaderGroove(g, b, b.getX(), thumbX, muted, false);
+    const float from = fromCentre ? b.getCentreX() : b.getX();
+    paintFaderGroove(g, b, juce::jmin(from, thumbX), juce::jmax(from, thumbX), muted, false);
     const float cy = b.getCentreY();
     const float th = juce::jlimit(12.0f, 30.0f, b.getHeight() - 6.0f);
     const float tw = juce::jlimit(14.0f, 22.0f, b.getHeight() * 0.45f);
@@ -144,7 +171,7 @@ void HumLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int w, in
     if (style == juce::Slider::LinearHorizontal || style == juce::Slider::LinearBar) {
         paintHorizontalFader(g, juce::Rectangle<float>((float) x, (float) y, (float) w, (float) h)
                                     .reduced(4.0f, 0.0f),
-                             sliderPos, false);
+                             sliderPos, false, s.getProperties()[kCentreFill]);
         return;
     }
     juce::LookAndFeel_V4::drawLinearSlider(g, x, y, w, h, sliderPos, minSliderPos, maxSliderPos,
@@ -216,6 +243,7 @@ void HumLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w, in
     if (knobR <= 3.0f) return;
     pebbleBody(g, {centre.x - knobR, centre.y - knobR, knobR * 2.0f, knobR * 2.0f},
                Palette::panelLight, false);
+    const float halfPi = juce::MathConstants<float>::halfPi;
 
     const double meter = (double) s.getProperties().getWithDefault("meter", -1.0);
     if (meter >= 0.0 && knobR > 6.0f) {
@@ -240,23 +268,7 @@ void HumLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int w, in
         }
     }
 
-    const float halfPi = juce::MathConstants<float>::halfPi;
-    const juce::Point<float> p(centre.x + knobR * 0.60f * std::cos(angle - halfPi),
-                               centre.y + knobR * 0.60f * std::sin(angle - halfPi));
-    const float dr = juce::jmax(2.0f, knobR * 0.18f);
-    if (knobR >= 8.0f) {
-        juce::ColourGradient dim(juce::Colours::black.withAlpha(alpha::dim), p.x, p.y,
-                                 juce::Colours::transparentBlack, p.x + dr, p.y + dr, true);
-        g.setGradientFill(dim);
-        g.fillEllipse(p.x - dr, p.y - dr, dr * 2.0f, dr * 2.0f);
-        juce::Path lip;
-        lip.addCentredArc(p.x, p.y, dr - 0.5f, dr - 0.5f, 0.0f, 1.1f, 2.8f, true);
-        g.setColour(juce::Colours::white.withAlpha(alpha::scrim));
-        g.strokePath(lip, juce::PathStrokeType(1.0f));
-    }
-    g.setColour(famBright);
-    const float sd = dr * 0.55f;
-    g.fillEllipse(p.x - sd, p.y - sd, sd * 2.0f, sd * 2.0f);
+    knobDimple(g, centre, knobR, angle, famBright);
 
     {
         const float ember = juce::jlimit(0.0f, 1.0f,

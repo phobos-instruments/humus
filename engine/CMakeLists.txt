@@ -5,7 +5,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 endif()
 
-project(Humus VERSION 0.4.0 LANGUAGES C CXX)
+project(Humus VERSION 0.5.0 LANGUAGES C CXX)
 
 # A single-config generator with no build type is -O0 with live asserts, which
 # xruns in a realtime app; a first-time builder following the README gets Release.
@@ -39,7 +39,7 @@ add_custom_target(hum_build_id ALL
   COMMENT "Stamping the build id")
 
 if(MSVC)
-  add_compile_definitions(_USE_MATH_DEFINES NOMINMAX)
+  add_compile_definitions(_USE_MATH_DEFINES NOMINMAX _CRT_SECURE_NO_WARNINGS)
   add_compile_options(/MP)
   # One global core budget for cl.exe, not /MP times MSBuild's own parallelism.
   set(CMAKE_VS_GLOBALS "UseMultiToolTask=true" "EnforceProcessCountAcrossBuilds=true")
@@ -66,18 +66,21 @@ option(HUM_LIVE_AUDIO "Build live audio output (needs ALSA dev headers)" ON)
 # Tests.cmake is included first.
 option(HUM_VST3_MANIFEST "Generate the VST3 moduleinfo.json (runs a freshly built helper)" ON)
 include(cmake/Juce.cmake)
+include(cmake/JuceShared.cmake)
 include(cmake/HandsModel.cmake)
 include(cmake/PoseModel.cmake)
 include(cmake/CoreMLModels.cmake)
 include(cmake/Sdk.cmake)
 include(cmake/Vendored.cmake)
 include(cmake/Packs.cmake)
+include(cmake/Models.cmake)
+include(cmake/Ffmpeg.cmake)
 include(cmake/Core.cmake)
 include(cmake/Cli.cmake)
 include(cmake/Tests.cmake)
 include(cmake/Plugin.cmake)
 include(cmake/Warnings.cmake)
-foreach(t hum_sdk hum_core hum hum_tests hum_snapshot hum_gui Humus
+foreach(t hum_sdk hum_models hum_core hum hum_tests hum_snapshot hum_gui Humus
           hum_pack_core hum_pack_humus hum_pack_av hum_pack_audiomulch hum_pack_sample)
   hum_warnings(${t})
 endforeach()
@@ -88,4 +91,18 @@ if(HUM_TESTS)
 endif()
 include(cmake/GuiSources.cmake)
 include(cmake/Gui.cmake)
+include(cmake/Host.cmake)
 include(cmake/Snapshot.cmake)
+
+option(HUM_STUDIO "Build the Organism Studio runner from a sibling checkout" OFF)
+set(HUM_STUDIO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../../organism-studio/native"
+    CACHE PATH "The organism-studio repository's native/ directory")
+if(HUM_STUDIO)
+  if(NOT TARGET hum_host)
+    message(FATAL_ERROR "HUM_STUDIO requires HUM_GUI=ON for hum_host")
+  endif()
+  if(NOT EXISTS "${HUM_STUDIO_DIR}/Studio.cmake")
+    message(FATAL_ERROR "HUM_STUDIO_DIR does not hold Studio.cmake: ${HUM_STUDIO_DIR}")
+  endif()
+  include(${HUM_STUDIO_DIR}/Studio.cmake)
+endif()

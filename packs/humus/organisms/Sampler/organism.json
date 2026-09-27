@@ -2,7 +2,9 @@
   "classes": [
     {
       "class": "Sampler",
-      "roles": ["sample-kit"],
+      "roles": [
+        "sample-kit"
+      ],
       "category": "Instruments",
       "params": [
         {
@@ -61,7 +63,7 @@
           "min": 0.0,
           "max": 1.0,
           "def": 0.0,
-          "bool": true
+          "enum": true
         },
         {
           "name": "File1",
@@ -224,6 +226,7 @@
           "max": 48.0,
           "def": 32.0,
           "int": true,
+          "unit": "kHz",
           "random": true
         },
         {
@@ -237,7 +240,7 @@
           "name": "Threshold",
           "min": 0.0,
           "max": 1.0,
-          "def": 0.01
+          "def": 0.1778
         }
       ],
       "editor": "layout:sampler-editor.json"

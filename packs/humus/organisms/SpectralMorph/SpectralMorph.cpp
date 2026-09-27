@@ -72,7 +72,9 @@ void SpectralMorph::blendB(Chan& c, float* reim) {
 
 void SpectralMorph::process(const float* const* in, int numIn, float* const* out, int numOut,
                             int numSamples, const Transport&) {
-    morph_ = (float) std::clamp(params.get("Morph", 0.0), 0.0, 1.0);
+    const float morph = (float) std::clamp(params.get("Morph", 0.0), 0.0, 1.0);
+    const bool cutA = params.get("CutA", 0.0) >= 0.5, cutB = params.get("CutB", 0.0) >= 0.5;
+    morph_ = cutA && cutB ? 0.5f : cutA ? 0.0f : cutB ? 1.0f : morph;
 
     const int n = std::min(numSamples, (int) discard_.size());
     for (int c = 0; c < numOut && c < (int) chans_.size(); ++c) {

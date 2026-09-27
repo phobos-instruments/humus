@@ -1,6 +1,6 @@
 {
   "strips": true,
- "classes": [
+  "classes": [
     {
       "class": "Console",
       "category": "Mixers",
@@ -202,6 +202,60 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_7-8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_9-10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_11-12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -303,6 +357,24 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -430,6 +502,33 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -583,6 +682,42 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_7-8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -762,6 +897,51 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_7-8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_9-10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -967,6 +1147,60 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_7-8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_9-10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_11-12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -1198,6 +1432,69 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_7-8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_9-10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_11-12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_13-14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"
@@ -1455,6 +1752,78 @@
           "max": 1.0,
           "def": 0.0,
           "bool": true
+        },
+        {
+          "name": "Name_1-2",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_3-4",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_5-6",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_7-8",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_9-10",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_11-12",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_13-14",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
+        },
+        {
+          "name": "Name_15-16",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true,
+          "text": ""
         }
       ],
       "editor": "gen:console"

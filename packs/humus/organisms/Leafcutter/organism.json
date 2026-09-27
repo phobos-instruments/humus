@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "Leafcutter",
+      "blurb": "A loop chopper that cuts a sound at its transients and plays the slices in time.",
       "category": "Instruments",
       "editor": "layout:leafcutter-editor.json",
       "params": [

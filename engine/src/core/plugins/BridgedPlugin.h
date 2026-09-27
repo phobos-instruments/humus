@@ -46,6 +46,7 @@ public:
     const std::string& classRaw() const override { return classRaw_; }
     std::string getStateBase64() const override;
     void setStateBase64(const std::string& base64) override;
+    void loadFrom(const OrganismState& state) override;
     void queueMidiMessage(const juce::MidiMessage& m) override;
     bool hasEditor() const override { return hasEditor_; }
     float paramValue(int index) const override;
@@ -106,6 +107,12 @@ private:
     int missLimit_ = 350;
     std::atomic<bool> responding_{true};
     std::vector<float> lastSentParams_;
+    void armAdoption();
+    void adoptChildValues(BridgeShmHeader* h);
+    int sendParamChanges(BridgeShmHeader* h, uint32_t seq);
+    std::vector<double> adoptBase_;
+    std::atomic<int> adoptStage_{0};
+    uint32_t adoptSeq_ = 0;
 
     std::vector<MidiEvent> stagedIn_;
     int stagedInCount_ = 0;

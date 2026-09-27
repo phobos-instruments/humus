@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <array>
 #include <vector>
 
@@ -14,13 +15,15 @@ namespace hum {
 class Sequence : public Organism, public MidiNode {
 public:
     static constexpr int kRows = 8;
-    static constexpr int kMaster = kRows;
     static constexpr int kPorts = kRows + 1;
 
+    explicit Sequence(int rows = kRows) : rows_(std::clamp(rows, 1, kRows)) {}
+
+    int rows() const { return rows_; }
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 0; }
     int numMidiInputs() const override { return 0; }
-    int numMidiOutputs() const override { return kPorts; }
+    int numMidiOutputs() const override { return rows_ + 1; }
 
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
@@ -39,7 +42,7 @@ public:
 
     void deliverMidi(int, const MidiEvent*, int) override {}
     int collectMidi(int port, MidiEvent* out, int capacity) override {
-        if (port < 0 || port >= kPorts) return 0;
+        if (port < 0 || port > rows_) return 0;
         const int n = std::min(outCount_[(size_t) port], capacity);
         for (int i = 0; i < n; ++i) out[i] = outEvents_[(size_t) port][(size_t) i];
         outCount_[(size_t) port] = 0;
@@ -62,6 +65,9 @@ private:
         return out;
     }
 
+    int master() const { return rows_; }
+
+    const int rows_;
     Pattern pattern_;
     std::array<RowParams, kRows> rowParams_ = makeRowParams();
     std::array<std::array<MidiEvent, 64>, kPorts> outEvents_;

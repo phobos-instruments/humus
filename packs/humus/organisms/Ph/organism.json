@@ -2,6 +2,7 @@
  "classes": [
   {
    "class": "pH",
+   "blurb": "An FM synthesizer with four engines, from six-operator banks to three chip voices.",
    "category": "Instruments",
    "editor": "layout:ph-editor.json",
    "params": [

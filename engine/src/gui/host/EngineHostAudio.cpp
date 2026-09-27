@@ -201,7 +201,12 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
     if (fadeRestart_.exchange(false)) fadeGain_ = 0.0f;
     const float target = fadeTarget_.load();
     const float inc = (float) (1.0 / (0.012 * (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate)));
-    const float master = outputGain_.load();
+    const double rate = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
+    if (masterRate_ != rate) {
+        masterGain_.prepare(rate, kMasterRampMs);
+        masterRate_ = rate;
+    }
+    masterGain_.setTarget(outputGain_.load());
     const bool lim = limiterOn_.load(std::memory_order_relaxed);
     if (lim)
         limiter_.set(0.966, 80.0, 10.0,
@@ -210,7 +215,7 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
     for (int n = 0; n < numSamples; ++n) {
         if (fadeGain_ < target)      fadeGain_ = std::min(target, fadeGain_ + inc);
         else if (fadeGain_ > target) fadeGain_ = std::max(target, fadeGain_ - inc);
-        const float g = fadeGain_ * master;
+        const float g = fadeGain_ * masterGain_.next();
         if (!lim) {
             for (int c = 0; c < numOut; ++c) out[c][n] *= g;
             continue;
@@ -252,6 +257,8 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
             }
         }
     }
+
+    if (numOut > 0) preview_.render(out[rL], out[rR], numSamples, sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
 
     for (int c = 0; c < 2 && c < numOut; ++c) {
         const float* src = out[c == 0 ? rL : rR];

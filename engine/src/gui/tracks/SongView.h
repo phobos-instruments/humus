@@ -3,6 +3,7 @@
 #pragma once
 #include <array>
 #include <cmath>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
@@ -12,6 +13,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "hum/Pattern.h"
+#include "core/timeline/RowOrder.h"
 #include "gui/tracks/ClipDetail.h"
 #include "gui/host/EngineHostAutomation.h"
 #include "gui/host/EngineHostClips.h"
@@ -52,6 +54,7 @@ public:
     int rowHeight() const { return rowH_; }
     void setRowHeight(int h);
     static constexpr int kRowHMin = 22, kRowHMax = 180;
+    static constexpr int kInputChipBottom = 36, kDestChipBottom = 55;
 
     bool inBox() const { return !boxNode_.empty(); }
     const std::string& boxNode() const { return boxNode_; }
@@ -59,7 +62,6 @@ public:
     void leaveBox();
     bool dragging() const { return drag_ != Drag::None; }
     void clearSelections();
-    std::vector<std::string> liveTargets() const;
     std::vector<std::string> noteRows() const;
     void repaintCutGuide();
     void repaintRecordingRows();
@@ -96,11 +98,12 @@ public:
     void convertClipToMidi(const std::string& node, const ClipEditor::ClipInfo& ci);
     void stretchClip(const std::string& node, int clip, const ClipEditor::ClipInfo& ci, double factor);
     juce::Rectangle<int> clipBounds(int row, const ClipEditor::ClipInfo& ci) const;
-    static bool showsFilmstrip(const ClipEditor::ClipInfo& ci) { return ci.isVideo || ci.isCompound; }
+    static bool showsFramestrip(const ClipEditor::ClipInfo& ci) { return ci.isVideo || ci.isCompound; }
     void deleteRow(const std::string& node);
     int cutAtPlayhead();
     int clipsUnderPlayhead() const;
     bool ownsRow(const std::string& node) const;
+    bool recordable(const std::string& node) const;
     void selectTrack(int row, bool range, bool toggle);
     std::vector<std::string> selectedTracks() const;
     void deleteRows(const std::vector<std::string>& nodes);
@@ -114,6 +117,12 @@ public:
 
     const std::vector<trackslayout::Slot>& slotsForTest() const { return slots_; }
     int slotCountForTest() const { return (int) slots_.size(); }
+    int foldedLaneCountForTest(int row) const;
+    int rowOfForTest(const std::string& node) const;
+    void placeRowBelow(const std::string& node, const std::string& anchor);
+    bool rowDragLiveForTest() const { return rowDrag_.live; }
+    void foldRowForTest(const std::string& node) { expanded_.erase(node); rebuildSlots(); }
+    juce::Rectangle<int> inputBoxForTest(int row) const { return inputBox(row); }
     int slotHeightForTest(int i) const { return slots_[(size_t) i].h; }
     int slotKindForTest(int i) const { return (int) slots_[(size_t) i].kind; }
     int selectedClipCountForTest() const { return (int) selectedClipList().size(); }
@@ -124,11 +133,29 @@ public:
     juce::String mergeRefusalForTest() const { return mergeRefusal(); }
     bool nodeHasMuteParamForTest(const std::string& n) const { return nodeHasMuteParam(n); }
     bool nodeMutedForTest(const std::string& n) const { return nodeMuted(n); }
+    void setNodeMutedForTest(const std::string& n, bool m) { setNodeMuted(n, m); }
     juce::Rectangle<int> muteBoxForTest(int row) const { return muteBox(row); }
     juce::Rectangle<int> chipBoundsForTest(int row, const ClipEditor::ClipInfo& ci) const {
         return clipChipBounds(row, ci);
     }
     void selectPointsForTest(int slot, std::set<int> idx) { selPtSlot_ = slot; selPts_ = std::move(idx); }
+    void sweepPointsForTest(juce::Point<int> from, juce::Point<int> to);
+    int selectedPointCountForTest() const;
+    bool rangeActiveForTest() const { return ptRange_.active; }
+    double rangeFromForTest() const { return ptRange_.from; }
+    double rangeToForTest() const { return ptRange_.to; }
+    juce::Point<int> pointPosForTest(int slot, int index) const;
+    void clearSelectionsForTest() { clearSelections(); }
+    bool deleteSelectedPointsForTest() { return deleteSelectedPoints(); }
+    int selectedLaneCountForTest() const { return (int) selectedLanes().size(); }
+    int selectedClipsForTest() const { return selectedClipsN(); }
+    juce::Rectangle<int> boxBoundsForTest(int row, int box) const {
+        return boxBounds(row, host().automation().boxes()[(size_t) box]);
+    }
+    int selectedBoxesForTest() const { return selectedBoxesN(); }
+    enum class PointOp { Quantise, Thin, Smooth, Linear, Log, Exp, Duplicate };
+    bool pointOpForTest(PointOp op) { return applyPointOp(op); }
+    bool pastePointsAtForTest(int slot, double beat) { return pastePointsAt(slot, beat); }
     bool copyPastePointsForTest(double atBeat) { copySelectedPoints(); return pastePoints(atBeat); }
 
 private:
@@ -136,6 +163,7 @@ private:
     static constexpr int kTopH = tracksgeo::kTopH;
     static constexpr int kStripW = tracksgeo::kStripW, kLaneH = 32;
     static constexpr int kClipEdgeGrab = tracksgeo::kClipEdgeGrab;
+    static constexpr int kDuplicateSlopPx = 4;
     static constexpr int kFadeGrip = tracksgeo::kFadeGrip;
     static constexpr int kRowHDefault = 68, kBoxRowH = 26, kPodH = 26;
     static constexpr int kDragOutSlack = 24;
@@ -148,6 +176,10 @@ private:
     void repaintPane(juce::Rectangle<int> r) { repaint(r - getPosition()); }
     void repaintAll() { ctx_.viewChanged(); }
     void repaintRow(int row);
+    void showInputMenu(const std::string& node, juce::Point<int> screen);
+public:
+    void pollInputLights();
+private:
     void traceRows(const char* what) const;
     void traceSel(const char* what, const juce::MouseEvent&) const;
 
@@ -182,11 +214,18 @@ private:
     juce::Rectangle<int> soloBox(int row) const { return {kStripW - 54, rowTop(row) + 4, 22, 14}; }
     juce::Rectangle<int> recBox(int row) const { return {kStripW - 28, rowTop(row) + 4, 22, 14}; }
     juce::Rectangle<int> foldBox(int row) const { return {2, rowTop(row) + 4, 14, 14}; }
-    juce::Rectangle<int> destBox(int row, const std::string& node) const {
-        return timelinechrome::midiDestChipRect(
-                   {30, rowTop(row) + 18, kStripW - 68, 17}, host().model(), node)
-            .expanded(2);
+    int chipX(int row) const { return hasLanes(row) && !wantsBoxRow(row) ? 32 : 18; }
+    juce::Rectangle<int> inputBox(int row) const {
+        if (rowH_ < kInputChipBottom) return {};
+        return timelinechrome::midiInputChipRect({chipX(row), rowTop(row) + 20, kStripW - 30 - chipX(row), 15},
+                                                 host().midi().trackInput(rows_[(size_t) row]));
     }
+    juce::Rectangle<int> destRect(int row, const std::string& node) const {
+        if (rowH_ < kDestChipBottom) return {};
+        return timelinechrome::midiDestChipRect({chipX(row), rowTop(row) + 37, kStripW - 8 - chipX(row), 17},
+                                                host().model(), node);
+    }
+    juce::Rectangle<int> destBox(int row, const std::string& node) const { return destRect(row, node).expanded(2); }
     juce::Rectangle<int> heldBox(int row) const { return {kStripW - 22, rowTop(row) + 21, 14, 13}; }
     juce::Rectangle<int> heldLaneBox(const trackslayout::Slot& s) const {
         return {kStripW - 28, s.y + (s.h - 13) / 2, 14, 13};
@@ -205,12 +244,24 @@ private:
     void paintPodHeader(juce::Graphics&, const trackslayout::Slot&);
     void paintBoxRow(juce::Graphics&, const trackslayout::Slot&);
     void paintBoxes(juce::Graphics&, int row);
+    void paintFoldedLanes(juce::Graphics&, int row, juce::Rectangle<int> body);
     void paintLinePreview(juce::Graphics&);
+    void paintRowDrag(juce::Graphics&);
+    std::string trackPlaying(const std::string& instrument) const;
+    std::vector<std::string> arrangedRows(const std::vector<std::string>& natural) const;
+    bool storeRowOrder(const std::vector<std::string>& order);
+    std::string newTrackAnchor() const;
+    std::vector<roworder::Extent> rowExtents() const;
+    void armRowDrag(int row, juce::Point<int> p);
+    std::set<std::string> rowsRidingDrag() const;
+    void dragRows(juce::Point<int> p);
+    bool endRowDrag();
+    bool cancelRowDrag();
     void paintPointSelection(juce::Graphics&);
     bool paintTapeTiles(juce::Graphics&, juce::Rectangle<int>, const ClipEditor::ClipInfo&);
     bool paintReelTiles(juce::Graphics&, juce::Rectangle<int>, const ClipEditor::ClipInfo&,
                         int depth = 0);
-    void paintFilmstrip(juce::Graphics&, juce::Rectangle<int> b,
+    void paintFramestrip(juce::Graphics&, juce::Rectangle<int> b,
                         const ClipEditor::ClipInfo& ci, juce::Colour ink);
     void paintWaveform(juce::Graphics&, juce::Rectangle<int> b, int clipLeft,
                        const ClipEditor::ClipInfo& ci, juce::Colour accent);
@@ -260,7 +311,7 @@ private:
     bool nodeMuted(const std::string& node) const;
     void setNodeMuted(const std::string& node, bool muted);
     double takeStartBeat(const std::string& node) const;
-    bool rowRecording(int row, const std::vector<std::string>& live) const;
+    bool rowRecording(int row) const;
 
     void applyRepeatFill(int endTick);
     int placeAudioFile(const std::string& node, int atTick, const juce::File& f);
@@ -284,6 +335,12 @@ private:
     void clearPointSelection();
     void copySelectedPoints();
     bool pastePoints(double atBeat);
+    bool pastePointsAt(int slot, double atBeat);
+    std::vector<std::pair<int, std::set<int>>> selectedLanes() const;
+    bool hasPointSelection() const { return !selectedLanes().empty() || (ptRange_.active && !rangeSlots_.empty()); }
+    bool applyPointOp(PointOp op);
+    void showPointMenu(juce::Point<int> screen, int slot, double atBeat);
+    void paintSelectedPointsOf(juce::Graphics&, int slot, const std::set<int>& idx);
 
     class ClipItems : public timeline::ItemKind {
     public:
@@ -320,6 +377,7 @@ private:
     int selectedClipsN() const;
     int selectedBoxesN() const;
     void toggleSelected(const timeline::ItemRef& r);
+    bool extendSelectionTo(int row, int clip);
     void clearSelection() { sel_.clear(); }
     std::vector<timeline::ItemRef> selectedOf(timeline::ItemRef::Kind k) const;
     void marqueeSelect(juce::Rectangle<int> area);
@@ -334,6 +392,13 @@ private:
     bool pasteClips(int atTick, int atRow);
     bool duplicateSelectedClips();
     int beginClipMove(int row, int clip, bool duplicate);
+    bool duplicateOnceMoved(juce::Point<int> p);
+    void pickWithAlt(int row, int clip);
+    void beginGroupMove();
+    void endGroupMove();
+    bool boxRidesDrag(int box) const;
+    double groupMoveFloorBeats() const;
+    void keepOnlyClipsOutOfSelection();
     bool rowShiftFits(int deltaRows);
     void moveSelection(int deltaTicks, int deltaRows);
     void restoreClipMove();
@@ -350,7 +415,8 @@ private:
     std::vector<std::string> rows_;
     std::set<std::string> arrangeable_;
     std::set<std::string> expanded_;
-    std::set<std::string> autoOnlyRows_;
+    std::map<std::string, unsigned> inputSeen_;
+    std::map<std::string, double> inputLitAt_;
     std::set<std::string> collapsedPods_;
     std::vector<trackslayout::Slot> slots_;
     int rowH_ = kRowHDefault;
@@ -371,15 +437,28 @@ private:
 
     int selPtSlot_ = -1;
     std::set<int> selPts_;
+    std::map<int, std::set<int>> sidePts_;
+    struct PointRange { double from = 0.0, to = 0.0; bool active = false; };
+    PointRange ptRange_, ptRange0_;
+    std::set<int> rangeSlots_;
+    double pointClipboardSpan_ = 0.0;
+    std::map<int, std::vector<AutomationBreakpoint>> sideBase_;
+    std::map<int, std::set<int>> sidePts0_;
     juce::Rectangle<int> ptMarquee_;
     juce::Point<int> marqueeAnchor_;
     std::vector<AutomationBreakpoint> groupBase_;
     std::set<int> groupSel0_;
     double groupBeat0_ = 0.0, groupVal0_ = 0.0;
     int hoverPtSlot_ = -1, hoverPt_ = -1;
-    struct PointCopy { double beat, value, valueMax, curve; };
+    struct PointCopy { double beat, value, valueMax, curve; std::string param; };
     std::vector<PointCopy> pointClipboard_;
     std::set<std::string> selTracks_;
+    struct RowDrag {
+        bool armed = false, live = false;
+        std::string node;
+        int downY = 0, before = 0;
+    };
+    RowDrag rowDrag_;
 
     enum class Drag { None, ClipMove, ClipResizeL, ClipResizeR, ClipCreate,
                       ClipFadeL, ClipFadeR, ClipFadeCurveL, ClipFadeCurveR, ClipRepeat, ClipMarquee, PointMarquee,
@@ -391,6 +470,9 @@ private:
     int dragOriginTick_ = 0;
     std::string dragOriginNode_;
     bool dragDuplicated_ = false, extDrag_ = false;
+    bool duplicatePending_ = false;
+    juce::Point<int> dragDownAt_;
+    std::optional<timeline::ItemRef> altDrop_;
     int dragAutoSlot_ = -1, dragAutoPoint_ = -1;
     std::string dragAutoNode_, dragAutoParam_;
     AutoGrip dragAutoGrip_ = AutoGrip::Value;
@@ -417,6 +499,7 @@ private:
     int moveGrabRow_ = -1, moveGrabId_ = 0;
 
     int selBox_ = -1, dragBox_ = -1;
+    bool groupMove_ = false;
     double boxAnchor_ = 0.0, boxDragDelta_ = 0.0;
     double boxTrimL_ = 0.0, boxTrimR_ = 0.0;
     double boxOrigS_ = 0.0, boxOrigE_ = 0.0;

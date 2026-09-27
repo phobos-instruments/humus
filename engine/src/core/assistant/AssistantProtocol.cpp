@@ -246,6 +246,12 @@ juce::String editClaimNudge() {
            "nothing. Never describe an edit as done unless a tool call did it.";
 }
 
+juce::String silenceNudge() {
+    return "Your last reply was empty: no text and no tool call. Answer the request "
+           "above now. If it needs a change to the patch, call the tools that make it; "
+           "if it is unclear, ask one short question.";
+}
+
 juce::String extractText(const juce::var& response) {
     juce::String text;
     if (const auto* blocks = response["content"].getArray())

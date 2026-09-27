@@ -28,6 +28,37 @@ inline const char* legacySocketParam(const std::string& cls, int inlet) {
     return nullptr;
 }
 
+inline bool meterWithoutOutlets(const std::string& cls) {
+    return cls == "VuMeter" || cls == "Scope" || cls == "Spectrum";
+}
+
+inline void bypassMeterOutlets(PatchDocumentModel& doc, const OrganismModel& meter) {
+    std::vector<ConnectionModel> feeders[2], kept, through;
+    for (const auto& c : doc.connections) {
+        if (c.dst == meter.name && c.dstInlet >= 0 && c.dstInlet < 2) feeders[c.dstInlet].push_back(c);
+        if (c.src == meter.name) through.push_back(c);
+        else kept.push_back(c);
+    }
+    if (through.empty()) return;
+    auto already = [&](const ConnectionModel& c) {
+        for (const auto& k : kept)
+            if (k.src == c.src && k.srcOutlet == c.srcOutlet && k.dst == c.dst && k.dstInlet == c.dstInlet) return true;
+        return false;
+    };
+    for (const auto& out : through) {
+        const int channel = out.srcOutlet == 1 && !feeders[1].empty() ? 1 : 0;
+        if (out.srcOutlet > 1) continue;
+        for (const auto& in : feeders[channel]) {
+            ConnectionModel direct = out;
+            direct.src = in.src;
+            direct.srcOutlet = in.srcOutlet;
+            if (!already(direct)) kept.push_back(direct);
+        }
+    }
+    doc.connections.swap(kept);
+    doc.migrationNotes.push_back(meter.name + ": meters no longer pass sound through, so its input now goes straight to the next box");
+}
+
 inline void migrateLegacyControl(PatchDocumentModel& doc) {
     auto classOf = [&](const std::string& name) -> std::string {
         const auto* cm = doc.byName(name);
@@ -41,8 +72,8 @@ inline void migrateLegacyControl(PatchDocumentModel& doc) {
         const auto dstCls = classOf(c.dst);
         const char* param = legacySocketParam(dstCls, c.dstInlet);
         if (param == nullptr) {
-            doc.migrationNotes.push_back(c.src + " -> " + c.dst + " inlet " + std::to_string(c.dstInlet + 1)
-                                         + " dropped: a control signal into an audio inlet");
+            doc.migrationNotes.push_back("the cord from " + c.src + " to " + c.dst + " (inlet " + std::to_string(c.dstInlet + 1)
+                                         + ") was removed: it carried a control value into an audio inlet");
             continue;
         }
         auto* target = const_cast<OrganismModel*>(doc.byName(c.dst));
@@ -54,7 +85,7 @@ inline void migrateLegacyControl(PatchDocumentModel& doc) {
         s.mapMin = 0.0;
         s.mapMax = 1.0;
         target->modSources.push_back(std::move(s));
-        doc.migrationNotes.push_back(c.src + " -> " + c.dst + " is now a control cord onto " + param);
+        doc.migrationNotes.push_back("the cord from " + c.src + " to " + c.dst + " now controls its " + param + " knob");
     }
     doc.connections.swap(kept);
     for (auto& cm : doc.organisms) {
@@ -65,7 +96,40 @@ inline void migrateLegacyControl(PatchDocumentModel& doc) {
         std::vector<Parameter> props;
         for (const auto& p : cm.properties) if (p.name != "Bipolar") props.push_back(p);
         cm.properties.swap(props);
-        doc.migrationNotes.push_back(cm.name + " was a VCA and is now a Gain");
+        doc.migrationNotes.push_back(cm.name + ": the VCA is now a Gain, which does the same job");
+    }
+    for (const auto& cm : doc.organisms)
+        if (meterWithoutOutlets(cm.displayClass)) bypassMeterOutlets(doc, cm);
+    for (auto& cm : doc.organisms) {
+        if (cm.classRaw != "Sequence") continue;
+        cm.classRaw = "Sequence8";
+        cm.displayClass = "Sequence8";
+    }
+    for (auto& cm : doc.organisms) {
+        if (cm.displayClass != "Rings") continue;
+        cm.classRaw = "Atom";
+        cm.displayClass = "Atom";
+        cm.kind = parseClassString(cm.classRaw).kind;
+        doc.migrationNotes.push_back(cm.name + ": Rings is now called Atom");
+    }
+    for (auto& cm : doc.organisms) {
+        if (cm.displayClass != "SoundSpace") continue;
+        bool hasSkew = false;
+        for (const auto& p : cm.properties) hasSkew = hasSkew || p.name == "Skew";
+        if (hasSkew) continue;
+        for (auto& p : cm.properties) {
+            if (p.name != "Shape") continue;
+            p.name = "Skew";
+            doc.migrationNotes.push_back(cm.name + ": the Shape knob is now called Skew. It sounds the same");
+        }
+    }
+    for (auto& cm : doc.organisms) {
+        if (cm.displayClass != "5Combs") continue;
+        for (auto& p : cm.properties) {
+            if (p.name != "InputGain" || p.value != 0.0) continue;
+            p.value = 1.0;
+            doc.migrationNotes.push_back(cm.name + ": its master level was 0 and is now 1, as the original organism played it");
+        }
     }
 }
 

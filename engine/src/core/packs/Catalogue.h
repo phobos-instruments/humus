@@ -7,44 +7,16 @@
 #include <juce_core/juce_core.h>
 
 #include "core/app/AppPaths.h"
+#include "core/packs/CatalogueKinds.h"
 #include "core/packs/PackRegistry.h"
 
 namespace hum::catalogue {
 
-struct Kind {
-    std::string id;
-    std::string wildcard;
-    std::string holds;
-    std::string badge;
-    std::vector<std::pair<std::string, std::string>> badges;
-};
-
-inline const std::vector<Kind>& kinds() {
-    static const std::vector<Kind> all = {
-        {"Impulses", "*.wav;*.aif;*.aiff;*.flac",
-         "Impulse responses: a recording of a room, a plate or a spring.", "IR", {}},
-        {"Samples", "*.wav;*.aif;*.aiff;*.flac",
-         "One sound per file.", "ONE-SHOT", {}},
-        {"Banks", "*.sf2;*.syx;*.opm;*.wopl;*.wopn;*.tfi;*.dmp",
-         "Many instruments in one file.", "BANK",
-         {{".sf2", "SF2"}, {".syx", "6-OP"}, {".opm", "4-OP"}, {".wopl", "2-OP"},
-          {".wopn", "CHIP"}, {".tfi", "CHIP"}, {".dmp", "CHIP"}}},
-        {"Scores", "*.mid;*.midi;*.kar;*.mus",
-         "Scores: a song written out for instruments, not recorded.", "SCORE",
-         {{".mid", "MIDI"}, {".midi", "MIDI"}, {".kar", "KARAOKE"}, {".mus", "MUS"}}},
-        {"Scales", "*.scl",
-         "Scala tuning files.", "SCL", {}},
-        {"Shaders", "*.frag;*.fs;*.glsl;*.fsh;*.synScene",
-         "Fragment shader scenes: a .frag or .fs file, or a .synScene folder.",
-         "SCENE", {}},
-    };
-    return all;
-}
 
 inline bool matches(const juce::File& f, const std::string& wildcards) {
     const auto name = f.getFileName();
     for (const auto& one : juce::StringArray::fromTokens(
-             juce::String(juce::CharPointer_UTF8(wildcards.c_str())), ";", ""))
+             juce::String(wildcards), ";", ""))
         if (name.matchesWildcard(one.trim(), true)) return true;
     return false;
 }
@@ -71,7 +43,7 @@ inline juce::File plantUserFolders() {
         const auto note = sub.getChildFile("README.txt");
         const juce::String text =
             "This folder is yours.\r\n\r\n"
-            + juce::String(juce::CharPointer_UTF8(kind.holds.c_str())) + "\r\n\r\n"
+            + juce::String(kind.holds) + "\r\n\r\n"
             "It starts empty on purpose. The ones Humus ships with live inside "
             "the application and are always available - they are not copied "
             "here, so an update can improve them without touching your own.\r\n\r\n"
@@ -93,7 +65,7 @@ inline std::vector<juce::File> roots(const Kind& kind, const std::string& organi
     for (const auto& d : assetSearchPath(kind.id)) out.push_back(d);
     if (!organism.empty())
         if (const auto* folder = PackRegistry::instance().folderOf(organism))
-            out.push_back(juce::File(juce::String(folder->dir)).getChildFile("banks"));
+            out.push_back(fileAt(folder->dir).getChildFile("banks"));
     return out;
 }
 
@@ -123,8 +95,8 @@ inline std::vector<Entry> scan(const Kind& kind, const std::string& organism = {
         for (const auto& f : found) {
             const auto rel = relativeTo(f, root);
             if (rel.find(".synScene/") != std::string::npos) continue;
-            if (seen.contains(juce::String(juce::CharPointer_UTF8(rel.c_str())))) continue;
-            seen.add(juce::String(juce::CharPointer_UTF8(rel.c_str())));
+            if (seen.contains(juce::String(rel))) continue;
+            seen.add(juce::String(rel));
             const auto folder = relativeTo(f.getParentDirectory(), root);
             out.push_back({f, std::string(kAssetScheme) + kind.id + "/" + rel,
                            f.getFileNameWithoutExtension().toStdString(),
@@ -147,7 +119,7 @@ inline std::string resolve(const std::string& ref, const std::string& organism =
     if (kind == nullptr) return ref;
     const auto want = rest.substr(slash + 1);
     for (const auto& root : roots(*kind, organism))
-        if (const auto f = root.getChildFile(juce::String(juce::CharPointer_UTF8(want.c_str())));
+        if (const auto f = root.getChildFile(juce::String(want));
             f.exists())
             return f.getFullPathName().toStdString();
     return ref;

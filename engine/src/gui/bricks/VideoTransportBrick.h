@@ -14,6 +14,7 @@
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
 #include "gui/video/VideoDeckPool.h"
+#include "gui/editor/juce/JuceVideoTarget.h"
 
 namespace hum {
 
@@ -48,16 +49,16 @@ public:
         addAndMakeVisible(scrub_);
         addAndMakeVisible(time_);
         play_.onClick = [this] {
-            if (auto l = layer()) l->setPaused(false);
+            JuceVideoTarget t(layer());
+            video::VideoTransportModel::play(t.get());
         };
         pause_.onClick = [this] {
-            if (auto l = layer()) l->setPaused(true);
+            JuceVideoTarget t(layer());
+            video::VideoTransportModel::pause(t.get());
         };
         stop_.onClick = [this] {
-            if (auto l = layer()) {
-                l->setPaused(true);
-                l->seekSeconds(0.0);
-            }
+            JuceVideoTarget t(layer());
+            video::VideoTransportModel::stop(t.get());
         };
         scrub_.setRange(0.0, 1.0, 0.0);
         scrub_.setSliderStyle(juce::Slider::LinearHorizontal);
@@ -118,21 +119,16 @@ private:
         }
     }
 
-    static juce::String clock(double seconds) {
-        const int total = (int) std::floor(std::max(0.0, seconds));
-        return juce::String(total / 60) + ":"
-               + juce::String(total % 60).paddedLeft('0', 2);
-    }
-
     void seekToScrub() {
-        if (auto l = layer(); l != nullptr && l->lengthSeconds() > 0.0)
-            l->seekSeconds(scrub_.getValue() * l->lengthSeconds());
+        JuceVideoTarget t(layer());
+        video::VideoTransportModel::seekFraction(t.get(), scrub_.getValue());
     }
 
     void poll() override {
         ensureDeck();
-        auto l = layer();
-        const bool live = l != nullptr && l->lengthSeconds() > 0.0;
+        JuceVideoTarget t(layer());
+        const auto shown = video::VideoTransportModel::shown(t.get());
+        const bool live = shown.live;
         for (auto* b : {&play_, &pause_, &stop_}) b->setEnabled(live);
         scrub_.setEnabled(live);
         if (!live) {
@@ -140,12 +136,10 @@ private:
             time_.setText("", juce::dontSendNotification);
             return;
         }
-        const double len = l->lengthSeconds();
-        const double pos = juce::jlimit(0.0, len, l->positionSeconds());
         if (!scrubbing_)
-            scrub_.setValue(len > 0.0 ? pos / len : 0.0, juce::dontSendNotification);
-        time_.setText(clock(pos) + " / " + clock(len), juce::dontSendNotification);
-        const int paused = l->isPaused() ? 1 : 0;
+            scrub_.setValue(shown.fraction, juce::dontSendNotification);
+        time_.setText(juce::String(shown.time), juce::dontSendNotification);
+        const int paused = shown.paused;
         if (paused != wasPaused_) {
             wasPaused_ = paused;
             play_.setToggleState(paused == 0, juce::dontSendNotification);

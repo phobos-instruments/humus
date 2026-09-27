@@ -4,8 +4,6 @@
 
 #include <limits>
 
-#include "gui/properties/PresetActions.h"
-
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -13,6 +11,8 @@
 #include "core/library/BankLibrary.h"
 #include "core/packs/ClassString.h"
 #include "core/params/ParamSchema.h"
+#include "core/params/RangeEnd.h"
+#include "core/params/SpanMove.h"
 #include "core/graph/RtWord.h"
 #include "core/packs/Roles.h"
 #include "gui/host/NodeRoll.h"
@@ -25,7 +25,63 @@ double EngineHost::prePassValue(const std::string& organism, const std::string& 
     return liveParamValue(organism, param);
 }
 
+bool EngineHost::storedSpan(const std::string& organism, const std::string& param,
+                            double& lo, double& hi) const {
+    if (graph_)
+        if (auto* c = graph_->find(organism))
+            if (auto* p = c->params.byName(param)) {
+                lo = rtLoadWord(p->rangeMin);
+                hi = rtLoadWord(p->rangeMax);
+                return true;
+            }
+    if (const auto* cm = model_.byName(organism))
+        for (const auto& p : cm->properties)
+            if (p.name == param) { lo = p.rangeMin; hi = p.rangeMax; return true; }
+    return false;
+}
+
+bool EngineHost::setRangeEnd(const std::string& organism, const std::string& param, double value) {
+    const auto end = rangeEndOf(param);
+    const auto base = rangeBaseOf(param);
+    const auto* cm = model_.byName(organism);
+    if (cm == nullptr) return false;
+    const ParamDesc* desc = nullptr;
+    for (const auto& d : schemaFor(cm->classRaw))
+        if (d.name == base) desc = &d;
+    if (desc == nullptr || !desc->isRange) return false;
+
+    double lo = desc->min, hi = desc->max;
+    storedSpan(organism, base, lo, hi);
+    const auto key = spanKey(organism, base);
+    const auto known = spanIntent_.find(key);
+    double want = known != spanIntent_.end() ? known->second.first : 0.5 * (lo + hi);
+    double spread = known != spanIntent_.end() ? known->second.second : std::max(0.0, hi - lo);
+
+    const auto mode = rangeMode(organism, base);
+    if (mode == RangeMode::Single || end == RangeEnd::Whole) {
+        want = value;
+    } else if (end == RangeEnd::Spread) {
+        spread = std::max(0.0, value);
+    } else {
+        if (end == RangeEnd::Low) lo = std::min(value, hi);
+        else                      hi = std::max(value, lo);
+        want = 0.5 * (lo + hi);
+        spread = hi - lo;
+    }
+    const double half = mode == RangeMode::Single ? 0.0 : 0.5 * spread;
+    lo = want - half;
+    hi = want + half;
+    slideInto(desc->min, desc->max, lo, hi);
+
+    spanIntent_[key] = {want, spread};
+    ownSpanIntent_ = true;
+    setParamRange(organism, base, lo, hi);
+    ownSpanIntent_ = false;
+    return true;
+}
+
 void EngineHost::setParam(const std::string& organism, const std::string& param, double value) {
+    if (setRangeEnd(organism, param, value)) return;
     if (param == kBypassParam) {
         if (!liveControl_) recordParamRevert(organism, param);
         applyBypass(organism, value >= 0.5);
@@ -41,14 +97,33 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
         return;
     }
     if (param == kSoloParam) { setSoloed(organism, value >= 0.5); return; }
+    if (midi_.recorderSwitch(organism, param, value)) {
+        ++changeStamp_;
+        return;
+    }
     if (param == kArmParam) {
         const bool on = value >= 0.5;
         if (nodeRecordsMedia(organism)) setParam(organism, "Record", on ? 1.0 : 0.0);
-        else midi().setRecordTarget(organism, on, 0, 0);
+        else midi().armInlet(organism, on);
         ++changeStamp_;
         return;
     }
     if (param == kRandomAction) { fireRandom(organism, value >= 0.5); return; }
+    if (rollscope::isPodAction(param)) { firePodRandom(rollscope::podOfAction(param), value >= 0.5); return; }
+    if (const int slot = markerOfAction(param); slot > 0) {
+        if (const auto* cm = model_.byName(organism);
+            cm != nullptr && isClockPseudo(cm->displayClass)) {
+            fireMarker(organism, slot, value >= 0.5);
+            return;
+        }
+    }
+    if (isMarkerStepAction(param)) {
+        if (const auto* cm = model_.byName(organism);
+            cm != nullptr && isClockPseudo(cm->displayClass)) {
+            fireMarkerStep(organism, param == kMarkerNextAction ? +1 : -1, value >= 0.5);
+            return;
+        }
+    }
     if (isTransportAction(param)) {
         if (const auto* cm = model_.byName(organism);
             cm != nullptr && isClockPseudo(cm->displayClass)) {
@@ -56,12 +131,11 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
             return;
         }
     }
-    if (auto* rl = dynamic_cast<ReloadOnParam*>(liveOrganism(organism)); rl && rl->reloadsOn(param))
-        juce::MessageManager::callAsync([this, alive = hostAlive_, organism] {
-            if (*alive) onFileNodeChanged(organism, {}, false);
-        });
+    const auto* reloader = dynamic_cast<ReloadOnParam*>(liveOrganism(organism));
+    const bool reload = reloader != nullptr && reloader->reloadsOn(param)
+                        && liveParamValue(organism, param) != value;
     if (param == "Patch" && liveParamValue(organism, param) != value)
-        juce::MessageManager::callAsync([this, alive = hostAlive_, organism] {
+        scheduler_.post([this, alive = hostAlive_, organism] {
             if (*alive) pullVoiceParams(organism);
         });
     if (isPresetStepAction(param)) {
@@ -151,7 +225,19 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
                 c->params.add(np);
             }
         }
-    if (param == "Record") files().setRecorderActive(organism, value >= 0.5);
+    if (reload)
+        scheduler_.post([this, alive = hostAlive_, organism] {
+            if (*alive) onFileNodeChanged(organism, {}, false);
+        });
+    if (value >= 0.5) noteFired(organism, param);
+    if (param == "Record") {
+        files().setRecorderActive(organism, value >= 0.5);
+        record().noteRecordSwitch(organism, value >= 0.5);
+    } else {
+        record().noteTransport(organism, param, value);
+    }
+    if (decks().fireTrigger(organism, param, value)) return;
+    if (files().fireTrigger(organism, param, value)) return;
     if (param == "Channel") scheduleAuxChannelCheck();
     sendMidiOut(organism, param, value);
     noteTouch(organism, param);
@@ -175,7 +261,7 @@ void EngineHost::pullVoiceParams(const std::string& organism) {
     if (!src->voiceParams(vals)) return;
     for (const auto& [param, v] : vals) setParam(organism, param, v);
     if (onNodeRolled)
-        juce::MessageManager::callAsync([this, alive = hostAlive_, organism] {
+        scheduler_.post([this, alive = hostAlive_, organism] {
             if (*alive && onNodeRolled) onNodeRolled(organism);
         });
 }
@@ -192,6 +278,23 @@ void EngineHost::setRollLocked(const std::string& organism, const std::string& p
     ++changeStamp_;
 }
 
+void EngineHost::setRangeMode(const std::string& organism, const std::string& param, RangeMode mode) {
+    auto* cm = model_.byName(organism);
+    if (cm == nullptr) return;
+    const auto base = rangeBaseOf(param);
+    if (mode == rangeMode(organism, base)) return;
+    if (mode == RangeMode::ValueSpread) cm->rangeModes.erase(base);
+    else                                cm->rangeModes[base] = rangeModeName(mode);
+    dirty_ = true;
+    ++changeStamp_;
+    double lo = 0.0, hi = 0.0;
+    if (!storedSpan(organism, base, lo, hi)) return;
+    const auto key = spanKey(organism, base);
+    const auto known = spanIntent_.find(key);
+    const double want = known != spanIntent_.end() ? known->second.first : 0.5 * (lo + hi);
+    setRangeEnd(organism, base, want);
+}
+
 void EngineHost::setParamRange(const std::string& organism, const std::string& param,
                                double min, double max) {
     double wasLo = std::numeric_limits<double>::quiet_NaN(), wasHi = wasLo;
@@ -199,7 +302,10 @@ void EngineHost::setParamRange(const std::string& organism, const std::string& p
         if (const auto* cm = model_.byName(organism))
             for (const auto& p : cm->properties)
                 if (p.name == param) { wasLo = p.rangeMin; wasHi = p.rangeMax; }
-    dirty_ = true; ++changeStamp_;
+    const bool live = liveControl_;
+    if (live) ++liveControlGen_;
+    else      { recordParamRevert(organism, param); dirty_ = true; ++changeStamp_; }
+    if (!ownSpanIntent_) spanIntent_[spanKey(organism, param)] = {0.5 * (min + max), max - min};
     if (auto* c = model_.byName(organism)) {
         for (auto& p : c->properties)
             if (p.name == param) {
@@ -207,9 +313,9 @@ void EngineHost::setParamRange(const std::string& organism, const std::string& p
                 p.rangeMin = min;
                 p.rangeMax = max;
                 p.isRange = true;
-                p.userEdited = true;
+                if (!live) p.userEdited = true;
             }
-        c->presetDirty = true;
+        if (!live) c->presetDirty = true;
     }
     if (graph_)
         if (auto* c = graph_->find(organism))
@@ -269,6 +375,7 @@ void EngineHost::batchLiveParamValues(const std::string& name,
 bool EngineHost::isExternallyControlled(const std::string& organism,
                                        const std::string& param) const {
     if (automation().isAutomated(organism, param)) return true;
+    if (!varDrivingKnob(organism, param).empty()) return true;
     for (const auto& e : midiState_.map.entries())
         if (e.organism == organism && e.param == param) return true;
     for (const auto& e : mod().map().entries())
@@ -276,6 +383,11 @@ bool EngineHost::isExternallyControlled(const std::string& organism,
     for (const auto& e : osc().map().entries())
         if (e.organism == organism && e.param == param) return true;
     return false;
+}
+
+std::string EngineHost::translated(const std::string& key, const std::string& written) const {
+    return juce::translate(juce::String::fromUTF8(key.c_str()), juce::String::fromUTF8(written.c_str()))
+        .toStdString();
 }
 
 bool EngineHost::isLiveTracked(const std::string& organism, const std::string& param) const {
@@ -300,12 +412,28 @@ double EngineHost::liveParamMax(const std::string& organism, const std::string& 
     return 0.0;
 }
 
+void EngineHost::adoptTextParam(OrganismModel& cm, const std::string& param, const std::string& text) {
+    for (const auto& d : schemaFor(cm.classRaw)) {
+        if (d.name != param || !d.isText) continue;
+        Parameter p;
+        p.index = (int) cm.properties.size();
+        p.name = d.name;
+        p.type = d.isPlainText ? "text" : "soundfile";
+        p.text = text;
+        p.userEdited = true;
+        cm.properties.push_back(p);
+        return;
+    }
+}
+
 void EngineHost::setParamText(const std::string& organism, const std::string& param,
                               const std::string& text) {
     dirty_ = true; ++changeStamp_; ++textStamp_;
     if (auto* c = model_.byName(organism)) {
+        bool held = false;
         for (auto& p : c->properties)
-            if (p.name == param) { p.text = text; p.userEdited = true; }
+            if (p.name == param) { p.text = text; p.userEdited = true; held = true; }
+        if (!held) adoptTextParam(*c, param, text);
         c->presetDirty = true;
     }
     const auto forDsp = textForDsp(organism, text);
@@ -316,7 +444,13 @@ void EngineHost::setParamText(const std::string& organism, const std::string& pa
                 if (auto* p = c->params.byName(param)) p->text = forDsp;
     }
     if (graph_)
-        if (auto* c = graph_->find(organism)) c->onTextChanged(param, forDsp);
+        if (auto* c = graph_->find(organism)) {
+            c->onTextChanged(param, forDsp);
+            if (dynamic_cast<Tagged*>(c) != nullptr || dynamic_cast<NamedInlet*>(c) != nullptr) {
+                const juce::ScopedLock sl(lock_);
+                graph_->rebindNamedInlets();
+            }
+        }
     if (param.rfind("File", 0) == 0) onFileNodeChanged(organism, text, true, param);
     if (!audioRunning_) primeOffline(1);
 }

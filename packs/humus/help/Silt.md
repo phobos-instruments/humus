@@ -1,6 +1,6 @@
 # Silt
 
-A three-voice chip synth emulating the MOS SID, the home computer sound chip, through the reSID core.
+A three-voice chip synth emulating the MOS SID, the home computer sound chip, through the [reSID](https://github.com/daglem/reSID) core.
 
 Both the original 6581 and the cleaner 8580 revision are emulated cycle by cycle, analog filter included. Three voices share one filter as the hardware did; a fourth note steals the oldest voice. Every voice plays the same wave, pulse width and the chip's own four-stage envelope in its native sixteen steps. Pitch comes from the patch tuning to the resolution of the chip's frequency registers, so a microtonal scale plays. Twin mode adds a second chip, as the modded boards did, doubling every note with the pair detuned across the stereo image. Play it over a MIDI cord from a PianoRoll, DNA or MidiIn, or with the keyboard while its editor is focused.
 

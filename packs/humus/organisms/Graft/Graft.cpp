@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "Graft/Graft.h"
 
 #include <algorithm>
@@ -241,7 +242,7 @@ std::string Graft::originName(int origin) const {
     if (origin < 0 || origin >= kGraftSlots || uris_[(size_t) origin].empty()) return {};
     std::string path = uris_[(size_t) origin];
     if (path.rfind("file://", 0) == 0) path = path.substr(7);
-    return juce::File(juce::String(juce::CharPointer_UTF8(path.c_str())))
+    return fileAt(path)
         .getFileNameWithoutExtension()
         .toStdString();
 }

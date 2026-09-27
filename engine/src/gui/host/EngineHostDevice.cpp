@@ -32,7 +32,7 @@ void EngineHost::requestFadeIn() {
 }
 
 void EngineHost::persistAudioState() {
-    if (auto state = devices_.createStateXml())
+    if (auto state = audio_->state())
         AppSettings::instance().set(kAudioStateKey, state->toString());
 }
 
@@ -56,20 +56,20 @@ void EngineHost::startAudioAsync(std::function<void(bool, std::string)> done) {
         juce::parseXML(AppSettings::instance().getString(kAudioStateKey)).release());
     if (saved) saved->removeAttribute("audioDeviceRate");
 
-    juce::MessageManager::callAsync([this, alive = hostAlive_, saved, done = std::move(done)] {
+    scheduler_.post([this, alive = hostAlive_, saved, done = std::move(done)] {
         if (!*alive) return;
-        juce::String e = devices_.initialise(2, 2, saved.get(), true);
-        if (e.isNotEmpty()) e = devices_.initialise(0, 2, saved.get(), true);
-        if (e.isNotEmpty()) e = devices_.initialise(0, 2, nullptr, true);
+        juce::String e = audio_->open(2, 2, saved.get());
+        if (e.isNotEmpty()) e = audio_->open(0, 2, saved.get());
+        if (e.isNotEmpty()) e = audio_->open(0, 2, nullptr);
         audioStarting_ = false;
         if (cancelStart_) {
             cancelStart_ = false;
-            devices_.closeAudioDevice();
+            audio_->close();
             if (done) done(false, "cancelled");
             return;
         }
         if (e.isNotEmpty()) { if (done) done(false, e.toStdString()); return; }
-        devices_.addAudioCallback(this);
+        audio_->attach(*this);
         audioRunning_ = true;
         requestFadeIn();
         if (done) done(true, {});
@@ -89,8 +89,8 @@ void EngineHost::stopAudio() {
     fadeTarget_.store(0.0f);
     for (int i = 0; i < 60 && fadeGainPub_.load() > 0.0005f; ++i)
         juce::Thread::sleep(1);
-    devices_.removeAudioCallback(this);
-    devices_.closeAudioDevice();
+    audio_->detach(*this);
+    audio_->close();
     audioRunning_ = false;
     fadeGainPub_.store(0.0f);
     level_[0].store(0.0f);
@@ -100,7 +100,7 @@ void EngineHost::stopAudio() {
 void EngineHost::scheduleAuxChannelCheck() {
     if (auxCheckPending_) return;
     auxCheckPending_ = true;
-    juce::MessageManager::callAsync([this, alive = hostAlive_] {
+    scheduler_.post([this, alive = hostAlive_] {
         if (!*alive) return;
         auxCheckPending_ = false;
         ensureAuxChannels();
@@ -109,7 +109,7 @@ void EngineHost::scheduleAuxChannelCheck() {
 
 void EngineHost::ensureAuxChannels() {
     if (!audioRunning_) return;
-    auto* dev = devices_.getCurrentAudioDevice();
+    auto* dev = audio_->current();
     if (dev == nullptr || graph_ == nullptr) return;
 
     juce::BigInteger needIn, needOut;
@@ -153,13 +153,13 @@ void EngineHost::ensureAuxChannels() {
     auxTriedIn_ = wantIn;
     auxTriedOut_ = wantOut;
 
-    auto setup = devices_.getAudioDeviceSetup();
+    auto setup = audio_->setup();
     setup.inputChannels = wantIn;
     setup.outputChannels = wantOut;
     setup.useDefaultInputChannels = false;
     setup.useDefaultOutputChannels = false;
     deviceRestarts_.fetch_add(1, std::memory_order_relaxed);
-    devices_.setAudioDeviceSetup(setup, true);
+    audio_->applySetup(setup);
     persistAudioState();
 }
 
@@ -206,8 +206,8 @@ void EngineHost::holdAudio(bool held) {
     if (held == audioHeld_) return;
     audioHeld_ = held;
     if (!audioRunning_) return;
-    if (held) devices_.removeAudioCallback(this);
-    else devices_.addAudioCallback(this);
+    if (held) audio_->detach(*this);
+    else audio_->attach(*this);
 }
 
 }

@@ -29,7 +29,7 @@ inline juce::String organismBlurb(const std::string& cls) {
             const auto blocks = help_detail::parseHelpDoc(doc, juce::String(display)).second;
             for (const auto& b : blocks)
                 if (b.kind == help_detail::Block::Para && b.a.isNotEmpty()) {
-                    out = juce::String::fromUTF8(picker::firstSentence(b.a.toStdString()).c_str());
+                    out = juce::String::fromUTF8(picker::firstSentence(help_detail::withoutLinks(b.a).toStdString()).c_str());
                     break;
                 }
         }

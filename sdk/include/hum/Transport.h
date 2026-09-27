@@ -14,6 +14,9 @@
 
 namespace hum {
 
+inline constexpr double kMinTempoBpm = 1.0;
+inline constexpr double kMaxTempoBpm = 999.0;
+
 class Transport {
 public:
     const TransportExt* ext() const { return ext_; }

@@ -1,19 +1,22 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <array>
 #include <atomic>
 
 #include "hum/caps/Audio.h"
 #include "hum/caps/Midi.h"
 #include "hum/Organism.h"
+#include "hum/dsp/ChordTrack.h"
 #include "hum/dsp/PitchTrack.h"
 
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
 
-class Decomposer : public Organism, public MidiNode, public PitchDetectSource {
+class Decomposer : public Organism, public MidiNode, public PitchDetectSource,
+                   public ChordDetectSource {
 public:
     int numAudioInputs() const override { return 1; }
     int numAudioOutputs() const override { return 0; }
@@ -37,9 +40,19 @@ public:
     float detectLevel() const override { return rLevel_.load(std::memory_order_relaxed); }
     int detectedNote() const override { return rNote_.load(std::memory_order_relaxed); }
 
+    int chordNotes(int* out, int capacity) const override {
+        const int n = std::min(capacity, rChordCount_.load(std::memory_order_relaxed));
+        for (int i = 0; i < n; ++i) out[i] = rChord_[(size_t) i].load(std::memory_order_relaxed);
+        return n;
+    }
+
 private:
     void emit(int offset, bool on, int note, int vel);
     void segmentMono(int blockEndOffset);
+    void segmentChord(int blockEndOffset);
+    void publishChord();
+    void silenceChord(int offset);
+    int chordVelocity(int note) const;
     void allNotesOff(int offset);
     int medianNote(int raw);
 
@@ -49,6 +62,11 @@ private:
     int confirmFrames_ = 2, releaseFrames_ = 3;
 
     PitchTracker tracker_;
+    ChordTracker chords_;
+    int voices_ = 1;
+    std::array<unsigned char, kMidiMax + 1> heard_{};
+    std::array<unsigned char, kMidiMax + 1> missed_{};
+    std::array<bool, kMidiMax + 1> sounding_{};
     int curNote_ = -1;
     int candNote_ = -1, candFrames_ = 0;
     int silentFrames_ = 0;
@@ -59,6 +77,8 @@ private:
 
     std::atomic<float> rHz_{0.0f}, rClar_{0.0f}, rLevel_{0.0f};
     std::atomic<int> rNote_{-1};
+    std::array<std::atomic<int>, ChordDetectSource::kMaxChordNotes> rChord_{};
+    std::atomic<int> rChordCount_{0};
 
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> out_;
     int outCount_ = 0;

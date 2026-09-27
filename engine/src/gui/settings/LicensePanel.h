@@ -70,13 +70,13 @@ public:
         addAndMakeVisible(updates_);
 
         recap_.setText(tr("license.sharing-sends-anonymous-usage-counts",
-           "Sharing sends anonymous usage counts (like which "
-           "organisms you plant or how often you save) and whether "
-           "the last session crashed. The startup update check asks "
-           "our server once per launch. Both are tied to a random "
-           "ID, not to you - no names, no emails, no patch "
-           "contents, ever. With both off, Humus never touches the "
-           "network except when you ask it to."),
+           "The startup update check asks our server once per launch "
+           "and sends the app version and the platform. Sharing sends "
+           "anonymous usage counts (like which organisms you plant or "
+           "how often you save) and whether the last session crashed. "
+           "Both are tied to a random ID, not to you - no names, no "
+           "emails, no patch contents, ever. With both off, Humus never "
+           "touches the network except when you ask it to."),
                        juce::dontSendNotification);
         recap_.setFont(juce::FontOptions(12.0f));
         recap_.setColour(juce::Label::textColourId, Palette::textDim);
@@ -125,8 +125,8 @@ public:
         feedback_.setBounds(r.removeFromTop(22));
         r.removeFromTop(18);
         privacyTitle_.setBounds(r.removeFromTop(24));
-        consent_.setBounds(r.removeFromTop(26));
         updates_.setBounds(r.removeFromTop(26));
+        consent_.setBounds(r.removeFromTop(26));
         recap_.setBounds(r.removeFromTop(96));
     }
 

@@ -1,13 +1,24 @@
 {
   "width": 293,
-  "height": 80,
+  "height": 96,
   "controls": [
+    {
+      "type": "combo",
+      "param": "",
+      "label": "Inputs",
+      "x": 12,
+      "y": 6,
+      "w": 108,
+      "h": 20,
+      "options": ["2", "3", "4", "5", "6", "7", "8"],
+      "reclass": "inputs"
+    },
     {
       "type": "hslider",
       "param": "Fade",
-      "label": "A \u00b7 Fade \u00b7 B",
+      "label": "A · Fade · B",
       "x": 12,
-      "y": 24,
+      "y": 40,
       "w": 204,
       "h": 30
     },
@@ -16,7 +27,7 @@
       "param": "Curve",
       "label": "Curve",
       "x": 226,
-      "y": 6,
+      "y": 22,
       "w": 56,
       "h": 68,
       "decimals": 2

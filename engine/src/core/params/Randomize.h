@@ -11,11 +11,23 @@
 
 #include <juce_core/juce_core.h>
 
+#include "core/params/Dice.h"
 #include "core/params/ParamSchema.h"
+#include "core/params/PatternRolls.h"
 #include "hum/PatternMatrix.h"
 #include "hum/dsp/WaveTable.h"
 
 namespace hum {
+
+class JuceDice : public Dice {
+public:
+    explicit JuceDice(juce::Random& random) : random_(random) {}
+    double nextDouble() override { return random_.nextDouble(); }
+    int nextInt(int below) override { return random_.nextInt(below); }
+
+private:
+    juce::Random& random_;
+};
 
 namespace roll {
 inline constexpr std::string_view kFormula = "formula";
@@ -30,7 +42,7 @@ inline bool isPatternRoll(std::string_view k) { return k == kBassline || k == kT
 
 inline bool hasRandomParams(const std::vector<ParamDesc>& schema) {
     for (const auto& d : schema)
-        if (d.randomize && !d.isText && !d.isRange) return true;
+        if (d.randomize && !d.isText) return true;
     return false;
 }
 
@@ -39,9 +51,43 @@ inline std::vector<std::pair<std::string, double>> randomParamValues(
     std::vector<std::pair<std::string, double>> out;
     for (const auto& d : schema) {
         if (!d.randomize || d.isText || d.isRange) continue;
-        double v = d.min + r.nextDouble() * (d.max - d.min);
+        double v = d.rollLow() + r.nextDouble() * (d.rollHigh() - d.rollLow());
         if (d.isBool || d.isEnum || d.isInt) v = std::round(v);
-        out.emplace_back(d.name, juce::jlimit(d.min, d.max, v));
+        out.emplace_back(d.name, juce::jlimit(d.rollLow(), d.rollHigh(), v));
+    }
+    return out;
+}
+
+inline constexpr double kRollSpanWidest = 0.5;
+
+struct RolledSpan {
+    std::string name;
+    double low = 0.0;
+    double high = 0.0;
+};
+
+inline RolledSpan rollSpan(const ParamDesc& d, double lo, double hi, juce::Random& r) {
+    RolledSpan span{d.name, lo, lo};
+    const double room = hi - lo;
+    if (room <= 0.0) return span;
+    const double width = r.nextDouble() * kRollSpanWidest * room;
+    span.low = lo + r.nextDouble() * (room - width);
+    span.high = span.low + width;
+    if (d.isBool || d.isEnum || d.isInt) {
+        span.low = std::round(span.low);
+        span.high = std::round(span.high);
+    }
+    span.low = juce::jlimit(lo, hi, span.low);
+    span.high = juce::jlimit(span.low, hi, span.high);
+    return span;
+}
+
+inline std::vector<RolledSpan> randomSpanValues(const std::vector<ParamDesc>& schema,
+                                                juce::Random& r) {
+    std::vector<RolledSpan> out;
+    for (const auto& d : schema) {
+        if (!d.randomize || d.isText || !d.isRange) continue;
+        out.push_back(rollSpan(d, d.rollLow(), d.rollHigh(), r));
     }
     return out;
 }
@@ -99,47 +145,6 @@ inline std::string randomFormula(juce::Random& r) {
     }
     if (r.nextInt(3) == 0) e = "(" + e + ")*(0.5 + 0.5*sin(tau*beat*0.25))";
     return e.toStdString();
-}
-
-inline int basslineRoot(const std::vector<BasslineStep>& steps) {
-    constexpr int kFallbackRoot = 45;
-    constexpr int kHighestRoot = kBasslineHighNote - 24;
-    std::array<int, kMidiMax + 1> count{};
-    for (const auto& s : steps)
-        if (s.gate && s.note >= 0 && s.note <= kMidiMax) ++count[(size_t) s.note];
-    int root = -1;
-    for (int n = 0; n <= kMidiMax; ++n)
-        if (count[(size_t) n] > (root < 0 ? 0 : count[(size_t) root])) root = n;
-    return root < 0 ? kFallbackRoot : juce::jlimit(kBasslineLowNote, kHighestRoot, root);
-}
-
-inline std::vector<BasslineStep> randomBassline(int steps, int rootNote, juce::Random& r) {
-    static const int kScale[] = {-5, 0, 0, 0, 3, 5, 7, 10, 12};
-    std::vector<BasslineStep> out((size_t) juce::jmax(1, steps));
-    for (size_t i = 0; i < out.size(); ++i) {
-        auto& s = out[i];
-        s.gate = i == 0 || r.nextDouble() < 0.65;
-        int n = rootNote + kScale[r.nextInt(juce::numElementsInArray(kScale))];
-        if (n - 12 >= kBasslineLowNote && r.nextDouble() < 0.12) n -= 12;
-        while (n < kBasslineLowNote) n += 12;
-        while (n > kBasslineHighNote) n -= 12;
-        s.note = n;
-        s.accent = s.gate && r.nextDouble() < 0.25;
-        s.slide = s.gate && r.nextDouble() < 0.20;
-    }
-    return out;
-}
-
-inline std::vector<bool> randomTriggerRow(int steps, double density, juce::Random& r) {
-    std::vector<bool> out((size_t) juce::jmax(0, steps), false);
-    if (out.empty() || density <= 0.0) return out;
-    bool any = false;
-    for (size_t i = 0; i < out.size(); ++i) {
-        out[i] = r.nextDouble() < density;
-        any = any || out[i];
-    }
-    if (!any) out[(size_t) r.nextInt((int) out.size())] = true;
-    return out;
 }
 
 inline std::string rolledText(std::string_view kind, juce::Random& r) {

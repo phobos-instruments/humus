@@ -8,6 +8,10 @@ Load a tape into the File slot, or drop a clip from the timeline onto it, and co
 
 **File** The video to play.
 
+**Follow** Takes the picture's position from Position instead of playing at its own rate. Cord a Deck's position outlet into Position and the video follows the record: scratch it, nudge it, rewind it, and the picture goes with the hand. Off, the file plays by itself at Rate.
+
+**Position** Where in the video to show, from its start to its end, when Follow is on.
+
 **Rate** The Speed knob, in percent. 100% is as recorded, 0% holds a still frame, 200% doubles it.
 
 **Opacity** How strongly this layer shows over the ones beneath it in a Lumen.

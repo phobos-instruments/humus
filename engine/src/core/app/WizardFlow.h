@@ -26,6 +26,15 @@ inline Page back(Page p) { return p <= kAudio ? kAudio : (Page) (p - 1); }
 inline bool isFirst(Page p) { return p == kAudio; }
 inline bool isLast(Page p) { return p == kFinish; }
 
+inline constexpr int kNeverChosen = -1;
+
+inline bool updatesStartTicked(int stored) { return stored != 0; }
+
+inline int updatesToStore(bool sawPrivacyPage, bool ticked, int stored) {
+    if (!sawPrivacyPage) return stored;
+    return ticked ? 1 : 0;
+}
+
 inline std::vector<std::string> summaryLines(const std::string& audioDevice,
                                              int midiInsEnabled,
                                              const std::string& themeName,
@@ -39,10 +48,10 @@ inline std::vector<std::string> summaryLines(const std::string& audioDevice,
                   + (midiInsEnabled == 1 ? " input" : " inputs") + " enabled");
     out.push_back("Theme: " + (themeName.empty() ? std::string("Humus") : themeName));
     out.push_back("Creation menus: " + std::string(modernMenus ? "Modern" : "Classic"));
-    out.push_back(std::string("Usage data: ")
-                  + (telemetryOn ? "shared anonymously" : "not shared"));
     out.push_back(std::string("Update checks: ")
                   + (updatesOn ? "at startup" : "only when you ask"));
+    out.push_back(std::string("Usage data: ")
+                  + (telemetryOn ? "shared anonymously" : "not shared"));
     return out;
 }
 

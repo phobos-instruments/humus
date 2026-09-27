@@ -40,10 +40,12 @@ void MainComponent::refreshAppearance() {
     if (auto* laf = dynamic_cast<HumLookAndFeel*>(&getLookAndFeel())) laf->refreshColours();
     sendLookAndFeelChange();
     repaint();
-    if (settingsWindow_ != nullptr) {
-        settingsWindow_->sendLookAndFeelChange();
-        settingsWindow_->repaint();
-    }
+    auto& desktop = juce::Desktop::getInstance();
+    for (int i = 0; i < desktop.getNumComponents(); ++i)
+        if (auto* window = desktop.getComponent(i); window != nullptr && window != getTopLevelComponent()) {
+            window->sendLookAndFeelChange();
+            window->repaint();
+        }
 }
 
 void MainComponent::serviceTrackerFeeds() {
@@ -75,7 +77,7 @@ void MainComponent::updateDspReadout() {
     const unsigned restarts = host_.deviceRestartCount();
     if (restarts != lastDeviceRestarts_) {
         lastDeviceRestarts_ = restarts;
-        setStatus(tr("main.audio-device-restarted-opening-aux", "audio device restarted (opening aux hardware channels)"));
+        notify(tr("main.audio-device-restarted-opening-aux", "audio device restarted (opening aux hardware channels)"));
     }
     dspLoadHold_ = juce::jmax(host_.audioLoad(), dspLoadHold_ * 0.94f);
     if (dspLoadHold_ < 0.005f) dspLoadHold_ = 0.0f;

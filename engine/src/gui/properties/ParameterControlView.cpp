@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/properties/ParameterControlView.h"
 
+#include <algorithm>
+
 namespace hum {
 
 ParameterControlView::ParameterControlView(PropertiesHost& host)
@@ -24,35 +26,54 @@ ParameterControlView::ParameterControlView(PropertiesHost& host)
     mapping_.onChanged = [this](const ControlShape& sh) { applyShape(sh); };
     addAndMakeVisible(mapping_);
 
-    addCcLabel_.setText(tr("parameter-control.add-cc", "Add CC"), juce::dontSendNotification);
-    addCcLabel_.setFont(juce::FontOptions(12.0f));
-    addAndMakeVisible(addCcLabel_);
-    addCcEdit_.setInputRestrictions(3, "0123456789");
-    addCcEdit_.setJustification(juce::Justification::centred);
-    addAndMakeVisible(addCcEdit_);
-    addBtn_.setButtonText(tr("parameter-control.add", "Add"));
-    addBtn_.onClick = [this] { addManualCc(); };
-    addAndMakeVisible(addBtn_);
-    captureBtn_.setButtonText(tr("parameter-control.capture-next-controller", "Capture next controller..."));
-    captureBtn_.onClick = [this] { capture(); };
-    addAndMakeVisible(captureBtn_);
+    modeLabel_.setText(tr("parameter-control.range-mode", "Range Mode"), juce::dontSendNotification);
+    modeLabel_.setFont(juce::FontOptions(11.5f));
+    modeLabel_.setColour(juce::Label::textColourId, Palette::textDim);
+    addChildComponent(modeLabel_);
+    mode_.addItem(tr("parameter-control.value-spread", "Value / Spread"), 1);
+    mode_.addItem(tr("parameter-control.min-max", "Minimum / Maximum"), 2);
+    mode_.addItem(tr("parameter-control.single", "Single"), 3);
+    mode_.onChange = [this] {
+        const auto c = selectedOrganism(), p = selectedParam();
+        if (c.empty() || p.empty()) return;
+        host_.setRangeMode(c, p, modeOfId(mode_.getSelectedId()));
+        rebuildSources();
+    };
+    addChildComponent(mode_);
 
-    addModLabel_.setText(tr("parameter-control.from", "From"), juce::dontSendNotification);
-    addModLabel_.setFont(juce::FontOptions(12.0f));
-    addAndMakeVisible(addModLabel_);
-    addAndMakeVisible(modSourceBox_);
-    addModBtn_.setButtonText(tr("parameter-control.add", "Add"));
-    addModBtn_.onClick = [this] { addModRoute(); };
-    addAndMakeVisible(addModBtn_);
+    totalRange_.setFont(juce::FontOptions(11.5f));
+    totalRange_.setColour(juce::Label::textColourId, Palette::textDim);
+    addAndMakeVisible(totalRange_);
+
+    for (int i = 0; i < 3; ++i) {
+        groupHead_[i].setFont(juce::FontOptions(10.5f));
+        groupHead_[i].setColour(juce::Label::textColourId, Palette::textDim);
+        groupHead_[i].setInterceptsMouseClicks(false, false);
+        groupEmpty_[i].setText(tr("parameter-control.nothing-yet", "nothing yet"),
+                               juce::dontSendNotification);
+        groupEmpty_[i].setFont(juce::FontOptions(12.0f));
+        groupEmpty_[i].setColour(juce::Label::textColourId, Palette::textDim);
+        groupEmpty_[i].setInterceptsMouseClicks(false, false);
+        groupLearn_[i].setButtonText(tr("parameter-control.learn", "Learn"));
+        groupLearn_[i].setTooltip(tr("parameter-control.learn-tip",
+                                     "Move a control on your device to map it here"));
+        groupLearn_[i].onClick = [this, i] { learnInto(i); };
+        groupAdd_[i].setButtonText("+");
+        groupAdd_[i].setTooltip(tr("parameter-control.add-tip",
+                                   "Add a CC number, a control to follow, or an OSC address"));
+        groupAdd_[i].onClick = [this, i] { showAddMenu(i); };
+    }
 
     hint_.setFont(juce::FontOptions(11.5f));
     hint_.setColour(juce::Label::textColourId, Palette::textDim);
     hint_.setJustificationType(juce::Justification::topLeft);
     addAndMakeVisible(hint_);
 
-    setSize(kWindowW, 560);
+    addMouseListener(this, true);
+
+    setSize(kWindowW, 600);
     rebuildOrganisms();
-    startTimerHz(2);
+    startTimerHz(15);
 }
 
 void ParameterControlView::selectParam(const std::string& organism, const std::string& param) {
@@ -63,9 +84,24 @@ void ParameterControlView::selectParam(const std::string& organism, const std::s
             organismSelected();
             for (size_t j = 0; j < paramNames_.size(); ++j)
                 if (paramNames_[j] == param) params_.selectRow((int) j);
+            if (!param.empty()) lastParam_[organism] = param;
             rebuildSources();
             return;
         }
+}
+
+void ParameterControlView::mouseDown(const juce::MouseEvent& e) {
+    if (e.mods.isPopupMenu())
+        if (const int row = rowOfComponent(e.originalComponent); row >= 0) {
+            showRowMenu(row);
+            return;
+        }
+    if (e.originalComponent != nullptr
+        && (dynamic_cast<juce::TextEditor*>(e.originalComponent) != nullptr
+            || e.originalComponent->findParentComponentOfClass<juce::TextEditor>() != nullptr))
+        return;
+    if (auto* focused = juce::Component::getCurrentlyFocusedComponent())
+        if (dynamic_cast<DragNumberEditor*>(focused) != nullptr) focused->giveAwayKeyboardFocus();
 }
 
 void ParameterControlView::resized() {
@@ -75,32 +111,26 @@ void ParameterControlView::resized() {
     params_.setBounds(area.removeFromLeft(kListW));
     area.removeFromLeft(kPanelGap);
 
-    sourcesTitle_.setBounds(area.removeFromTop(22));
-    auto foot = area.removeFromBottom(84);
-    mapping_.setBounds(area.removeFromBottom(168));
-    sourceRows_.setBounds(area.reduced(0, 4));
+    mapping_.setBounds(area.removeFromRight(kInspectorW));
+    area.removeFromRight(kPanelGap);
+    sourcesTitle_.setBounds(area.removeFromTop(20));
+    totalRange_.setBounds(area.removeFromTop(16));
+    area.removeFromTop(4);
+    const bool ranged = selectedIsRange();
+    modeLabel_.setVisible(ranged);
+    mode_.setVisible(ranged);
+    if (ranged) {
+        auto modeRow = area.removeFromTop(26);
+        modeLabel_.setBounds(modeRow.removeFromLeft(74));
+        mode_.setBounds(modeRow.removeFromLeft(190).reduced(0, 2));
+        area.removeFromTop(4);
+    }
 
-    auto addRowArea = foot.removeFromTop(26);
-    addCcLabel_.setBounds(addRowArea.removeFromLeft(52));
-    addCcEdit_.setBounds(addRowArea.removeFromLeft(48).reduced(0, 2));
-    addRowArea.removeFromLeft(6);
-    addBtn_.setBounds(addRowArea.removeFromLeft(56).reduced(0, 2));
-    addRowArea.removeFromLeft(12);
-    captureBtn_.setBounds(addRowArea.removeFromLeft(190).reduced(0, 2));
-    auto modRowArea = foot.removeFromTop(26);
-    addModLabel_.setBounds(modRowArea.removeFromLeft(52));
-    modSourceBox_.setBounds(modRowArea.removeFromLeft(190).reduced(0, 2));
-    modRowArea.removeFromLeft(6);
-    addModBtn_.setBounds(modRowArea.removeFromLeft(56).reduced(0, 2));
-    foot.removeFromTop(4);
-    hint_.setBounds(foot);
+    area.removeFromTop(8);
+    hint_.setBounds(area.removeFromBottom(46));
+
+    sourceRows_.setBounds(area);
     layoutSourceRows();
-}
-
-DragNumberEditor* ParameterControlView::sourceFieldForTest(int row, int which) {
-    if (row < 0 || row >= (int) rows_.size()) return nullptr;
-    auto& r = rows_[(size_t) row];
-    return which == 0 ? r.cc.get() : which == 1 ? r.min.get() : r.max.get();
 }
 
 void ParameterControlView::paintRow(juce::Graphics& g, int w, int h, bool sel, const std::string& text, bool mapped) {
@@ -123,48 +153,64 @@ std::string ParameterControlView::selectedParam() const {
 }
 
 bool ParameterControlView::isMapped(const std::string& c, const std::string& p) const {
-    return host_.isExternallyControlled(c, p);
+    return paramIsControlled(host_, c, p);
 }
 
-void ParameterControlView::markControlledOrganisms() {
-    controlledOrganisms_.clear();
-    for (const auto& n : names_)
-        for (const auto& p : controlTargets(host_, n))
-            if (isMapped(n, p)) { controlledOrganisms_.insert(n); break; }
+void ParameterControlView::normaliseEndBounds() {
+    const auto c = selectedOrganism(), p = selectedParam();
+    if (c.empty() || p.empty()) return;
+    for (const auto end : {RangeEnd::Whole, RangeEnd::Low, RangeEnd::High, RangeEnd::Spread}) {
+        const auto target = aimedParam(end);
+        const auto [lo, hi] = endBounds(host_, c, p, end);
+        auto off = [lo = lo, hi = hi](double a, double b) {
+            return std::abs(a - lo) > 1.0e-9 || std::abs(b - hi) > 1.0e-9;
+        };
+        std::vector<MidiSource> ccs;
+        for (const auto& e : host_.midi().map().entries())
+            if (e.organism == c && e.param == target && off(e.min, e.max)) ccs.push_back(e.source());
+        for (const auto& src : ccs) host_.midi().mapCC(src, c, target, lo, hi, false);
+        std::vector<std::pair<std::string, std::string>> routes;
+        for (const auto& e : host_.mod().map().entries())
+            if (e.organism == c && e.param == target && off(e.min, e.max))
+                routes.push_back({e.source, e.value});
+        for (const auto& r : routes) host_.mod().mapRoute(r.first, r.second, c, target, lo, hi);
+        std::vector<std::string> addrs;
+        for (const auto& e : host_.osc().map().entries())
+            if (e.organism == c && e.param == target && off(e.min, e.max)) addrs.push_back(e.address);
+        for (const auto& a : addrs) host_.osc().mapAddress(a, c, target, lo, hi, false);
+    }
 }
 
-void ParameterControlView::rebuildOrganisms() {
-    const auto prev = selectedOrganism();
-    names_.clear();
-    for (const auto& cm : host_.model().organisms)
-        if (!controlTargets(host_, cm.name).empty()) names_.push_back(cm.name);
-    markControlledOrganisms();
-    organisms_.updateContent();
-    organisms_.repaint();
-    int sel = names_.empty() ? -1 : 0;
-    for (size_t i = 0; i < names_.size(); ++i)
-        if (names_[i] == prev) sel = (int) i;
-    if (sel >= 0) organisms_.selectRow(sel);
-    organismSelected();
+RangeMode ParameterControlView::modeOfId(int id) {
+    return id == 2 ? RangeMode::MinMax : id == 3 ? RangeMode::Single : RangeMode::ValueSpread;
 }
 
-void ParameterControlView::organismSelected() {
-    paramNames_ = controlTargets(host_, selectedOrganism());
-    params_.updateContent();
-    params_.repaint();
-    rebuildSources();
+int ParameterControlView::idOfMode(RangeMode mode) {
+    return mode == RangeMode::MinMax ? 2 : mode == RangeMode::Single ? 3 : 1;
 }
 
-void ParameterControlView::later(std::function<void()> fn) {
-    juce::MessageManager::callAsync(
-        [safe = juce::Component::SafePointer<ParameterControlView>(this), fn] {
-            if (safe != nullptr) fn();
-        });
+bool ParameterControlView::selectedIsRange() const {
+    const auto p = selectedParam();
+    return !p.empty() && paramIsRange(host_, selectedOrganism(), p);
+}
+
+std::string ParameterControlView::aimedParam(RangeEnd end) const {
+    return rangeEndParam(selectedParam(), end);
 }
 
 void ParameterControlView::rebuildSources() {
+    const auto [focusRow, focusWhich] = focusedField();
+    const int keep = selectedSource_;
+    const auto keepParam = shownParam_;
+    mappedValues_.clear();
     rows_.clear();
     sourceRows_.removeAllChildren();
+    for (int i = 0; i < 3; ++i) {
+        sourceRows_.addChildComponent(groupHead_[i]);
+        sourceRows_.addChildComponent(groupEmpty_[i]);
+        sourceRows_.addChildComponent(groupLearn_[i]);
+        sourceRows_.addChildComponent(groupAdd_[i]);
+    }
     const auto c = selectedOrganism();
     const auto p = selectedParam();
     const juce::String sfx = p.empty() ? juce::String() : juce::String(unitSuffix(rowUnit()));
@@ -174,30 +220,59 @@ void ParameterControlView::rebuildSources() {
                                           + (sfx.isEmpty() ? "" : "  (" + sfx + ")"),
                           juce::dontSendNotification);
     const bool enable = !p.empty();
-    addCcEdit_.setEnabled(enable);
-    addBtn_.setEnabled(enable);
-    captureBtn_.setEnabled(enable && MidiLearner::instance().armed() == false);
+    const bool ranged = selectedIsRange();
+    if (enable && ranged) normaliseEndBounds();
 
     if (enable) {
-        for (const auto& e : host_.midi().map().entries())
-            if (e.organism == c && e.param == p) addCcRow(e.source(), e.min, e.max, e.shape);
-        for (const auto& e : host_.osc().map().entries())
-            if (e.organism == c && e.param == p) addOscRow(e.address, e.shape);
-        for (const auto& e : host_.mod().map().entries())
-            if (e.organism == c && e.param == p)
-                addModRow(e.source, e.value, e.min, e.max, e.shape);
+        for (const auto end : shownEnds()) {
+            const auto target = aimedParam(end);
+            for (const auto& e : host_.midi().map().entries())
+                if (e.organism == c && e.param == target)
+                    addCcRow(e.source(), e.min, e.max, e.shape, end, !ranged);
+            for (const auto& e : host_.osc().map().entries())
+                if (e.organism == c && e.param == target) addOscRow(e.address, e.shape, end);
+            for (const auto& e : host_.mod().map().entries())
+                if (e.organism == c && e.param == target)
+                    addModRow(e.source, e.value, e.min, e.max, e.shape, end, !ranged);
+            if (learnAimsAtForTest(target)) addWaitingRow(end);
+        }
     }
-    rebuildModSourceBox(enable);
-    selectSource(rows_.empty() ? -1 : 0);
-    hint_.setText(rows_.empty()
-                      ? "No control sources for this parameter yet. Type a CC number and "
-                        "Add, or Capture and move a hardware control (Quick-Map)."
-                      : "Edit CC / range in place (Return applies). "
-                        + juce::String(juce::CharPointer_UTF8("\xe2\x97\x8f"))
-                        + " marks what is automated or mapped.",
+    rebuildModSourceBox();
+    if (selectedIsRange())
+        mode_.setSelectedId(idOfMode(host_.rangeMode(c, p)), juce::dontSendNotification);
+    const auto [lo, hi] = rowSpan();
+    totalRange_.setText(enable ? tr("parameter-control.total-range", "Total range: ")
+                                     + unitPlain(rowUnit(), lo, lo, hi) + " to "
+                                     + unitPlain(rowUnit(), hi, lo, hi) + " "
+                                     + juce::String(unitSuffix(rowUnit()))
+                               : juce::String(),
+                        juce::dontSendNotification);
+    shownParam_ = c + "\t" + p;
+    const bool sameParam = keepParam == shownParam_;
+    selectSource(rows_.empty() ? -1 : sameParam ? juce::jlimit(0, (int) rows_.size() - 1, keep) : 0);
+    hint_.setText(hiddenMappings()
+                      ? tr("parameter-control.hint-hidden",
+                           "This parameter also has sources in the other Range Mode. "
+                           "Switch back to see them.")
+                  : rows_.empty()
+                      ? tr("parameter-control.hint-empty",
+                           "Nothing controls this yet. Learn a controller, type a CC number, "
+                           "or follow something already in the patch.")
+                      : ranged
+                      ? tr("parameter-control.hint-span",
+                           "Each source sweeps the parameter's whole range. "
+                           "Right-click one to move it to another slot.")
+                      : tr("parameter-control.hint-pick",
+                           "Pick a source to edit it on the right. "
+                           "Right-click one for more."),
                   juce::dontSendNotification);
     mapSignature_ = signature();
-    layoutSourceRows();
+    wasLearning_ = MidiLearner::instance().armed();
+    resized();
+    if (auto* ed = sourceFieldForTest(focusRow, focusWhich)) {
+        ed->grabKeyboardFocus();
+        ed->selectAll();
+    }
 }
 
 std::pair<double, double> ParameterControlView::rowSpan() const {
@@ -211,41 +286,12 @@ juce::String ParameterControlView::numText(double v) const {
 
 double ParameterControlView::numValue(const juce::String& text) const {
     const auto [lo, hi] = rowSpan();
-    return unitPlainParse(rowUnit(), text, lo, hi);
+    const double v = unitPlainParse(rowUnit(), text, lo, hi);
+    return hi > lo ? juce::jlimit(lo, hi, v) : v;
 }
 
 juce::String ParameterControlView::rangeChars() {
     return juce::String::fromUTF8("0123456789.,-#ABCDEFGLR\xe2\x88\x9e");
-}
-
-void ParameterControlView::layoutSourceRows() {
-    int y = 0;
-    for (auto& r : rows_) {
-        auto b = juce::Rectangle<int>(0, y, sourceRows_.getWidth(), kRowH).reduced(0, 3);
-        r.kind->setBounds(b.removeFromLeft(kKindW));
-        if (r.isMod) {
-            r.address->setBounds(b.removeFromLeft(140));
-            b.removeFromLeft(8);
-            r.min->setBounds(b.removeFromLeft(kBoundW));
-            b.removeFromLeft(4);
-            r.max->setBounds(b.removeFromLeft(kBoundW));
-        } else if (r.cc) {
-            if (r.held) {
-                r.held->setBounds(b.removeFromLeft(kHeldW));
-                b.removeFromLeft(4);
-            }
-            r.cc->setBounds(b.removeFromLeft(kCcW));
-            b.removeFromLeft(8);
-            r.min->setBounds(b.removeFromLeft(kBoundW));
-            b.removeFromLeft(4);
-            r.max->setBounds(b.removeFromLeft(kBoundW));
-        } else if (r.address) {
-            r.address->setBounds(b.removeFromLeft(184));
-        }
-        b.removeFromLeft(10);
-        r.remove->setBounds(b.removeFromLeft(kRemoveW));
-        y += kRowH;
-    }
 }
 
 juce::String ParameterControlView::signature() const {
@@ -262,11 +308,13 @@ juce::String ParameterControlView::signature() const {
 
 void ParameterControlView::timerCallback() {
     if (!isShowing()) return;
+    updateLive();
     if (signature() != mapSignature_) {
         rebuildOrganisms();
         params_.repaint();
+    } else if (MidiLearner::instance().armed() != wasLearning_) {
+        rebuildSources();
     }
-    captureBtn_.setEnabled(!selectedParam().empty() && !MidiLearner::instance().armed());
 }
 
 }

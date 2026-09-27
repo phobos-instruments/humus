@@ -16,6 +16,20 @@ if not defined BUILD_TYPE set "BUILD_TYPE=Release"
 set "GUI=%BUILD_DIR%\hum_gui_artefacts\%BUILD_TYPE%\Humus.exe"
 set "CLI=%BUILD_DIR%\%BUILD_TYPE%\hum.exe"
 
+rem CMake from PATH, else the copy inside Visual Studio, which is not on PATH.
+set "CMAKE="
+for /f "delims=" %%p in ('where cmake 2^>nul') do if not defined CMAKE set "CMAKE=%%p"
+rem Outside any ( ) block: the ")" in ProgramFiles(x86) would close it.
+set "PF86=%ProgramFiles(x86)%"
+set "VSWHERE=%PF86%\Microsoft Visual Studio\Installer\vswhere.exe"
+if not exist "%VSWHERE%" set "VSWHERE=%ProgramFiles%\Microsoft Visual Studio\Installer\vswhere.exe"
+if not defined CMAKE (
+  if exist "!VSWHERE!" (
+    for /f "usebackq delims=" %%p in (`"!VSWHERE!" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath 2^>nul`) do set "VSDIR=%%p"
+  )
+  if defined VSDIR if exist "!VSDIR!\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" set "CMAKE=!VSDIR!\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
+)
+
 rem Every exit check below is `neq 0`, never `if errorlevel 1`: "errorlevel N"
 rem means "N or higher", and a Windows crash exits NEGATIVE - an access
 rem violation is 0xC0000005, i.e. -1073741819 signed - so `if errorlevel 1`
@@ -44,18 +58,19 @@ echo.
 goto usage
 
 :configure
+call :needcmake || exit /b 1
 if exist "%BUILD_DIR%\CMakeCache.txt" (
   echo already configured in "%BUILD_DIR%" - delete it or run `make clean` to start over
   exit /b 0
 )
 echo configuring ^(fetches JUCE on first run - needs a network^)...
-cmake -S "%ENGINE_DIR%" -B "%BUILD_DIR%" -A x64
+"%CMAKE%" -S "%ENGINE_DIR%" -B "%BUILD_DIR%" -A x64
 if !ERRORLEVEL! neq 0 (echo. & echo ERROR: configure failed. & exit /b 1)
 exit /b 0
 
 :build
 call :ensure || exit /b 1
-cmake --build "%BUILD_DIR%" --config %BUILD_TYPE%
+"%CMAKE%" --build "%BUILD_DIR%" --config %BUILD_TYPE%
 if !ERRORLEVEL! neq 0 (echo. & echo ERROR: build failed. & exit /b 1)
 echo.
 echo the command-line tool is built alongside the app:
@@ -67,7 +82,7 @@ rem hum_gui_bundle, not hum_gui: linking leaves the executable unstaged, so the
 rem app would run against whatever packs an older build left beside it.
 :run
 call :ensure || exit /b 1
-cmake --build "%BUILD_DIR%" --config %BUILD_TYPE% --target hum_gui_bundle
+"%CMAKE%" --build "%BUILD_DIR%" --config %BUILD_TYPE% --target hum_gui_bundle
 if !ERRORLEVEL! neq 0 (echo. & echo ERROR: build failed. & exit /b 1)
 if not exist "%GUI%" (echo ERROR: "%GUI%" is missing after a successful build. & exit /b 1)
 "%GUI%" %2 %3 %4 %5 %6 %7 %8 %9
@@ -75,7 +90,7 @@ exit /b !ERRORLEVEL!
 
 :pack
 call :ensure || exit /b 1
-cmake --build "%BUILD_DIR%" --config %BUILD_TYPE% --target humpacks
+"%CMAKE%" --build "%BUILD_DIR%" --config %BUILD_TYPE% --target humpacks
 if !ERRORLEVEL! neq 0 (echo. & echo ERROR: build failed. & exit /b 1)
 echo packs are in "%BUILD_DIR%\humpacks"
 exit /b 0
@@ -119,12 +134,21 @@ if exist "%BUILD_DIR%" (
 exit /b 0
 
 :ensure
+call :needcmake || exit /b 1
 if not exist "%BUILD_DIR%\CMakeCache.txt" (
   echo configuring ^(fetches JUCE on first run - needs a network^)...
-  cmake -S "%ENGINE_DIR%" -B "%BUILD_DIR%" -A x64
+  "%CMAKE%" -S "%ENGINE_DIR%" -B "%BUILD_DIR%" -A x64
   if !ERRORLEVEL! neq 0 (echo. & echo ERROR: configure failed. & exit /b 1)
 )
 exit /b 0
+
+:needcmake
+if defined CMAKE exit /b 0
+echo ERROR: cmake.exe not found - neither on PATH nor inside Visual Studio.
+echo      Install "Desktop development with C++" from the Visual Studio Installer
+echo      ^(Community is enough; it includes "C++ CMake tools for Windows"^),
+echo      or install CMake from https://cmake.org/download/.
+exit /b 1
 
 :usage
 echo Humus - make targets:

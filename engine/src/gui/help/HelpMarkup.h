@@ -36,7 +36,7 @@ inline juce::String tidy(const juce::String& s) {
 }
 
 struct Block {
-    enum Kind { Header, Para, Def, Image } kind;
+    enum Kind { Header, Para, Def, Image, Code } kind;
     juce::String a, b;
     int level = 0;
     bool rich = false;

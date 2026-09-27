@@ -5,10 +5,11 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "core/params/ParamSchema.h"
+#include "core/midi/MidiFormat.h"
+#include "gui/editor/inputs/NumberInputs.h"
 #include "gui/bricks/PolledBrick.h"
+#include "gui/editor/juce/PanelScroller.h"
 #include "gui/host/BrickHost.h"
-#include "io/PatchDocument.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/pianoroll/PianoNotePicker.h"
 
@@ -18,12 +19,15 @@ namespace hum {
 
 class NoteFieldBrick : public PolledBrick {
 public:
-    NoteFieldBrick(BrickHost& host, std::string cn, std::string param)
-        : PolledBrick(host, std::move(cn), 4), param_(std::move(param)) {
-        if (const auto* cm = host_.model().byName(name_))
-            for (const auto& d : schemaFor(cm->classRaw))
-                if (d.name == param_) { lo_ = (int) d.min; hi_ = (int) d.max; break; }
-        last_ = (int) host_.liveParamValue(name_, param_);
+    static constexpr int kPitchClasses = 12;
+    static constexpr int kMiddleOctave = 60;
+
+    NoteFieldBrick(BrickHost& host, std::string cn, std::string param, bool pitchClass = false)
+        : PolledBrick(host, cn, 4), param_(std::move(param)), pitchClass_(pitchClass),
+          note_(host, cn, param_, 0, pitchClass ? kPitchClasses - 1 : kMidiMax) {}
+
+    static int storedNote(int picked, bool pitchClass) {
+        return pitchClass ? ((picked % kPitchClasses) + kPitchClasses) % kPitchClasses : picked;
     }
 
     void reloadValues() override { repaint(); }
@@ -39,8 +43,7 @@ public:
         g.drawRoundedRectangle(r.reduced(0.5f), 4.0f, 1.0f);
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(13.0f));
-        g.drawText(PianoNotePicker::noteName((int) host_.liveParamValue(name_, param_)),
-                   getLocalBounds(), juce::Justification::centred);
+        g.drawText(shownName(), getLocalBounds(), juce::Justification::centred);
     }
 
     void mouseEnter(const juce::MouseEvent&) override { hover_ = true; repaint(); }
@@ -52,23 +55,42 @@ public:
             if (onPopup) onPopup(e.getScreenPosition());
             return;
         }
-        showNotePicker(host_, name_, param_, localAreaToGlobal(getLocalBounds()), lo_, hi_,
-                       [this] { repaint(); });
+        if (pitchClass_)
+            pickPitchClass();
+        else
+            showNotePicker(host_, name_, param_, localAreaToGlobal(getLocalBounds()), note_.lowest(), note_.highest(),
+                           [this] { repaint(); });
     }
-    void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& w) override {
-        const int n = (int) host_.liveParamValue(name_, param_);
-        const int nx = juce::jlimit(lo_, hi_, n + (w.deltaY > 0 ? 1 : -1));
-        if (nx != n) { host_.editParam(name_, param_, (double) nx); repaint(); }
+    void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& w) override {
+        if (PanelScroller::takesWheel(*this, e, w)) return;
+        if (note_.step(w.deltaY > 0 ? 1 : -1)) repaint();
     }
 
 private:
+    juce::String shownName() const {
+        const int n = note_.note();
+        if (pitchClass_) return pitchClassName(storedNote(n, true));
+        return midiNoteName(juce::jlimit(0, kMidiMax, n));
+    }
+
+    void pickPitchClass() {
+        auto picker = std::make_unique<PianoNotePicker>(
+            kMiddleOctave + storedNote(note_.note(), true), 0, kMidiMax,
+            [this](int n) {
+                host_.editParam(name_, param_, (double) storedNote(n, true));
+                repaint();
+            },
+            &host_.midi());
+        juce::CallOutBox::launchAsynchronously(std::move(picker), localAreaToGlobal(getLocalBounds()), nullptr);
+    }
+
     void poll() override {
-        const int v = (int) host_.liveParamValue(name_, param_);
-        if (v != last_) { last_ = v; repaint(); }
+        if (note_.poll()) repaint();
     }
 
     std::string param_;
-    int lo_ = 0, hi_ = kMidiMax, last_ = 0;
+    bool pitchClass_ = false;
+    input::NoteInput note_;
     bool hover_ = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NoteFieldBrick)

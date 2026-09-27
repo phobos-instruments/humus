@@ -205,7 +205,7 @@ int MetaEditor::addSnapshot(const std::string& name) {
                                                  0.35f, 0.95f, 1.0f);
     snap.colour = "#" + c.toDisplayString(false).toStdString();
 
-    const bool firstSnapshot = ms.snapshots.empty();
+    completeMask();
     for (const auto& c2 : doc_.document().organisms) {
         SnapshotOrganism sc;
         sc.organismName = c2.name;
@@ -213,7 +213,6 @@ int MetaEditor::addSnapshot(const std::string& name) {
             if (isNumericParam(p)) {
                 if (p.isRange) sc.values.push_back({p.index, "range", p.rangeMin, p.rangeMax});
                 else sc.values.push_back({p.index, p.type.empty() ? "double" : p.type, p.value, 0.0});
-                if (firstSnapshot) ms.mask.push_back({c2.name, p.index, true});
             }
         if (!sc.values.empty()) snap.organisms.push_back(std::move(sc));
     }
@@ -227,6 +226,7 @@ void MetaEditor::storeSnapshot(int index) {
     auto& ms = doc_.document().metapad;
     for (auto& s : ms.snapshots)
         if (s.index == index) {
+            completeMask();
             s.organisms.clear();
             for (const auto& c : doc_.document().organisms) {
                 SnapshotOrganism sc; sc.organismName = c.name;
@@ -310,6 +310,36 @@ void MetaEditor::setMask(const std::string& organism, int propertyIndex, bool re
             e.restore = restore; doc_.flagDirty(); return;
         }
     doc_.document().metapad.mask.push_back({organism, propertyIndex, restore});
+    doc_.flagDirty();
+}
+
+std::vector<metascope::Entry> MetaEditor::maskEntries() const {
+    std::vector<metascope::Entry> out;
+    for (const auto& e : doc_.document().metapad.mask) out.push_back({e.organismName, e.propertyIndex, e.restore});
+    return out;
+}
+
+void MetaEditor::completeMask() {
+    std::vector<metascope::Knob> knobs;
+    for (const auto& c : doc_.document().organisms)
+        for (const auto& p : c.properties)
+            if (isNumericParam(p)) knobs.push_back({c.name, p.index});
+    auto& mask = doc_.document().metapad.mask;
+    const auto next = metascope::tidied(maskEntries(), knobs);
+    mask.clear();
+    for (const auto& e : next) mask.push_back({e.organism, e.property, e.restore});
+}
+
+void MetaEditor::scopeMask(metascope::Scope scope, const std::string& pod) {
+    std::vector<metascope::Knob> knobs;
+    for (const auto& c : doc_.document().organisms)
+        for (const auto& p : c.properties)
+            if (isNumericParam(p)) knobs.push_back({c.name, p.index});
+    host_.pushUndo();
+    auto& mask = doc_.document().metapad.mask;
+    const auto next = metascope::scoped(maskEntries(), knobs, scope, pod);
+    mask.clear();
+    for (const auto& e : next) mask.push_back({e.organism, e.property, e.restore});
     doc_.flagDirty();
 }
 

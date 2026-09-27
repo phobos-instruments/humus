@@ -25,15 +25,19 @@ inline void randomizeNode(EngineHost& host, const std::string& name, bool undoab
             value = std::round(lo + r.nextDouble() * (hi - lo));
         host.setParam(name, param, value);
     }
+    for (const auto& span : randomSpanValues(schemaFor(cm->classRaw), r)) {
+        if (cm->rollLocked.count(span.name) > 0) continue;
+        host.setParamRange(name, span.name, span.low, span.high);
+    }
 
-    if (auto* live = dynamic_cast<LiveParamRange*>(host.liveOrganism(name));
-        live != nullptr && dynamic_cast<PatchBank*>(host.liveOrganism(name)) != nullptr) {
+    if (auto* banked = dynamic_cast<LiveParamRange*>(host.liveOrganism(name));
+        banked != nullptr && dynamic_cast<PatchBank*>(host.liveOrganism(name)) != nullptr) {
         const auto choices = banks::rollable(bankSlotFor(cm->displayClass), cm->displayClass);
         if (!choices.empty() && cm->rollLocked.count("File") == 0) {
             host.setParamText(name, "File", choices[(size_t) r.nextInt((int) choices.size())]);
             double lo = 0.0, hi = 0.0;
             if (cm->rollLocked.count("Patch") == 0
-                && live->liveParamRange("Patch", lo, hi) && hi >= lo)
+                && banked->liveParamRange("Patch", lo, hi) && hi >= lo)
                 host.setParam(name, "Patch",
                               std::floor(lo + r.nextDouble() * (hi - lo + 1.0)));
         }
@@ -45,6 +49,19 @@ inline void randomizeNode(EngineHost& host, const std::string& name, bool undoab
         if (!d.randomText.empty() && cm->rollLocked.count(d.name) == 0)
             host.setParamText(name, d.name, rolledText(d.randomText, r));
     rollPattern(host, name, patternRollOf(*cm), r);
+}
+
+inline std::vector<std::string> rollTogether(EngineHost& host, const std::string& pod = {}) {
+    const auto targets = rollscope::targets(rollCandidates(host), pod);
+    if (targets.empty()) return targets;
+    host.pushParamStep();
+    auto& hist = host.paramHistory();
+    for (const auto& n : targets) {
+        hist.commit(n, host.captureNodeState(n));
+        randomizeNode(host, n, false);
+        hist.commit(n, host.captureNodeState(n));
+    }
+    return targets;
 }
 
 }

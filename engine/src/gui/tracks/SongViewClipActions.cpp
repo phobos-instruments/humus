@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "hum/dsp/MelodyTrace.h"
 #include "gui/tracks/MediaInfo.h"
 #include "gui/video/VideoProbe.h"
@@ -104,7 +105,7 @@ void SongView::consolidateRow(int row) {
                                                "Consolidate", juce::String(error));
         return;
     }
-    rebuild();
+    placeRowBelow(track, node);
     repaintAll();
     ctx_.patchChanged();
 }
@@ -113,7 +114,7 @@ void SongView::convertClipToMidi(const std::string&,
                                    const ClipEditor::ClipInfo& ci) {
     std::string uri = ci.audioFile;
     if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-    juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+    auto f = fileAt(uri);
     juce::AudioFormatManager fm;
     fm.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
@@ -139,7 +140,7 @@ void SongView::stretchClip(const std::string& node, int clip,
     juce::AudioFormatManager fm;
     fm.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(
-        juce::File(juce::String(juce::CharPointer_UTF8(path.c_str())))));
+        fileAt(path)));
     if (!rd || rd->sampleRate <= 0.0) return;
     const double bpm = host().tempo() > 0.0 ? host().tempo() : 120.0;
     const int ticks = std::max(1, (int) std::llround((double) rd->lengthInSamples
@@ -153,7 +154,7 @@ void SongView::stretchClip(const std::string& node, int clip,
         host().clips().rename(dest, made,
                              (ci.name.empty() ? std::string("stretched") : ci.name)
                                  + " x" + std::to_string((int) factor));
-    rebuild();
+    placeRowBelow(dest, node);
     repaintAll();
 }
 

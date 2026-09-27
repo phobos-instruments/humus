@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -21,10 +22,17 @@ struct ParamDesc {
     bool isPlainText = false;
     bool isTrigger = false;
     bool socket = false;
+    bool namedInlet = false;
     bool carry = false;
     bool randomize = false;
     std::string randomText;
     bool defRandom = false;
+    bool rollSpanned = false;
+    double rollMin = 0.0;
+    double rollMax = 0.0;
+
+    double rollLow() const { return rollSpanned ? std::clamp(rollMin, min, max) : min; }
+    double rollHigh() const { return rollSpanned ? std::clamp(rollMax, rollLow(), max) : max; }
     std::string unit;
 };
 

@@ -25,8 +25,8 @@
 #include "gui/video/VideoDeckPool.h"
 #include "gui/video/VideoLayer.h"
 #include "gui/video/VideoTakeSink.h"
-#include "gui/video/VisualGlCanvas.h"
 #include "gui/video/VisualPlan.h"
+#include <map>
 #include "hum/caps/Audio.h"
 #include "hum/caps/Video.h"
 
@@ -78,6 +78,11 @@ public:
     int sourceStep(const std::string& node, int inlet, const std::map<std::string, int>& stepOf, visual::Plan* stack = nullptr);
 
     float paramOr(const std::string& node, const char* param, float def);
+    static std::string channelLevel(int channel);
+    int layerChannels(const std::string& node, int channels,
+                      const std::map<std::string, int>& stepOf, visual::Plan& p);
+    static void carryStamps(const visual::Plan& p, visual::Step& s);
+    static void dropDoubledOpacity(visual::Plan& p);
 
 private:
     struct SceneState {
@@ -97,8 +102,10 @@ private:
     };
     struct DeckState {
         std::shared_ptr<VideoLayer> layer;
+        std::string owner;
         juce::String path;
         float lastRate = 1.0e9f;
+        double lastSeek = -1.0;
         unsigned lastTrig = 0;
         bool trigSeen = false, hadFrame = false;
         double shownPts = -1.0, sourceStep = 0.0;
@@ -110,6 +117,8 @@ private:
     };
 
     juce::String paramText(const std::string& node, const juce::String& param) const;
+    std::shared_ptr<const lut::Cube> loadLut(const juce::String& path);
+    std::map<std::string, std::shared_ptr<const lut::Cube>> luts_;
 
     juce::File resolvePath(const juce::String& path) const;
 
@@ -118,6 +127,8 @@ private:
     void buildSceneStep(const std::string& node, visual::Step& s, float dt, bool pollMtime);
 
     void buildCameraStep(CamPreviewSource& cam, DeckState& d, visual::Step& s);
+
+    void followPlayhead(DeckState& d, double seconds, double rate);
 
     void buildFxStep(const std::string& node, visual::Step& s);
 

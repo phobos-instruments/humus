@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "core/graph/RtWord.h"
 #include "core/plugins/PluginHost.h"
 
 namespace hum {
@@ -29,6 +30,7 @@ BridgedPlugin::BridgedPlugin(std::string classRaw, const juce::PluginDescription
         params.add(p);
     }
     lastSentParams_.assign((size_t) kBridgeMaxParams, -1.0f);
+    armAdoption();
     stagedIn_.assign((size_t) kBridgeMaxMidi, MidiEvent{});
     collected_.assign((size_t) kBridgeMaxMidi, MidiEvent{});
     pendingLive_.reserve(64);
@@ -165,7 +167,61 @@ void BridgedPlugin::bridgeSetEditorCallbacks(
 
 std::string BridgedPlugin::getStateBase64() const { return client_->getState(); }
 
-void BridgedPlugin::setStateBase64(const std::string& base64) { client_->setState(base64); }
+void BridgedPlugin::setStateBase64(const std::string& base64) {
+    client_->setState(base64);
+    armAdoption();
+}
+
+void BridgedPlugin::loadFrom(const OrganismState& state) {
+    Organism::loadFrom(state);
+    armAdoption();
+}
+
+void BridgedPlugin::armAdoption() {
+    adoptBase_.assign((size_t) kBridgeMaxParams, std::nan(""));
+    for (const auto& p : params.all())
+        if (p.index >= 0 && p.index < kBridgeMaxParams) adoptBase_[(size_t) p.index] = p.value;
+    adoptStage_.store(1, std::memory_order_relaxed);
+}
+
+void BridgedPlugin::adoptChildValues(BridgeShmHeader* h) {
+    for (int i = 0; i < kBridgeMaxParams; ++i) {
+        auto* p = params.byIndex(i);
+        if (p == nullptr) continue;
+        const float v = h->paramValues[i].load(std::memory_order_relaxed);
+        if (rtLoadWord(p->value) == adoptBase_[(size_t) i]) {
+            rtStoreWord(p->value, (double) v);
+            rtStoreWord(p->rangeMin, (double) v);
+            rtStoreWord(p->rangeMax, (double) v);
+            lastSentParams_[(size_t) i] = v;
+        }
+    }
+}
+
+int BridgedPlugin::sendParamChanges(BridgeShmHeader* h, uint32_t seq) {
+    const int stage = adoptStage_.load(std::memory_order_relaxed);
+    if (stage == 1) {
+        adoptSeq_ = seq;
+        adoptStage_.store(2, std::memory_order_relaxed);
+        return 0;
+    }
+    if (stage == 2) {
+        if (h->ackSeq.load(std::memory_order_acquire) < adoptSeq_) return 0;
+        adoptChildValues(h);
+        adoptStage_.store(0, std::memory_order_relaxed);
+    }
+    auto& slot = h->slots[seq % 2];
+    uint32_t nc = 0;
+    for (const auto& p : params.all()) {
+        if (p.index < 0 || p.index >= kBridgeMaxParams) continue;
+        const float v = juce::jlimit(0.0f, 1.0f, (float) p.value);
+        if (v != lastSentParams_[(size_t) p.index] && nc < (uint32_t) kBridgeMaxParams) {
+            slot.paramChanges[nc++] = {(uint32_t) p.index, v};
+            lastSentParams_[(size_t) p.index] = v;
+        }
+    }
+    return (int) nc;
+}
 
 float BridgedPlugin::paramValue(int index) const {
     auto* ac = activeClient_.load();
@@ -201,16 +257,7 @@ void BridgedPlugin::writeSubmitSlot(const float* const* in, int numIn, int numSa
     }
     slot.numMidiIn = (uint32_t) nm;
     stagedInCount_ = 0;
-    uint32_t nc = 0;
-    for (const auto& p : params.all()) {
-        if (p.index < 0 || p.index >= kBridgeMaxParams) continue;
-        const float v = juce::jlimit(0.0f, 1.0f, (float) p.value);
-        if (v != lastSentParams_[(size_t) p.index] && nc < (uint32_t) kBridgeMaxParams) {
-            slot.paramChanges[nc++] = {(uint32_t) p.index, v};
-            lastSentParams_[(size_t) p.index] = v;
-        }
-    }
-    slot.numParamChanges = nc;
+    slot.numParamChanges = (uint32_t) sendParamChanges(h, seq);
     slot.bpm = transport.tempo();
     slot.ppq = transport.beats();
     slot.playing = transport.playing() ? 1u : 0u;

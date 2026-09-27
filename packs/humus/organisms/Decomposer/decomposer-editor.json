@@ -1,6 +1,6 @@
 {
   "width": 293,
-  "height": 200,
+  "height": 226,
   "controls": [
     {
       "type": "int-spinner",
@@ -46,7 +46,7 @@
       "param": "LowNote",
       "label": "Low",
       "x": 74,
-      "y": 154,
+      "y": 180,
       "w": 103,
       "h": 22
     },
@@ -55,8 +55,17 @@
       "param": "HighNote",
       "label": "High",
       "x": 182,
-      "y": 154,
+      "y": 180,
       "w": 103,
+      "h": 22
+    },
+    {
+      "type": "int-spinner",
+      "param": "Voices",
+      "label": "Voices",
+      "x": 74,
+      "y": 154,
+      "w": 211,
       "h": 22
     }
   ]

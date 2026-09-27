@@ -1,69 +1,145 @@
 {
   "width": 600,
-  "height": 414,
+  "height": 540,
   "controls": [
     {
+      "type": "label",
+      "label": "Files",
+      "style": "section",
+      "x": 330,
+      "y": 6,
+      "w": 264,
+      "h": 120
+    },
+    {
+      "type": "label",
+      "label": "Grain",
+      "style": "section",
+      "x": 330,
+      "y": 134,
+      "w": 264,
+      "h": 104
+    },
+    {
+      "type": "label",
+      "label": "Cloud",
+      "style": "section",
+      "x": 330,
+      "y": 244,
+      "w": 264,
+      "h": 104
+    },
+    {
+      "type": "label",
+      "label": "Rhythm",
+      "style": "section",
+      "x": 6,
+      "y": 316,
+      "w": 312,
+      "h": 104
+    },
+    {
+      "type": "label",
+      "label": "Live and out",
+      "style": "section",
+      "x": 6,
+      "y": 426,
+      "w": 312,
+      "h": 104
+    },
+    {
+      "type": "label",
+      "label": "Capture",
+      "style": "section",
+      "x": 330,
+      "y": 354,
+      "w": 264,
+      "h": 176
+    },
+    {
       "type": "sound-map",
+      "fit": "Fit",
       "spray": "Spray",
       "file-prefix": "File",
       "param": "X",
       "param2": "Y",
       "x": 12,
       "y": 8,
-      "w": 368,
-      "h": 368
+      "w": 300,
+      "h": 300,
+      "grain-size": "GrainSize",
+      "stereo-spread": "Spread",
+      "pitch": "Pitch"
     },
     {
-      "type": "soundfile",
+      "type": "file-box",
       "param": "File1",
       "label": "",
-      "x": 392,
-      "y": 8,
-      "w": 196,
-      "h": 22
+      "x": 336,
+      "y": 22,
+      "w": 124,
+      "h": 46
     },
     {
-      "type": "soundfile",
+      "type": "file-box",
       "param": "File2",
       "label": "",
-      "x": 392,
-      "y": 34,
-      "w": 196,
-      "h": 22
+      "x": 464,
+      "y": 22,
+      "w": 124,
+      "h": 46
     },
     {
-      "type": "soundfile",
+      "type": "file-box",
       "param": "File3",
       "label": "",
-      "x": 392,
-      "y": 60,
-      "w": 196,
-      "h": 22
+      "x": 336,
+      "y": 74,
+      "w": 124,
+      "h": 46
     },
     {
-      "type": "soundfile",
+      "type": "file-box",
       "param": "File4",
       "label": "",
-      "x": 392,
-      "y": 86,
-      "w": 196,
-      "h": 22
+      "x": 464,
+      "y": 74,
+      "w": 124,
+      "h": 46
     },
     {
-      "type": "knob",
-      "param": "Density",
-      "label": "Density",
-      "x": 396,
-      "y": 118,
+      "type": "range-knob",
+      "param": "GrainSize",
+      "label": "Size",
+      "x": 336,
+      "y": 150,
       "w": 60,
       "h": 84
     },
     {
-      "type": "knob",
-      "param": "GrainSize",
-      "label": "Size",
-      "x": 460,
-      "y": 118,
+      "type": "range-knob",
+      "param": "Pitch",
+      "label": "Pitch",
+      "x": 400,
+      "y": 150,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "range-knob",
+      "param": "Shape",
+      "label": "Hold",
+      "x": 464,
+      "y": 150,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "range-knob",
+      "param": "Skew",
+      "label": "Skew",
+      "x": 528,
+      "y": 150,
       "w": 60,
       "h": 84
     },
@@ -71,17 +147,109 @@
       "type": "knob",
       "param": "Spray",
       "label": "Spray",
-      "x": 524,
-      "y": 118,
+      "x": 336,
+      "y": 260,
       "w": 60,
       "h": 84
     },
     {
       "type": "knob",
-      "param": "Pitch",
-      "label": "Pitch",
-      "x": 396,
-      "y": 206,
+      "param": "Spread",
+      "label": "Spread",
+      "x": 400,
+      "y": 260,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Decorrelation",
+      "label": "Apart",
+      "x": 464,
+      "y": 260,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "MaxGrains",
+      "label": "Voices",
+      "x": 528,
+      "y": 260,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Density",
+      "label": "Density",
+      "x": 18,
+      "y": 332,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "rotary-switch",
+      "param": "Sync",
+      "label": "Sync",
+      "x": 94,
+      "y": 332,
+      "w": 60,
+      "h": 84,
+      "options": [
+        "Free",
+        "1/32",
+        "1/16",
+        "1/8",
+        "1/4",
+        "1 bar"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Quantize",
+      "label": "Quant",
+      "x": 170,
+      "y": 332,
+      "w": 60,
+      "h": 84,
+      "dim-when": "!Sync"
+    },
+    {
+      "type": "knob",
+      "param": "Scatter",
+      "label": "Scatter",
+      "x": 246,
+      "y": 332,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Input",
+      "label": "Input",
+      "dim-when": "!Live",
+      "x": 18,
+      "y": 442,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Feedback",
+      "label": "Feedback",
+      "dim-when": "!Live",
+      "x": 94,
+      "y": 442,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Mix",
+      "label": "Mix",
+      "x": 170,
+      "y": 442,
       "w": 60,
       "h": 84
     },
@@ -89,55 +257,63 @@
       "type": "knob",
       "param": "Gain",
       "label": "Gain",
-      "x": 460,
-      "y": 206,
+      "x": 246,
+      "y": 442,
       "w": 60,
       "h": 84
     },
     {
-      "type": "minitoggle",
+      "type": "lit-button",
       "param": "Mute",
       "label": "Mute",
-      "x": 12,
-      "y": 384,
-      "w": 62,
-      "h": 20
+      "x": 336,
+      "y": 374,
+      "w": 124,
+      "h": 40,
+      "tooltip": "Silence the output while the cloud keeps flying.",
+      "icon": "none"
     },
     {
-      "type": "minitoggle",
+      "type": "lit-button",
       "param": "Record",
       "label": "Rec",
-      "x": 80,
-      "y": 384,
-      "w": 62,
-      "h": 20
+      "x": 464,
+      "y": 374,
+      "w": 124,
+      "h": 40,
+      "tooltip": "Record the inlet into the next empty file slot.",
+      "icon": "none",
+      "colour": "#e23b33"
     },
     {
-      "type": "knob",
-      "param": "Spread",
-      "label": "Spread",
-      "x": 524,
-      "y": 206,
-      "w": 60,
-      "h": 84
+      "type": "lit-button",
+      "param": "Live",
+      "label": "Live",
+      "x": 336,
+      "y": 422,
+      "w": 124,
+      "h": 40,
+      "tooltip": "Granulate the inlet as it arrives.",
+      "icon": "none"
     },
     {
-      "type": "knob",
-      "param": "Jitter",
-      "label": "Jitter",
-      "x": 396,
-      "y": 294,
-      "w": 60,
-      "h": 84
+      "type": "lit-button",
+      "param": "Freeze",
+      "label": "Freeze",
+      "x": 464,
+      "y": 422,
+      "w": 124,
+      "h": 40,
+      "tooltip": "Hold the live buffer still and ignore the inlet.",
+      "icon": "none",
+      "dim-when": "!Live"
     },
     {
-      "type": "knob",
-      "param": "SizeRand",
-      "label": "Scatter",
-      "x": 460,
-      "y": 294,
-      "w": 60,
-      "h": 84
+      "type": "level-meter",
+      "x": 336,
+      "y": 478,
+      "w": 252,
+      "h": 34
     }
   ]
 }

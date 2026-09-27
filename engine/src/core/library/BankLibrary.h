@@ -28,7 +28,7 @@ struct FactoryEntry { std::string ref, name, kind; };
 inline std::vector<FactoryEntry> factoryEntries(const Slot& slot) {
     std::vector<FactoryEntry> out;
     for (const auto& row : juce::StringArray::fromTokens(
-             juce::String(juce::CharPointer_UTF8(slot.factory.c_str())), ";", "")) {
+             juce::String(slot.factory), ";", "")) {
         const auto f = juce::StringArray::fromTokens(row.trim(), "|", "");
         if (f.size() == 3)
             out.push_back({f[0].toStdString(), f[1].toStdString(), f[2].toStdString()});

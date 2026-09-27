@@ -1,6 +1,6 @@
 # Sequence
 
-An eight-row, sixteen-step drum grid where every row is its own MIDI outlet.
+A sixteen-step drum grid of one to eight rows, where every row is its own MIDI outlet.
 
 Each row sends its notes out of its own MIDI outlet, so row 1 can drive a Kick, row 2 a Sampler and row 3 a Silt, with the name plate on the row showing what it is corded to. The last outlet is the master and carries every row together, for one drum sampler that maps the whole kit by note. Eight banks each hold a full grid; the row notes, velocities and enables are the kit and stay the same across banks. The pattern is one bar of sixteenths and edits land while the transport plays.
 
@@ -23,6 +23,8 @@ Click a step to set it, click again to clear it, drag to paint a run. The runnin
 **Note_1** The MIDI note row 1 sends, defaulting to the general drum map, 36 for a kick. Synth drums such as Kick ignore it; samplers map it. And so on for rows 2 to 8.
 
 **Bank** Which of the eight grids plays, A to H.
+
+**Rows** How many rows the grid has, from 1 to 8. The outlets follow: one per row, and the master always last, so a cord on the master stays on the master when the count changes. Rows you take away keep their steps, notes and velocities, and come back as they were if you add them again; only the cords from their outlets are removed.
 
 ## Recipe
 

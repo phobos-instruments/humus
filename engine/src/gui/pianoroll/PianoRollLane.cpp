@@ -4,6 +4,7 @@
 
 #include "gui/style/Colours.h"
 #include "gui/host/EngineHostClips.h"
+#include "gui/pianoroll/NoteColourMenu.h"
 #include "gui/pianoroll/PianoRollEditor.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/common/Localisation.h"
@@ -32,97 +33,96 @@ juce::String ccLabel(int cc) {
 }
 }
 
-void PianoRollEditor::applyVelocityLane(juce::Point<int> p) {
-    const int vel = juce::jlimit(1, kMidiMax, juce::roundToInt(
-        kMidiMaxD * ((gridBottom() + kVelH - 3) - p.y) / (double) (kVelH - 6)));
-    bool changed = false;
-    for (size_t i = 0; i < gestureNotes_.size(); ++i) {
-        if (!selection_.empty()) {
-            if (!selection_.count((int) i)) continue;
-        } else if (std::abs((float) p.x - tickToX(gestureNotes_[i].tick)) > 4.0f) {
-            continue;
-        }
-        gestureNotes_[i].velocity = vel;
-        changed = true;
-    }
-    if (changed) repaint();
-}
-
-void PianoRollEditor::applyCCLane(juce::Point<int> p) {
-    const int top = ccValueMax(laneCC_);
-    const int value = juce::jlimit(0, top, juce::roundToInt(
-        (double) top * ((gridBottom() + kVelH - 3) - p.y) / (double) (kVelH - 6)));
-    const int tick = snapTick(juce::jlimit(0, durationTicks() - 1, xToTick((float) p.x)));
-    bool placed = false;
-    for (auto& c : gestureCCs_)
-        if (c.controller == laneCC_ && c.tick == tick) { c.value = value; placed = true; }
-    if (!placed) gestureCCs_.push_back({tick, laneCC_, value});
-    repaint();
-}
-
 void PianoRollEditor::showLaneMenu() {
+    enum { kVelocity = 1, kClear, kBend, kDeletePoints };
     juce::PopupMenu m;
-    m.addItem(1, tr("piano-roll-lane.velocity", "Velocity"), true, laneCC_ < 0);
-    m.addItem(3, tr("piano-roll-lane.bend", "Pitch bend"), true, laneCC_ == kBendController);
+    if (model_.laneCC >= 0 && !model_.ccSelection.empty()) {
+        m.addSubMenu(tr("tracks-pane-menu.color", "Color"), notecolour::menu(selectedCCsColour()));
+        m.addItem(kDeletePoints, tr("piano-roll-lane.delete-points", "Delete points"));
+        m.addSeparator();
+    }
+    m.addItem(kVelocity, tr("piano-roll-lane.velocity", "Velocity"), true, model_.laneCC < 0);
+    m.addItem(kBend, tr("piano-roll-lane.bend", "Pitch bend"), true, model_.laneCC == kBendController);
     m.addSeparator();
     std::vector<int> offered;
     for (const auto& c : kCommonCCs) offered.push_back(c.cc);
-    for (const auto& e : host_.clips().ccs(name_, clip_))
+    for (const auto& e : model_.ccs())
         if (e.controller != kBendController
             && std::find(offered.begin(), offered.end(), e.controller) == offered.end())
             offered.push_back(e.controller);
-    for (int cc : offered) m.addItem(100 + cc, ccLabel(cc), true, laneCC_ == cc);
-    if (laneCC_ >= 0) {
+    for (int cc : offered) m.addItem(100 + cc, ccLabel(cc), true, model_.laneCC == cc);
+    if (model_.laneCC >= 0) {
         m.addSeparator();
-        m.addItem(2, tr("piano-roll-lane.clear", "Clear ") + ccLabel(laneCC_) + tr("piano-roll-lane.events", " events"));
+        m.addItem(kClear, tr("piano-roll-lane.clear", "Clear ") + ccLabel(model_.laneCC) + tr("piano-roll-lane.events", " events"));
     }
     m.showMenuAsync({}, [this](int r) {
         if (r == 0) return;
-        if (r == 1) { laneCC_ = -1; repaint(); return; }
-        if (r == 3) { laneCC_ = kBendController; repaint(); return; }
-        if (r == 2 && laneCC_ >= 0) {
-            host_.pushUndo();
-            auto ccs = host_.clips().ccs(name_, clip_);
-            ccs.erase(std::remove_if(ccs.begin(), ccs.end(),
-                                     [this](const CCEvent& c) { return c.controller == laneCC_; }),
-                      ccs.end());
-            host_.clips().setCCs(name_, clip_, ccs);
+        if (const auto c = notecolour::choiceFor(r); c.pick == notecolour::Pick::Colour) {
+            colourSelectedCCs(c.colour);
+            return;
+        } else if (c.pick == notecolour::Pick::Custom) {
+            openColourPicker(true);
+            return;
+        }
+        if (r == kDeletePoints) { deleteSelectedCCs(); return; }
+        model_.ccSelection.clear();
+        if (r == kVelocity) { model_.laneCC = -1; repaint(); return; }
+        if (r == kBend) { model_.laneCC = kBendController; repaint(); return; }
+        if (r == kClear && model_.laneCC >= 0) {
+            model_.clearLane();
             repaint();
             return;
         }
-        if (r >= 100 && r <= 227) { laneCC_ = r - 100; repaint(); }
+        if (r >= 100 && r <= 227) { model_.laneCC = r - 100; repaint(); }
     });
 }
 
 void PianoRollEditor::paintCCLane(juce::Graphics& g, int top, int h) {
+    const auto geo = geometry();
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(9.0f));
-    g.drawText(laneCC_ == kBendController ? tr("piano-roll-lane.bend-short", "bend")
-                                          : tr("piano-roll-lane.cc", "CC") + juce::String(laneCC_),
+    g.drawText(model_.laneCC == kBendController ? tr("piano-roll-lane.bend-short", "bend")
+                                          : tr("piano-roll-lane.cc", "CC") + juce::String(model_.laneCC),
                4, top + 3, kKeyW - 8, 10, juce::Justification::centredLeft, false);
 
-    const auto ccs = gesture_ == Gesture::CCLane ? gestureCCs_ : host_.clips().ccs(name_, clip_);
-    std::vector<const CCEvent*> lane;
-    for (const auto& c : ccs) if (c.controller == laneCC_) lane.push_back(&c);
-    std::sort(lane.begin(), lane.end(),
-              [](const CCEvent* a, const CCEvent* b) { return a->tick < b->tick; });
+    const bool drawing = model_.gesture() == Gesture::CCLane;
+    const auto ccs = drawing ? model_.gestureCCs() : model_.ccs();
+    std::vector<int> lane;
+    for (int i = 0; i < (int) ccs.size(); ++i)
+        if (ccs[(size_t) i].controller == model_.laneCC) lane.push_back(i);
+    std::stable_sort(lane.begin(), lane.end(), [&ccs](int a, int b) {
+        return ccs[(size_t) a].tick < ccs[(size_t) b].tick;
+    });
 
-    const float span = (float) ccValueMax(laneCC_);
-    const auto yFor = [&](int v) { return (float) (top + h - 3) - (float) (h - 6) * (float) v / span; };
-    if (laneCC_ == kBendController) {
+    if (model_.laneCC == kBendController) {
         g.setColour(Palette::border);
-        g.drawHorizontalLine((int) yFor(kBendCentre), (float) gridLeft(), (float) getWidth());
+        g.drawHorizontalLine((int) geo.ccY(kBendCentre, model_.laneCC), (float) gridLeft(), (float) getWidth());
     }
-    g.setColour(Palette::accent.withAlpha(alpha::strong));
-    for (size_t i = 0; i < lane.size(); ++i) {
-        const float x = tickToX(lane[i]->tick);
-        const float xn = i + 1 < lane.size() ? tickToX(lane[i + 1]->tick)
-                                             : tickToX(durationTicks());
-        const float y = yFor(lane[i]->value);
+    for (size_t k = 0; k < lane.size(); ++k) {
+        const auto& c = ccs[(size_t) lane[k]];
+        const float x = geo.tickToX(c.tick);
+        const float xn = k + 1 < lane.size() ? geo.tickToX(ccs[(size_t) lane[k + 1]].tick)
+                                             : geo.tickToX(durationTicks());
+        const float y = geo.ccY(c.value, model_.laneCC);
+        const auto col = notecolour::fill(c.colour, Palette::accent);
+        g.setColour(col.withAlpha(alpha::strong));
         if (xn > (float) gridLeft() && x < (float) getWidth())
             g.drawHorizontalLine((int) y, juce::jmax(x, (float) gridLeft()), xn);
-        if (x >= (float) gridLeft() && x <= (float) getWidth())
-            g.fillEllipse(x - 2.5f, y - 2.5f, 5.0f, 5.0f);
+        if (x < (float) gridLeft() || x > (float) getWidth()) continue;
+        const bool sel = !drawing && model_.ccSelection.count(lane[k]) != 0;
+        const float r = sel ? 3.5f : 2.5f;
+        g.setColour(col);
+        g.fillEllipse(x - r, y - r, 2.0f * r, 2.0f * r);
+        if (sel) {
+            g.setColour(Palette::text);
+            g.drawEllipse(x - r - 1.0f, y - r - 1.0f, 2.0f * r + 2.0f, 2.0f * r + 2.0f, 1.2f);
+        }
+    }
+    if (const auto marquee = marqueeRect(); model_.gesture() == Gesture::CCMarquee && !marquee.isEmpty()) {
+        g.setColour(Palette::accent.withAlpha(alpha::mist));
+        g.fillRect(marquee);
+        g.setColour(Palette::accent.withAlpha(alpha::strong));
+        g.drawRect(marquee, 1);
     }
 }
 

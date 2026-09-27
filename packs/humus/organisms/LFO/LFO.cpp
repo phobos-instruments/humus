@@ -19,6 +19,7 @@ void LfoGen::process(const float* const* in, int numIn, float* const* out, int n
 
     if (sync) lfo_.setPeriodSamples(std::max(1.0, transport.samplesPerBeat() * beats));
     else      lfo_.setRate(rate, sampleRate_);
+    if (sync && transport.playing()) lfo_.reset(Lfo::wrap(transport.beats() / beats));
 
     const float* src = (numIn > 0 && in && in[0]) ? in[0] : nullptr;
     float* dst = numOut > 0 ? out[0] : nullptr;

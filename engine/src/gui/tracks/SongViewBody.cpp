@@ -34,6 +34,7 @@ void SongView::showBoxMenu(int bx, juce::Point<int> sp) {
 
 void SongView::beginBoxDrag(int row, int bx, bool leftEdge, bool rightEdge, juce::Point<int> p) {
     clearClipSel();
+    if (!selected(boxRef(row, bx))) { clearSelection(); sel_.insert(boxRef(row, bx)); }
     selBox_ = bx;
     dragBox_ = bx;
     dragRow_ = row;
@@ -42,6 +43,7 @@ void SongView::beginBoxDrag(int row, int bx, bool leftEdge, bool rightEdge, juce
     boxOrigS_ = host().automation().boxes()[(size_t) bx].startBeat;
     boxOrigE_ = host().automation().boxes()[(size_t) bx].endBeat;
     drag_ = leftEdge ? Drag::BoxTrimL : rightEdge ? Drag::BoxTrimR : Drag::BoxMove;
+    if (drag_ == Drag::BoxMove) beginGroupMove();
     repaintAll();
 }
 
@@ -123,8 +125,10 @@ void SongView::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<int
     if (e.mods.isShiftDown()) {
         if (sel_.empty() && selClipRow_ >= 0 && selClip_ >= 0)
             sel_.insert(clipRef(selClipRow_, selClip_));
-        if (clip >= 0) toggleSelected(clipRef(row, clip));
-        else if (const int bx = boxAt(row, p); bx >= 0) toggleSelected(boxRef(row, bx));
+        if (clip >= 0 && (selected(clipRef(row, clip)) || !extendSelectionTo(row, clip)))
+            toggleSelected(clipRef(row, clip));
+        else if (const int bx = clip < 0 ? boxAt(row, p) : -1; bx >= 0)
+            toggleSelected(boxRef(row, bx));
         syncTimeSelection();
         repaintAll();
         return;
@@ -140,13 +144,21 @@ void SongView::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<int
     selBox_ = -1;
 
     dragRow_ = row;
-    if (clip >= 0 && !selected(clipRef(row, clip))) { clearSelection(); sel_.insert(clipRef(row, clip)); }
+    altDrop_.reset();
+    duplicatePending_ = false;
+    dragDownAt_ = p;
+    if (clip >= 0 && e.mods.isAltDown()) pickWithAlt(row, clip);
+    else if (clip >= 0 && !selected(clipRef(row, clip))) { clearSelection(); sel_.insert(clipRef(row, clip)); }
     if (clip >= 0 && effectiveTool() == Tool::Draw) {
         selectClip(row, clip);
         repaintAll();
         return;
     }
     if (clip >= 0) {
+        if (selectedBoxesN() > 0 && !groupMove_) {
+            groupMove_ = true;
+            host().beginUndoGroup();
+        }
         host().pushUndo();
         const auto clips = host().clips().list(node);
         const auto& ci = clips[(size_t) clip];
@@ -154,11 +166,9 @@ void SongView::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<int
         dragOriginNode_ = node;
         dragDuplicated_ = false;
         if (e.mods.isCommandDown() || e.mods.isCtrlDown()) {
-            const int made = beginClipMove(row, clip, true);
-            if (made < 0) { repaintAll(); return; }
-            dragClip_ = made;
-            dragDuplicated_ = true;
-            selectClip(row, made);
+            duplicatePending_ = true;
+            dragClip_ = clip;
+            selectClip(row, clip);
             drag_ = Drag::ClipMove;
             dragGrabTicks_ = tick - ci.startTick;
         } else if (const auto fg = ci.hasMedia()
@@ -205,6 +215,7 @@ void SongView::mouseDownBody(const juce::MouseEvent& e, int row, juce::Point<int
             dragGrabTicks_ = tick - ci.startTick;
             selectClip(row, clip);
             beginClipMove(row, clip, false);
+            beginGroupMove();
         }
         syncTimeSelection();
     } else {

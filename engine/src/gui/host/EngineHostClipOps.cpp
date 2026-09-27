@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "gui/host/EngineHost.h"
 #include "core/timeline/ClipOps.h"
 #include "core/timeline/RecordTake.h"
@@ -289,7 +290,7 @@ std::string ClipEditor::exportFile(const std::string& node, int clip) {
         juce::AudioFormatManager fm;
         fm.registerBasicFormats();
         std::unique_ptr<juce::AudioFormatReader> r(fm.createReaderFor(
-            juce::File(juce::String(juce::CharPointer_UTF8(ch->audioFile.c_str())))));
+            fileAt(ch->audioFile)));
         if (r && r->sampleRate > 0.0) {
             const double fileHostSamples = (double) r->lengthInSamples * sr / r->sampleRate;
             if (std::abs(fileHostSamples - ch->lengthTicks * spt) <= std::max(2.0, spt))

@@ -23,7 +23,7 @@ float stageRate(double timecents, double hostRate) {
 
 bool Sf2Voices::load(const juce::File& file) {
     reset();
-    data_ = sf2::loadFile(file);
+    data_ = sf2::loadFile(file.getFullPathName().toStdString());
     return ready();
 }
 

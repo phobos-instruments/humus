@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "Spark",
+      "blurb": "A riser that never arrives: twelve comb filters sweeping the same octaves forever.",
       "category": "Effects",
       "params": [
         { "name": "Mode", "min": 0.0, "max": 2.0, "def": 0.0, "enum": true },

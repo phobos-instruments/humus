@@ -15,8 +15,8 @@ inline bool isVideoFile(const juce::File& f) {
 }
 
 inline double probeVideoSeconds(const juce::File& f, int waitMs = 1500) {
-    if (const auto movie = hap::open(f); movie.ok && movie.fps > 0.0)
-        return (double) movie.samples.size() / movie.fps;
+    if (const auto vid = hap::open(f); vid.ok && vid.fps > 0.0)
+        return (double) vid.samples.size() / vid.fps;
     if (const double s = VideoLayer::probeLengthSeconds(f); s > 0.0) return s;
     auto layer = VideoLayer::createPlatform();
     if (layer == nullptr) return 0.0;

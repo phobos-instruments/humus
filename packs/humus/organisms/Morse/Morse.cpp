@@ -40,6 +40,7 @@ void Morse::process(const float* const*, int, float* const* out, int numOut,
         std::fill(o, o + numSamples, 0.0f);
         closeKey();
         reset();
+        runNow_.store(-1, std::memory_order_relaxed);
         return;
     }
 
@@ -50,17 +51,18 @@ void Morse::process(const float* const*, int, float* const* out, int numOut,
     const float level = (float) params.get("Level", 0.9);
 
     const double tempo = transport.tempo() > 0.0 ? transport.tempo() : 120.0;
-    const double unit = sync ? sr * kSecondsPerMinute / (tempo * 4.0) : sr * 1.2 / wpm;
+    const double unit = sync ? sr * kSecondsPerMinute / (tempo * kUnitsPerBeat) : sr * 1.2 / wpm;
     const double f0 = transport.tuning().hz(note);
     const double dt = f0 / sr;
     const float ramp = 1.0f - std::exp((float) (-1.0 / (0.003 * sr)));
+    if (sync) placeAt(transport.beats() * kUnitsPerBeat, unit, loop);
 
     for (int i = 0; i < numSamples; ++i) {
         bool key = false;
         if (!done_) {
             if (seg_ >= pattern_.size()) {
                 if (!loop) done_ = true;
-                else if (++segPos_ >= (long) (7.0 * unit)) { seg_ = 0; segPos_ = 0; }
+                else if (++segPos_ >= (long) (kLoopGapUnits * unit)) { seg_ = 0; segPos_ = 0; }
             }
             if (seg_ < pattern_.size()) {
                 const auto& s = pattern_[seg_];
@@ -78,6 +80,20 @@ void Morse::process(const float* const*, int, float* const* out, int numOut,
         if (phase_ >= 1.0) phase_ -= 1.0;
         o[i] = (float) std::sin(phase_ * kTwoPi) * amp_ * level;
     }
+    runNow_.store(done_ || seg_ >= pattern_.size() ? -1 : (int) seg_, std::memory_order_relaxed);
+}
+
+void Morse::placeAt(double units, double unitSamples, bool loop) {
+    long total = 0;
+    for (const auto& s : pattern_) total += s.units;
+    const long cycle = total + (loop ? kLoopGapUnits : 0);
+    if (cycle <= 0) return;
+    if (!loop && units >= (double) total) { done_ = true; seg_ = pattern_.size(); return; }
+    double at = loop ? units - std::floor(units / (double) cycle) * (double) cycle : units;
+    done_ = false;
+    seg_ = 0;
+    while (seg_ < pattern_.size() && at >= (double) pattern_[seg_].units) at -= pattern_[seg_++].units;
+    segPos_ = (long) (at * unitSamples);
 }
 
 }

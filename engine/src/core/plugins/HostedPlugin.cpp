@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "core/graph/RtWord.h"
 #include "core/plugins/BridgedPlugin.h"
 #include "core/plugins/PluginHost.h"
 
@@ -26,6 +27,23 @@ HostedPlugin::HostedPlugin(std::unique_ptr<juce::AudioPluginInstance> instance,
         p.value = d.def;
         params.add(p);
     }
+    adoptInstanceValues();
+}
+
+void HostedPlugin::adoptInstanceValues() {
+    const auto& ps = instance_->getParameters();
+    for (int i = 0; i < (int) ps.size(); ++i)
+        if (auto* p = params.byIndex(i)) {
+            const double v = (double) ps[(size_t) i]->getValue();
+            rtStoreWord(p->value, v);
+            rtStoreWord(p->rangeMin, v);
+            rtStoreWord(p->rangeMax, v);
+        }
+}
+
+void HostedPlugin::loadFrom(const OrganismState& state) {
+    Organism::loadFrom(state);
+    adoptInstanceValues();
 }
 
 HostedPlugin::~HostedPlugin() {
@@ -50,7 +68,9 @@ void HostedPlugin::prepare(double sampleRate, int maxBlock) {
     pendingMidi_.ensureSize(4096);
     staged_.assign(MidiNode::kMaxMidiEventsPerBlock, MidiEvent{});
     stagedCount_ = 0;
-    lastSentParams_.assign(instance_->getParameters().size(), -1.0f);
+    const auto& ps = instance_->getParameters();
+    lastSentParams_.resize((size_t) ps.size());
+    for (int i = 0; i < ps.size(); ++i) lastSentParams_[(size_t) i] = ps[i]->getValue();
 }
 
 void HostedPlugin::reset() {
@@ -140,8 +160,10 @@ std::string HostedPlugin::getStateBase64() const {
 
 void HostedPlugin::setStateBase64(const std::string& base64) {
     juce::MemoryOutputStream mo;
-    if (juce::Base64::convertFromBase64(mo, juce::String(base64)) && mo.getDataSize() > 0)
+    if (juce::Base64::convertFromBase64(mo, juce::String(base64)) && mo.getDataSize() > 0) {
         instance_->setStateInformation(mo.getData(), (int) mo.getDataSize());
+        adoptInstanceValues();
+    }
 }
 
 OrganismPtr PluginHost::createOrganism(const std::string& classRaw) {

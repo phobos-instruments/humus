@@ -45,10 +45,17 @@ void SongView::mouseUpAt(const juce::MouseEvent& e) {
                          || !dragAutoNode_.empty();
     dragSync_.reset();
     traceSel("up", e);
-    if (drag_ == Drag::BoxMove && dragBox_ >= 0 && std::abs(boxDragDelta_) > 1e-9) {
-        host().automation().moveBox(dragBox_, boxDragDelta_);
-        rebuild();
+    if (rowDrag_.armed && !endRowDrag() && selTracks_.size() > 1 && !e.mouseWasDraggedSinceMouseDown())
+        selectTrack(rowAt(e.getPosition().y), false, false);
+    if (drag_ == Drag::BoxMove || groupMove_) endGroupMove();
+    if (altDrop_ && drag_ == Drag::ClipMove) {
+        restoreClipMove();
+        sel_.erase(*altDrop_);
+        if (selClipRow_ >= 0 && selClip_ >= 0 && clipRef(selClipRow_, selClip_) == *altDrop_) clearClipSel();
+        syncTimeSelection();
     }
+    altDrop_.reset();
+    duplicatePending_ = false;
     if ((drag_ == Drag::BoxTrimL || drag_ == Drag::BoxTrimR) && dragBox_ >= 0
         && std::abs(boxTrimL_) + std::abs(boxTrimR_) > 1e-9) {
         host().automation().trimBox(dragBox_, boxOrigS_ + boxTrimL_, boxOrigE_ + boxTrimR_);
@@ -58,7 +65,7 @@ void SongView::mouseUpAt(const juce::MouseEvent& e) {
         commitLine(dragAutoNode_, dragAutoParam_, lineBeat0_, lineVal0_, lineBeat1_, lineVal1_);
     if (drag_ == Drag::PointMarquee && !e.mouseWasDraggedSinceMouseDown()
         && ptMarquee_.getWidth() < 3 && ptMarquee_.getHeight() < 3 && !e.mods.isShiftDown())
-        addPointAtClick(e, selPtSlot_);
+        clearPointSelection();
     lineSlot_ = -1;
     pencilLast_ = -1.0;
     dragBox_ = -1;
@@ -101,6 +108,7 @@ void SongView::mouseDoubleClickAt(const juce::MouseEvent& e) {
             return;
         }
         if (sl.laneKind != "double") ctx_.openAutomation(node, sl.param);
+        if (p.x >= kStripW && effectiveTool() == Tool::Pointer) addPointAtClick(e, s);
         return;
     }
     const int row = rowAt(p.y);
@@ -234,7 +242,7 @@ juce::String SongView::getTooltip() {
                 if (c >= 0 && c < (int) clips.size() && !clips[(size_t) c].looped
                     && overRepeatGrip(clipBounds(row, clips[(size_t) c]), p))
                     return tr("tracks-pane-roll.drag-to-repeat-the-clip", "Drag to repeat the clip");
-                return tr("tracks-pane-roll.drag-to-move-cmd-drag-mac", "Drag to move - Cmd-drag to duplicate, double-click to edit");
+                return tr("tracks-pane-roll.drag-to-move-cmd-drag-mac", "Drag to move - Cmd-drag to duplicate, Option-click to add to the selection, double-click to edit");
             }
         }
     }
@@ -242,7 +250,14 @@ juce::String SongView::getTooltip() {
         if (const int row = rowAt(p.y); row >= 0) {
             if (muteBox(row).contains(p)) return "Mute";
             if (soloBox(row).contains(p)) return "Solo";
-            if (recBox(row).contains(p)) return "Arm";
+            if (recBox(row).contains(p) && recordable(rows_[(size_t) row]))
+                return host().nodeRecordsMedia(rows_[(size_t) row])
+                           ? tr("tracks-pane.arm-media", "Record this track's input")
+                           : tr("tracks-pane.arm-midi-take", "Record this track: the keyboard from its input, and what reaches it through its cord");
+            if (host().model().byName(rows_[(size_t) row]) != nullptr
+                && classHasRole(host().model().byName(rows_[(size_t) row])->classRaw, role::kMidiTrack)
+                && inputBox(row).contains(p))
+                return tr("tracks-pane.midi-input", "Which MIDI input this track plays and records when armed - the light shows notes arriving");
             if (heldBox(row).contains(p)) return tr("tracks-pane-roll.a-hand-is-holding-this", "A hand is holding this lane - click to let go");
             if (foldBox(row).contains(p)) return tr("tracks-pane-roll.show-what-is-folded-under", "Show what is folded under this track");
         }

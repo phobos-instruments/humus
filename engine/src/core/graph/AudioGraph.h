@@ -12,6 +12,7 @@
 #include "core/timeline/Automation.h"
 #include "core/midi/BendRetuner.h"
 #include "core/graph/ModRoutes.h"
+#include "core/graph/MidiTap.h"
 #include "hum/caps/Audio.h"
 #include "hum/caps/Midi.h"
 #include "hum/caps/Params.h"
@@ -53,8 +54,10 @@ public:
     const std::vector<MeterChange>& meterMap() const { return meterChanges_; }
     void setModRoutes(std::vector<ModRoute> routes);
     int modRouteCount() const { return (int) modRoutes_.size(); }
+    void rebindNamedInlets();
     void applyModRoutes(int numSamples);
     void applyModRoutesInto(int node, int numSamples);
+    void applyNamedTaps(int node);
     void applyModRoute(ModRoute& route, double dt);
 
     Transport& transport() { return transport_; }
@@ -72,11 +75,15 @@ public:
     const std::vector<int>& order() const { return order_; }
     bool hasFeedback() const { return hasFeedback_; }
 
+    static constexpr double kBypassFadeMs = 10.0;
     void setNodeBypass(int node, bool on);
     bool nodeBypass(int node) const;
 
     void setNodeTrack(int node, std::vector<noteschedule::Voice> voices);
     void setNodeTrackMuted(int node, bool muted);
+    void panic();
+    void setMidiInletTap(int node, bool on);
+    MidiTapRing& midiInletTap() { return inletTap_; }
     void pushLiveMidi(int node, const MidiEvent& e);
     bool acceptsLiveMidi(int node) const;
     bool hasNodeTrack(int node) const {
@@ -85,6 +92,7 @@ public:
 
     float nodeAudioActivity(int node) const;
     float nodeMidiActivity(int node) const;
+    unsigned nodeMidiInletCount(int node) const;
     int nodeMidiOut(int node, int port, const MidiEvent*& out) const {
         if (node < 0 || node >= (int) nodes_.size()) return 0;
         const Node& nd = nodes_[(size_t) node];
@@ -112,8 +120,10 @@ private:
         std::vector<float*> outPtrs;
         float actAudio = 0.0f;
         float actMidi = 0.0f;
+        unsigned inletEvents = 0;
         bool bypass = false;
-        bool bypassFlush = false;
+        float bypassMix = 0.0f;
+        bool bypassMixKnown = false;
         std::vector<std::vector<float>> bypassRing;
         int bypassPos = 0;
         std::vector<float> capBuf;
@@ -125,6 +135,7 @@ private:
         bool trackSwapped = false;
         std::uint32_t trackSeenSeek = 0;
         bool trackMuted = false;
+        bool inletTapped = false;
         struct LiveQueue {
             std::mutex m;
             std::array<MidiEvent, 64> buf{};
@@ -160,8 +171,23 @@ private:
     void routeMidiInto(Node& nd, int node, int numSamples);
     int appendTrackMidi(Node& nd, int count, int numSamples);
     int appendLiveMidi(Node& nd, int count);
+    int dropNoteOns(int count);
+    int appendPanic(Node& nd, int count);
+    void openPanicSlice();
+    static constexpr int kPanicChannels = kMidiChannels;
+    int panicLeft_ = 0;
+    int panicChannel_ = -1;
+    void dropWhileBypassed(Node& nd);
     std::vector<noteschedule::Edge> trackEdges_;
-    void passThrough(Node& nd, int node, int numSamples);
+    void processNode(Node& nd, int node, int numSamples);
+    void runBypassable(Node& nd, int node, int numSamples);
+    void crossfadeBypass(Node& nd, int node, int numSamples, float target);
+    void passAudio(Node& nd, float* const* dst, int numSamples);
+    void feedBypassRing(Node& nd, int numSamples);
+    void passMidi(Node& nd, int node);
+    std::vector<std::vector<float>> dryScratch_;
+    std::vector<float*> dryPtrs_;
+    float bypassStep_ = 1.0f;
     int gatherMidiFor(int node, int port);
 
     struct CordDelay { std::vector<float> buf; int pos = 0; };
@@ -178,11 +204,13 @@ private:
     const std::vector<int>& inboundMidiCords(int node) const;
     TuningProvider* defaultTuning_ = nullptr;
     std::vector<MidiEvent> midiScratch_;
+    MidiTapRing inletTap_;
     std::vector<MidiEvent> midiScratch2_;
     std::vector<int> order_;
     std::vector<AutoLane> autoLanes_;
     std::vector<ModRoute> modRoutes_;
     std::vector<std::vector<int>> routesInto_;
+    std::vector<std::vector<NamedTap>> tapsInto_;
     Transport transport_;
     std::vector<MeterChange> meterChanges_;
     TransportExt transportExt_;

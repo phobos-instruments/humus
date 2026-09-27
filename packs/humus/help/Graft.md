@@ -2,7 +2,7 @@
 
 A sample stitcher that cuts up to eight sound files into fragments and chains one fragment per slot into a new sample.
 
-Load sound files into the slots, choose how they are cut and how the slots pick their fragments, and the stitched result is the instrument: it plays from the MIDI inlet with C4 at its own speed, or drones on its own with Play. Every cut moves to the nearest zero crossing and neighbouring fragments overlap on an equal-power crossfade, so a join between unrelated recordings passes without a click. The same Seed always rebuilds the same result, so a saved patch reopens as it was, and the dice rolls a new one without touching the other settings. Cord a PianoRoll or a DNA into the MIDI inlet, or set Play on and cord the outlet into a Fern or a Filter.
+Load sound files into the slots, choose how they are cut and how the slots pick their fragments, and the stitched result is the instrument: it plays from the MIDI inlet with C4 at its own speed, or drones on its own with Play. Every cut moves to the nearest zero crossing and neighbouring fragments overlap on an equal-power crossfade, so a join between unrelated recordings passes without a click. The same Seed always rebuilds the same result, so a saved patch reopens as it was, and Random rolls a new one without touching the other settings. Cord a PianoRoll or a DNA into the MIDI inlet, or set Play on and cord the outlet into a Fern or a Filter.
 
 ## The map
 
@@ -64,7 +64,7 @@ Each band is coloured by the file it came from, matching the slot above. Click a
 
 ## Recipe
 
-**Stitched break** Load a drum loop, a vocal and a field recording into three slots. Cut Onsets, Sense 0.5, Slices 16, Order Random, Bars 2, Play on. Roll the dice until one slot lands well, right-click it and keep it, then roll again until the rest fits. Cord the outlet through a Fern.
+**Stitched break** Load a drum loop, a vocal and a field recording into three slots. Cut Onsets, Sense 0.5, Slices 16, Order Random, Bars 2, Play on. Press Random until one slot lands well, right-click it and keep it, then roll again until the rest fits. Cord the outlet through a Fern.
 
 ## Related Organisms
 

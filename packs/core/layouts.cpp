@@ -32,7 +32,7 @@ inline LayoutSpec fileRecorderLayout(const std::string& cls) {
         if (n < 1 || n > 32) return spec;
     }
 
-    const int pad = 10, rowH = 22, pitch = 26, chW = 118, laneW = 196;
+    const int pad = 10, rowH = 22, pitch = 26, chW = 118, laneW = 222;
     int y = 8;
     if (!head.empty()) {
         std::vector<std::string> sizes;
@@ -56,12 +56,13 @@ inline LayoutSpec fileRecorderLayout(const std::string& cls) {
     y += 6;
     spec.controls.push_back({CT::Combo, "PunchMode", "", "Punch", pad, y, 210, rowH, 0, false,
                              {"Manual", "SoundIn Sync", "Timed"}});
-    spec.controls.push_back({CT::DoubleSpinner, "RecordDuration", "", "Time ms",
+    spec.controls.push_back({CT::DoubleSpinner, "RecordDuration", "", "Length",
                              pad + 220, y, 200, rowH, 0, false});
     y += 28;
     spec.controls.push_back({CT::Combo, "FileMode", "", "Mode", pad, y, 210, rowH, 0, false,
                              {"Overwrite", "Append"}});
-    spec.controls.push_back({CT::Toggle, "Record", "", "Record", pad + 220, y, 200, 24, 0, false});
+    spec.controls.push_back({CT::RecordTransport, "", "", "", pad + 220, y, 200, 26, 0, false, {},
+                             {{"record", "Record"}}});
     spec.width = kRackFullW;
     spec.height = y + 34;
     return spec;
@@ -142,13 +143,14 @@ inline LayoutSpec gainLayout(const std::string& cls) {
     using CT = LayoutSpec::ControlType;
     LayoutSpec spec;
     if (cls != "SGain" && cls != "MGain") return spec;
-    spec.controls.push_back({CT::Combo, "", "", "Mode", 8, 4, 180, 20, 2, false,
+    spec.controls.push_back({CT::Combo, "", "", "", 8, 4, 96, 20, 2, false,
                              {"Stereo", "Mono"}, {{"reclass", "mode"}}});
-    spec.controls.push_back({CT::MiniToggle, "Mute", "", "Mute", 196, 4, 89, 20, 2, false});
-    spec.controls.push_back({CT::Knob, "Gain", "", "Gain", 8, 30, kKnobW, kKnobH, 2, false});
-    spec.controls.push_back({CT::LevelBars, "", "", "", 84, 52, 201, 24, 0, false});
+    spec.controls.push_back({CT::HSlider, "Gain", "", "Gain", 112, 4, 116, 20, 2, false, {},
+                             {{"show-value", "1"}}});
+    spec.controls.push_back({CT::LitButton, "Mute", "", "Mute", 234, 4, 51, 20, 2, false, {}, {{"icon", "none"}}});
+    spec.controls.push_back({CT::LevelBars, "", "", "", 8, 30, 277, 14, 0, false});
     spec.width = kRackHalfW;
-    spec.height = 30 + kKnobH + 8;
+    spec.height = 52;
     return spec;
 }
 

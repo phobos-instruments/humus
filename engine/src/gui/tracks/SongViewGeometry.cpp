@@ -137,10 +137,12 @@ int SongView::clipAt(int row, juce::Point<int> p, bool& leftEdge, bool& rightEdg
 juce::Rectangle<int> SongView::boxBounds(int row, const PerformanceBox& b) const {
     const int y = rowTop(row);
     double s = b.startBeat, e = b.endBeat;
-    if (dragBox_ >= 0 && dragBox_ < (int) host().automation().boxes().size()
-        && &host().automation().boxes()[(size_t) dragBox_] == &b) {
-        s += boxDragDelta_ + boxTrimL_;
-        e += boxDragDelta_ + boxTrimR_;
+    const auto& all = host().automation().boxes();
+    const int index = all.empty() ? -1 : (int) (&b - all.data());
+    if (index >= 0 && index < (int) all.size() && boxRidesDrag(index)) {
+        const bool grabbed = index == dragBox_;
+        s += boxDragDelta_ + (grabbed ? boxTrimL_ : 0.0);
+        e += boxDragDelta_ + (grabbed ? boxTrimR_ : 0.0);
     }
     const int x0 = (int) beatToX(s), x1 = (int) beatToX(e);
     if (const int bs = boxRowSlot(row); bs >= 0) {

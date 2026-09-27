@@ -10,13 +10,13 @@
 
 namespace hum {
 
-enum class MovieKind { Hap, H264 };
+enum class VideoKind { Hap, H264 };
 
 inline constexpr int kQualityFinest = 14, kQualityDefault = 19, kQualityCoarsest = 28;
 
 inline constexpr double kBitsAtSevenTwenty = 4.64e6;
 
-inline double movieBitsPerSecond(int width, int height, double fps, int quality) {
+inline double videoBitsPerSecond(int width, int height, double fps, int quality) {
     const double pixels = (double) std::max(1, width) * std::max(1, height) / (1280.0 * 720.0);
     const double rate = (fps > 0.0 ? fps : 30.0) / 30.0;
     const double steps = (double) (kQualityDefault - quality) / 6.0;
@@ -24,13 +24,13 @@ inline double movieBitsPerSecond(int width, int height, double fps, int quality)
                         pixels * rate * kBitsAtSevenTwenty * std::pow(2.0, steps));
 }
 
-class MovieThread {
+class VideoThread {
 public:
-    MovieThread();
-    ~MovieThread();
+    VideoThread();
+    ~VideoThread();
 
 private:
-    bool joined_ = false;
+    [[maybe_unused]] bool joined_ = false;
 };
 
 class VideoEncoder {
@@ -44,10 +44,10 @@ public:
     virtual bool close() = 0;
 };
 
-bool movieKindAvailable(MovieKind kind);
-bool movieLogIsLoud();
-const char* movieKindExtension(MovieKind kind);
-std::unique_ptr<VideoEncoder> makeMovieWriter(MovieKind kind, const juce::File& file, int width,
+bool videoKindAvailable(VideoKind kind);
+bool videoLogIsLoud();
+const char* videoKindExtension(VideoKind kind);
+std::unique_ptr<VideoEncoder> makeVideoWriter(VideoKind kind, const juce::File& file, int width,
                                               int height, double fps,
                                               int quality = kQualityDefault, bool live = false);
 

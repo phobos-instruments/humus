@@ -25,6 +25,10 @@ static bool cordPasses(const AudioGraph::MidiCord& mc, const MidiEvent& e) {
     return (status & 0x0F) == mc.channel - 1;
 }
 
+static bool startsANote(const MidiEvent& e) {
+    return e.size >= 3 && (e.data[0] & 0xF0) == 0x90 && e.data[2] > 0;
+}
+
 static bool trackSounding(const std::vector<noteschedule::Voice>& voices, int pitch, double tick) {
     for (const auto& v : voices) {
         if (tick < v.gateFrom || tick >= v.gateTo) continue;
@@ -144,10 +148,66 @@ int AudioGraph::appendLiveMidi(Node& nd, int count) {
     if (!nd.live) return count;
     std::unique_lock<std::mutex> g(nd.live->m, std::try_to_lock);
     if (!g.owns_lock() || nd.live->count == 0) return count;
-    for (int i = 0; i < nd.live->count && count < MidiNode::kMaxMidiEventsPerBlock; ++i)
-        midiScratch_[(std::size_t) count++] = nd.live->buf[(std::size_t) i];
+    for (int i = 0; i < nd.live->count && count < MidiNode::kMaxMidiEventsPerBlock; ++i) {
+        const MidiEvent& e = nd.live->buf[(std::size_t) i];
+        if (nd.trackMuted && startsANote(e)) continue;
+        midiScratch_[(std::size_t) count++] = e;
+    }
     nd.live->count = 0;
     return count;
+}
+
+void AudioGraph::panic() { rtStoreWord(panicLeft_, kPanicChannels); }
+
+void AudioGraph::openPanicSlice() {
+    const int left = rtLoadWord(panicLeft_);
+    rtStoreWord(panicChannel_, left > 0 ? kPanicChannels - left : -1);
+    if (left > 0) rtStoreWord(panicLeft_, left - 1);
+}
+
+int AudioGraph::appendPanic(Node& nd, int count) {
+    const int channel = rtLoadWord(panicChannel_);
+    if (channel < 0) return count;
+    auto room = [&] { return count < MidiNode::kMaxMidiEventsPerBlock; };
+    for (int pitch = 0; pitch <= kMidiMax && room(); ++pitch) {
+        MidiEvent& e = midiScratch_[(std::size_t) count++];
+        e = {};
+        e.size = 3;
+        e.data[0] = (unsigned char) (0x80 | (channel & 0x0F));
+        e.data[1] = (unsigned char) pitch;
+    }
+    for (const int cc : {kSustainController, kAllSoundOffController, kAllNotesOffController}) {
+        if (!room()) break;
+        MidiEvent& e = midiScratch_[(std::size_t) count++];
+        e = {};
+        fillControlEvent(e, channel, cc, 0);
+    }
+    if (room()) {
+        MidiEvent& e = midiScratch_[(std::size_t) count++];
+        e = {};
+        fillControlEvent(e, channel, kBendController, kBendCentre);
+    }
+    nd.trackHeld.assign(nd.trackHeld.size(), false);
+    nd.trackBent = false;
+    return count;
+}
+
+int AudioGraph::dropNoteOns(int count) {
+    int kept = 0;
+    for (int i = 0; i < count; ++i)
+        if (!startsANote(midiScratch_[(std::size_t) i]))
+            midiScratch_[(std::size_t) kept++] = midiScratch_[(std::size_t) i];
+    return kept;
+}
+
+void AudioGraph::dropWhileBypassed(Node& nd) {
+    if (nd.live) {
+        std::unique_lock<std::mutex> g(nd.live->m, std::try_to_lock);
+        if (g.owns_lock()) nd.live->count = 0;
+    }
+    if (nd.midi == nullptr) return;
+    for (int p = 0; p < nd.midiOuts; ++p)
+        nd.midi->collectMidi(p, midiScratch2_.data(), (int) midiScratch2_.size());
 }
 
 void AudioGraph::setNodeTrackMuted(int node, bool muted) {
@@ -155,10 +215,26 @@ void AudioGraph::setNodeTrackMuted(int node, bool muted) {
     nodes_[(std::size_t) node].trackMuted = muted;
 }
 
+void AudioGraph::setMidiInletTap(int node, bool on) {
+    if (node < 0 || node >= (int) nodes_.size()) return;
+    nodes_[(std::size_t) node].inletTapped = on;
+}
+
 void AudioGraph::routeMidiInto(Node& nd, int node, int numSamples) {
     for (int p = 0; p < nd.midiIns; ++p) {
         int count = gatherMidiFor(node, p);
+        if (p == 0 && count > 0) rtStoreWord(nd.inletEvents, nd.inletEvents + (unsigned) count);
+        if (p == 0 && nd.inletTapped && transport_.playing()) {
+            const double perSample = 1.0 / transport_.samplesPerBeat();
+            for (int i = 0; i < count; ++i) {
+                const auto& e = midiScratch_[(std::size_t) i];
+                inletTap_.push({transport_.beats() + e.sampleOffset * perSample, node, e.data[0], e.data[1],
+                                e.data[2]});
+            }
+        }
+        if (nd.trackMuted) count = dropNoteOns(count);
         if (p == 0) count = appendLiveMidi(nd, appendTrackMidi(nd, count, numSamples));
+        count = appendPanic(nd, count);
         if (nd.plugin != nullptr && count > 0) {
             const Tuning* act = nd.tuning != nullptr ? nd.tuning
                               : defaultTuning_ != nullptr ? &defaultTuning_->tuning() : nullptr;

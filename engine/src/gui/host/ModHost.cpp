@@ -28,24 +28,10 @@ bool readParam(BrickHost& host, const std::string& organism, const std::string& 
     return false;
 }
 
-void widenEmptyRange(BrickHost& host, const std::string& organism, const std::string& param,
-                     double& min, double& max) {
-    if (std::abs(max - min) > 1.0e-12) return;
-    const auto* cm = host.model().byName(organism);
-    if (cm == nullptr) return;
-    for (const auto& d : schemaFor(cm->classRaw))
-        if (d.name == param && d.max > d.min) {
-            if (d.carry) return;
-            min = d.min;
-            max = d.max;
-            return;
-        }
-}
-
 ControlShape defaultShapeFor(BrickHost& host, const std::string& organism,
                              const std::string& param) {
     ControlShape d;
-    if (paramIsSwitch(host, organism, param)) d.isSwitch = true;
+    if (paramIsSwitch(host, organism, param)) d.type = ControlType::Button;
     else d.logScale = paramIsLog(host, organism, param);
     return d;
 }
@@ -67,7 +53,6 @@ void ModHost::mapRoute(const std::string& source, const std::string& value,
                        const std::string& organism, const std::string& param,
                        double min, double max) {
     if (source == organism && paramSourceName(value) == param && isParamSource(value)) return;
-    widenEmptyRange(host_, organism, param, min, max);
     map_.set(source, value, organism, param, min, max);
     if (const auto* sh = map_.shapeOf(source, value, organism, param))
         if (sh->isDefault())
@@ -137,17 +122,11 @@ void ModHost::syncMapFromModel() {
     map_.clearAll();
     for (auto& c : doc_.document().organisms)
         for (auto& s : c.modSources) {
-            widenEmptyRange(host_, c.name, s.propertyName, s.mapMin, s.mapMax);
             map_.set(s.sourceOrganism, s.sourceValue, c.name, s.propertyName, s.mapMin,
                      s.mapMax);
-            ControlShape sh;
-            sh.smoothing = s.smoothing;
-            sh.curve = s.curve;
-            sh.isSwitch = s.isSwitch || isHostSwitchTarget(s.propertyName);
-            sh.inverted = s.inverted;
-            sh.toggle = s.toggle;
-            sh.threshold = s.threshold;
-            if (!sh.isSwitch) sh.logScale = paramIsLog(host_, c.name, s.propertyName);
+            ControlShape sh = s.shape;
+            if (isHostSwitchTarget(s.propertyName)) sh.type = ControlType::Button;
+            sh.logScale = sh.isFader() && paramIsLog(host_, c.name, s.propertyName);
             if (!sh.isDefault())
                 map_.setShape(s.sourceOrganism, s.sourceValue, c.name, s.propertyName, sh);
         }
@@ -167,12 +146,8 @@ void ModHost::syncMapToModel() {
         s.sourceValue = e.value;
         s.mapMin = e.min;
         s.mapMax = e.max;
-        s.smoothing = e.shape.smoothing;
-        s.curve = e.shape.curve;
-        s.isSwitch = e.shape.isSwitch;
-        s.inverted = e.shape.inverted;
-        s.toggle = e.shape.toggle;
-        s.threshold = e.shape.threshold;
+        s.shape = e.shape;
+        s.shape.logScale = false;
         cm->modSources.push_back(std::move(s));
     }
 }

@@ -14,10 +14,14 @@
 #include "gui/host/PodClip.h"
 #include "gui/common/UiTicker.h"
 
+#include "gui/patcher/PortGroups.h"
+#include "gui/patcher/PortSpot.h"
+
 namespace hum {
 
 class PatcherCanvas : public juce::Component,
                       public juce::TooltipClient,
+                      public juce::FileDragAndDropTarget,
                       private juce::Timer {
 public:
     explicit PatcherCanvas(PatcherHost& host) : host_(host) {
@@ -29,6 +33,8 @@ public:
     std::function<void(const std::string&)> onSelect;
     std::function<void(const std::string&)> onActivate;
     std::function<void(const std::string&)> onOpenPluginUI;
+    std::function<void(const std::string&)> onRandomisePod;
+    std::function<void(const std::string&, juce::Point<int>)> onMapPodRandom;
     std::function<void(const std::string&)> onOpenVisuals;
     std::function<void(const std::string&)> onRecordNode;
     std::function<void(const std::string&, juce::Point<int>)> onAddRequest;
@@ -55,6 +61,13 @@ public:
     static constexpr float kZoomMin = 0.4f, kZoomMax = 2.0f;
     float zoom() const { return zoom_; }
     juce::Rectangle<int> nodeBoundsForTest(const std::string& n) { return nodeBounds(n); }
+    bool hitsCordForTest(juce::Point<int> p) const {
+        Edge e;
+        return hitCord(p, e);
+    }
+    juce::Point<int> videoInletPosForTest(const std::string& n, int port) { return videoInletPos(n, port); }
+    juce::Point<int> videoOutletPosForTest(const std::string& n, int port) { return videoOutletPos(n, port); }
+    juce::Point<int> midiOutletPosForTest(const std::string& n, int port) { return midiOutletPos(n, port); }
     void controlPortCountsForTest(const std::string& n, int& ins, int& outs) const { controlPortCounts(n, ins, outs); }
     void enterScopeForTest(const std::string& scope) { scope_ = scope; refresh(); }
     int dragHintsForTest(const std::string& node, bool control) {
@@ -69,6 +82,9 @@ public:
     juce::Rectangle<int> lastNodeRepaintForTest() const { return lastNodeRepaint_; }
     void timerCallbackForTest() { timerCallback(); }
     std::string hitNodeAtView(juce::Point<int> viewPoint) { return hitNode(modelPos(viewPoint)); }
+    bool isInterestedInFileDrag(const juce::StringArray& files) override;
+    void filesDropped(const juce::StringArray& files, int x, int y) override;
+    void dropNewOrganisms(const std::string& className, const std::vector<std::string>& paths, juce::Point<int> at);
     void setZoom(float z, juce::Point<int> anchor);
     void resetView();
 
@@ -106,6 +122,8 @@ public:
     bool keyPressed(const juce::KeyPress&) override;
 
     juce::Rectangle<int> nodeBounds(const std::string& name);
+    std::string portName(const std::string& node, int port, bool outlet) const;
+    std::vector<PortSpot> portSpots(const std::string& name);
     void repaintNode(const std::string& name);
     juce::Rectangle<int> lastNodeRepaint_;
 
@@ -115,6 +133,8 @@ private:
     static constexpr int kPortPad = 9;
     static constexpr int kPortGap = 5;
     static constexpr int kMidiGap = 10;
+    static constexpr int kVideoGap = 26;
+    static constexpr int kGroupGap = 6;
     static constexpr int kGrid = 8;
 
     struct Edge {
@@ -133,6 +153,15 @@ private:
     std::vector<DisplayNode> displayNodes() const;
     bool isPodBox(const std::string& name) const;
     void portCounts(const std::string& name, int& ins, int& outs) const;
+    struct PortSides {
+        int ins = -1, outs = -1;
+        std::string cls;
+        bool resolved = false;
+        portgroups::Side in, out;
+    };
+    const portgroups::Side& portSide(const std::string& name, bool outlets) const;
+    int audioBreaks(const std::string& name) const;
+    mutable std::map<std::string, PortSides> portSides_;
     bool mapEndpoint(const std::string& node, int port, bool isDstSide, pods::Domain dom,
                      std::string& dispNode, int& dispPort) const;
     bool mapEndpoint(const std::string& node, int port, bool isDstSide, bool midi,
@@ -163,6 +192,8 @@ private:
     juce::Point<int> midiInletPos(const std::string& name, int port);
     juce::Point<int> midiOutletPos(const std::string& name, int port);
     void midiPortCounts(const std::string& name, int& ins, int& outs) const;
+    int afterAudioX(const std::string& name, bool outlets);
+    int videoBlockWidth(const std::string& name, bool outlets);
     juce::Point<int> videoInletPos(const std::string& name, int port);
     juce::Point<int> videoOutletPos(const std::string& name, int port);
     juce::Point<int> controlInletPos(const std::string& name, int port);

@@ -52,7 +52,7 @@ void ParameterWindow::mouseDrag(const juce::MouseEvent& e) {
         if (auto* dnd = juce::DragAndDropContainer::findParentDragContainerFor(this)) {
             pressedTitle_ = false;
             if (onDragPreview) onDragPreview(name_);
-            dnd->startDragging(juce::String("print:") + juce::String(juce::CharPointer_UTF8(name_.c_str())), this,
+            dnd->startDragging(juce::String("print:") + juce::String(name_), this,
                                juce::ScaledImage(), true);
         }
         return;
@@ -66,7 +66,7 @@ void ParameterWindow::mouseDrag(const juce::MouseEvent& e) {
             setAlpha(1.0f);
             setTopLeftPosition(dragStart_);
             if (onDragPreview) onDragPreview(name_);
-            dnd->startDragging(juce::String("print:") + juce::String(juce::CharPointer_UTF8(name_.c_str())), this,
+            dnd->startDragging(juce::String("print:") + juce::String(name_), this,
                                juce::ScaledImage(), true);
             return;
         }

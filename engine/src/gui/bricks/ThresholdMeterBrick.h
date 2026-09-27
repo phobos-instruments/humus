@@ -13,9 +13,7 @@ namespace hum {
 class ThresholdMeterBrick : public LevelMeterView {
 public:
     ThresholdMeterBrick(BrickHost& host, std::string cn, std::string param)
-        : LevelMeterView(host, std::move(cn)), param_(std::move(param)) {
-        last_ = (float) host_.liveParamValue(name_, param_);
-    }
+        : LevelMeterView(host, cn), threshold_(host, cn, std::move(param)) {}
 
     std::function<void(juce::Point<int>)> onPopup;
 
@@ -25,19 +23,18 @@ public:
 
     void paint(juce::Graphics& g) override {
         LevelMeterView::paint(g);
-        const float t = (float) host_.liveParamValue(name_, param_);
         const auto bars = barArea();
-        const int x = bars.getX() + (int) std::lround(fillFor(t) * (float) bars.getWidth());
+        const int x = bars.getX() + (int) std::lround(threshold_.fill() * (float) bars.getWidth());
 
         auto strip = getLocalBounds().removeFromTop(kStrip);
         const bool markLeft = x < getWidth() / 2;
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.0f));
-        g.drawText(readout(t), strip.reduced(2, 0),
+        g.drawText(readoutText(), strip.reduced(2, 0),
                    markLeft ? juce::Justification::centredRight
                             : juce::Justification::centredLeft);
 
-        const bool off = t <= 0.0f;
+        const bool off = threshold_.off();
         g.setColour(off ? Palette::textDim.withAlpha(alpha::dim) : ink::state::caution);
         g.fillRect((float) x - 1.0f, (float) bars.getY() - 2.0f, off ? 1.0f : 2.0f,
                    (float) bars.getHeight() + 4.0f);
@@ -55,11 +52,11 @@ public:
             if (onPopup) onPopup(e.getScreenPosition());
             return;
         }
-        host_.beginParamDrag(name_, param_);
+        threshold_.begin();
         dragTo(e.x);
     }
     void mouseDrag(const juce::MouseEvent& e) override { dragTo(e.x); }
-    void mouseUp(const juce::MouseEvent&) override { host_.endParamDrag(); }
+    void mouseUp(const juce::MouseEvent&) override { threshold_.end(); }
 
 private:
     static constexpr int kStrip = 13;
@@ -68,30 +65,23 @@ private:
         return getLocalBounds().withTrimmedTop(kStrip);
     }
 
-    static juce::String readout(float t) {
-        if (t <= 0.0f) return tr("threshold-meter.start-at-any-sound", "Start at: any sound");
-        return juce::String::fromUTF8("Start at: ")
-             + juce::String(20.0f * std::log10(t), 1) + " dB";
+    juce::String readoutText() const {
+        if (threshold_.off()) return tr("threshold-meter.start-at-any-sound", "Start at: any sound");
+        return juce::String::fromUTF8("Start at: ") + juce::String(threshold_.decibels(), 1) + " dB";
     }
 
     void dragTo(int x) {
         const auto bars = barArea();
         if (bars.getWidth() <= 0) return;
-        const float fill = (float) (x - bars.getX()) / (float) bars.getWidth();
-        const float t = fill <= 0.03f ? 0.0f : juce::jlimit(0.0f, 1.0f, levelForFill(fill));
-        if (std::abs(t - (float) host_.liveParamValue(name_, param_)) < 1.0e-6f) return;
-        host_.editParam(name_, param_, (double) t);
-        repaint();
+        if (threshold_.dragToFill((float) (x - bars.getX()) / (float) bars.getWidth())) repaint();
     }
 
     void poll() override {
         LevelMeterView::poll();
-        const float t = (float) host_.liveParamValue(name_, param_);
-        if (std::abs(t - last_) > 1.0e-6f) { last_ = t; repaint(); }
+        if (threshold_.poll()) repaint();
     }
 
-    std::string param_;
-    float last_ = 0.0f;
+    readout::Threshold threshold_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ThresholdMeterBrick)
 };

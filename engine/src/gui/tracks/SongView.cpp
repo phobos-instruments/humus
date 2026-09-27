@@ -40,8 +40,8 @@ void SongView::rebuild() {
             if (b.organism == cm.name) { hasBox = true; break; }
         if (!hasBox) continue;
         rows_.push_back(cm.name);
-        if (autoOnlyRows_.insert(cm.name).second) expanded_.insert(cm.name);
     }
+    rows_ = arrangedRows(rows_);
     if (inBox()) {
         const bool alive = std::find(rows_.begin(), rows_.end(), boxNode_) != rows_.end();
         if (!alive) leaveBox();
@@ -193,15 +193,6 @@ void SongView::clearSelections() {
     clearClipSel();
     clearSelection();
     clearPointSelection();
-}
-
-std::vector<std::string> SongView::liveTargets() const {
-    std::vector<std::string> t;
-    for (const auto& n : rows_)
-        if (!host().nodeRecordsAudio(n) && host().midi().isRecordTarget(n)) t.push_back(n);
-    if (t.empty())
-        if (const auto sel = selectedNoteNode(); !sel.empty()) t.push_back(sel);
-    return t;
 }
 
 std::vector<std::string> SongView::noteRows() const {

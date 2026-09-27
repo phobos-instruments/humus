@@ -107,6 +107,16 @@ void EngineHost::stop() {
     }
 }
 
+void EngineHost::stopPlayingFiles() {
+    std::vector<std::pair<std::string, std::string>> switches;
+    for (const auto& cm : model_.organisms)
+        if (auto* cap = dynamic_cast<FileTransportCap*>(liveOrganism(cm.name)))
+            if (const auto name = cap->playSwitch();
+                !name.empty() && liveParamValue(cm.name, name) >= 0.5)
+                switches.push_back({cm.name, name});
+    for (const auto& [node, name] : switches) setParam(node, name, 0.0);
+}
+
 void EngineHost::goToStart() { setPositionBeats(0.0); }
 
 void EngineHost::playFromStart() { goToStart(); play(); }

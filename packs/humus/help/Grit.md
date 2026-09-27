@@ -2,7 +2,7 @@
 
 A chip synth built on the Ricoh 2A03 console sound chip, with a cartridge slot for the Famicom expansion chips.
 
-The console alone is two pulse voices with the four hardware duty cycles, a triangle that sits under the lowest held note, a noise channel on the top keys and a 1-bit delta sampler on the bottom keys. Slot in a cartridge and its voices join the pool and take notes first, with the console pulses joining when they are all busy; on the VRC6 the sawtooth goes first. The envelope counts in frames per volume step over sixteen levels, so a fast attack snaps and a slow one climbs audibly. The emulation is NSFPlay's, driven register by register. Cord a PianoRoll, a Riff or a DNA into the MIDI inlet.
+The console alone is two pulse voices with the four hardware duty cycles, a triangle that sits under the lowest held note, a noise channel on the top keys and a 1-bit delta sampler on the bottom keys. Slot in a cartridge and its voices join the pool and take notes first, with the console pulses joining when they are all busy; on the VRC6 the sawtooth goes first. The envelope counts in frames per volume step over sixteen levels, so a fast attack snaps and a slow one climbs audibly. The emulation is [NSFPlay](https://github.com/bbbradsmith/nsfplay)'s, driven register by register. Cord a PianoRoll, a Riff or a DNA into the MIDI inlet.
 
 ## Parameters
 

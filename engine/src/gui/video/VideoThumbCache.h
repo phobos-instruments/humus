@@ -14,6 +14,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/app/AppPaths.h"
 #include "gui/video/FrameImage.h"
 #include "gui/video/VideoThumbStore.h"
 #include "gui/video/VideoLayer.h"
@@ -85,7 +86,7 @@ private:
     static juce::File fileOf(const std::string& path) {
         std::string uri = path;
         if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-        return juce::File(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+        return fileAt(uri);
     }
 
     static void compute(const std::string& path, Strip& out) {

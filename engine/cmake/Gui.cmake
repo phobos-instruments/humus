@@ -35,7 +35,7 @@ if(HUM_GUI)
         <key>UTTypeIdentifier</key><string>com.phobos-instruments.humus.patch</string>
         <key>UTTypeDescription</key><string>Humus Patch</string>
         <key>UTTypeIconFile</key><string>Icon.icns</string>
-        <key>UTTypeConformsTo</key><array><string>public.xml</string></array>
+        <key>UTTypeConformsTo</key><array><string>public.xml</string><string>public.plain-text</string></array>
         <key>UTTypeTagSpecification</key>
         <dict><key>public.filename-extension</key><array><string>hum</string></array></dict>
       </dict></array>
@@ -59,15 +59,9 @@ if(HUM_GUI)
   target_include_directories(hum_gui PRIVATE src ${HUM_GENERATED_DIR})
   add_dependencies(hum_gui hum_build_id)
   target_link_libraries(hum_gui PRIVATE
+    hum_host
     hum_core
     hum_assets
-    juce::juce_gui_basics
-    juce::juce_gui_extra
-    juce::juce_audio_devices
-    juce::juce_audio_utils
-    juce::juce_video
-    juce::juce_opengl
-    juce::juce_cryptography
   )
   hum_link_video(hum_gui)
   target_compile_definitions(hum_gui PRIVATE

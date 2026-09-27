@@ -130,6 +130,7 @@ void PinkTrombone::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     aspFilter_.set(500.0, 0.5, sampleRate);
     fricFilter_.set(1000.0, 0.5, sampleRate);
+    spread_.prepare(sampleRate);
     reset();
 }
 
@@ -138,6 +139,7 @@ void PinkTrombone::reset() {
     tract_.init();
     aspFilter_.clear();
     fricFilter_.clear();
+    spread_.clear();
     held_.clear();
     bend_.reset();
     stagedCount_ = 0;
@@ -168,6 +170,7 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
     const bool wobble = params.get("Wobble", 0.0) >= 0.5;
     const bool drone = params.get("Drone", 0.0) >= 0.5;
     const float level = (float) std::clamp(params.get("Level", 0.8), 0.0, 2.0);
+    spread_.setTargets(params.get("Width", 0.0), params.get("Pan", 0.5));
 
     const bool voiced = held_.any() || drone;
     if (held_.any()) {
@@ -200,6 +203,7 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
         fricIntensity_ + (squeeze > 0.05 ? fricStep : -fricStep), 0.0, 1.0);
 
     float* dst = out[0];
+    float* right = numOut > 1 ? out[1] : nullptr;
     for (int j = 0; j < numSamples; ++j) {
         noiseRng_ ^= noiseRng_ << 13;
         noiseRng_ ^= noiseRng_ >> 17;
@@ -221,7 +225,12 @@ void PinkTrombone::process(const float* const*, int, float* const* out, int numO
         tract_.runStep(glottal, turbulence, lambda2, noiseMod, constrIndex,
                        constrDiameter, sampleRate_);
         vocal += tract_.lipOutput + tract_.noseOutput;
-        dst[j] = (float) (vocal * 0.125) * level;
+        const float mono = (float) (vocal * 0.125) * level;
+        if (right == nullptr) {
+            dst[j] = mono;
+            continue;
+        }
+        spread_.spread(mono, dst[j], right[j]);
     }
     glottis_.finishBlock(voiced, !held_.any() && drone, blockTime, wobble);
     tract_.reshape(blockTime);

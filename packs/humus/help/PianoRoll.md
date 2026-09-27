@@ -6,7 +6,7 @@ Cord its outlet into any instrument, a Rhizome, a Sampler or a MidiOut for hardw
 
 ## The roll
 
-Pointer selects and moves, Draw creates, Scissors splits, Eraser sweeps away, on keys 1 to 4. Drag a note's tail to resize it, Alt-drag vertically for velocity, right-click to delete; the arrow keys move the selection by a semitone or a grid step. The strip under the grid is the velocity lane; right-click it to switch to a controller or pitch bend lane and draw the curve there. The Loop button is a one-tap looper: tap on an empty clip to record, tap again to close the loop at a whole bar, then each tap toggles Dub and Play. Rec captures live MIDI into the open clip and Q quantises it.
+Pointer selects and moves, Draw creates, Scissors splits, Eraser sweeps away, on keys 1 to 4. Drag a note's tail to resize it and Alt-drag vertically for velocity; right-click a note or the selection to give it a colour, quantise it to a grid, print the groove into it or delete it, and the arrow keys move the selection by a semitone or a grid step. The strip under the grid is the velocity lane; right-click it to switch to a controller or pitch bend lane and draw the curve there. In a controller lane, click a point to select it, Shift-click to add another and Ctrl or Cmd-drag to box several, then right-click to colour or delete them. The Loop button is a one-tap looper: tap on an empty clip to record, tap again to close the loop at a whole bar, then each tap toggles Dub and Play. Rec records what you play on any MIDI input straight into the roll and Q quantises it to the snap grid. Neither waits for the transport's Record, and both keep going with the editor closed.
 
 ## Parameters
 
@@ -23,6 +23,12 @@ Pointer selects and moves, Draw creates, Scissors splits, Eraser sweeps away, on
 **Swing** Delays every second unit, up to a triplet feel. Used only while Follow is off.
 
 **SwingUnit** The note value Swing works on, 1/8 or 1/16.
+
+**Record** Records live MIDI into the roll while on, starting the transport if it is stopped. It is never saved on. Right-click Rec to map it.
+
+**Loop** One press is one looper tap: record, close the loop, overdub, play. Right-click Loop to clear the roll or map it.
+
+**Quantize** Snaps recorded notes to the roll's snap grid. Right-click Q to map it.
 
 ## Recipe
 

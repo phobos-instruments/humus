@@ -67,6 +67,7 @@ void EngineHost::applyBypass(const std::string& name, bool on) {
         cm->properties.push_back(p);
     }
     if (graph_) graph_->setNodeBypass(graph_->indexOf(name), on);
+    notePanelEdit(name);
 }
 
 void EngineHost::applyTrackMute(const std::string& name, bool on) {
@@ -89,6 +90,7 @@ void EngineHost::applyTrackMute(const std::string& name, bool on) {
         cm->properties.push_back(p);
     }
     if (graph_) graph_->setNodeTrackMuted(graph_->indexOf(name), on);
+    refreshSilencedRows();
 }
 
 void EngineHost::setTrackMuted(const std::string& name, bool on) {
@@ -131,6 +133,19 @@ void EngineHost::applySolo() {
                               != soloable_.end();
         graph_->setNodeBypass(idx, doc || (arranges && solo_.count(cm.name) == 0));
     }
+    refreshSilencedRows();
+}
+
+void EngineHost::refreshSilencedRows() {
+    std::set<std::string> silent;
+    for (const auto& cm : model_.organisms) {
+        if (modelTrackMuted(cm)) { silent.insert(cm.name); continue; }
+        if (solo_.empty() || solo_.count(cm.name) != 0) continue;
+        if (std::find(soloable_.begin(), soloable_.end(), cm.name) != soloable_.end())
+            silent.insert(cm.name);
+    }
+    const juce::ScopedLock ml(midiState_.targetsLock);
+    midiState_.silenced = std::move(silent);
 }
 
 void EngineHost::setBypass(const std::string& name, bool on) {
@@ -150,6 +165,7 @@ bool EngineHost::bypassed(const std::string& name) const {
 std::string EngineHost::missingClassNote(const std::string& name) const {
     const auto* cm = model_.byName(name);
     if (cm == nullptr || isPluginKind(cm->kind)) return {};
+    if (isClockPseudo(cm->displayClass) || isMetapadPseudo(cm->displayClass)) return {};
     auto& pr = PackRegistry::instance();
     if (const auto* p = pr.packOf(cm->classRaw); p != nullptr && !p->enabled)
         return "The " + p->manifest.name + " pack is disabled";

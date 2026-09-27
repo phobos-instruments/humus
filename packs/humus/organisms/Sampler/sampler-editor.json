@@ -1,44 +1,44 @@
 {
   "width": 600,
-  "height": 548,
+  "height": 432,
   "controls": [
     {
       "type": "label",
       "label": "Bank",
-      "x": 12,
-      "y": 6,
-      "w": 320,
+      "x": 18,
+      "y": 12,
+      "w": 100,
       "h": 14
     },
     {
       "type": "bank-file",
       "param": "FileBank",
       "label": "",
-      "x": 12,
-      "y": 24,
-      "w": 300,
-      "h": 26,
+      "x": 18,
+      "y": 30,
+      "w": 276,
+      "h": 24,
       "kind": "Banks",
-      "filter": "*.sf2"
+      "filter": "*.sf2;*.nsmp3;*.nsmp4"
     },
     {
       "type": "combo",
       "param": "Preset",
-      "label": "Preset",
+      "label": "",
       "source": "patch-bank",
       "steppers": true,
-      "x": 320,
-      "y": 25,
-      "w": 268,
+      "x": 312,
+      "y": 30,
+      "w": 270,
       "h": 24,
       "dim-when": "!FileBank"
     },
     {
       "type": "label",
-      "label": "Slots",
-      "x": 28,
-      "y": 58,
-      "w": 300,
+      "label": "Sample slots",
+      "x": 18,
+      "y": 68,
+      "w": 140,
       "h": 14,
       "dim-when": "FileBank"
     },
@@ -50,332 +50,534 @@
         "Pitched",
         "Kit"
       ],
-      "x": 340,
-      "y": 55,
-      "w": 152,
-      "h": 20,
-      "dim-when": "FileBank"
+      "x": 318,
+      "y": 66,
+      "w": 132,
+      "h": 22,
+      "dim-when": "FileBank",
+      "art": "art/button.png",
+      "art-on": "art/button-on.png",
+      "art-slice": "4",
+      "art-text": "#eeeadd"
     },
     {
-      "type": "minitoggle",
+      "type": "enum-buttons",
       "param": "Loop",
-      "label": "Loop",
-      "x": 500,
-      "y": 55,
-      "w": 72,
-      "h": 20,
-      "dim-when": "FileBank"
+      "label": "",
+      "x": 496,
+      "y": 66,
+      "w": 86,
+      "h": 22,
+      "art": "art/button.png",
+      "art-on": "art/button-on.png",
+      "art-slice": "4",
+      "art-text": "#eeeadd",
+      "options": [
+        "On",
+        "Off"
+      ]
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File1",
       "label": "",
-      "x": 28,
-      "y": 82,
-      "w": 190,
-      "h": 24,
+      "x": 36,
+      "y": 92,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root1",
       "label": "",
-      "x": 222,
-      "y": 83,
-      "w": 66,
+      "x": 240,
+      "y": 92,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File2",
       "label": "",
-      "x": 28,
-      "y": 110,
-      "w": 190,
-      "h": 24,
+      "x": 36,
+      "y": 116,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root2",
       "label": "",
-      "x": 222,
-      "y": 111,
-      "w": 66,
+      "x": 240,
+      "y": 116,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File3",
       "label": "",
-      "x": 28,
-      "y": 138,
-      "w": 190,
-      "h": 24,
+      "x": 36,
+      "y": 140,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root3",
       "label": "",
-      "x": 222,
-      "y": 139,
-      "w": 66,
+      "x": 240,
+      "y": 140,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File4",
       "label": "",
-      "x": 28,
-      "y": 166,
-      "w": 190,
-      "h": 24,
+      "x": 36,
+      "y": 164,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root4",
       "label": "",
-      "x": 222,
-      "y": 167,
-      "w": 66,
+      "x": 240,
+      "y": 164,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File5",
       "label": "",
-      "x": 312,
-      "y": 82,
-      "w": 190,
-      "h": 24,
+      "x": 330,
+      "y": 92,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root5",
       "label": "",
-      "x": 506,
-      "y": 83,
-      "w": 66,
+      "x": 534,
+      "y": 92,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File6",
       "label": "",
-      "x": 312,
-      "y": 110,
-      "w": 190,
-      "h": 24,
+      "x": 330,
+      "y": 116,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root6",
       "label": "",
-      "x": 506,
-      "y": 111,
-      "w": 66,
+      "x": 534,
+      "y": 116,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File7",
       "label": "",
-      "x": 312,
-      "y": 138,
-      "w": 190,
-      "h": 24,
+      "x": 330,
+      "y": 140,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root7",
       "label": "",
-      "x": 506,
-      "y": 139,
-      "w": 66,
+      "x": 534,
+      "y": 140,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File8",
       "label": "",
-      "x": 312,
-      "y": 166,
-      "w": 190,
-      "h": 24,
+      "x": 330,
+      "y": 164,
+      "w": 200,
+      "h": 22,
       "dim-when": "FileBank"
     },
     {
       "type": "note-field",
       "param": "Root8",
       "label": "",
-      "x": 506,
-      "y": 167,
-      "w": 66,
+      "x": 534,
+      "y": 164,
+      "w": 54,
       "h": 22,
       "dim-when": "FileBank"
-    },
-    {
-      "type": "label",
-      "label": "Record",
-      "x": 28,
-      "y": 200,
-      "w": 420,
-      "h": 14
     },
     {
       "type": "minitoggle",
       "param": "Record",
       "label": "Record",
-      "x": 28,
-      "y": 218,
+      "x": 18,
+      "y": 204,
       "w": 76,
-      "h": 22
+      "h": 24,
+      "art": "art/button.png",
+      "art-on": "art/record-on.png",
+      "art-slice": "4",
+      "art-text": "#eeeadd"
     },
     {
       "type": "int-spinner",
       "param": "RecSlot",
       "label": "Slot",
-      "x": 116,
-      "y": 218,
-      "w": 172,
-      "h": 22
+      "x": 194,
+      "y": 204,
+      "w": 134,
+      "h": 24
     },
     {
       "type": "int-spinner",
       "param": "RecordDuration",
       "label": "Max ms",
-      "x": 312,
-      "y": 218,
-      "w": 260,
-      "h": 22
-    },
-    {
-      "type": "label",
-      "label": "Envelope",
-      "x": 12,
-      "y": 284,
-      "w": 320,
-      "h": 14
+      "x": 350,
+      "y": 204,
+      "w": 232,
+      "h": 24
     },
     {
       "type": "knob",
       "param": "Attack",
-      "label": "Att",
-      "x": 12,
-      "y": 302,
+      "label": "Attack",
+      "x": 18,
+      "y": 282,
       "w": 60,
       "h": 84,
-      "log": true
+      "log": true,
+      "art": "art/knob.png",
+      "art-angles": "-135,135"
     },
     {
       "type": "knob",
       "param": "Decay",
-      "label": "Dec",
-      "x": 76,
-      "y": 302,
+      "label": "Decay",
+      "x": 86,
+      "y": 282,
       "w": 60,
       "h": 84,
-      "log": true
+      "log": true,
+      "art": "art/knob.png",
+      "art-angles": "-135,135"
     },
     {
       "type": "knob",
       "param": "Sustain",
-      "label": "Sus",
-      "x": 140,
-      "y": 302,
+      "label": "Sustain",
+      "x": 154,
+      "y": 282,
       "w": 60,
-      "h": 84
+      "h": 84,
+      "art": "art/knob.png",
+      "art-angles": "-135,135"
     },
     {
       "type": "knob",
       "param": "Release",
-      "label": "Rel",
-      "x": 204,
-      "y": 302,
+      "label": "Release",
+      "x": 222,
+      "y": 282,
       "w": 60,
       "h": 84,
-      "log": true
+      "log": true,
+      "art": "art/knob.png",
+      "art-angles": "-135,135"
     },
     {
       "type": "knob",
       "param": "Gain",
       "label": "Gain",
-      "x": 340,
-      "y": 302,
+      "x": 312,
+      "y": 282,
       "w": 60,
-      "h": 84
+      "h": 84,
+      "art": "art/knob.png",
+      "art-angles": "-135,135"
     },
     {
       "type": "int-spinner",
       "param": "Polyphony",
       "label": "Voices",
-      "x": 412,
-      "y": 324,
-      "w": 176,
-      "h": 22
+      "x": 400,
+      "y": 312,
+      "w": 182,
+      "h": 24
     },
     {
       "type": "midi-keyboard",
-      "x": 6,
-      "y": 398,
-      "w": 588,
-      "h": 84
-    },
-    {
-      "type": "label",
-      "label": "Grain",
-      "x": 12,
-      "y": 496,
-      "w": 470,
-      "h": 14
+      "x": 18,
+      "y": 378,
+      "w": 564,
+      "h": 42
     },
     {
       "type": "int-spinner",
       "param": "Bits",
-      "label": "Bits",
-      "x": 12,
-      "y": 514,
-      "w": 270,
-      "h": 22
+      "label": "",
+      "x": 312,
+      "y": 248,
+      "w": 126,
+      "h": 22,
+      "steps": "8 12 16 24"
     },
     {
       "type": "int-spinner",
       "param": "Rate",
-      "label": "kHz",
-      "x": 318,
-      "y": 514,
-      "w": 270,
-      "h": 22
+      "label": "",
+      "x": 456,
+      "y": 248,
+      "w": 126,
+      "h": 22,
+      "steps": "4 8 11 16 22 32 44 48"
     },
     {
       "type": "minitoggle",
       "param": "Monitor",
       "label": "Monitor",
-      "x": 28,
-      "y": 254,
-      "w": 84,
-      "h": 20
+      "x": 102,
+      "y": 204,
+      "w": 76,
+      "h": 24,
+      "art": "art/button.png",
+      "art-on": "art/button-on.png",
+      "art-slice": "4",
+      "art-text": "#eeeadd"
     },
     {
       "type": "threshold-meter",
       "param": "Threshold",
       "label": "",
-      "x": 124,
-      "y": 242,
-      "w": 448,
+      "x": 18,
+      "y": 236,
+      "w": 276,
       "h": 34
+    },
+    {
+      "type": "label",
+      "label": "Instrument",
+      "x": 312,
+      "y": 12,
+      "w": 210,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "Bit depth",
+      "x": 312,
+      "y": 232,
+      "w": 126,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "Sample rate",
+      "x": 456,
+      "y": 232,
+      "w": 126,
+      "h": 14
+    },
+    {
+      "type": "label",
+      "label": "1",
+      "x": 14,
+      "y": 96,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "2",
+      "x": 14,
+      "y": 120,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "3",
+      "x": 14,
+      "y": 144,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "4",
+      "x": 14,
+      "y": 168,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "5",
+      "x": 308,
+      "y": 96,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "6",
+      "x": 308,
+      "y": 120,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "7",
+      "x": 308,
+      "y": 144,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "8",
+      "x": 308,
+      "y": 168,
+      "w": 20,
+      "h": 14,
+      "dim-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "Bank active",
+      "x": 174,
+      "y": 70,
+      "w": 140,
+      "h": 14,
+      "show-when": "FileBank"
+    },
+    {
+      "type": "label",
+      "label": "Loop",
+      "x": 462,
+      "y": 70,
+      "w": 30,
+      "h": 14
     }
-  ]
+  ],
+  "skin": {
+    "panel": [
+      {
+        "shape": "rect",
+        "theme": "dark",
+        "fill": [
+          "#4a4844",
+          "#393835"
+        ]
+      },
+      {
+        "shape": "rect",
+        "theme": "light",
+        "fill": [
+          "#bebab3",
+          "#b8b5ae"
+        ]
+      }
+    ],
+    "face": [
+      {
+        "shape": "rect",
+        "theme": "dark",
+        "x": 10,
+        "y": 6,
+        "w": 580,
+        "h": 188,
+        "radius": 3,
+        "fill": "#252b28",
+        "stroke": "#555b52",
+        "stroke-width": 0.6
+      },
+      {
+        "shape": "rect",
+        "theme": "dark",
+        "x": 18,
+        "y": 60,
+        "w": 564,
+        "h": 0.6,
+        "fill": "#555b52"
+      },
+      {
+        "shape": "rect",
+        "theme": "dark",
+        "x": 18,
+        "y": 276,
+        "w": 564,
+        "h": 0.6,
+        "fill": "#555b52"
+      },
+      {
+        "shape": "rect",
+        "theme": "light",
+        "x": 10,
+        "y": 6,
+        "w": 580,
+        "h": 188,
+        "radius": 3,
+        "fill": "#c6cbbc",
+        "stroke": "#8f9588",
+        "stroke-width": 0.6
+      },
+      {
+        "shape": "rect",
+        "theme": "light",
+        "x": 18,
+        "y": 60,
+        "w": 564,
+        "h": 0.6,
+        "fill": "#8f9588"
+      },
+      {
+        "shape": "rect",
+        "theme": "light",
+        "x": 18,
+        "y": 276,
+        "w": 564,
+        "h": 0.6,
+        "fill": "#8f9588"
+      }
+    ]
+  }
 }

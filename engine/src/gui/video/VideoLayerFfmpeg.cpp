@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <cstddef>
+#include <deque>
 #include <cstdint>
 #include <iostream>
 #include <memory>
@@ -211,19 +213,19 @@ private:
         }
     }
 
-    void present(Decoder& d, double pts) {
+    std::shared_ptr<const Frame> present(Decoder& d, double pts) {
         AVFrame* src = d.frame;
         if (d.hwPix != AV_PIX_FMT_NONE && d.frame->format == d.hwPix) {
             av_frame_unref(d.swFrame);
-            if (av_hwframe_transfer_data(d.swFrame, d.frame, 0) < 0) return;
+            if (av_hwframe_transfer_data(d.swFrame, d.frame, 0) < 0) return nullptr;
             src = d.swFrame;
         }
         const int w = src->width, h = src->height;
-        if (w <= 0 || h <= 0) return;
+        if (w <= 0 || h <= 0) return nullptr;
         d.sws = sws_getCachedContext(d.sws, w, h, (AVPixelFormat) src->format, w, h,
                                      AV_PIX_FMT_BGRA, SWS_BILINEAR, nullptr, nullptr,
                                      nullptr);
-        if (d.sws == nullptr) return;
+        if (d.sws == nullptr) return nullptr;
         auto out = std::make_shared<Frame>();
         out->width = w;
         out->height = h;
@@ -233,8 +235,38 @@ private:
         const int dstStride[4] = {w * 4, 0, 0, 0};
         sws_scale(d.sws, src->data, src->linesize, 0, h, dst, dstStride);
         out->pts = pts;
+        std::shared_ptr<const Frame> kept = out;
         const juce::ScopedLock sl(lock_);
         current_ = std::move(out);
+        return kept;
+    }
+
+    void publish(const std::shared_ptr<const Frame>& frame) {
+        const juce::ScopedLock sl(lock_);
+        current_ = frame;
+    }
+
+    void remember(const std::shared_ptr<const Frame>& frame) {
+        if (frame == nullptr) return;
+        ring_.push_back(frame);
+        ringBytes_ += frame->bgra.size();
+        while (!ringHolds(ring_.size(), ringBytes_,
+                          ring_.back()->pts - ring_.front()->pts)) {
+            ringBytes_ -= ring_.front()->bgra.size();
+            ring_.pop_front();
+        }
+    }
+
+    void forgetRing() {
+        ring_.clear();
+        ringBytes_ = 0;
+    }
+
+    int ringHolding(double target) const {
+        std::vector<double> times;
+        times.reserve(ring_.size());
+        for (const auto& f : ring_) times.push_back(f->pts);
+        return heldFrameFor(times, target, kScrubRingReach);
     }
 
     void run() override {
@@ -249,6 +281,7 @@ private:
         double pendingPts = 0.0;
         unsigned chaseSeen = 0;
         bool chasing = false;
+        forgetRing();
 
         while (!threadShouldExit()) {
             const auto nowMs = juce::Time::getMillisecondCounterHiRes();
@@ -288,8 +321,18 @@ private:
             }
             shownPosition_.store(position);
 
+            if (chasing && !jumped) {
+                if (const int held = ringHolding(position); held >= 0) {
+                    publish(ring_[(std::size_t) held]);
+                    lastPresented = ring_[(std::size_t) held]->pts;
+                    wait(2);
+                    continue;
+                }
+            }
+
             if (jumped || (lastPresented >= 0.0 && position < lastPresented - 0.05)) {
                 seekDecoder(d, position);
+                if (jumped) forgetRing();
                 lastPresented = -1.0;
             }
 
@@ -313,7 +356,8 @@ private:
             }
             if (pendingValid_ && pendingPts <= position + 0.001) {
                 if (pendingPts >= position - 0.5 || lastPresented < 0.0) {
-                    present(d, pendingPts);
+                    const auto shown = present(d, pendingPts);
+                    if (chasing) remember(shown);
                     lastPresented = pendingPts;
                 }
                 pendingValid_ = false;
@@ -336,6 +380,8 @@ private:
     std::atomic<double> chaseTo_{0.0};
     std::atomic<double> chaseRate_{0.0};
     std::atomic<unsigned> chaseStamp_{0};
+    std::deque<std::shared_ptr<const Frame>> ring_;
+    std::size_t ringBytes_ = 0;
     std::atomic<double> shownPosition_{0.0};
     std::atomic<double> length_{0.0};
     bool pendingValid_ = false;
@@ -346,8 +392,14 @@ private:
 
 }
 
+std::unique_ptr<VideoLayer> VideoLayer::createFfmpeg() {
+    return std::make_unique<FfmpegVideoLayer>();
+}
+
+#if !JUCE_MAC && !defined(HUM_MEDIA_FOUNDATION)
 std::unique_ptr<VideoLayer> VideoLayer::createPlatform() {
     return std::make_unique<FfmpegVideoLayer>();
 }
+#endif
 
 }

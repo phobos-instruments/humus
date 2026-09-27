@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "io/Mp3Writer.h"
 
 #include <algorithm>
@@ -72,7 +73,7 @@ bool writeMp3(const std::string& path,
     const auto tagged = lame_get_lametag_frame(lame.flags, tag.data(), tag.size());
     if (tagged > 0 && tagged <= out.size()) std::memcpy(out.data(), tag.data(), tagged);
 
-    const juce::File file(juce::String(juce::CharPointer_UTF8(path.c_str())));
+    const auto file = fileAt(path);
     file.deleteFile();
     return file.replaceWithData(out.data(), out.size());
 }

@@ -36,18 +36,59 @@ public:
 
 class FileTransportCap : public FileLoader {
 public:
+    virtual std::string playSwitch() const { return {}; }
     virtual std::int64_t playbackPositionSamples() const = 0;
     virtual std::int64_t fileLengthSamples() const = 0;
     virtual double playbackSampleRate() const = 0;
     virtual void requestSeekSamples(std::int64_t sample) = 0;
 };
 
+class MediaDuration {
+public:
+    virtual ~MediaDuration() = default;
+    virtual void noteMediaSeconds(double seconds) = 0;
+};
+
+class LoadsOffThread {
+public:
+    virtual ~LoadsOffThread() = default;
+    virtual float loadProgress() const = 0;
+};
+
+class LoadFault {
+public:
+    virtual ~LoadFault() = default;
+    virtual std::string loadFault() const = 0;
+};
+
+class AbortsLoad {
+public:
+    virtual ~AbortsLoad() = default;
+    virtual void abandonLoad() = 0;
+};
+
+class MediaTracks {
+public:
+    virtual ~MediaTracks() = default;
+    virtual std::vector<std::string> mediaTracks() const = 0;
+};
+
+class DefersLoading {
+public:
+    virtual ~DefersLoading() = default;
+    virtual void deferLoading(bool defer) = 0;
+};
+
 class DeckControl : public FileTransportCap {
 public:
     virtual double effectiveBpm() const = 0;
+    virtual double playbackSpeed() const = 0;
     virtual void setBendPercent(double percent) = 0;
     virtual void setScrub(bool active, double targetSample) = 0;
-    virtual const std::vector<float>& waveformPeaks() const = 0;
+    virtual std::vector<float> waveformPeaks() const = 0;
+    virtual std::vector<float> wavePeaksBetween(std::int64_t, std::int64_t, int) const {
+        return {};
+    }
     virtual void beginLoopRoll() = 0;
     virtual void endLoopRoll() = 0;
 };
@@ -70,6 +111,29 @@ public:
     virtual bool strandPending(int strand) const = 0;
 };
 
+class StrandWave {
+public:
+    static constexpr int kWaveBins = 72;
+    virtual ~StrandWave() = default;
+    virtual int strandWave(int strand, float* out, int max) const = 0;
+    virtual float strandInput(int strand) const = 0;
+};
+
+class StrandAlign {
+public:
+    virtual ~StrandAlign() = default;
+    virtual bool alignStrand(int strand) = 0;
+};
+
+class StrandIntent {
+public:
+    enum { kPressNone = 0, kPressRecord = 1, kPressDub = 2, kPressPlay = 3, kPressStop = 4 };
+    virtual ~StrandIntent() = default;
+    virtual int strandPendingPress(int strand) const = 0;
+    virtual bool strandCanUndo(int strand) const = 0;
+    virtual bool strandCanRedo(int strand) const = 0;
+};
+
 class ClipArrangement {
 public:
     virtual ~ClipArrangement() = default;
@@ -81,6 +145,15 @@ public:
     virtual bool storeSessionAudio(const std::string& pathPrefix,
                                    std::vector<std::pair<std::string, std::string>>& out) = 0;
     virtual void loadSessionAudio() = 0;
+};
+
+class AudioTakes {
+public:
+    virtual ~AudioTakes() = default;
+    virtual int audioTakeCount() const = 0;
+    virtual bool audioTakeReady(int take) const = 0;
+    virtual std::string audioTakeName(int take) const = 0;
+    virtual bool writeAudioTake(int take, const std::string& wavPath) = 0;
 };
 
 class ClipRecorder {

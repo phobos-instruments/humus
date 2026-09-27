@@ -26,8 +26,8 @@ void SongView::paintBoxes(juce::Graphics& g, int row) {
         b.setLeft(std::max(b.getX(), kStripW));
         if (b.getRight() < cb.getX() || b.getX() > cb.getRight()) continue;
         const bool sel = i == selBox_ || boxSelected(i);
-        g.setColour((sel ? Palette::accent : Palette::accentDim).withAlpha(alpha::scrim));
-        g.fillRoundedRectangle(b.toFloat(), 3.0f);
+        timelinechrome::paintGummy(g, b.toFloat(), (sel ? Palette::accent : Palette::accentDim).withAlpha(alpha::scrim));
+        timelinechrome::paintGummyShine(g, b.toFloat());
         g.setColour(sel ? Palette::accent : Palette::accentDim);
         g.drawRoundedRectangle(b.toFloat(), 3.0f, sel ? 1.6f : 1.1f);
         if (b.getWidth() > 24) {
@@ -37,7 +37,7 @@ void SongView::paintBoxes(juce::Graphics& g, int row) {
         }
         if (cm != nullptr && b.getWidth() > 14) {
             const auto& box = boxes[(size_t) i];
-            const double delta = dragBox_ == i ? boxDragDelta_ : 0.0;
+            const double delta = boxRidesDrag(i) ? boxDragDelta_ : 0.0;
             g.saveState();
             g.reduceClipRegion(b);
             int drawn = 0;
@@ -94,7 +94,43 @@ void SongView::paintBoxRow(juce::Graphics& g, const trackslayout::Slot& s) {
     g.fillRect(kStripW, s.y, getWidth() - kStripW, s.h - 1);
     timelinechrome::paintTimeGrid(g, {kStripW, s.y, getWidth() - kStripW, s.h - 1}, kStripW,
                                   view_.scrollBeats, view_.ppb, host().automation().meterMap(), view_.snapChoice);
+    paintFoldedLanes(g, s.track, {kStripW, s.y, getWidth() - kStripW, s.h - 1});
     paintBoxes(g, s.track);
+}
+
+int SongView::foldedLaneCountForTest(int row) const {
+    if (row < 0 || row >= (int) rows_.size() || expanded_.count(rows_[(size_t) row]) != 0) return 0;
+    const auto* cm = host().model().byName(rows_[(size_t) row]);
+    int n = 0;
+    if (cm != nullptr)
+        for (const auto& l : cm->automation) if (!l.points.empty()) ++n;
+    return n;
+}
+
+void SongView::paintFoldedLanes(juce::Graphics& g, int row, juce::Rectangle<int> body) {
+    if (foldedLaneCountForTest(row) == 0 || body.getHeight() < 10) return;
+    const auto& node = rows_[(size_t) row];
+    const auto* cm = host().model().byName(node);
+    g.saveState();
+    g.reduceClipRegion(body);
+    const float top = (float) body.getY() + 4.0f, span = (float) body.getHeight() - 8.0f;
+    int drawn = 0;
+    for (const auto& l : cm->automation) {
+        if (l.points.empty() || l.kind == "trigger") continue;
+        const auto [lo, hi] = laneRange(node, l.propertyName);
+        if (hi <= lo) continue;
+        juce::Path path;
+        path.startNewSubPath((float) body.getX(),
+                             top + span * (float) (1.0 - (l.points.front().value - lo) / (hi - lo)));
+        for (const auto& pt : l.points)
+            path.lineTo(beatToX(pt.beat), top + span * (float) (1.0 - (pt.value - lo) / (hi - lo)));
+        path.lineTo((float) body.getRight(),
+                    top + span * (float) (1.0 - (l.points.back().value - lo) / (hi - lo)));
+        g.setColour(Palette::accent.withAlpha(drawn % 2 ? alpha::muted : alpha::dim));
+        g.strokePath(path, juce::PathStrokeType(1.0f));
+        ++drawn;
+    }
+    g.restoreState();
 }
 
 void SongView::paintLinePreview(juce::Graphics& g) {

@@ -5,6 +5,8 @@
 #include <vector>
 
 #include "core/net/ControlShape.h"
+#include "core/params/RangeEnd.h"
+#include "hum/Parameter.h"
 #include "hum/caps/Graph.h"
 
 namespace hum {
@@ -18,6 +20,7 @@ struct ModRoute {
     double srcMax = 1.0;
     int dstNode = -1;
     std::string dstParam;
+    RangeEnd dstEnd = RangeEnd::Whole;
     int dstSlot = -1;
     double min = 0.0;
     double max = 1.0;
@@ -27,6 +30,13 @@ struct ModRoute {
     ControlShape shape;
     ControlShapeState state;
     const ControlSource* src = nullptr;
+};
+
+struct NamedTap {
+    const ControlSource* src = nullptr;
+    NamedInlet* sink = nullptr;
+    int slot = 0;
+    Parameter* knob = nullptr;
 };
 
 }

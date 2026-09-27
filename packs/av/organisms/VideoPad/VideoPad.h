@@ -5,6 +5,12 @@
 #include <atomic>
 #include <string>
 
+#include <memory>
+#include <mutex>
+#include <vector>
+
+#include "hum/caps/Files.h"
+#include "hum/dsp/SoundFileBuffer.h"
 #include "hum/caps/Midi.h"
 #include "hum/caps/Params.h"
 #include "hum/caps/Video.h"
@@ -13,12 +19,24 @@
 namespace hum {
 
 class VideoPad : public Organism, public VideoNode, public MidiNode, public VideoPadSource,
-                 public LiveParamRange, public RollListener {
+                 public LiveParamRange, public RollListener, public FileLoader,
+                 public ReloadOnParam, public ClipPlayhead {
 public:
     static constexpr int kBaseNote = 60;
 
     int numAudioInputs() const override { return 0; }
-    int numAudioOutputs() const override { return 0; }
+    int numAudioOutputs() const override { return 2; }
+
+    void loadFromFile(const std::string& changed) override;
+    bool reloadsOn(const std::string& param) const override {
+        return param.rfind("File", 0) == 0;
+    }
+    double clipSeconds(int slot) const override {
+        if (slot < 0 || slot >= kMaxClips) return -1.0;
+        const double rate = srcRate_[(size_t) slot].load(std::memory_order_relaxed);
+        if (rate <= 0.0) return -1.0;
+        return heard_[(size_t) slot].load(std::memory_order_relaxed) / rate;
+    }
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
         reset();
@@ -75,6 +93,17 @@ private:
     std::atomic<float> phase_{1.0f};
     std::atomic<unsigned> launches_{0};
     std::array<std::atomic<double>, kMaxClips> lengths_{};
+
+    using Clip = SoundBytes;
+    void readClip(int slot, float* const* out, int numSamples, float gain);
+
+    mutable std::mutex clipLock_;
+    std::array<std::shared_ptr<const Clip>, kMaxClips> clips_{};
+    std::array<std::string, kMaxClips> uri_{};
+    std::array<double, kMaxClips> pos_{};
+    std::array<std::atomic<double>, kMaxClips> heard_{};
+    std::array<std::atomic<double>, kMaxClips> srcRate_{};
+    double sampleRate_ = kDefaultSampleRate;
 };
 
 }

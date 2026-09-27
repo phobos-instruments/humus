@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/packs/PackManifest.h"
+#include "core/packs/PackRoots.h"
 
 namespace hum {
 
@@ -21,6 +22,8 @@ public:
         std::vector<OrganismManifest> organisms;
     };
 
+    const PackRoots* setRoots(const PackRoots* roots);
+    std::string builtinRoot() const;
     void loadBuiltinPacks();
 
     const std::vector<Pack>& packs() const { return packs_; }
@@ -33,8 +36,6 @@ public:
     bool isClassEnabled(const std::string& className) const;
     void setPackEnabled(const std::string& id, bool enabled);
 
-    static std::string packsRootDir();
-
     bool loadPackDir(const std::string& dir, bool builtin);
     void removePack(const std::string& id);
 
@@ -44,6 +45,7 @@ private:
     std::vector<Pack> packs_;
     struct Ref { int pack; int folder; int cls; };
     std::unordered_map<std::string, Ref> byClass_;
+    const PackRoots* roots_ = nullptr;
     bool loaded_ = false;
 };
 

@@ -12,7 +12,7 @@ namespace hum {
 struct LayoutSpec;
 
 struct SkinLayer {
-    enum class Shape { Rect, Lines, Screws, Lamp, Text };
+    enum class Shape { Rect, Lines, Screws, Lamp, Text, Image };
     enum class Theme { Any, Dark, Light };
 
     Shape shape = Shape::Rect;
@@ -30,6 +30,7 @@ struct SkinLayer {
     bool bold = false;
     juce::Justification justify = juce::Justification::centredLeft;
     juce::Colour shadow;
+    juce::Image image;
 };
 
 class Skin {
@@ -37,7 +38,7 @@ public:
     using Anchors = std::function<bool(const std::string& param, juce::Rectangle<float>& area)>;
 
     static Skin parse(const std::string& json, std::vector<std::string>* problems = nullptr,
-                      const Anchors& anchors = {});
+                      const Anchors& anchors = {}, const std::string& dir = {});
     static Skin forBlueprint(const LayoutSpec& spec, std::vector<std::string>* problems = nullptr);
 
     bool empty() const { return panel_.empty() && face_.empty(); }

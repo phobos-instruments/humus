@@ -70,7 +70,14 @@ ParameterWindow::ParameterWindow(PropertiesHost& host, const std::string& name)
         reloadValues();
     };
     dice_.onRightClick = [this](juce::Point<int> at) {
-        showAutomateMenu(host_, name_, kRandomAction, at, nullptr, false);
+        const bool guarded = host_.rollLocked(name_, rollscope::kWholeOrganism);
+        juce::PopupMenu head;
+        head.addItem(kProtectItem, tr("parameter-window.protect-from-random", "Protect From Random"), true, guarded);
+        showAutomateMenu(host_, name_, kRandomAction, at, nullptr, false, {}, head, [this, guarded](int picked) {
+            if (picked != kProtectItem) return;
+            host_.setRollLocked(name_, rollscope::kWholeOrganism, !guarded);
+            updateDiceEnablement();
+        });
     };
     updateDiceEnablement();
 
@@ -113,6 +120,11 @@ ParameterWindow::ParameterWindow(PropertiesHost& host, const std::string& name)
     pluginUi_.onClick = [this] { if (onOpenPluginUI) onOpenPluginUI(name_); };
     addChildComponent(pluginUi_);
     pluginUi_.setVisible(pluginHasUi_);
+    fitSize_.onClick = [this] {
+        if (embedded_) embedded_->setActualSize(!embedded_->actualSize());
+        refreshFitSize();
+    };
+    addChildComponent(fitSize_);
 
     {
         const int stored = host_.editorHalf(name);
@@ -199,7 +211,10 @@ void ParameterWindow::buildContentImpl() {
     } else if (pluginHasUi_ && (mode < 0 || mode == 1)) {
         if (!embedded_) {
             embedded_ = std::make_unique<EmbeddedPluginView>(host_, name_);
-            embedded_->onLayoutChanged = [this] { if (onContentResized) onContentResized(); };
+            embedded_->onLayoutChanged = [this] {
+                refreshFitSize();
+                if (onContentResized) onContentResized();
+            };
             embedded_->onWantsFloat    = [this] { if (onOpenPluginUI) onOpenPluginUI(name_); };
             addAndMakeVisible(*embedded_);
         }
@@ -217,6 +232,7 @@ void ParameterWindow::buildContentImpl() {
     }
     viewSwitch_.set(embedded_ != nullptr);
     viewSwitch_.setVisible(pluginHasUi_);
+    refreshFitSize();
     syncVeil();
 }
 
@@ -251,6 +267,21 @@ void ParameterWindow::setEmbeddedFloat(bool) {}
 
 juce::Component* ParameterWindow::embeddedView() const { return embedded_.get(); }
 
+void ParameterWindow::refreshFitSize() {
+    const bool was = fitSize_.isVisible();
+    fitSize_.setVisible(embedded_ != nullptr);
+    if (embedded_) {
+        const bool actual = embedded_->actualSize();
+        fitSize_.setButtonText(actual ? tr("parameter-window.size-fit", "Fit")
+                                      : tr("parameter-window.size-actual", "1:1"));
+        fitSize_.setTooltip(actual
+            ? tr("parameter-window.size-fit-tip", "Scale this plugin to the width of the column")
+            : tr("parameter-window.size-actual-tip",
+                 "Show this plugin at its own size - for one that draws wrongly when scaled"));
+    }
+    if (was != fitSize_.isVisible()) resized();
+}
+
 void ParameterWindow::refreshBypass() {
     bypass_.setOn(host_.bypassed(name_));
 }
@@ -258,11 +289,15 @@ void ParameterWindow::refreshBypass() {
 void ParameterWindow::updateDiceEnablement() {
     const bool can = nodeSupportsRandom(host_, name_);
     dice_.setEnabled(can);
-    dice_.setTooltip(can
+    const bool guarded = host_.rollLocked(name_, rollscope::kWholeOrganism);
+    dice_.setGuarded(can && guarded);
+    dice_.setTooltip(can && guarded
+        ? juce::String::fromUTF8("Randomise this organism - protected from Randomise everything")
+        : can
         ? juce::String::fromUTF8(
-              "Random - roll new settings for this organism (one undo step)")
+              "Randomise this organism")
         : juce::String::fromUTF8(
-              "Random - this organism has nothing curated to roll"));
+              "Nothing to randomise here"));
 }
 
 void ParameterWindow::syncRail() {

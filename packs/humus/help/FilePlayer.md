@@ -2,7 +2,7 @@
 
 Plays a mono or stereo sound file into the patch.
 
-Use it for backing tracks, field recordings and one-shot cues that do not need to follow the transport. It runs free: Active starts and stops it, and the position bar on the box scrubs to any point while it plays or sits paused. Loop repeats the file with an optional gap of silence between passes, and AutoRewind decides whether each start picks up where it stopped or from the top. For loops that stay locked to the beat, use LoopPlayer instead. Cord the output into a Mixer or straight to SoundOut.
+Use it for backing tracks, field recordings and one-shot cues that do not need to follow the transport. It runs free: Active starts and stops it, and the position bar on the box scrubs to any point while it plays or sits paused. Every button on the transport strip is a parameter, so right-click any of them for MIDI Learn, OSC Learn, Control with or Follow. The transport's Stop leaves it playing; press Stop a second time, when nothing is rolling, and it stops with everything else. Loop repeats the file with an optional gap of silence between passes, and AutoRewind decides whether each start picks up where it stopped or from the top. For loops that stay locked to the beat, use LoopPlayer instead. Cord the output into a Mixer or straight to SoundOut.
 
 ## Parameters
 

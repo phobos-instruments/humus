@@ -67,7 +67,10 @@ void EngineHost::syncMidiTrackTargets() {
         double current = 1.0;
         for (const auto& p : cm.properties)
             if (p.name == "Target") { current = p.value; break; }
-        if (current != want) setParam(cm.name, "Target", want);
+        if (current != want) {
+            DerivedControlScope derived(*this);
+            setParam(cm.name, "Target", want);
+        }
     }
 }
 

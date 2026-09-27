@@ -6,47 +6,49 @@
 
 #include <juce_osc/juce_osc.h>
 
+#include "gui/host/OscEdits.h"
 #include "gui/host/HostCore.h"
 #include "gui/host/BrickHost.h"
+#include "gui/host/HostScheduler.h"
 #include "core/net/OscControl.h"
 #include "gui/settings/OscSerial.h"
 
 namespace hum {
 
 
-class OscHost : private juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback> {
+class OscHost : public OscEdits, private juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback> {
 public:
-    OscHost(BrickHost& host, HostCore& core);
+    OscHost(BrickHost& host, HostCore& core, HostScheduler& scheduler);
     ~OscHost() override;
 
-    bool setEnabled(bool on);
-    bool enabled() const { return enabled_; }
-    int port() const;
+    bool setEnabled(bool on) override;
+    bool enabled() const override { return enabled_; }
+    int port() const override;
 
-    juce::String mapAddress(const std::string& address, const std::string& organism,
-                    const std::string& param, double min, double max, bool steal);
+    std::string mapAddress(const std::string& address, const std::string& organism,
+                    const std::string& param, double min, double max, bool steal) override;
     void clearAddress(const std::string& address, const std::string& organism,
-                      const std::string& param);
-    void clearForOrganism(const std::string& organism);
-    void renameOrganism(const std::string& oldName, const std::string& newName);
-    const OscControlMap& map() const { return map_; }
+                      const std::string& param) override;
+    void clearForOrganism(const std::string& organism) override;
+    void renameOrganism(const std::string& oldName, const std::string& newName) override;
+    const OscControlMap& map() const override { return map_; }
     void setShape(const std::string& address, const std::string& organism,
-                  const std::string& param, const ControlShape& shape);
+                  const std::string& param, const ControlShape& shape) override;
     std::vector<OscParamUpdate> tickSmoothing(double dt) { return map_.tick(dt); }
 
-    void inject(const std::string& address, double value01);
+    void inject(const std::string& address, double value01) override;
 
-    juce::String lastAddress() const { return lastAddress_; }
-    void clearLastAddress() { lastAddress_.clear(); }
+    std::string lastAddress() const override { return lastAddress_.toStdString(); }
+    void clearLastAddress() override { lastAddress_.clear(); }
 
     void syncMapFromModel();
     void syncMapToModel();
 
     bool sendValue(const juce::String& address, float value);
 
-    void applySerialSettings();
-    bool serialEnabled() const { return serial_.enabled(); }
-    bool serialOpen() const { return serial_.isOpen(); }
+    void applySerialSettings() override;
+    bool serialEnabled() const override { return serial_.enabled(); }
+    bool serialOpen() const override { return serial_.isOpen(); }
     void takeSerialMessage(const osc::Message& m);
 
 private:
@@ -55,6 +57,7 @@ private:
 
     BrickHost& host_;
     HostDocument& doc_;
+    HostScheduler& scheduler_;
     juce::OSCReceiver receiver_;
     OscControlMap map_;
     juce::String lastAddress_;

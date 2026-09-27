@@ -15,7 +15,7 @@
 
 namespace hum {
 
-class MathNode : public Organism, public ControlSource, public MidiNode, public PinKinds {
+class MathNode : public Organism, public ControlSource, public MidiNode, public PinKinds, public NamedInlet {
 public:
     bool controlOutlet(int) const override { return true; }
     int numAudioInputs() const override { return 2; }
@@ -58,13 +58,28 @@ public:
         return 1;
     }
 
+    const char* namedInletParam() const override { return "Vars"; }
+    bool readsName(const char* name) const override;
+    const char* knobForName(const char* name) const override;
+    void setInletNames(const char (*names)[kNameChars], int count) override;
+    void setInletValue(int slot, float value) override {
+        if (slot >= 0 && slot < FormulaInlets::kMax) inletValues_[(size_t) slot].store(value, std::memory_order_relaxed);
+    }
+    int inletNames(char (*out)[kNameChars], int capacity) const override;
+    float inletValue(int slot) const override {
+        return slot >= 0 && slot < FormulaInlets::kMax ? inletValues_[(size_t) slot].load(std::memory_order_relaxed) : 0.0f;
+    }
+
 private:
-    static FormulaProgram compileExpression(const std::string& text, const FormulaProgram& last);
+    static FormulaProgram compileExpression(const std::string& text, const FormulaProgram& last,
+                                            const FormulaInlets& inlets);
     void syncExpression();
 
     FormulaProgram prog_;
     Prepared<FormulaProgram> pendingProg_;
     std::string appliedText_;
+    FormulaInlets inlets_;
+    std::array<std::atomic<float>, FormulaInlets::kMax> inletValues_{};
     std::atomic<float> ctl_{0.5f};
     std::uint32_t rng_ = 0x9e3779b9u;
     std::array<std::array<float, FormulaProgram::kStateSlots>, 2> state_{};

@@ -1,0 +1,115 @@
+[
+ {
+  "name": "Default",
+  "values": {
+   "Combs": 4,
+   "InputGain": 1.0,
+   "Frequency_1": 110.0,
+   "DecayTime_1": 1.0,
+   "Gain_1": 1.0,
+   "Frequency_2": 220.0,
+   "DecayTime_2": 2.0,
+   "Gain_2": 0.5,
+   "Frequency_3": 440.0,
+   "DecayTime_3": 3.0,
+   "Gain_3": 0.25,
+   "Frequency_4": 880.0,
+   "DecayTime_4": 4.0,
+   "Gain_4": 0.125,
+   "Frequency_5": 1760.0,
+   "DecayTime_5": 5.0,
+   "Gain_5": 0.0625
+  }
+ },
+ {
+  "name": "Minor Ninth Drone",
+  "values": {
+   "Combs": 4,
+   "Frequency_1": 110.0,
+   "DecayTime_1": 3.0,
+   "Gain_1": 0.6,
+   "Frequency_2": 164.81,
+   "DecayTime_2": 3.0,
+   "Gain_2": 0.6,
+   "Frequency_3": 220.0,
+   "DecayTime_3": 3.0,
+   "Gain_3": 0.6,
+   "Frequency_4": 261.63,
+   "DecayTime_4": 2.5,
+   "Gain_4": 0.5,
+   "Frequency_5": 329.63,
+   "DecayTime_5": 2.5,
+   "Gain_5": 0.5,
+   "InputGain": 0.5
+  }
+ },
+ {
+  "name": "Pitched Slap",
+  "values": {
+   "Combs": 4,
+   "Frequency_1": 146.83,
+   "DecayTime_1": 0.25,
+   "Gain_1": 0.7,
+   "Frequency_2": 220.0,
+   "DecayTime_2": 0.2,
+   "Gain_2": 0.7,
+   "Frequency_3": 293.66,
+   "DecayTime_3": 0.2,
+   "Gain_3": 0.6,
+   "Frequency_4": 369.99,
+   "DecayTime_4": 0.15,
+   "Gain_4": 0.5,
+   "Frequency_5": 440.0,
+   "DecayTime_5": 0.15,
+   "Gain_5": 0.5,
+   "InputGain": 0.7
+  }
+ },
+ {
+  "name": "Bell Stack",
+  "values": {
+   "Combs": 7,
+   "Frequency_1": 220.0,
+   "DecayTime_1": 4.0,
+   "Gain_1": 0.6,
+   "Frequency_2": 277.18,
+   "DecayTime_2": 3.5,
+   "Gain_2": 0.5,
+   "Frequency_3": 329.63,
+   "DecayTime_3": 3.5,
+   "Gain_3": 0.5,
+   "Frequency_4": 440.0,
+   "DecayTime_4": 3.0,
+   "Gain_4": 0.5,
+   "Frequency_5": 554.37,
+   "DecayTime_5": 2.5,
+   "Gain_5": 0.4,
+   "Frequency_6": 659.26,
+   "DecayTime_6": 2.5,
+   "Gain_6": 0.4,
+   "Frequency_7": 880.0,
+   "DecayTime_7": 2.0,
+   "Gain_7": 0.3,
+   "Frequency_8": 1108.73,
+   "DecayTime_8": 2.0,
+   "Gain_8": 0.3,
+   "InputGain": 0.4
+  }
+ },
+ {
+  "name": "Hollow Pipe",
+  "values": {
+   "Combs": 2,
+   "Frequency_1": 98.0,
+   "DecayTime_1": 0.8,
+   "Gain_1": 0.8,
+   "Frequency_2": 196.0,
+   "DecayTime_2": 0.6,
+   "Gain_2": 0.7,
+   "Frequency_3": 293.66,
+   "DecayTime_3": 0.5,
+   "Gain_3": 0.6,
+   "InputGain": 0.5
+  }
+ }
+]

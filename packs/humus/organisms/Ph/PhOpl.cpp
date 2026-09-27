@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "Ph/PhOpl.h"
 
 #include <algorithm>
@@ -170,7 +171,7 @@ bool PhOpl::parseWopl(const uint8_t* d, size_t n) {
 }
 
 bool PhOpl::loadWopl(const std::string& path) {
-    juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
+    auto f = fileAt(path);
     juce::MemoryBlock raw;
     if (!f.existsAsFile() || !f.loadFileAsData(raw)) return false;
     return parseWopl(static_cast<const uint8_t*>(raw.getData()), raw.getSize());

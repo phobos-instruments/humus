@@ -4,8 +4,8 @@
 
 #include "core/packs/ClassString.h"
 #include "core/packs/PackRegistry.h"
+#include "core/plugins/HostedPlugins.h"
 #include "core/graph/PodModel.h"
-#include "core/plugins/PluginHost.h"
 
 namespace hum {
 
@@ -15,7 +15,7 @@ const std::vector<ParamDesc>& schemaFor(const std::string& className) {
     packs.loadBuiltinPacks();
     if (const auto* m = packs.classManifest(className)) return m->params;
     if (isPluginKind(parseClassString(className).kind))
-        return PluginHost::instance().schemaFor(className);
+        return hostedPlugins().schemaFor(className);
     if (pods::isControlPortClass(className)) {
         static const std::vector<ParamDesc> controlPort = [] {
             ParamDesc d;

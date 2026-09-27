@@ -11,7 +11,7 @@ namespace hum {
 class VuMeter : public Organism, public VuSource {
 public:
     int numAudioInputs() const override { return 2; }
-    int numAudioOutputs() const override { return 2; }
+    int numAudioOutputs() const override { return 0; }
 
     void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; }
     void reset() override {

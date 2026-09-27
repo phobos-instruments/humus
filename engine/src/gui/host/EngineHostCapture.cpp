@@ -68,7 +68,7 @@ void EngineHost::capturePoint(const std::string& organism, const std::string& pa
     }
     if (it == capturePass_.end()) {
         double from = beat;
-        if (captureStartBeat_ < beat - kBeatEps && !std::isnan(prevLo)) {
+        if (letGoThisCapture_.count(key) == 0 && captureStartBeat_ < beat - kBeatEps && !std::isnan(prevLo)) {
             capturePointAt(organism, param, prevLo, std::isnan(prevHi) ? prevLo : prevHi,
                            isRange, captureStartBeat_);
             from = captureStartBeat_;
@@ -114,21 +114,8 @@ void EngineHost::endCapturePasses() {
         perfbox::addSpan(model_.perfBoxes, key.first,
                          pass.firstBeat, std::max({stopBeat, pass.lastBeat, pass.highBeat}));
     capturePass_.clear();
+    letGoThisCapture_.clear();
     dirty_ = true;
-    syncAutomation();
-}
-
-void EngineHost::noteTouch(const std::string& organism, const std::string& param) {
-    if (!playing_ || derivedControl_ || noLatch_) return;
-    if (!touched_.emplace(organism, param).second) return;
-    if (auto* c = model_.byName(organism))
-        for (auto& l : c->automation)
-            if (l.propertyName == param) { syncAutomation(); return; }
-}
-
-void EngineHost::clearTouches() {
-    if (touched_.empty()) return;
-    touched_.clear();
     syncAutomation();
 }
 

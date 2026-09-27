@@ -24,12 +24,15 @@
 #include "hum/caps/Video.h"
 #include "gui/common/Localisation.h"
 #include "gui/bricks/ClipCell.h"
+#include "gui/editor/juce/JuceFilePicker.h"
+#include "gui/editor/juce/JuceVideoTarget.h"
+#include "gui/editor/video/ClipPadsModel.h"
 
 namespace hum {
 
 class ClipGridBrick : public PolledBrick {
 public:
-    static constexpr int kCols = 4, kGap = 8, kParkTries = 200;
+    static constexpr int kCols = 4, kGap = 8;
     static constexpr double kMaxScale = 2.5;
     static constexpr int kRows = VideoPadSource::kMaxClips / kCols;
 
@@ -42,30 +45,17 @@ public:
     void resized() override;
 
 private:
-    struct PadParams { std::string file, in, out, loop, launch; };
-    PadParams p_;
+    video::ClipPadsModel pads_;
 
-    static std::string suffix(int i) { return std::to_string(i + 1); }
+    static std::string suffix(int i) { return video::ClipPadsModel::suffix(i); }
 
     std::shared_ptr<VideoLayer> layer(int i) const;
 
     void hold(int i, const juce::File& file, bool onStage);
 
-    void armPark(int i, double seconds);
-
     void park(int i);
 
-    void launch(int i);
-
-    void playPause(int i);
-
-    void stamp(int i, const std::string& which);
-
     void padMenu(int i, juce::Point<int> at);
-
-    void clearPad(int i);
-
-    void copyPad(int a, int b, bool move);
 
     void choose(int i);
 
@@ -77,13 +67,9 @@ private:
 
     std::array<std::unique_ptr<ClipCell>, VideoPadSource::kMaxClips> cells_;
     std::array<std::shared_ptr<const VideoLayer::Frame>, VideoPadSource::kMaxClips> shown_;
-    std::array<bool, VideoPadSource::kMaxClips> release_{};
     std::array<std::shared_ptr<VideoLayer>, VideoPadSource::kMaxClips> held_;
     std::array<juce::String, VideoPadSource::kMaxClips> heldPath_;
-    std::array<double, VideoPadSource::kMaxClips> parkWant_{};
-    std::array<double, VideoPadSource::kMaxClips> parkIn_{};
-    std::array<int, VideoPadSource::kMaxClips> parkTries_{};
-    std::unique_ptr<juce::FileChooser> chooser_;
+    JuceFilePicker picker_;
     double scale_ = 1.0;
 };
 

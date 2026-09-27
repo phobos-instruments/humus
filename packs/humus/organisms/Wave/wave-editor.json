@@ -1,6 +1,6 @@
 {
   "width": 600,
-  "height": 384,
+  "height": 428,
   "controls": [
     {
       "type": "wave-draw",
@@ -12,95 +12,6 @@
       "y": 6,
       "w": 584,
       "h": 164
-    },
-    {
-      "type": "knob",
-      "param": "Attack",
-      "label": "Att",
-      "x": 12,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "knob",
-      "param": "Release",
-      "label": "Rel",
-      "x": 76,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "knob",
-      "param": "Sub",
-      "label": "Sub",
-      "x": 140,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "knob",
-      "param": "Cutoff",
-      "label": "Cutoff",
-      "x": 204,
-      "y": 200,
-      "w": 60,
-      "h": 84,
-      "log": true
-    },
-    {
-      "type": "knob",
-      "param": "Reso",
-      "label": "Reso",
-      "x": 268,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "knob",
-      "param": "Drive",
-      "label": "Drive",
-      "x": 332,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "knob",
-      "param": "Level",
-      "label": "Level",
-      "x": 528,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "rotary-switch",
-      "param": "WarpMode",
-      "label": "Warp",
-      "options": [
-        "Off",
-        "Sync",
-        "Bend",
-        "Fold",
-        "PWM"
-      ],
-      "x": 396,
-      "y": 200,
-      "w": 60,
-      "h": 84
-    },
-    {
-      "type": "knob",
-      "param": "Warp",
-      "label": "Amount",
-      "x": 460,
-      "y": 200,
-      "w": 60,
-      "h": 84
     },
     {
       "type": "label",
@@ -120,40 +31,184 @@
       "h": 18
     },
     {
-      "type": "knob",
-      "param": "Detune",
-      "label": "Detune",
+      "type": "label",
+      "label": "Modulation",
+      "style": "section",
+      "x": 6,
+      "y": 204,
+      "w": 286,
+      "h": 104
+    },
+    {
+      "type": "rotary-switch",
+      "param": "WarpMode",
+      "label": "Warp",
       "x": 12,
-      "y": 288,
+      "y": 218,
+      "w": 60,
+      "h": 84,
+      "options": [
+        "Off",
+        "Sync",
+        "Bend",
+        "Fold",
+        "PWM"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Warp",
+      "label": "Amount",
+      "x": 76,
+      "y": 218,
       "w": 60,
       "h": 84
     },
     {
-      "type": "int-spinner",
-      "param": "Unison",
-      "label": "Voices",
-      "x": 168,
-      "y": 316,
-      "w": 200,
-      "h": 22
+      "type": "knob",
+      "param": "PositionMod",
+      "label": "Pos mod",
+      "x": 140,
+      "y": 218,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "lit-button",
+      "param": "Spectral",
+      "label": "Spectral",
+      "x": 214,
+      "y": 218,
+      "w": 60,
+      "h": 84,
+      "icon": "Power"
+    },
+    {
+      "type": "label",
+      "label": "Oscillators",
+      "style": "section",
+      "x": 302,
+      "y": 204,
+      "w": 292,
+      "h": 104
+    },
+    {
+      "type": "knob",
+      "param": "Sub",
+      "label": "Sub",
+      "x": 308,
+      "y": 218,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Detune",
+      "label": "Detune",
+      "x": 372,
+      "y": 218,
+      "w": 60,
+      "h": 84
     },
     {
       "type": "knob",
       "param": "Width",
       "label": "Width",
-      "x": 84,
-      "y": 288,
+      "x": 436,
+      "y": 218,
       "w": 60,
       "h": 84
     },
     {
-      "type": "minitoggle",
-      "param": "Spectral",
-      "label": "Spectral",
-      "x": 400,
+      "type": "knob",
+      "param": "Unison",
+      "label": "Voices",
+      "x": 500,
+      "y": 218,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "label",
+      "label": "Filter",
+      "style": "section",
+      "x": 6,
       "y": 316,
-      "w": 110,
-      "h": 22
+      "w": 200,
+      "h": 104
+    },
+    {
+      "type": "knob",
+      "param": "Cutoff",
+      "label": "Cutoff",
+      "x": 12,
+      "y": 330,
+      "w": 60,
+      "h": 84,
+      "log": true
+    },
+    {
+      "type": "knob",
+      "param": "Reso",
+      "label": "Reso",
+      "x": 76,
+      "y": 330,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Drive",
+      "label": "Drive",
+      "x": 140,
+      "y": 330,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "label",
+      "label": "Envelope",
+      "style": "section",
+      "x": 216,
+      "y": 316,
+      "w": 136,
+      "h": 104
+    },
+    {
+      "type": "knob",
+      "param": "Attack",
+      "label": "Att",
+      "x": 222,
+      "y": 330,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "knob",
+      "param": "Release",
+      "label": "Rel",
+      "x": 286,
+      "y": 330,
+      "w": 60,
+      "h": 84
+    },
+    {
+      "type": "label",
+      "label": "Out",
+      "style": "section",
+      "x": 522,
+      "y": 316,
+      "w": 72,
+      "h": 104
+    },
+    {
+      "type": "knob",
+      "param": "Level",
+      "label": "Level",
+      "x": 528,
+      "y": 330,
+      "w": 60,
+      "h": 84
     }
   ]
 }

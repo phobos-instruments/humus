@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -46,7 +45,6 @@ public:
     virtual bool editorFloating(const std::string& name) const = 0;
     virtual juce::Rectangle<int> editorFloatBounds(const std::string& name) const = 0;
     virtual void setEditorFloating(const std::string& name, bool floating, juce::Rectangle<int> bounds) = 0;
-    virtual void presentCard(std::unique_ptr<juce::Component> card) = 0;
     virtual void rollNode(const std::string& name) = 0;
 };
 

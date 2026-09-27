@@ -3,6 +3,8 @@
 #pragma once
 #include <cmath>
 
+#include "hum/Transport.h"
+
 namespace hum {
 
 class MidiClockGenerator {
@@ -33,7 +35,7 @@ public:
     double onClock(double nowMs) {
         if (lastMs_ >= 0.0) {
             const double dt = nowMs - lastMs_;
-            if (dt > 60000.0 / (999.0 * 24.0) && dt < 60000.0 / (10.0 * 24.0)) {
+            if (dt > 60000.0 / (kMaxTempoBpm * 24.0) && dt < 60000.0 / (kMinTempoBpm * 24.0)) {
                 intervals_[write_++ % kWindow] = dt;
                 if (count_ < kWindow) ++count_;
             } else {

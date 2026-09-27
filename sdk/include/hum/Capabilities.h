@@ -5,6 +5,7 @@
 #include "hum/caps/Audio.h"
 #include "hum/caps/Files.h"
 #include "hum/caps/Graph.h"
+#include "hum/caps/Layout.h"
 #include "hum/caps/Midi.h"
 #include "hum/caps/Osc.h"
 #include "hum/caps/Params.h"

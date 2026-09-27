@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -10,9 +11,18 @@ namespace hum {
 class SoundMapSource {
 public:
     struct MapPoint { float x = 0.0f, y = 0.0f; int file = 0; };
+    static constexpr int kLiveFile = 4;
+    static constexpr int kFreshLiveFile = 5;
     virtual ~SoundMapSource() = default;
     virtual unsigned mapGeneration() const = 0;
     virtual const std::vector<MapPoint>& mapPoints() const = 0;
+};
+
+class GrainFlashSource {
+public:
+    struct Flash { float x = 0.0f, y = 0.0f, seconds = 0.0f; int file = 0; std::uint32_t serial = 0; };
+    virtual ~GrainFlashSource() = default;
+    virtual int recentGrains(Flash* out, int capacity) const = 0;
 };
 
 class SliceSource {

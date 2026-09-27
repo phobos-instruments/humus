@@ -8,6 +8,7 @@
 
 #include "gui/pianoroll/NoteEdit.h"
 #include "gui/style/LookAndFeel.h"
+#include "gui/tracks/TimelineTools.h"
 #include "gui/tracks/TimelineContext.h"
 #include "gui/tracks/TimelineView.h"
 #include "gui/tracks/TracksGeometry.h"
@@ -32,10 +33,7 @@ inline void repaintMove(juce::Component& c, const TimelineView& view, const Time
 }
 
 inline void paint(juce::Graphics& g, float x, int bottom) {
-    g.setColour(Palette::text.withAlpha(alpha::strong));
-    const float dash[] = {3.0f, 3.0f};
-    g.drawDashedLine(juce::Line<float>(x, (float) tracksgeo::headerH(), x, (float) bottom), dash, 2,
-                     1.0f);
+    timelinechrome::paintCutLine(g, x, (float) tracksgeo::headerH(), (float) bottom);
 }
 
 }

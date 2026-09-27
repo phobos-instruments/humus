@@ -2,6 +2,7 @@
  "classes": [
   {
    "class": "Board",
+   "blurb": "A microcontroller on a serial cable: its inputs arrive as control, its pins follow yours.",
    "category": "Primitives",
    "editor": "layout:board-editor.json",
    "params": [

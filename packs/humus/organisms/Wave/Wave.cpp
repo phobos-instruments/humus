@@ -60,7 +60,7 @@ void Wave::noteOn(int note, int vel) {
     v.note = note;
     v.vel = (float) vel / kMidiMaxF;
     v.gate = true;
-    for (int u = 0; u < 6; ++u) v.uphase[u] = v.phase + (u + 1) * 0.137;
+    for (int u = 0; u < kMaxUnison - 1; ++u) v.uphase[u] = v.phase + (u + 1) * 0.137;
 }
 
 void Wave::noteOff(int note) {
@@ -176,6 +176,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
     const double attack = std::max(1.0, params.get("Attack", 5.0));
     const double release = std::max(20.0, params.get("Release", 400.0));
     const float sub = (float) std::clamp(params.get("Sub", 0.0), 0.0, 1.0);
+    const float subNorm = 1.0f / (1.0f + sub);
     const double cutoff = params.get("Cutoff", 14000.0);
     const double resoQ = 0.707 * std::pow(10.0, std::clamp(params.get("Reso", 0.0), 0.0, 1.0) * 1.05);
     const float drive = (float) std::clamp(params.get("Drive", 0.0), 0.0, 1.0);
@@ -197,7 +198,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
         posSm_ += posCoef * (basePos - posSm_);
         posRamp_[(size_t) i] = (float) posSm_;
     }
-    const int uni = std::clamp((int) params.get("Unison", 1.0), 1, 7);
+    const int uni = std::clamp((int) params.get("Unison", 1.0), 1, kMaxUnison);
     const double detune = std::clamp(params.get("Detune", 0.0), 0.0, 1.0);
     const float width = (float) std::clamp(params.get("Width", 0.0), 0.0, 1.0);
     const int frames = table_->frameCount;
@@ -240,7 +241,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
             if (fmix > 0.0f)
                 w += fmix * (warpRead(t1, kWaveTableLen, freePhase_, warpMode, warpRamp_[(size_t) i]) - w);
             if (sub > 0.0f) {
-                w += sub * (float) std::sin(kTwoPi * freeSubPhase_);
+                w = (w + sub * (float) std::sin(kTwoPi * freeSubPhase_)) * subNorm;
                 freeSubPhase_ += dt * 0.5;
                 if (freeSubPhase_ >= 1.0) freeSubPhase_ -= 1.0;
             }
@@ -260,7 +261,7 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
         const double dt0 = std::clamp(v.hz / sr, 0.0, 0.49);
         const int mip = levelFor(v.hz * bendRatio_, sr);
         const double gain = poly ? (double) v.vel : 0.0;
-        double urate[6];
+        double urate[kMaxUnison - 1];
         const int extra = uni - 1;
         for (int u = 0; u < extra; ++u) {
             const double off = extra > 1 ? (double) u / (extra - 1) - 0.5 : 0.0;
@@ -295,7 +296,8 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
             wL *= unorm; wR *= unorm;
             if (sub > 0.0f) {
                 const float sv = sub * (float) std::sin(kTwoPi * v.subPhase);
-                wL += sv; wR += sv;
+                wL = (wL + sv) * subNorm;
+                wR = (wR + sv) * subNorm;
                 v.subPhase += dt * 0.5;
                 if (v.subPhase >= 1.0) v.subPhase -= 1.0;
             }

@@ -1,0 +1,532 @@
+{
+  "width": 600,
+  "height": 286,
+  "controls": [
+    {
+      "type": "hslider",
+      "param": "InputGain",
+      "label": "Master",
+      "x": 12,
+      "y": 8,
+      "w": 360,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Combs",
+      "label": "",
+      "x": 392,
+      "y": 8,
+      "w": 196,
+      "h": 22,
+      "options": [
+        "1 comb",
+        "2 combs",
+        "3 combs",
+        "4 combs",
+        "5 combs",
+        "6 combs",
+        "7 combs",
+        "8 combs"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Frequency",
+      "x": 30,
+      "y": 48,
+      "w": 120,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Decay time",
+      "x": 312,
+      "y": 48,
+      "w": 120,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Gain",
+      "x": 456,
+      "y": 48,
+      "w": 120,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "1",
+      "x": 6,
+      "y": 75,
+      "w": 22,
+      "h": 13
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_1",
+      "label": "",
+      "x": 30,
+      "y": 70,
+      "w": 136,
+      "h": 22,
+      "log": true
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_1",
+      "label": "",
+      "x": 172,
+      "y": 69,
+      "w": 78,
+      "h": 24
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_1",
+      "label": "",
+      "x": 254,
+      "y": 70,
+      "w": 50,
+      "h": 22
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_1",
+      "label": "",
+      "x": 312,
+      "y": 70,
+      "w": 136,
+      "h": 22
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_1",
+      "label": "",
+      "x": 456,
+      "y": 70,
+      "w": 132,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "2",
+      "x": 6,
+      "y": 101,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=2 combs|Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_2",
+      "label": "",
+      "x": 30,
+      "y": 96,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=2 combs|Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_2",
+      "label": "",
+      "x": 172,
+      "y": 95,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=2 combs|Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_2",
+      "label": "",
+      "x": 254,
+      "y": 96,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=2 combs|Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_2",
+      "label": "",
+      "x": 312,
+      "y": 96,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=2 combs|Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_2",
+      "label": "",
+      "x": 456,
+      "y": 96,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=2 combs|Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "label",
+      "label": "3",
+      "x": 6,
+      "y": 127,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_3",
+      "label": "",
+      "x": 30,
+      "y": 122,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_3",
+      "label": "",
+      "x": 172,
+      "y": 121,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_3",
+      "label": "",
+      "x": 254,
+      "y": 122,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_3",
+      "label": "",
+      "x": 312,
+      "y": 122,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_3",
+      "label": "",
+      "x": 456,
+      "y": 122,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=3 combs|Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "label",
+      "label": "4",
+      "x": 6,
+      "y": 153,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_4",
+      "label": "",
+      "x": 30,
+      "y": 148,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_4",
+      "label": "",
+      "x": 172,
+      "y": 147,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_4",
+      "label": "",
+      "x": 254,
+      "y": 148,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_4",
+      "label": "",
+      "x": 312,
+      "y": 148,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_4",
+      "label": "",
+      "x": 456,
+      "y": 148,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=4 combs|Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "label",
+      "label": "5",
+      "x": 6,
+      "y": 179,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_5",
+      "label": "",
+      "x": 30,
+      "y": 174,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_5",
+      "label": "",
+      "x": 172,
+      "y": 173,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_5",
+      "label": "",
+      "x": 254,
+      "y": 174,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_5",
+      "label": "",
+      "x": 312,
+      "y": 174,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_5",
+      "label": "",
+      "x": 456,
+      "y": 174,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=5 combs|Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "label",
+      "label": "6",
+      "x": 6,
+      "y": 205,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_6",
+      "label": "",
+      "x": 30,
+      "y": 200,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_6",
+      "label": "",
+      "x": 172,
+      "y": 199,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_6",
+      "label": "",
+      "x": 254,
+      "y": 200,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_6",
+      "label": "",
+      "x": 312,
+      "y": 200,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_6",
+      "label": "",
+      "x": 456,
+      "y": 200,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=6 combs|Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "label",
+      "label": "7",
+      "x": 6,
+      "y": 231,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_7",
+      "label": "",
+      "x": 30,
+      "y": 226,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_7",
+      "label": "",
+      "x": 172,
+      "y": 225,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_7",
+      "label": "",
+      "x": 254,
+      "y": 226,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_7",
+      "label": "",
+      "x": 312,
+      "y": 226,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_7",
+      "label": "",
+      "x": 456,
+      "y": 226,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=7 combs|Combs=8 combs"
+    },
+    {
+      "type": "label",
+      "label": "8",
+      "x": 6,
+      "y": 257,
+      "w": 22,
+      "h": 13,
+      "show-when": "Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Frequency_8",
+      "label": "",
+      "x": 30,
+      "y": 252,
+      "w": 136,
+      "h": 22,
+      "log": true,
+      "show-when": "Combs=8 combs"
+    },
+    {
+      "type": "number-field",
+      "param": "Frequency_8",
+      "label": "",
+      "x": 172,
+      "y": 251,
+      "w": 78,
+      "h": 24,
+      "show-when": "Combs=8 combs"
+    },
+    {
+      "type": "pitch-field",
+      "param": "Frequency_8",
+      "label": "",
+      "x": 254,
+      "y": 252,
+      "w": 50,
+      "h": 22,
+      "show-when": "Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "DecayTime_8",
+      "label": "",
+      "x": 312,
+      "y": 252,
+      "w": 136,
+      "h": 22,
+      "show-when": "Combs=8 combs"
+    },
+    {
+      "type": "hslider",
+      "param": "Gain_8",
+      "label": "",
+      "x": 456,
+      "y": 252,
+      "w": 132,
+      "h": 22,
+      "show-when": "Combs=8 combs"
+    }
+  ]
+}

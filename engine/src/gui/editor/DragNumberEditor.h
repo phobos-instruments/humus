@@ -18,6 +18,8 @@ public:
     static constexpr double kPixelsPerStep = 4.0;
     static constexpr double kLogRatio = 50.0;
 
+    DragNumberEditor() { setMouseClickGrabsKeyboardFocus(false); }
+
     std::function<double(const juce::String&)> parse = [](const juce::String& t) {
         return t.getDoubleValue();
     };
@@ -68,6 +70,7 @@ public:
             if (onReturnKey) onReturnKey();
             return;
         }
+        grabKeyboardFocus();
         juce::TextEditor::mouseDown(e);
         juce::TextEditor::mouseUp(e);
     }

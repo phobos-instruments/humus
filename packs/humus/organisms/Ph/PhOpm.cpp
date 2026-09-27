@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "Ph/PhOpm.h"
 
 #include <algorithm>
@@ -190,7 +191,7 @@ bool PhOpm::parseOpm(const std::string& text, const std::string& fallbackName) {
 }
 
 bool PhOpm::loadOpm(const std::string& path) {
-    juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
+    auto f = fileAt(path);
     if (!f.existsAsFile()) return false;
     return parseOpm(f.loadFileAsString().toStdString(),
                     f.getFileNameWithoutExtension().toStdString());

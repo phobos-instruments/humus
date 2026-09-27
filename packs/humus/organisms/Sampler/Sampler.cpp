@@ -1,14 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "Sampler/Sampler.h"
 
 #include <algorithm>
+#include <array>
 #include <utility>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <cstring>
 
 #include "hum/Registry.h"
+#include "hum/dsp/Interpolation.h"
+#include "hum/dsp/LofiCrush.h"
+#include "hum/dsp/LoopFade.h"
+#include "hum/dsp/NsmpFile.h"
 #include "hum/dsp/Sf2File.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
@@ -18,6 +25,9 @@ namespace hum {
 
 namespace {
 constexpr float kEnvFloor = 1.0e-4f;
+constexpr double kDeclickMs = 3.0;
+constexpr int kSf2LoopInRelease = 3;
+constexpr int kLoopOff = 1;
 
 float segCoef(double ms, double sr) {
     const double samples = std::max(1.0, ms * 0.001 * sr / 3.0);
@@ -30,6 +40,7 @@ namespace { constexpr double kMaxCaptureSeconds = 30.0; }
 void Sampler::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     rootSeed_.fill(-1);
+    slotRatio_.fill(1.0);
     inMeter_.prepare(sampleRate);
     loadFromFile({});
     applyPending();
@@ -43,33 +54,43 @@ void Sampler::reset() {
     stagedCount_ = 0;
 }
 
-static void crunch(juce::AudioBuffer<float>& buf, double& srcRate, int bits, double rateHz) {
-    if (buf.getNumSamples() < 2) return;
+static double crunch(juce::AudioBuffer<float>& buf, double& srcRate, int bits, double rateHz,
+                     std::uint32_t seed) {
+    if (buf.getNumSamples() < 2) return 1.0;
+    double thinned = 1.0;
     if (rateHz > 0.0 && srcRate > rateHz) {
+        const int frames = buf.getNumSamples();
+        const int n = lofi::decimatedFrames(frames, srcRate, rateHz);
         const double step = srcRate / rateHz;
-        const int n = std::max(2, (int) (buf.getNumSamples() / step));
         juce::AudioBuffer<float> thin(buf.getNumChannels(), n);
         for (int c = 0; c < buf.getNumChannels(); ++c) {
-            const float* src = buf.getReadPointer(c);
-            float* dst = thin.getWritePointer(c);
-            for (int i = 0; i < n; ++i)
-                dst[i] = src[std::min(buf.getNumSamples() - 1, (int) (i * step))];
+            lofi::antiAlias(buf.getWritePointer(c), frames, srcRate, rateHz);
+            lofi::decimate(buf.getReadPointer(c), frames, thin.getWritePointer(c), n, step);
         }
         buf = std::move(thin);
+        thinned = rateHz / srcRate;
         srcRate = rateHz;
     }
-    if (bits >= 24) return;
-    const float steps = (float) (1 << (bits - 1));
-    for (int c = 0; c < buf.getNumChannels(); ++c) {
-        float* w = buf.getWritePointer(c);
-        for (int i = 0; i < buf.getNumSamples(); ++i)
-            w[i] = std::round(std::clamp(w[i], -1.0f, 1.0f) * steps) / steps;
-    }
+    if (bits >= 24) return thinned;
+    lofi::Dither dither(seed);
+    for (int c = 0; c < buf.getNumChannels(); ++c)
+        lofi::quantise(buf.getWritePointer(c), buf.getNumSamples(), bits, dither);
+    return thinned;
+}
+
+void Sampler::thinLoops(Kit& kit, int sampleIndex, double ratio) {
+    if (ratio <= 0.0 || ratio == 1.0) return;
+    for (auto& z : kit.zones)
+        if (z.sample == sampleIndex) {
+            z.loopStart = (int) std::lround(z.loopStart * ratio);
+            z.loopEnd = (int) std::lround(z.loopEnd * ratio);
+        }
 }
 
 void Sampler::loadFromFile(const std::string&) {
     const int bits = std::clamp((int) params.get("Bits", 24.0), 8, 24);
     const int rate = std::clamp((int) params.get("Rate", 48.0), 4, 48);
+    bool changed = !published_;
     if (bits != lastBits_ || rate != lastRate_) {
         lastBits_ = bits;
         lastRate_ = rate;
@@ -80,14 +101,15 @@ void Sampler::loadFromFile(const std::string&) {
         const std::string uri = resolvePath(
             params.getText("File" + std::to_string(i + 1)), "Sampler");
         if (uri == slotUri_[(size_t) i]) continue;
+        changed = true;
         slotUri_[(size_t) i] = uri;
         juce::AudioBuffer<float> buf;
         SoundFileInfo info;
         if (!uri.empty()) loadSoundFile(uri, buf, info);
         slotCache_[(size_t) i].buf = std::move(buf);
         slotCache_[(size_t) i].srcRate = info.sampleRate > 0.0 ? info.sampleRate : sampleRate_;
-        crunch(slotCache_[(size_t) i].buf, slotCache_[(size_t) i].srcRate,
-               bits, rate * 1000.0);
+        slotRatio_[(size_t) i] = crunch(slotCache_[(size_t) i].buf, slotCache_[(size_t) i].srcRate,
+                                        bits, rate * 1000.0, (std::uint32_t) i);
         slotCache_[(size_t) i].uri = uri;
         slotInfo_[(size_t) i] = info;
         if (info.rootKey >= 0) rootSeed_[(size_t) i] = info.rootKey;
@@ -96,13 +118,19 @@ void Sampler::loadFromFile(const std::string&) {
     const std::string bankRef =
         resolvePath(params.getText("FileBank"), "Sampler");
     if (bankRef != bankUri_) {
+        changed = true;
         bankUri_ = bankRef;
         bankCache_ = Kit{};
-        if (sf2::isSf2Path(bankRef)) {
-            buildBank(bankRef, bankCache_);
-            for (auto& sd : bankCache_.samples) crunch(sd.buf, sd.srcRate, bits, rate * 1000.0);
+        if (sf2::isSf2Path(bankRef)) buildBank(bankRef, bankCache_);
+        else if (nsmp::isNsmpPath(bankRef)) buildLibraryBank(bankRef, bankCache_);
+        for (size_t i = 0; i < bankCache_.samples.size(); ++i) {
+            auto& sd = bankCache_.samples[i];
+            const double ratio = crunch(sd.buf, sd.srcRate, bits, rate * 1000.0, (std::uint32_t) i);
+            thinLoops(bankCache_, (int) i, ratio);
         }
     }
+    if (!changed) return;
+    published_ = true;
     if (!bankCache_.presetNames.empty()) {
         publish(Kit(bankCache_));
         return;
@@ -118,11 +146,13 @@ void Sampler::loadFromFile(const std::string&) {
         z.loopStart = slotInfo_[(size_t) i].loopStart;
         z.loopEnd = slotInfo_[(size_t) i].loopEnd;
         kit.zones.push_back(z);
+        thinLoops(kit, z.sample, slotRatio_[(size_t) i]);
     }
     publish(std::move(kit));
 }
 
 void Sampler::publish(Kit&& kit) {
+    publishes_.fetch_add(1, std::memory_order_relaxed);
     delete retired_.exchange(nullptr);
     delete pending_.exchange(new Kit(std::move(kit)));
 }
@@ -130,7 +160,7 @@ void Sampler::publish(Kit&& kit) {
 void Sampler::buildBank(const std::string& uri, Kit& out) {
     auto path = uri;
     if (path.rfind("file://", 0) == 0) path = path.substr(7);
-    const auto bank = sf2::loadFile(juce::File(juce::String(juce::CharPointer_UTF8(path.c_str()))));
+    const auto bank = sf2::loadFile(path);
     if (!bank.parsed) return;
 
     std::vector<int> mapped((size_t) bank.samples.size(), -1);
@@ -176,6 +206,59 @@ void Sampler::buildBank(const std::string& uri, Kit& out) {
             z.decayMs = sf2::timecentsToSeconds(sz.decayTc) * 1000.0;
             z.releaseMs = sf2::timecentsToSeconds(sz.releaseTc) * 1000.0;
             z.sustain = (float) sf2::centibelsToGain(sz.sustainCb);
+            out.zones.push_back(z);
+        }
+    }
+    if (out.zones.empty()) out = Kit{};
+}
+
+void Sampler::buildLibraryBank(const std::string& uri, Kit& out) {
+    auto path = uri;
+    if (path.rfind("file://", 0) == 0) path = path.substr(7);
+    const auto file = fileAt(path);
+    const auto bank = nsmp::loadFile(path);
+    if (!bank.parsed) return;
+
+    std::int32_t peak = 0;
+    for (const auto& st : bank.strokes)
+        for (const auto& ch : st.pcm)
+            for (const auto v : ch) peak = std::max(peak, std::abs(v));
+    const float gain = peak > 0 ? 0.9f / (float) peak : 0.0f;
+
+    std::vector<std::array<int, 2>> mapped(bank.strokes.size(), std::array<int, 2>{-1, -1});
+    auto sampleFor = [&](int stroke, int channel) {
+        auto& slot = mapped[(size_t) stroke][(size_t) channel];
+        if (slot >= 0) return slot;
+        const auto& src = bank.strokes[(size_t) stroke].pcm[(size_t) channel];
+        SampleData sd;
+        sd.srcRate = bank.strokes[(size_t) stroke].sampleRate;
+        sd.uri = uri + "#" + std::to_string(bank.strokes[(size_t) stroke].globalId) + (channel == 0 ? "L" : "R");
+        sd.buf.setSize(1, (int) src.size());
+        float* w = sd.buf.getWritePointer(0);
+        for (size_t i = 0; i < src.size(); ++i) w[i] = (float) src[i] * gain;
+        out.samples.push_back(std::move(sd));
+        slot = (int) out.samples.size() - 1;
+        return slot;
+    };
+
+    out.presetNames.push_back(bank.name.empty() ? file.getFileNameWithoutExtension().toStdString()
+                                                : bank.name);
+    for (const auto& nz : bank.zones) {
+        const auto& st = bank.strokes[(size_t) nz.stroke];
+        for (int channel = 0; channel < st.channels; ++channel) {
+            Zone z;
+            z.sample = sampleFor(nz.stroke, channel);
+            z.preset = 0;
+            z.keyLo = nz.keyLo; z.keyHi = nz.keyHi;
+            z.velLo = nz.velLo; z.velHi = nz.velHi;
+            z.rootKey = nz.rootKey;
+            z.loopMode = st.loops ? 1 : 0;
+            z.loopStart = st.loopStart;
+            z.loopEnd = st.loopEnd;
+            if (st.channels == 2) {
+                z.panL = channel == 0 ? 1.41421356f : 0.0f;
+                z.panR = channel == 0 ? 0.0f : 1.41421356f;
+            }
             out.zones.push_back(z);
         }
     }
@@ -355,7 +438,7 @@ void Sampler::updateVoice(Voice& v) {
     const double dMul = params.get("Decay", 120.0) / 120.0;
     const double rMul = params.get("Release", 150.0) / 150.0;
     const float sMul = (float) std::clamp(params.get("Sustain", 1.0), 0.0, 1.0);
-    const bool knobLoop = params.get("Loop", 0.0) >= 0.5;
+    const int loopChoice = (int) std::lround(params.get("Loop", 0.0));
     {
         const Zone& z = kit_.zones[(size_t) v.zone];
         v.attackInc = (float) (1.0 / std::max(1.0, z.attackMs * aMul * 0.001 * sr));
@@ -363,20 +446,31 @@ void Sampler::updateVoice(Voice& v) {
         v.releaseCoef = segCoef(z.releaseMs * rMul, sr);
         v.sustain = std::clamp(z.sustain * sMul, 0.0f, 1.0f);
 
-        const int len = kit_.samples[(size_t) z.sample].buf.getNumSamples();
-        v.endIdx = len - 1;
-        const bool looping = z.loopMode < 0 ? knobLoop : (z.loopMode & 1) != 0;
+        const auto& sample = kit_.samples[(size_t) z.sample];
+        const int len = sample.buf.getNumSamples();
+        const bool released = v.stage == 3;
+        const bool loopsWhileHeld = z.loopMode == kSf2LoopInRelease && released;
         const bool hasPoints = z.loopEnd > z.loopStart;
+        const bool fileLoops = z.loopMode < 0 ? hasPoints : (z.loopMode & 1) != 0;
+        const bool looping = loopChoice != kLoopOff && fileLoops && !loopsWhileHeld;
         const int lo = hasPoints ? std::max(0, z.loopStart) : 0;
         const int hi = hasPoints ? std::min(z.loopEnd, len - 1) : len - 1;
         v.loopLen = looping && hi > lo ? hi - lo : 0;
-        if (hasPoints && v.loopLen > 0) v.endIdx = hi;
+        v.endIdx = v.loopLen > 0 ? hi : len - 1;
+        v.loopFade = v.loopLen > 0
+                         ? (float) loopfade::fadeLength(lo, hi, sample.srcRate) : 0.0f;
+        v.fadeLen = v.loopLen > 0
+                        ? 0.0f
+                        : (float) std::min(kDeclickMs * 0.001 * sample.srcRate, len * 0.25);
     }
 }
 
 void Sampler::noteOff(int note) {
     for (auto& v : voices_)
-        if (v.note == note && (v.stage == 1 || v.stage == 2)) v.stage = 3;
+        if (v.note == note && (v.stage == 1 || v.stage == 2)) {
+            v.stage = 3;
+            updateVoice(v);
+        }
 }
 
 void Sampler::allOff(bool hard) {
@@ -421,16 +515,29 @@ void Sampler::renderAdd(float* left, float* right, int numSamples) {
                 v.env *= v.releaseCoef;
                 if (v.env < kEnvFloor) { v = Voice{}; break; }
             }
-            const int i0 = (int) v.pos;
-            if (i0 >= v.endIdx) {
-                if (v.loopLen > 0) { v.pos -= v.loopLen; continue; }
+            if (v.loopLen > 0) {
+                while (v.pos >= (double) v.endIdx) v.pos -= (double) v.loopLen;
+            } else if (v.pos >= (double) v.endIdx) {
                 v = Voice{};
                 break;
             }
-            const float frac = (float) (v.pos - i0);
-            const float g = v.env * v.gain * master;
-            left[n]  += g * v.panL * (srcL[i0] + frac * (srcL[i0 + 1] - srcL[i0]));
-            right[n] += g * v.panR * (srcR[i0] + frac * (srcR[i0 + 1] - srcR[i0]));
+            float g = v.env * v.gain * master;
+            if (v.fadeLen > 0.0f) {
+                const float remaining = (float) ((double) v.endIdx - v.pos);
+                if (remaining < v.fadeLen) g *= std::max(0.0f, remaining / v.fadeLen);
+            }
+            float atL = sampleAt(srcL, len, v.pos, Interp::Cubic);
+            float atR = sampleAt(srcR, len, v.pos, Interp::Cubic);
+            if (const double toEnd = (double) v.endIdx - v.pos;
+                v.loopFade > 0.0f && toEnd < (double) v.loopFade) {
+                float held = 1.0f, coming = 0.0f;
+                loopfade::fadeGains(1.0 - toEnd / (double) v.loopFade, held, coming);
+                const double back = v.pos - (double) v.loopLen;
+                atL = held * atL + coming * sampleAt(srcL, len, back, Interp::Cubic);
+                atR = held * atR + coming * sampleAt(srcR, len, back, Interp::Cubic);
+            }
+            left[n]  += g * v.panL * atL;
+            right[n] += g * v.panR * atR;
             v.pos += v.rate * bendRatio_;
         }
     }

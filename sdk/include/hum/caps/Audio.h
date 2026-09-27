@@ -21,6 +21,13 @@ public:
     virtual int blockLength() const = 0;
 };
 
+class InletMeter {
+public:
+    static constexpr int kMaxInletMeters = 8;
+    virtual ~InletMeter() = default;
+    virtual int inletMeter(float* levels, int maxLevels) const = 0;
+};
+
 class HardwareIn {
 public:
     virtual ~HardwareIn() = default;
@@ -61,6 +68,32 @@ public:
     virtual double scopeRate() const = 0;
 };
 
+class TraceSource {
+public:
+    struct Shape {
+        int windowSamples = 0;
+        bool plotsLeftAgainstRight = false;
+        bool sumsToMono = false;
+        bool held = false;
+        float gain = 1.0f;
+    };
+    virtual ~TraceSource() = default;
+    virtual Shape traceShape() const = 0;
+    virtual int traceRead(float* left, float* right, int samples) const = 0;
+    virtual unsigned traceStamp() const = 0;
+};
+
+class TimecodeStatus {
+public:
+    virtual ~TimecodeStatus() = default;
+    virtual bool timecodeOn() const = 0;
+    virtual bool timecodePresent() const = 0;
+    virtual float timecodeLevel() const = 0;
+    virtual float timecodeSpeed() const = 0;
+    virtual int timecodeFormat() const { return -1; }
+    virtual float timecodeCarrierHz() const { return 0.0f; }
+};
+
 class PitchDetectSource {
 public:
     virtual ~PitchDetectSource() = default;
@@ -68,6 +101,13 @@ public:
     virtual float detectClarity() const = 0;
     virtual float detectLevel() const = 0;
     virtual int detectedNote() const = 0;
+};
+
+class ChordDetectSource {
+public:
+    static constexpr int kMaxChordNotes = 6;
+    virtual ~ChordDetectSource() = default;
+    virtual int chordNotes(int* out, int capacity) const = 0;
 };
 
 class VisualSource {

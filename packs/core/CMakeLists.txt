@@ -19,9 +19,6 @@ target_include_directories(hum_pack_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/orga
 target_include_directories(hum_pack_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../engine/src)
 target_link_libraries(hum_pack_core PUBLIC
   hum_sdk
-  juce::juce_core
-  juce::juce_audio_basics
-  juce::juce_audio_formats
 )
 
 if(HUM_DYN_PACKS)

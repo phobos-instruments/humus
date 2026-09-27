@@ -2,7 +2,7 @@
 
 A shader compositor that paints the audio it hears and stacks video layers under it.
 
-Cord audio into its two inlets and the scene draws to it; cord its video outlet into a VideoOut to see it, the way a synth needs a SoundOut to be heard. Scene takes a fragment shader file and reloads it whenever the file changes on disk; empty runs the built-in scene. Shaders read the audio as level, bands, beat, tempo, a waveform texture and a spectrum texture, and a scene's own float inputs ride Knob1 to Knob4. The four video inlets take VideoPlayer, VideoPad, CameraIn or VideoTrack layers, stacked bottom to top, with the scene floating over them by SceneOpacity and SceneBlend. Each layer's opacity and blend live on the organism that feeds it.
+Cord audio into its two inlets and the scene draws to it; cord its video outlet into a VideoOut to see it, the way a synth needs a SoundOut to be heard. Scene takes a fragment shader file and reloads it whenever the file changes on disk; empty runs the built-in scene. Shaders read the audio as level, bands, beat, tempo, a waveform texture and a spectrum texture, and a scene's own float inputs ride Knob1 to Knob4. A scene can also read the video layers beneath it and its own last frame, so it can work as a feedback effect: the bundled hallucination scene dreams over whatever you cord in. The four video inlets take VideoPlayer, VideoPad, CameraIn or VideoTrack layers, stacked bottom to top, with the scene floating over them by SceneOpacity and SceneBlend. Each layer's opacity and blend live on the organism that feeds it.
 
 ## Parameters
 

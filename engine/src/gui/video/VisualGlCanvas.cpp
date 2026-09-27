@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/video/VisualGlCanvas.h"
 
+#include <algorithm>
+#include <cstddef>
+
+#include "hum/dsp/DspMath.h"
+
 #include <cstdint>
 
 namespace hum {
@@ -102,6 +107,7 @@ void GlCanvas::renderOpenGL() {
             case visual::Step::Fx: renderFx(s, w, h); break;
             case visual::Step::Black: break;
         }
+        fadeStep(s.opacity);
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -118,6 +124,9 @@ void GlCanvas::renderOpenGL() {
         drawQuad(pid);
     }
     if (p.noSignal) drawNoSignal(w, h);
+    if (p.root >= 0 && p.root < (int) p.steps.size())
+        drawStamps(w, h, visual::stampLines(p.steps[(std::size_t) p.root].stamps,
+                                            visual::kStampsMost));
     publishTaps(p);
     serveGrab(p, stamp);
     {
@@ -171,6 +180,24 @@ void GlCanvas::ensureBlackTex() {
                  GL_UNSIGNED_BYTE, px);
 }
 
+unsigned int GlCanvas::lutTexture(const std::shared_ptr<const lut::Cube>& cube) {
+    using namespace juce::gl;
+    ensureBlackTex();
+    if (cube == nullptr || !cube->valid()) return texBlack_;
+    if (cube == lutShown_ && texLut_ != 0) return texLut_;
+    if (texLut_ == 0) glGenTextures(1, &texLut_);
+    const auto strip = lut::cubeStrip(*cube);
+    glBindTexture(GL_TEXTURE_2D, texLut_);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, cube->width(), cube->height(), 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, strip.data());
+    lutShown_ = cube;
+    return texLut_;
+}
+
 void GlCanvas::renderMix(const visual::Step& s) {
     using namespace juce::gl;
     if (mixProgram_ == nullptr) return;
@@ -187,6 +214,25 @@ void GlCanvas::renderMix(const visual::Step& s) {
     glUniform1f(glGetUniformLocation(pid, "gainB"), gains.second);
     drawQuad(pid);
     glActiveTexture(GL_TEXTURE0);
+}
+
+float GlCanvas::flashNow(const visual::Step& s) {
+    const auto& f = s.fx;
+    if (f.flashSeconds <= 0.0f || f.flashStrength <= 0.0f) return 0.0f;
+    auto& state = flashes_[s.node];
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    if (!state.seen || state.count != f.flashCount) {
+        const bool fresh = state.seen && state.count != f.flashCount;
+        state.seen = true;
+        state.count = f.flashCount;
+        state.startMs = fresh ? now : now - (double) f.flashSeconds * 1000.0;
+    }
+    const double since = (now - state.startMs) / 1000.0;
+    if (since < 0.0 || since >= (double) f.flashSeconds) return 0.0f;
+    const double phase = since / (double) f.flashSeconds;
+    const double tail = 0.6;
+    const double shape = phase <= tail ? 1.0 : 1.0 - (phase - tail) / (1.0 - tail);
+    return (float) (f.flashStrength * shape);
 }
 
 void GlCanvas::renderFx(const visual::Step& s, int w, int h) {
@@ -209,6 +255,19 @@ void GlCanvas::renderFx(const visual::Step& s, int w, int h) {
     glUniform1f(glGetUniformLocation(pid, "invert"), f.invert);
     glUniform1f(glGetUniformLocation(pid, "pixelate"), juce::jlimit(0.0f, 1.0f, f.pixelate));
     glUniform1i(glGetUniformLocation(pid, "mirror"), f.mirror);
+    glUniform1f(glGetUniformLocation(pid, "flash"), flashNow(s));
+    glUniform3f(glGetUniformLocation(pid, "flashColour"), f.flashR, f.flashG, f.flashB);
+    const bool graded = f.lut != nullptr && f.lut->valid();
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, lutTexture(f.lut));
+    glUniform1i(glGetUniformLocation(pid, "lutTex"), 1);
+    glUniform1f(glGetUniformLocation(pid, "lutSize"), graded ? (float) f.lut->size : 0.0f);
+    glUniform1f(glGetUniformLocation(pid, "lutMix"), f.lutMix);
+    glUniform3f(glGetUniformLocation(pid, "lutMin"), graded ? f.lut->domainMin[0] : 0.0f,
+                graded ? f.lut->domainMin[1] : 0.0f, graded ? f.lut->domainMin[2] : 0.0f);
+    glUniform3f(glGetUniformLocation(pid, "lutMax"), graded ? f.lut->domainMax[0] : 1.0f,
+                graded ? f.lut->domainMax[1] : 1.0f, graded ? f.lut->domainMax[2] : 1.0f);
+    glActiveTexture(GL_TEXTURE0);
     drawQuad(pid);
 }
 

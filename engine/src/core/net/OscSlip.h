@@ -147,7 +147,8 @@ inline bool decodeMessage(const std::uint8_t* data, size_t len, Message& m) {
                         const std::uint64_t w = ((std::uint64_t) hi << 32) | lo; double d; std::memcpy(&d, &w, 8);
                         a.tag = 'f'; a.f = (float) d; break; }
             case 'b': { if (!r.u32(bits)) return false; r.pos += bits; while (r.pos % 4 != 0) ++r.pos;
-                        if (r.pos > len) return false; continue; }
+                        if (r.pos > len) return false;
+                        continue; }
             default: continue;
         }
         m.args.push_back(a);

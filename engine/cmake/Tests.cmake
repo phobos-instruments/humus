@@ -6,10 +6,29 @@ endif()
 
 if(HUM_TESTS)
 add_executable(hum_tests tests/run_tests.cpp)
+
+# The brick models, the view contracts, the faceplate controller and the pack
+# data loaders must build AND link with no JUCE on the include path: they are
+# what a second drawing backend, the organism editor or a web player reuse
+# (docs/dev/headless-host-and-bricks.md, Parts B and D). hum_face_probe loads
+# a pack folder and runs every blueprint in it; make engine-check runs it over
+# every pack. It installs no pack roots and no hosted plug-ins, so the
+# registry loads only the folder it is given.
+add_executable(hum_face_probe
+  tests/purity/FaceProbe.cpp
+  tests/purity/BrickModelsWithoutJuce.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/src/Organism.cpp)
+target_link_libraries(hum_face_probe PRIVATE hum_models)
+target_include_directories(hum_face_probe PRIVATE
+  src tests ${CMAKE_CURRENT_SOURCE_DIR}/../sdk/include ${CMAKE_CURRENT_SOURCE_DIR}/../packs/av)
+target_compile_features(hum_face_probe PRIVATE cxx_std_17)
+add_dependencies(hum_tests hum_face_probe)
+
 file(GLOB HUM_PACK_TESTS CONFIGURE_DEPENDS
      ${CMAKE_CURRENT_SOURCE_DIR}/../packs/*/tests/*.cpp)
 target_sources(hum_tests PRIVATE ${HUM_PACK_TESTS})
 target_sources(hum_tests PRIVATE
+  tests/organisms/FireflyTests.cpp
   tests/organisms/OrganismTests.cpp
   tests/organisms/OrganismControlTests.cpp
   tests/organisms/OrganismLiveTests.cpp
@@ -19,11 +38,17 @@ target_sources(hum_tests PRIVATE
   tests/organisms/OrganismFxTests.cpp
   tests/graph/PreparedTests.cpp
   tests/params/ParamRefTests.cpp
+  tests/io/VideoSoundTests.cpp
   tests/io/RobustInputTests.cpp
+  tests/io/XmlParityTests.cpp
   tests/packs/PackSafetyTests.cpp
   tests/packs/AbiFreezeTests.cpp
   tests/dsp/SmoothedGainTests.cpp
+  tests/dsp/WaveTableFileTests.cpp
+  tests/dsp/LofiCrushTests.cpp
+  tests/dsp/SdkBasicsTests.cpp
   tests/io/RecentFilesTests.cpp
+  tests/io/PatchHistoryTests.cpp
   tests/packs/CategoryTests.cpp
   tests/packs/LayoutProviderTests.cpp
   tests/graph/GraphTests.cpp
@@ -34,6 +59,7 @@ target_sources(hum_tests PRIVATE
   tests/io/LoaderLegacyTests.cpp
   tests/io/LoaderLaneTests.cpp
   tests/io/Sf2Tests.cpp
+  tests/io/NsmpTests.cpp
   tests/gui/GuiEnginePathTests.cpp
   tests/app/UserPathsTests.cpp
   tests/timeline/AudioTrackTests.cpp
@@ -42,8 +68,18 @@ target_sources(hum_tests PRIVATE
   tests/organisms/CrossoverTests.cpp
   tests/organisms/DynamicsTests.cpp
   tests/organisms/HelixTests.cpp
+  tests/organisms/HelixTakesTests.cpp
+  tests/organisms/HelixFollowTests.cpp
   tests/organisms/HelixSessionTests.cpp
+  tests/organisms/HelixTempoTests.cpp
+  tests/organisms/HelixMasterTests.cpp
+  tests/organisms/HelixButtonsTests.cpp
+  tests/organisms/HelixInletTests.cpp
+  tests/organisms/PortNamesTests.cpp
   tests/timeline/AutomationTests.cpp
+  tests/timeline/AutoPointOpsTests.cpp
+  tests/timeline/RowOrderTests.cpp
+  tests/timeline/TouchReleaseTests.cpp
   tests/timeline/ClipOpsTests.cpp
   tests/timeline/AudioClipTests.cpp
   tests/timeline/RecordSessionTests.cpp
@@ -58,6 +94,10 @@ target_sources(hum_tests PRIVATE
   tests/organisms/LeafcutterTests.cpp
   tests/organisms/LeafcutterFileTests.cpp
   tests/organisms/SoundSpaceTests.cpp
+  tests/organisms/ComberTests.cpp
+  tests/organisms/ScopeTests.cpp
+  tests/organisms/AtomTests.cpp
+  tests/organisms/SoundSpaceLiveTests.cpp
   tests/dsp/DspCoreTests.cpp
   tests/net/ControlShapeTests.cpp
   tests/dsp/FormulaTests.cpp
@@ -65,6 +105,19 @@ target_sources(hum_tests PRIVATE
   tests/organisms/PrimitivesTests.cpp
   tests/organisms/MathTests.cpp
   tests/organisms/MorseTests.cpp
+  tests/browser/AuditionTests.cpp
+  tests/browser/BrowserFolderTests.cpp
+  tests/browser/BrowserModelTests.cpp
+  tests/browser/BrowserPanelsTests.cpp
+  tests/browser/BrowserQueryTests.cpp
+  tests/browser/FileBrowserViewTests.cpp
+  tests/browser/FileIndexTests.cpp
+  tests/browser/FolderScanTests.cpp
+  tests/browser/LibraryActionsTests.cpp
+  tests/browser/LoadersTests.cpp
+  tests/browser/PickRouteTests.cpp
+  tests/browser/ProjectCardsTests.cpp
+  tests/organisms/BeatSyncTests.cpp
   tests/dsp/DiodeLadderTests.cpp
   tests/organisms/DropsTests.cpp
   tests/timeline/TapTempoTests.cpp
@@ -75,6 +128,7 @@ target_sources(hum_tests PRIVATE
   tests/organisms/SequencerTests.cpp
   tests/organisms/SideChainTests.cpp
   tests/organisms/SpectralTests.cpp
+  tests/organisms/ChordDetectTests.cpp
   tests/organisms/PitchTests.cpp
   tests/tuning/TuningTests.cpp
   tests/tuning/ScaleTests.cpp
@@ -82,15 +136,21 @@ target_sources(hum_tests PRIVATE
   tests/timeline/SwingTests.cpp
   tests/timeline/GrooveLaneTests.cpp
   tests/gui/HexColourTests.cpp
+  tests/gui/StrandLampTests.cpp
+  tests/gui/WindowFloatTests.cpp
+  tests/gui/MomentaryPressTests.cpp
   tests/gui/ThemeSchemaTests.cpp
   tests/tuning/MtsTuningTests.cpp
   tests/midi/BendRetunerTests.cpp
+  tests/midi/SteadyControllerTests.cpp
   tests/plugins/PianoteqLiveTests.cpp
   tests/organisms/RhizomeTests.cpp
   tests/tuning/TuningNodeTests.cpp
+  tests/tuning/TuningTwinTests.cpp
   tests/tuning/TuningScaleTests.cpp
   tests/organisms/StereoToolTests.cpp
   tests/midi/NoteScheduleTests.cpp
+  tests/midi/PianoKeyTests.cpp
   tests/organisms/PhonoTests.cpp
   tests/organisms/WaveTests.cpp
   tests/organisms/WaveVoiceTests.cpp
@@ -98,28 +158,66 @@ target_sources(hum_tests PRIVATE
   tests/midi/ChordTests.cpp
   tests/organisms/DnaTests.cpp
   tests/gui/RollPlotTests.cpp
+  tests/gui/SegmentClockTests.cpp
   tests/assistant/GenieTests.cpp
   tests/params/RandomizeTests.cpp
+  tests/params/RollScopeTests.cpp
+  tests/params/MetapadScopeTests.cpp
+  tests/params/ValueTextTests.cpp
+  tests/json/JsonParityTests.cpp
   tests/gui/LayoutSpecTests.cpp
+  tests/gui/FileBoxTests.cpp
+  tests/gui/GrainTrailTests.cpp
+  tests/gui/HelpLinkTests.cpp
+  tests/gui/NoteFieldTests.cpp
+  tests/gui/SwingBrickTests.cpp
   tests/gui/LayoutConditionTests.cpp
+  tests/gui/KnobModelTests.cpp
+  tests/gui/ToggleModelTests.cpp
+  tests/gui/ContrastTests.cpp
+  tests/gui/ThemeRollTests.cpp
+  tests/gui/OklchTests.cpp
+  tests/gui/ChoiceModelTests.cpp
+  tests/gui/ControlArtTests.cpp
+  tests/gui/StepperModelTests.cpp
+  tests/gui/MomentaryModelTests.cpp
+  tests/gui/LayoutModelTests.cpp
+  tests/gui/GeometryTests.cpp
   tests/packs/RolesTests.cpp
   tests/gui/BrickBindingTests.cpp
+  tests/gui/BrickModelTests.cpp
+  tests/gui/ControlModelTests.cpp
   tests/gui/ToolbarLadderTests.cpp
   tests/graph/PodModelTests.cpp
   tests/graph/PodMidiTests.cpp
   tests/packs/PackUpdatesTests.cpp
   tests/params/ParamHistoryTests.cpp
   tests/io/PresetLibraryTests.cpp
-  src/gui/editor/LayoutLoader.cpp
-  src/gui/editor/LayoutCondition.cpp
+  tests/gui/FaceplateTests.cpp
+  tests/gui/FaceplateSweepTests.cpp
+  tests/gui/ReadoutReadingTests.cpp
+  tests/gui/ScopeReadingTests.cpp
+  tests/gui/InputModelTests.cpp
+  tests/gui/BrickInputTests.cpp
+  tests/gui/MidiKeyLightsTests.cpp
+  tests/gui/NoticeCardCopyTests.cpp
+  tests/gui/FileSlotModelTests.cpp
+  tests/gui/MapModelTests.cpp
+  tests/gui/GridModelTests.cpp
+  tests/gui/RollModelTests.cpp
+  tests/gui/NoteLearnTests.cpp
+  tests/gui/ScrollModelTests.cpp
+  tests/gui/DeckVideoModelTests.cpp
   src/gui/settings/OscSerial.cpp
   tests/video/CameraInTests.cpp
+  tests/video/CubeLutTests.cpp
   tests/assistant/AssistantTests.cpp
   tests/assistant/AutomixPlanTests.cpp
   tests/dsp/SpectrumBandsTests.cpp
   tests/assistant/RecipeSynthTests.cpp
   tests/assistant/OllamaWireTests.cpp
   tests/packs/PackSdkTests.cpp
+  tests/packs/PackRootsTests.cpp
   tests/plugins/PluginHostTests.cpp
   tests/plugins/PluginInstanceTests.cpp
   tests/plugins/PluginPatchTests.cpp
@@ -132,6 +230,10 @@ target_sources(hum_tests PRIVATE
   tests/app/PickerModelTests.cpp
   tests/app/WizardFlowTests.cpp
   tests/app/GuideFlowTests.cpp
+  tests/app/UsageTallyTests.cpp
+  tests/app/AssetRefTests.cpp
+  tests/app/StartDirTests.cpp
+  tests/app/DeviceNoticeTests.cpp
   tests/video/SkeletonTests.cpp
   tests/organisms/GritTests.cpp
   tests/organisms/LoudnessProbeTests.cpp
@@ -143,6 +245,9 @@ target_sources(hum_tests PRIVATE
   tests/organisms/SliderTests.cpp
   tests/organisms/ButtonTests.cpp
   tests/midi/MidiChordTests.cpp
+  tests/midi/ControlModeTests.cpp
+  tests/host/ControlModeHostTests.cpp
+  tests/host/MathVarsTests.cpp
   tests/packs/CautionTests.cpp
   tests/video/VideoTrackTests.cpp
   tests/video/VideoTakeClockTests.cpp
@@ -163,6 +268,7 @@ target_sources(hum_tests PRIVATE
   tests/gui/UiTickerTests.cpp
   tests/organisms/GateTests.cpp
   tests/organisms/ClusterTests.cpp
+  tests/organisms/MidiFilterTests.cpp
   tests/organisms/HarmonizerTests.cpp
   tests/organisms/PaulstretchTests.cpp
   tests/organisms/PinkTromboneTests.cpp
@@ -171,6 +277,7 @@ target_sources(hum_tests PRIVATE
   tests/midi/MidiLaneTests.cpp
   tests/midi/MidiRollTests.cpp
   tests/midi/MidiCodecTests.cpp
+  tests/midi/NoteColourTests.cpp
   tests/midi/MidiMonitorTests.cpp
   tests/midi/MidiSyncTests.cpp
   tests/net/LinkChaseTests.cpp
@@ -186,6 +293,8 @@ target_sources(hum_tests PRIVATE
   tests/net/OscTests.cpp
   tests/graph/ModControlTests.cpp
   tests/video/VisualUniformsTests.cpp
+  tests/video/VisualPlanTests.cpp
+  tests/video/VideoMixChannelsTests.cpp
   tests/video/IsfParseTests.cpp
   tests/video/SsfShimTests.cpp
   tests/timeline/MixRecorderTests.cpp
@@ -211,12 +320,15 @@ target_sources(hum_tests PRIVATE
   tests/net/HubProtocolTests.cpp
   tests/net/TelemetrySpoolTests.cpp
   tests/gui/HelpTests.cpp
+  tests/gui/HelpPageTests.cpp
+  tests/gui/FamilyDocTests.cpp
   tests/organisms/ConsoleTests.cpp
   tests/dsp/OversamplingTests.cpp
   tests/organisms/MixerTests.cpp
   tests/io/DocumentSetTests.cpp)
 target_include_directories(hum_tests PRIVATE tests)
-target_link_libraries(hum_tests PRIVATE hum_core hum_assets)
+# First, so every JUCE module is taken from the modal archive (cmake/JuceShared.cmake).
+target_link_libraries(hum_tests PRIVATE hum_juce_modal hum_core hum_assets)
 foreach(addon ${HUM_ADDON_PACKS})
   target_link_libraries(hum_tests PRIVATE hum_pack_${addon})
   target_compile_definitions(hum_tests PRIVATE

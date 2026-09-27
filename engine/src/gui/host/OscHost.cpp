@@ -4,15 +4,17 @@
 #include "hum/Organism.h"
 
 #include "gui/app/AppSettings.h"
+#include "gui/host/ControlApply.h"
 #include "gui/editor/ControlDefaults.h"
 #include "hum/caps/Osc.h"
 
 namespace hum {
 
-OscHost::OscHost(BrickHost& host, HostCore& core) : host_(host), doc_(core) {
+OscHost::OscHost(BrickHost& host, HostCore& core, HostScheduler& scheduler)
+    : host_(host), doc_(core), scheduler_(scheduler) {
     receiver_.addListener(this);
     serial_.onMessage = [this, alive = alive_](const osc::Message& m) {
-        juce::MessageManager::callAsync([this, alive, m] {
+        scheduler_.post([this, alive, m] {
             if (*alive) takeSerialMessage(m);
         });
     };
@@ -89,7 +91,7 @@ void OscHost::inject(const std::string& address, double value01) {
     lastAddress_ = juce::String(address);
     LiveControlHold live(doc_);
     for (const auto& u : map_.deliver(address, value01))
-        host_.setParam(u.organism, u.param, u.value);
+        applyControl(host_, u);
 }
 
 void OscHost::setShape(const std::string& address, const std::string& organism,
@@ -98,22 +100,18 @@ void OscHost::setShape(const std::string& address, const std::string& organism,
     doc_.markDirty();
 }
 
-juce::String OscHost::mapAddress(const std::string& address, const std::string& organism,
-                                 const std::string& param, double min, double max, bool steal) {
+std::string OscHost::mapAddress(const std::string& address, const std::string& organism,
+                                const std::string& param, double min, double max, bool steal) {
     if (address.empty()) return {};
-    juce::String stolenText;
-    if (steal) {
-        const auto stolen = map_.steal(address, organism, param);
-        for (const auto& [sc, sp] : stolen) {
-            if (stolenText.isNotEmpty()) stolenText << ", ";
-            stolenText << juce::String(sc) << "/" << juce::String(sp);
-        }
-    }
+    std::string stolenText;
+    if (steal)
+        for (const auto& [sc, sp] : map_.steal(address, organism, param))
+            stolenText += (stolenText.empty() ? "" : ", ") + sc + "/" + sp;
     map_.set(address, organism, param, min, max);
     if (const auto* sh = map_.shapeOf(address, organism, param)) {
-        if (sh->isDefault() && isHostSwitchTarget(param)) {
+        if (sh->isDefault() && paramIsSwitch(host_, organism, param)) {
             ControlShape d;
-            d.isSwitch = true;
+            d.type = ControlType::Button;
             map_.setShape(address, organism, param, d);
         } else if (sh->isDefault() && paramIsLog(host_, organism, param)) {
             ControlShape d;
@@ -146,15 +144,9 @@ void OscHost::syncMapFromModel() {
     for (auto& c : doc_.document().organisms)
         for (auto& s : c.oscSources) {
             map_.set(s.address, c.name, s.propertyName, s.mapMin, s.mapMax);
-            ControlShape sh;
-            sh.smoothing = s.smoothing;
-            sh.curve = s.curve;
-            sh.isSwitch = s.isSwitch;
-            sh.inverted = s.inverted;
-            sh.toggle = s.toggle;
-            sh.threshold = s.threshold;
-            sh.isSwitch = sh.isSwitch || isHostSwitchTarget(s.propertyName);
-            if (!sh.isSwitch) sh.logScale = paramIsLog(host_, c.name, s.propertyName);
+            ControlShape sh = s.shape;
+            if (isHostSwitchTarget(s.propertyName)) sh.type = ControlType::Button;
+            sh.logScale = sh.isFader() && paramIsLog(host_, c.name, s.propertyName);
             if (!sh.isDefault()) map_.setShape(s.address, c.name, s.propertyName, sh);
         }
 }
@@ -172,12 +164,8 @@ void OscHost::syncMapToModel() {
         s.address = e.address;
         s.mapMin = e.min;
         s.mapMax = e.max;
-        s.smoothing = e.shape.smoothing;
-        s.curve = e.shape.curve;
-        s.isSwitch = e.shape.isSwitch;
-        s.inverted = e.shape.inverted;
-        s.toggle = e.shape.toggle;
-        s.threshold = e.shape.threshold;
+        s.shape = e.shape;
+        s.shape.logScale = false;
         cm->oscSources.push_back(std::move(s));
     }
 }

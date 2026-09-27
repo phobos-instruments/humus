@@ -34,7 +34,7 @@ inline double seconds(const BounceWants& w, double tempo) {
 }
 
 inline double pictureBytesPerSecond(const BounceWants& w) {
-    return movieBitsPerSecond(w.width, w.height, w.fps, w.quality) / 8.0;
+    return videoBitsPerSecond(w.width, w.height, w.fps, w.quality) / 8.0;
 }
 
 struct SoundKind {
@@ -112,12 +112,12 @@ inline Summary summarise(const BounceWants& w, double tempo) {
     double bytes = 0.0;
 
     if (w.video) {
-        Made movie;
-        movie.file = w.movieFile().getFileName();
-        movie.what = (w.audio ? tr("receipt.both", "Picture and sound in one file.")
+        Made vid;
+        vid.file = w.videoFile().getFileName();
+        vid.what = (w.audio ? tr("receipt.both", "Picture and sound in one file.")
                               : tr("receipt.picture", "Picture only, no sound."))
                      + " H.264, " + sizeName(w);
-        out.files.push_back(std::move(movie));
+        out.files.push_back(std::move(vid));
         bytes += span * pictureBytesPerSecond(w);
         if (w.audio) bytes += span * soundBytesPerSecond(w);
     } else if (w.audio) {

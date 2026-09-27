@@ -2,7 +2,7 @@
 
 A lo-fi channel that models a cheap converter going bad: fewer bits, a slower clock, a wobbling clock and hiss.
 
-Bits coarsens the signal into fewer levels and Rate holds each sample longer so the top end aliases down into grit. Jitter wobbles the clock so hold lengths vary sample to sample, and Noise adds a hiss that rides the signal and ducks out in silence, so an idle patch stays quiet. Tone tilts the result dark or present, Mix blends it against the dry input for parallel grit, and a DC blocker keeps the output centred. The dice roll Bits, Rate, Jitter, Noise and Tone but leave Mix and Level alone, so a roll changes the colour, never the balance of the patch. Cord it after a Sampler or a Drums organism, or before a Fern for a degraded echo.
+Bits coarsens the signal into fewer levels and Rate holds each sample longer so the top end aliases down into grit. Jitter wobbles the clock so hold lengths vary sample to sample, and Noise adds a hiss that rides the signal and ducks out in silence, so an idle patch stays quiet. Tone tilts the result dark or present, Mix blends it against the dry input for parallel grit, and a DC blocker keeps the output centred. Random rolls Bits, Rate, Jitter, Noise and Tone but leaves Mix and Level alone, so a roll changes the colour, never the balance of the patch. Cord it after a Sampler or a Drums organism, or before a Fern for a degraded echo.
 
 ## Parameters
 

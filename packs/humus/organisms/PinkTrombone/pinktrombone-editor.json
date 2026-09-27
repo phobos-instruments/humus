@@ -1,18 +1,23 @@
 {
   "width": 600,
-  "height": 240,
+  "height": 246,
   "controls": [
-    { "type": "label", "label": "Tongue", "x": 24, "y": 8, "w": 130, "h": 14 },
-    { "type": "knob", "param": "TongueX", "label": "Front", "x": 16, "y": 26, "w": 62, "h": 86 },
-    { "type": "knob", "param": "TongueY", "label": "Raise", "x": 88, "y": 26, "w": 62, "h": 86 },
-    { "type": "label", "label": "Constriction", "x": 184, "y": 8, "w": 130, "h": 14 },
-    { "type": "knob", "param": "Place", "label": "Place", "x": 176, "y": 26, "w": 62, "h": 86 },
-    { "type": "knob", "param": "Squeeze", "label": "Squeeze", "x": 248, "y": 26, "w": 62, "h": 86 },
-    { "type": "knob", "param": "Nasal", "label": "Nasal", "x": 344, "y": 26, "w": 62, "h": 86 },
-    { "type": "knob", "param": "Tenseness", "label": "Tense", "x": 440, "y": 26, "w": 62, "h": 86 },
-    { "type": "knob", "param": "Vibrato", "label": "Vibrato", "x": 520, "y": 26, "w": 62, "h": 86 },
-    { "type": "toggle", "param": "Wobble", "label": "Wobble", "x": 16, "y": 140, "w": 90, "h": 26 },
-    { "type": "toggle", "param": "Drone", "label": "Drone", "x": 118, "y": 140, "w": 90, "h": 26 },
-    { "type": "knob", "param": "Level", "label": "Level", "x": 520, "y": 130, "w": 62, "h": 86 }
+    { "type": "label", "label": "Tongue", "style": "section", "x": 15, "y": 6, "w": 160, "h": 112 },
+    { "type": "knob", "param": "TongueX", "label": "Front", "x": 27, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "TongueY", "label": "Raise", "x": 101, "y": 26, "w": 62, "h": 86 },
+    { "type": "label", "label": "Throat", "style": "section", "x": 183, "y": 6, "w": 234, "h": 112 },
+    { "type": "knob", "param": "Place", "label": "Place", "x": 195, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Squeeze", "label": "Squeeze", "x": 269, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Nasal", "label": "Nasal", "x": 343, "y": 26, "w": 62, "h": 86 },
+    { "type": "label", "label": "Voice", "style": "section", "x": 425, "y": 6, "w": 160, "h": 112 },
+    { "type": "knob", "param": "Tenseness", "label": "Tense", "x": 437, "y": 26, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Vibrato", "label": "Vibrato", "x": 511, "y": 26, "w": 62, "h": 86 },
+    { "type": "label", "label": "Motion", "style": "section", "x": 15, "y": 126, "w": 328, "h": 112 },
+    { "type": "lit-button", "param": "Wobble", "label": "Wobble", "x": 31, "y": 166, "w": 140, "h": 34, "icon": "none", "tooltip": "Let the pitch wander as a real voice does." },
+    { "type": "lit-button", "param": "Drone", "label": "Drone", "x": 187, "y": 166, "w": 140, "h": 34, "icon": "none", "tooltip": "Keep singing without a held note." },
+    { "type": "label", "label": "Out", "style": "section", "x": 351, "y": 126, "w": 234, "h": 112 },
+    { "type": "knob", "param": "Width", "label": "Width", "x": 363, "y": 146, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Pan", "label": "Pan", "x": 437, "y": 146, "w": 62, "h": 86 },
+    { "type": "knob", "param": "Level", "label": "Level", "x": 511, "y": 146, "w": 62, "h": 86 }
   ]
 }

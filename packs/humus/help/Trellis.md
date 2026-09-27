@@ -10,7 +10,7 @@ It tracks the incoming fundamental, snaps it to the nearest allowed note of the 
 
 **Speed** How fast the pitch glides to the target. Low is transparent correction; near maximum is the robotic snap.
 
-**Key** The tonic, C to B.
+**Key** The tonic, C to B. Click the box and press a key, on a MIDI keyboard or on the piano that opens; any octave sets the same tonic.
 
 **Scale** The notes the pitch may land on: Chromatic, Major, Minor, the modes, Harmonic and Melodic Minor, both pentatonics, Blues, Whole Tone and Hirajoshi.
 

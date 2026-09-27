@@ -283,8 +283,8 @@ private:
         for (const auto& d : schema()) {
             if (d.isText || d.isRange) continue;
             if (curated && !d.randomize) continue;
-            double v = d.min + r.nextDouble() * (d.max - d.min);
-            v = juce::jlimit(d.min, d.max, v);
+            double v = d.rollLow() + r.nextDouble() * (d.rollHigh() - d.rollLow());
+            v = juce::jlimit(d.rollLow(), d.rollHigh(), v);
             if (d.isBool || d.isEnum || d.isInt) v = std::round(v);
             vals.emplace_back(d.name, v);
         }

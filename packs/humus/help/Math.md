@@ -10,9 +10,9 @@ Numbers, parentheses, + - * / %, comparisons that answer 0 or 1, if(c, then, els
 
 ## Parameters
 
-**Expression** The formula. a and b are the inlets, x, y, z and w the knobs, ch the outlet side. It is saved as written, parsing or not.
+**Expression** The formula. a and b are the inlets, x, y, z and w the knobs, ch the outlet side, and any other name is the Var of that name corded into Vars (lower-cased, spaces as underscores). It is saved as written, parsing or not.
 
-**X** Knob variable x, 0 to 1. Automate it, map it or morph it.
+**X** Knob variable x, 0 to 1. Automate it, map it or morph it. A Var named x corded into Vars drives this pot: the knob moves with the Var and the sound follows.
 
 **Y** Knob variable y, 0 to 1.
 
@@ -24,10 +24,15 @@ Numbers, parentheses, + - * / %, comparisons that answer 0 or 1, if(c, then, els
 
 **Freq** The pitch freq carries while Auto is on and no key is down, 20 to 2000 Hz.
 
+**Vars** One inlet for every Var you want to show on the patch. Cord a Var in and its name does the rest: x, y, z and w drive their pots, any other name is read by the formula. Only corded Vars count: pull the cord and the link is gone.
+
+
 ## Recipe
 
 **Playable voice** Auto off, Expression sin(tau*ph(freq)) * vel * env(gate, 0.01, 0.3), and cord a PianoRoll into the MIDI inlet. Replace sin(tau*ph(freq)) with harm(freq, 1 + x*15, y*2) and x counts the harmonics while y shapes them.
 
+**Named controls** Make a Var called x and one called depth, cord both into Vars, and write sin(tau*ph(freq)) * depth * x. Draw a Slider or an LFO onto each Var's Value: the X pot moves with the first, the formula reads the second, up to eight names.
+
 ## Related Organisms
 
-Number, LFO, Follower, Wave
+Number, LFO, Follower, Var, Wave

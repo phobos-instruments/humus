@@ -10,6 +10,7 @@
 namespace hum {
 
 void MainComponent::autosaveTick() {
+    history_.tick(currentFile_, nowMs());
     if (--autosaveTicks_ > 0) return;
     const int intervalSec = AppSettings::instance().getInt("autosave.intervalSec", 60);
     constexpr int kTicksPerSec = 30;
@@ -36,18 +37,19 @@ void MainComponent::clearAutosave() {
 void MainComponent::restoreAutosave(const AutosaveStore::Recovery& r) {
     std::string err;
     if (!host_.loadFile(r.autosave.getFullPathName().toStdString(), err)) {
-        setStatus(tr("main-autosave.recovery-failed", "recovery failed: ") + juce::String(err));
+        notifyError(tr("main-autosave.recovery-failed", "recovery failed: ") + juce::String(err));
         return;
     }
     currentFile_ = r.originalPath;
     host_.markDirty();
+    history_.begin(currentFile_, false, nowMs());
     AutosaveStore::discard(r);
     canvas_->exitToScope("");
     canvas_->select("");
     propsPane_->syncFromModel();
     refreshTimelinePanes();
     canvas_->refresh();
-    setStatus(tr("main-autosave.recovered-unsaved-session", "recovered unsaved session")
+    notify(tr("main-autosave.recovered-unsaved-session", "recovered unsaved session")
               + (r.originalPath.isEmpty() ? juce::String()
                                           : " (" + juce::File(r.originalPath).getFileName() + ")"));
 }

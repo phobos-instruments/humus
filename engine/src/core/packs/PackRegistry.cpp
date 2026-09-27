@@ -2,13 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "core/packs/PackRegistry.h"
 
-#include "core/packs/BuiltinPacks.h"
+#include <filesystem>
+#include <system_error>
 
-#include <juce_core/juce_core.h>
-
-#ifndef HUM_PACKS_DIR
-#define HUM_PACKS_DIR ""
-#endif
+#include "core/json/Json.h"
+#include "hum/FileBytes.h"
 
 namespace hum {
 
@@ -17,41 +15,32 @@ PackRegistry& PackRegistry::instance() {
     return r;
 }
 
-std::string PackRegistry::packsRootDir() {
-    auto holdsPacks = [](const juce::File& d) {
-        if (!d.isDirectory()) return false;
-        for (const auto& c : d.findChildFiles(juce::File::findDirectories, false))
-            if (c.getChildFile("pack.json").existsAsFile()) return true;
-        return false;
-    };
-    const auto exeDir = juce::File::getSpecialLocation(juce::File::currentExecutableFile)
-                            .getParentDirectory();
-    for (const auto& c : {exeDir.getParentDirectory().getChildFile("Resources").getChildFile("packs"),
-                          exeDir.getChildFile("packs"),
-                          exeDir.getParentDirectory().getChildFile("packs")})
-        if (holdsPacks(c)) return c.getFullPathName().toStdString();
-    juce::File repo(juce::String(HUM_PACKS_DIR));
-    if (holdsPacks(repo)) return repo.getFullPathName().toStdString();
-    return {};
+const PackRoots* PackRegistry::setRoots(const PackRoots* roots) {
+    const auto* previous = roots_;
+    roots_ = roots;
+    return previous;
 }
 
+std::string PackRegistry::builtinRoot() const { return roots_ != nullptr ? roots_->builtinRoot() : std::string(); }
+
 void PackRegistry::loadBuiltinPacks() {
-    if (loaded_) return;
+    if (loaded_ || roots_ == nullptr) return;
     loaded_ = true;
-    const auto root = packsRootDir();
+    const auto root = roots_->builtinRoot();
     if (root.empty()) return;
-    for (const auto& pack : builtinPacks()) {
-        const auto packDir = juce::File(juce::String(root)).getChildFile(pack.id);
-        if (packDir.getChildFile("pack.json").existsAsFile())
-            loadPackDir(packDir.getFullPathName().toStdString(), true);
+    std::error_code ec;
+    for (const auto& id : roots_->builtinIds()) {
+        const auto dir = utf8Path(root) / utf8Path(id);
+        if (std::filesystem::is_regular_file(dir / "pack.json", ec)) loadPackDir(utf8Text(dir), true);
     }
 }
 
 bool PackRegistry::loadPackDir(const std::string& dir, bool builtin) {
-    juce::File d{juce::String(dir)};
+    namespace fs = std::filesystem;
+    std::string text;
+    json::readTextFile(utf8Text(utf8Path(dir) / "pack.json"), text);
     PackManifest pm;
-    if (!parsePackManifest(d.getChildFile("pack.json").loadFileAsString().toStdString(), pm))
-        return false;
+    if (!parsePackManifest(text, pm)) return false;
     for (auto& existing : packs_)
         if (existing.manifest.id == pm.id) return false;
 
@@ -60,15 +49,18 @@ bool PackRegistry::loadPackDir(const std::string& dir, bool builtin) {
     pack.dir = dir;
     pack.builtin = builtin;
 
-    const auto organismsDir = d.getChildFile("organisms");
-    for (const auto& cdir : organismsDir.findChildFiles(juce::File::findDirectories, false)) {
-        const auto mf = cdir.getChildFile("organism.json");
-        if (!mf.existsAsFile()) continue;
+    std::error_code ec;
+    for (fs::directory_iterator it(utf8Path(dir) / "organisms", ec), end; !ec && it != end; it.increment(ec)) {
+        if (!it->is_directory(ec)) continue;
+        const auto cdir = it->path();
+        std::string manifest;
+        if (!fs::is_regular_file(cdir / "organism.json", ec) || !json::readTextFile(utf8Text(cdir / "organism.json"), manifest))
+            continue;
         OrganismManifest cm;
-        if (!parseOrganismManifest(mf.loadFileAsString().toStdString(), cm)) continue;
-        cm.dir = cdir.getFullPathName().toStdString();
+        if (!parseOrganismManifest(manifest, cm)) continue;
+        cm.dir = utf8Text(cdir);
         for (auto& c : cm.classes)
-            for (auto& pd : loadPresetTree(cdir.getChildFile("presets"), c.className))
+            for (auto& pd : loadPresetTree(utf8Text(cdir / "presets"), c.className))
                 c.presets.push_back(std::move(pd));
         pack.organisms.push_back(std::move(cm));
     }

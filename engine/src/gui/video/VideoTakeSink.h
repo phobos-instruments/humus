@@ -41,6 +41,16 @@ public:
         entries_.erase(node);
     }
 
+    bool isOpen(const std::string& node) const {
+        const juce::ScopedLock sl(lock_);
+        return entries_.count(node) != 0;
+    }
+
+    bool anyOpen() const {
+        const juce::ScopedLock sl(lock_);
+        return !entries_.empty();
+    }
+
     std::vector<Entry> entries() const {
         const juce::ScopedLock sl(lock_);
         std::vector<Entry> out;

@@ -1,13 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
-#include <deque>
 #include <string>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/host/BrickHost.h"
-#include "hum/Organism.h"
+#include "gui/editor/readouts/LogReadings.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
 
@@ -20,7 +19,7 @@ public:
         pause_.setClickingTogglesState(true);
         addAndMakeVisible(pause_);
         addAndMakeVisible(clear_);
-        clear_.onClick = [this] { lines_.clear(); repaint(); };
+        clear_.onClick = [this] { log_.clear(); repaint(); };
     }
 
     void reloadValues() override {}
@@ -50,48 +49,38 @@ public:
                                     juce::Font::plain));
         const int rowH = 15;
         const int visible = juce::jmax(1, r.getHeight() / rowH);
-        const int first = juce::jmax(0, (int) lines_.size() - visible);
+        const auto& lines = log_.lines();
+        const int first = juce::jmax(0, (int) lines.size() - visible);
         int y = r.getY();
-        for (size_t i = (size_t) first; i < lines_.size(); ++i) {
-            const auto& ln = lines_[i];
+        for (size_t i = (size_t) first; i < lines.size(); ++i) {
+            const auto& ln = lines[i];
             g.setColour(ln.accent ? Palette::accent : Palette::text);
-            g.drawText(ln.text, r.getX(), y, r.getWidth(), rowH,
+            g.drawText(juce::String::fromUTF8(ln.text.c_str()), r.getX(), y, r.getWidth(), rowH,
                        juce::Justification::centredLeft, true);
             y += rowH;
         }
-        if (lines_.empty()) {
+        if (lines.empty()) {
             g.setColour(Palette::textDim);
             g.drawText(emptyText(), r, juce::Justification::centred);
         }
     }
 
 protected:
-    virtual void drain() = 0;
+    virtual bool drain(readout::EventLog& log) = 0;
     virtual juce::String headerText() const = 0;
     virtual juce::String emptyText() const = 0;
 
-    void push(juce::String text, bool accent) {
-        lines_.push_back({std::move(text), accent});
-        pushed_ = true;
-    }
     bool paused() const { return pause_.getToggleState(); }
-    auto* node() const { return host_.liveOrganism(name_); }
-    size_t lineCount() const { return lines_.size(); }
+    size_t lineCount() const { return log_.lines().size(); }
 
 private:
-    struct Line { juce::String text; bool accent = false; };
-
     void poll() override {
-        pushed_ = false;
-        drain();
-        if (!pushed_) return;
-        while (lines_.size() > kMaxLines) lines_.pop_front();
+        if (!drain(log_)) return;
+        log_.trim();
         repaint();
     }
 
-    static constexpr size_t kMaxLines = 400;
-    std::deque<Line> lines_;
-    bool pushed_ = false;
+    readout::EventLog log_;
     juce::TextButton pause_{"Pause"}, clear_{"Clear"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EventLogView)

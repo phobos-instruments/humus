@@ -278,13 +278,22 @@ juce::String PatcherCanvas::getTooltip() {
     if (portHover_ && hoverPortControl_) {
         const auto label = hoverPortOut_ ? host_.controlOutletValue(hoverPortNode_, hoverPort_)
                                          : host_.controlInletParam(hoverPortNode_, hoverPort_);
-        return juce::String(hoverPortNode_) + dash() + (hoverPortOut_ ? "control out " : "control in ")
-             + juce::String(hoverPort_ + 1) + "  " + juce::String(label);
+        juce::String t = juce::String(hoverPortNode_) + dash()
+                       + (hoverPortOut_ ? "control out " : "control in ")
+                       + juce::String(hoverPort_ + 1) + "  " + juce::String(label);
+        if (hoverPortOut_)
+            if (const auto now = host_.controlOutletReading(hoverPortNode_, hoverPort_); !now.empty())
+                t += "  =  " + juce::String(now);
+        return t;
     }
     if (portHover_) {
         juce::String t = juce::String(hoverPortNode_) + dash()
                        + (hoverPortMidi_ ? "MIDI " : hoverPortVideo_ ? "video " : "audio ")
                        + (hoverPortOut_ ? "out " : "in ") + juce::String(hoverPort_ + 1);
+        if (!hoverPortMidi_ && !hoverPortVideo_)
+            if (const auto label = portName(hoverPortNode_, hoverPort_, hoverPortOut_); !label.empty())
+                t = juce::String(hoverPortNode_) + dash() + juce::String(label) + "  ("
+                    + (hoverPortOut_ ? "audio out " : "audio in ") + juce::String(hoverPort_ + 1) + ")";
         std::string node = hoverPortNode_;
         int port = hoverPort_;
         realPort(hoverPortNode_, hoverPort_, hoverPortOut_, hoverPortMidi_, node, port);

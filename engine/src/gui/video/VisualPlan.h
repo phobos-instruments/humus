@@ -3,6 +3,7 @@
 #pragma once
 #include <algorithm>
 #include <memory>
+#include <cstdio>
 #include <string>
 #include <utility>
 #include <vector>
@@ -10,6 +11,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/video/VisualUniforms.h"
+#include "core/video/CubeLut.h"
 #include "gui/video/VideoLayer.h"
 #include "gui/video/VideoTakeSink.h"
 #include "hum/dsp/FadeLaw.h"
@@ -66,12 +68,24 @@ struct Tap {
 };
 
 struct FxParams {
+    std::shared_ptr<const lut::Cube> lut;
+    float lutMix = 1.0f;
     float posX = 0.0f, posY = 0.0f;
     float scale = 1.0f, rotate = 0.0f;
     float brightness = 1.0f, contrast = 1.0f, saturation = 1.0f, hue = 0.0f;
     float invert = 0.0f, pixelate = 0.0f;
+    unsigned flashCount = 0;
+    float flashSeconds = 0.0f, flashStrength = 0.0f;
+    float flashR = 1.0f, flashG = 1.0f, flashB = 1.0f;
     int mirror = 0;
 };
+
+struct Stamp {
+    std::string label;
+    double seconds = 0.0;
+};
+
+inline constexpr int kStampsMost = 4;
 
 struct Step {
     enum Kind { Black, Deck, Scene, Mix, Fx } kind = Black;
@@ -97,11 +111,39 @@ struct Step {
     float mixCurve = 0.0f;
     bool mixSum = false;
     FxParams fx;
+    std::vector<Stamp> stamps;
+    float opacity = 1.0f;
 };
 inline std::pair<float, float> mixGains(const Step& s) {
     const float fade = std::min(1.0f, std::max(0.0f, s.mixFade));
     if (s.mixSum) return {1.0f, fade};
     return {fadeGain(1.0f - fade, s.mixCurve), fadeGain(fade, s.mixCurve)};
+}
+
+inline std::string stampText(double seconds) {
+    if (!(seconds > 0.0)) seconds = 0.0;
+    const auto millis = (long long) (seconds * 1000.0 + 0.5);
+    const long long hours = millis / 3600000;
+    const long long mins = millis / 60000 % 60;
+    const long long secs = millis / 1000 % 60;
+    char out[32];
+    std::snprintf(out, sizeof out, "%lld:%02lld:%02lld.%03lld", hours, mins, secs, millis % 1000);
+    return out;
+}
+
+inline std::vector<std::string> stampLines(const std::vector<Stamp>& stamps, int most) {
+    std::vector<Stamp> kept;
+    for (const auto& st : stamps) {
+        if ((int) kept.size() >= most) break;
+        bool had = false;
+        for (const auto& k : kept) had = had || k.label == st.label;
+        if (!had) kept.push_back(st);
+    }
+    std::vector<std::string> lines;
+    for (const auto& k : kept)
+        lines.push_back(kept.size() > 1 ? k.label + "  " + stampText(k.seconds)
+                                        : stampText(k.seconds));
+    return lines;
 }
 
 struct Plan {

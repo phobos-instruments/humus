@@ -42,10 +42,11 @@ class VideoTakeRecorder : public VideoTakeSink, private juce::Thread {
 public:
     static constexpr int kQueueDepth = 6;
 
-    VideoTakeRecorder(const juce::File& file, int width, int height, double fps, double sampleRate)
+    VideoTakeRecorder(const juce::File& file, int width, int height, double fps, double sampleRate,
+                      bool freeRunning = false)
         : juce::Thread("video take"), file_(file), width_(width), height_(height),
-          sampleRate_(sampleRate), clock_(fps) {
-        writer_ = makeMovieWriter(MovieKind::H264, file, width, height, fps, kQualityDefault, true);
+          sampleRate_(sampleRate), free_(freeRunning), clock_(fps) {
+        writer_ = makeVideoWriter(VideoKind::H264, file, width, height, fps, kQualityDefault, true);
         if (writer_ != nullptr && writer_->ok()) startThread(juce::Thread::Priority::high);
     }
 
@@ -54,6 +55,18 @@ public:
     bool ok() const { return writer_ != nullptr && writer_->ok(); }
     const juce::File& file() const { return file_; }
 
+    void setPaused(bool paused) {
+        const juce::ScopedLock sl(lock_);
+        if (paused_ == paused) return;
+        freeSeconds();
+        paused_ = paused;
+    }
+
+    bool paused() const {
+        const juce::ScopedLock sl(lock_);
+        return paused_;
+    }
+
     void pushFrame(const std::uint8_t* bottomUpRgba, int w, int h, double beat, double tempo,
                    bool rolling) override {
         if (!ok() || bottomUpRgba == nullptr || w != width_ || h != height_) return;
@@ -61,11 +74,15 @@ public:
         {
             const juce::ScopedLock sl(lock_);
             if (closed_) return;
+            if (paused_) {
+                freeSeconds();
+                return;
+            }
             if ((int) queue_.size() >= kQueueDepth) {
                 ++dropped_;
                 return;
             }
-            const auto a = clock_.tick(beat, tempo, rolling);
+            const auto a = free_ ? clock_.tickFree(freeSeconds()) : clock_.tick(beat, tempo, rolling);
             if (!a.write) return;
             if (!spare_.empty()) {
                 buf = std::move(spare_.back());
@@ -168,11 +185,21 @@ private:
         }
     }
 
+    double freeSeconds() {
+        const double now = juce::Time::getMillisecondCounterHiRes();
+        if (freeLastMs_ > 0.0 && !paused_) freeHeld_ += (now - freeLastMs_) * 0.001;
+        freeLastMs_ = now;
+        return freeHeld_;
+    }
+
     juce::File file_;
     int width_, height_;
     double sampleRate_;
     std::unique_ptr<VideoEncoder> writer_;
     juce::CriticalSection lock_;
+    bool free_ = false;
+    bool paused_ = false;
+    double freeLastMs_ = 0.0, freeHeld_ = 0.0;
     videotake::Clock clock_;
     std::deque<Item> queue_;
     std::vector<std::vector<std::uint8_t>> spare_;

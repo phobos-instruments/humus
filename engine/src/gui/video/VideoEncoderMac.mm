@@ -12,7 +12,7 @@
 #include <cstring>
 #include <vector>
 
-#include "gui/video/MovieSound.h"
+#include "gui/video/VideoSound.h"
 
 namespace hum {
 
@@ -24,9 +24,9 @@ constexpr juce::uint32 kPatienceMs = 30000;
 constexpr int kTimeScale = 90000;
 constexpr int kSealPatience = 60000;
 
-class MacMovie : public VideoEncoder {
+class MacVideo : public VideoEncoder {
 public:
-    MacMovie(const juce::File& file, int width, int height, double fps, int quality, bool live)
+    MacVideo(const juce::File& file, int width, int height, double fps, int quality, bool live)
         : width_(width & ~1), height_(height & ~1), fps_(fps > 0.0 ? fps : 30.0), live_(live) {
         if (width_ < 16 || height_ < 16) return;
         file.deleteFile();
@@ -39,7 +39,7 @@ public:
         ready_ = true;
     }
 
-    ~MacMovie() override {
+    ~MacVideo() override {
         close();
         [pool_ release];
         [picture_ release];
@@ -147,7 +147,7 @@ private:
     }
 
     bool openPicture(int quality) {
-        const auto bits = (NSInteger) std::llround(movieBitsPerSecond(width_, height_, fps_,
+        const auto bits = (NSInteger) std::llround(videoBitsPerSecond(width_, height_, fps_,
                                                                      quality));
         NSDictionary* press = @{
             AVVideoAverageBitRateKey : @(bits),
@@ -290,9 +290,9 @@ private:
 
 }
 
-std::unique_ptr<VideoEncoder> makeNativeMovieWriter(const juce::File& file, int width, int height,
+std::unique_ptr<VideoEncoder> makeNativeVideoWriter(const juce::File& file, int width, int height,
                                                     double fps, int quality, bool live) {
-    return std::make_unique<MacMovie>(file, width, height, fps, quality, live);
+    return std::make_unique<MacVideo>(file, width, height, fps, quality, live);
 }
 
 }

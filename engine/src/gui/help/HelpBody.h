@@ -58,13 +58,13 @@ public:
             } else if (blk.kind == K::Def) {
                 c.def = true;
                 c.label = blk.a;
-                help_detail::appendRich(c.attr, blk.b, blk.rich, fBody, fName, body);
+                help_detail::appendRich(c.attr, blk.b, blk.rich, fBody, fName, body, &c.links, acc);
                 if (i > 0 && blocks[i - 1].kind == K::Def) c.gap = 0.0f;
             } else {
                 help_detail::appendRich(
                     c.attr,
                     blk.bullet ? juce::String::fromUTF8("\xe2\x80\xa2  ") + blk.a : blk.a,
-                    blk.rich, fBody, fName, blk.level < 0 ? dim : body);
+                    blk.rich, fBody, fName, blk.level < 0 ? dim : body, &c.links, acc);
                 if (blk.bullet && i > 0 && blocks[i - 1].bullet) c.gap = 3.0f;
             }
             chunks_.push_back(std::move(c));
@@ -87,6 +87,7 @@ public:
             if (c.def) {
                 c.layout = juce::TextLayout();
                 c.layout.createLayout(c.attr, w - c.labelW);
+                placeLinks(c, {(float) kPad + c.labelW, (float) kPad + y + kRowPad});
                 c.rowH = juce::jmax(c.layout.getHeight(), labelFont_.getHeight()) + 2.0f * kRowPad;
                 y += c.rowH;
                 continue;
@@ -106,6 +107,7 @@ public:
             }
             c.layout = juce::TextLayout();
             c.layout.createLayout(c.attr, w);
+            placeLinks(c, {(float) kPad, (float) kPad + y});
             y += c.layout.getHeight();
         }
         setSize(width, (int) std::ceil(y) + 2 * kPad);
@@ -152,11 +154,12 @@ public:
     void mouseMove(const juce::MouseEvent& e) override {
         const Chunk* ch = nullptr;
         const int tok = tokenAt(e.position, ch);
+        const bool overUrl = urlAt(e.position).isNotEmpty();
+        setMouseCursor(tok >= 0 || overUrl ? juce::MouseCursor::PointingHandCursor
+                                           : juce::MouseCursor::NormalCursor);
         if (tok != hotToken_ || ch != hotChunk_) {
             hotToken_ = tok;
             hotChunk_ = ch;
-            setMouseCursor(tok >= 0 ? juce::MouseCursor::PointingHandCursor
-                                    : juce::MouseCursor::NormalCursor);
             repaint();
         }
     }
@@ -165,7 +168,17 @@ public:
         hotChunk_ = nullptr;
         repaint();
     }
+    std::vector<std::pair<juce::Rectangle<float>, juce::String>> linkAreasForTest() const {
+        std::vector<std::pair<juce::Rectangle<float>, juce::String>> out;
+        for (const auto& c : chunks_) out.insert(out.end(), c.linkAreas.begin(), c.linkAreas.end());
+        return out;
+    }
+
     void mouseUp(const juce::MouseEvent& e) override {
+        if (const auto url = urlAt(e.position); url.isNotEmpty()) {
+            juce::URL(url).launchInDefaultBrowser();
+            return;
+        }
         const Chunk* ch = nullptr;
         const int tok = tokenAt(e.position, ch);
         if (tok >= 0 && onOrganism_)
@@ -181,6 +194,8 @@ private:
         juce::TextLayout layout;
         std::vector<help_detail::LinkToken> tokens;
         std::vector<juce::Rectangle<float>> rects;
+        std::vector<help_detail::TextLink> links;
+        std::vector<std::pair<juce::Rectangle<float>, juce::String>> linkAreas;
         juce::String label;
         bool def = false;
         float labelW = 0.0f;
@@ -203,6 +218,33 @@ private:
             for (size_t k = i; k < j; ++k) chunks_[k].labelW = col;
             i = j;
         }
+    }
+
+    static void placeLinks(Chunk& c, juce::Point<float> origin) {
+        c.linkAreas.clear();
+        if (c.links.empty()) return;
+        for (int l = 0; l < c.layout.getNumLines(); ++l) {
+            const auto& line = c.layout.getLine(l);
+            for (const auto* run : line.runs) {
+                if (run == nullptr || run->glyphs.isEmpty()) continue;
+                for (const auto& link : c.links) {
+                    if (!link.chars.contains(run->stringRange.getStart())) continue;
+                    const auto& first = run->glyphs.getReference(0);
+                    const auto& last = run->glyphs.getReference(run->glyphs.size() - 1);
+                    const float x0 = origin.x + line.lineOrigin.x + first.anchor.x;
+                    const float x1 = origin.x + line.lineOrigin.x + last.anchor.x + last.width;
+                    const float top = origin.y + line.lineOrigin.y - line.ascent;
+                    c.linkAreas.push_back({{x0, top, x1 - x0, line.ascent + line.descent}, link.url});
+                }
+            }
+        }
+    }
+
+    juce::String urlAt(juce::Point<float> p) const {
+        for (const auto& c : chunks_)
+            for (const auto& [area, url] : c.linkAreas)
+                if (area.contains(p)) return url;
+        return {};
     }
 
     int tokenAt(juce::Point<float> p, const Chunk*& chunk) const {

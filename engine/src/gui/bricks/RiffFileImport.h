@@ -9,7 +9,10 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "core/midi/RiffImport.h"
+#include "gui/bricks/BankBrowser.h"
+#include "gui/editor/BankSlotSpec.h"
+#include "gui/editor/files/RiffImportPlan.h"
+#include "gui/editor/juce/JuceFilePicker.h"
 #include "gui/host/BrickHost.h"
 #include "gui/host/EngineHostPattern.h"
 #include "io/PatchDocument.h"
@@ -17,27 +20,34 @@
 
 namespace hum {
 
-inline constexpr const char* kRiffFileWildcard = "*.mid;*.midi;*.syx;*.seq";
-inline constexpr const char* kTripletResolution = "1/12";
-inline constexpr const char* kStraightResolution = "1/16";
+inline bool isRiffFile(const juce::String& path) { return files::isRiffPath(path.toStdString()); }
 
-inline bool isRiffFile(const juce::String& path) {
-    return juce::File(path).hasFileExtension("mid;midi;syx;seq");
+inline std::string riffClassOf(const ModelHost& host, const std::string& name) {
+    const auto* cm = host.model().byName(name);
+    return cm != nullptr ? cm->displayClass : std::string();
 }
 
-inline std::vector<riff::Imported> readRiffFiles(const juce::StringArray& paths) {
-    std::vector<riff::Imported> all;
-    for (const auto& path : paths) {
-        juce::MemoryBlock bytes;
-        if (!juce::File(path).loadFileAsData(bytes)) continue;
-        auto got = riff::importBytes(static_cast<const std::uint8_t*>(bytes.getData()), bytes.getSize());
-        for (auto& one : got) all.push_back(std::move(one));
-    }
-    return all;
+inline banks::Slot riffSlotFor(const std::string& cls) {
+    for (const auto& c : layoutSpecFor(cls).controls)
+        if (c.type == LayoutSpec::ControlType::BasslineImport)
+            return {c.extraOr("kind", "Riffs"), c.extraOr("filter", files::kRiffFileWildcard),
+                    c.extraOr("factory")};
+    return {"Riffs", files::kRiffFileWildcard, {}};
+}
+
+inline void rememberRiffs(const ModelHost& host, const std::string& name,
+                          const juce::StringArray& paths) {
+    const auto cls = riffClassOf(host, name);
+    if (cls.empty()) return;
+    const auto slot = riffSlotFor(cls);
+    for (const auto& path : paths)
+        BankBrowser::remember(banks::referenceFor(juce::File(path), slot, cls), cls);
 }
 
 inline void importRiffFiles(BrickHost& host, const std::string& name, const juce::StringArray& paths) {
-    const auto all = readRiffFiles(paths);
+    std::vector<std::string> list;
+    for (const auto& p : paths) list.push_back(p.toStdString());
+    const auto all = files::readRiffPaths(list);
     if (all.empty()) {
         juce::AlertWindow::showMessageBoxAsync(
             juce::MessageBoxIconType::InfoIcon, tr("riff-import.nothing-title", "No pattern found"),
@@ -46,17 +56,15 @@ inline void importRiffFiles(BrickHost& host, const std::string& name, const juce
                "and the .syx pattern dumps and .seq pattern files of the common acid-box clones."));
         return;
     }
-    const int first = host.patterns().bank(name);
     host.pushUndo();
     const auto* cm = host.model().byName(name);
-    const std::string now = cm != nullptr ? cm->pattern.matrixResolution : std::string();
-    if (all.front().triplet) host.patterns().setResolution(name, kTripletResolution);
-    else if (now == kTripletResolution) host.patterns().setResolution(name, kStraightResolution);
-
-    int placed = 0;
-    for (; placed < (int) all.size() && first + placed < kPatternBanks; ++placed)
-        host.patterns().setBasslineSteps(name, first + placed, all[(size_t) placed].steps);
-    if (placed < (int) all.size())
+    const auto plan = files::planRiffImport(all, host.patterns().bank(name),
+                                            cm != nullptr ? cm->pattern.matrixResolution : std::string());
+    if (!plan.resolution.empty()) host.patterns().setResolution(name, plan.resolution);
+    for (int i = 0; i < plan.placed; ++i)
+        host.patterns().setBasslineSteps(name, plan.firstBank + i, all[(size_t) i].steps);
+    rememberRiffs(host, name, paths);
+    if (plan.overflow)
         juce::AlertWindow::showMessageBoxAsync(
             juce::MessageBoxIconType::InfoIcon, tr("riff-import.overflow-title", "Some patterns left out"),
             tr("riff-import.overflow",
@@ -64,17 +72,27 @@ inline void importRiffFiles(BrickHost& host, const std::string& name, const juce
                "up to H. Pick bank A first to take up to eight."));
 }
 
-inline void chooseRiffFiles(BrickHost& host, const std::string& name,
-                            std::unique_ptr<juce::FileChooser>& chooser, std::function<void()> done) {
-    chooser = std::make_unique<juce::FileChooser>(
-        tr("pattern-step-grid.import-title", "Import bassline patterns"), juce::File(), kRiffFileWildcard);
-    chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles
-                             | juce::FileBrowserComponent::canSelectMultipleItems,
-                         [&host, name, done = std::move(done)](const juce::FileChooser& fc) {
-        juce::StringArray paths;
-        for (const auto& f : fc.getResults()) paths.add(f.getFullPathName());
-        if (paths.isEmpty()) return;
-        importRiffFiles(host, name, paths);
+inline void browseRiffs(BrickHost& host, const std::string& name, juce::Rectangle<int> anchor,
+                        std::function<void()> onOpenFile, std::function<void()> done) {
+    const auto cls = riffClassOf(host, name);
+    const auto slot = riffSlotFor(cls);
+    BankBrowser::show(anchor, cls, slot, {},
+        [&host, name, cls, done](const std::string& ref) {
+            juce::StringArray one;
+            one.add(juce::String::fromUTF8(banks::resolve(ref, cls).c_str()));
+            importRiffFiles(host, name, one);
+            if (done) done();
+        },
+        std::move(onOpenFile), [cls](const std::string& ref) { BankBrowser::forget(ref, cls); });
+}
+
+inline void chooseRiffFiles(BrickHost& host, const std::string& name, JuceFilePicker& picker,
+                            std::function<void()> done) {
+    picker.pick(files::riffPick(host), [&host, name, done = std::move(done)](const std::vector<std::string>& paths) {
+        if (paths.empty()) return;
+        juce::StringArray list;
+        for (const auto& p : paths) list.add(juce::String::fromUTF8(p.c_str()));
+        importRiffFiles(host, name, list);
         if (done) done();
     });
 }

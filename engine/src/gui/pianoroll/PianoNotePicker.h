@@ -3,25 +3,34 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/midi/MidiFormat.h"
 #include "gui/style/Colours.h"
 #include "gui/host/BrickHost.h"
+#include "gui/host/MidiEdits.h"
+#include "gui/pianoroll/NoteLearn.h"
 #include "gui/style/LookAndFeel.h"
 
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
 
-class PianoNotePicker : public juce::Component {
+class PianoNotePicker : public juce::Component, private juce::Timer {
 public:
-    PianoNotePicker(int current, int lo, int hi, std::function<void(int)> onPick)
-        : current_(current), lo_(lo), hi_(hi), onPick_(std::move(onPick)) {
+    PianoNotePicker(int current, int lo, int hi, std::function<void(int)> onPick, MidiEdits* learnFrom = nullptr)
+        : current_(current), lo_(lo), hi_(hi), onPick_(std::move(onPick)), learnFrom_(learnFrom) {
         vLo_ = juce::jmax(lo_, current_ - kSpan / 2);
         vHi_ = juce::jmin(hi_, vLo_ + kSpan);
         vLo_ = juce::jmax(lo_, vHi_ - kSpan);
         layout();
+        if (learnFrom_ != nullptr) {
+            learnFrom_->clearLastCC();
+            heldBefore_ = learnFrom_->heldNotes(-1);
+            startTimerHz(kLearnHz);
+        }
     }
 
     void paint(juce::Graphics& g) override {
@@ -30,7 +39,7 @@ public:
         const int shown = hover_ >= 0 ? hover_ : current_;
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(12.0f).withStyle("Bold"));
-        g.drawText(noteName(shown), strip, juce::Justification::centred);
+        g.drawText(midiNoteName(juce::jlimit(0, kMidiMax, shown)), strip, juce::Justification::centred);
         if (scrollable()) {
             g.setFont(juce::FontOptions(13.0f).withStyle("Bold"));
             g.setColour(vLo_ > lo_ ? Palette::text : Palette::border);
@@ -94,22 +103,29 @@ public:
         }
         const int n = noteAt(e.getPosition());
         if (n < lo_ || n > hi_) return;
-        if (onPick_) onPick_(n);
-        if (auto* box = findParentComponentOfClass<juce::CallOutBox>()) box->dismiss();
+        pick(n);
     }
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails& w) override {
         if (w.deltaY != 0.0f) shiftView(w.deltaY > 0 ? 12 : -12);
     }
 
-    static std::string noteName(int note) {
-        static const char* k[12] = {"C", "C#", "D", "D#", "E", "F",
-                                    "F#", "G", "G#", "A", "A#", "B"};
-        note = juce::jlimit(0, kMidiMax, note);
-        return std::string(k[note % 12]) + std::to_string(note / 12 - 1);
-    }
-
 private:
     static constexpr int kWhiteW = 16, kBlackW = 11, kHeight = 74, kLabelH = 18;
+    static constexpr int kLearnHz = 60;
+
+    void pick(int n) {
+        stopTimer();
+        current_ = n;
+        if (onPick_) onPick_(n);
+        if (auto* box = findParentComponentOfClass<juce::CallOutBox>()) box->dismiss();
+    }
+
+    void timerCallback() override {
+        const auto heldNow = learnFrom_->heldNotes(-1);
+        const int n = notelearn::learnedNote(learnFrom_->lastCC(), heldBefore_, heldNow, lo_, hi_);
+        heldBefore_ = heldNow;
+        if (n >= 0) pick(n);
+    }
     static constexpr int kSpan = 60;
     static constexpr int kArrowW = 22;
 
@@ -162,6 +178,8 @@ private:
     int vLo_ = 0, vHi_ = kMidiMax;
     int hover_ = -1;
     std::function<void(int)> onPick_;
+    MidiEdits* learnFrom_ = nullptr;
+    std::vector<int> heldBefore_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PianoNotePicker)
 };
@@ -174,7 +192,8 @@ inline void showNotePicker(BrickHost& host, const std::string& cn, const std::st
         [&host, cn, param, onChanged = std::move(onChanged)](int n) {
             host.editParam(cn, param, (double) n);
             if (onChanged) onChanged();
-        });
+        },
+        &host.midi());
     juce::CallOutBox::launchAsynchronously(std::move(picker), anchorScreen, nullptr);
 }
 

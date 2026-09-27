@@ -1,0 +1,475 @@
+{
+  "width": 600,
+  "height": 274,
+  "controls": [
+    {
+      "type": "ring-face",
+      "x": 12,
+      "y": 8,
+      "w": 220,
+      "h": 220
+    },
+    {
+      "type": "label",
+      "label": "Steps",
+      "x": 258,
+      "y": 8,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Hits",
+      "x": 312,
+      "y": 8,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Turn",
+      "x": 366,
+      "y": 8,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Rate",
+      "x": 420,
+      "y": 8,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Note",
+      "x": 498,
+      "y": 8,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "1",
+      "x": 234,
+      "y": 28,
+      "w": 22,
+      "h": 13
+    },
+    {
+      "type": "number-box",
+      "param": "Steps_1",
+      "label": "",
+      "x": 258,
+      "y": 24,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Hits_1",
+      "label": "",
+      "x": 312,
+      "y": 24,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Rotate_1",
+      "label": "",
+      "x": 366,
+      "y": 24,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "combo",
+      "param": "Rate_1",
+      "label": "",
+      "x": 420,
+      "y": 24,
+      "w": 72,
+      "h": 22,
+      "options": [
+        "1/4",
+        "1/8",
+        "1/16",
+        "1/32",
+        "Fit bar"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "Fixed_1",
+      "label": "Fix",
+      "x": 498,
+      "y": 25,
+      "w": 34,
+      "h": 20
+    },
+    {
+      "type": "note-field",
+      "param": "Note_1",
+      "label": "",
+      "dim-when": "!Fixed_1",
+      "x": 536,
+      "y": 24,
+      "w": 52,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "2",
+      "x": 234,
+      "y": 60,
+      "w": 22,
+      "h": 13
+    },
+    {
+      "type": "number-box",
+      "param": "Steps_2",
+      "label": "",
+      "x": 258,
+      "y": 56,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Hits_2",
+      "label": "",
+      "x": 312,
+      "y": 56,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Rotate_2",
+      "label": "",
+      "x": 366,
+      "y": 56,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "combo",
+      "param": "Rate_2",
+      "label": "",
+      "x": 420,
+      "y": 56,
+      "w": 72,
+      "h": 22,
+      "options": [
+        "1/4",
+        "1/8",
+        "1/16",
+        "1/32",
+        "Fit bar"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "Fixed_2",
+      "label": "Fix",
+      "x": 498,
+      "y": 57,
+      "w": 34,
+      "h": 20
+    },
+    {
+      "type": "note-field",
+      "param": "Note_2",
+      "label": "",
+      "dim-when": "!Fixed_2",
+      "x": 536,
+      "y": 56,
+      "w": 52,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "3",
+      "x": 234,
+      "y": 92,
+      "w": 22,
+      "h": 13
+    },
+    {
+      "type": "number-box",
+      "param": "Steps_3",
+      "label": "",
+      "x": 258,
+      "y": 88,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Hits_3",
+      "label": "",
+      "x": 312,
+      "y": 88,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Rotate_3",
+      "label": "",
+      "x": 366,
+      "y": 88,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "combo",
+      "param": "Rate_3",
+      "label": "",
+      "x": 420,
+      "y": 88,
+      "w": 72,
+      "h": 22,
+      "options": [
+        "1/4",
+        "1/8",
+        "1/16",
+        "1/32",
+        "Fit bar"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "Fixed_3",
+      "label": "Fix",
+      "x": 498,
+      "y": 89,
+      "w": 34,
+      "h": 20
+    },
+    {
+      "type": "note-field",
+      "param": "Note_3",
+      "label": "",
+      "dim-when": "!Fixed_3",
+      "x": 536,
+      "y": 88,
+      "w": 52,
+      "h": 22
+    },
+    {
+      "type": "label",
+      "label": "4",
+      "x": 234,
+      "y": 124,
+      "w": 22,
+      "h": 13
+    },
+    {
+      "type": "number-box",
+      "param": "Steps_4",
+      "label": "",
+      "x": 258,
+      "y": 120,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Hits_4",
+      "label": "",
+      "x": 312,
+      "y": 120,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Rotate_4",
+      "label": "",
+      "x": 366,
+      "y": 120,
+      "w": 50,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "combo",
+      "param": "Rate_4",
+      "label": "",
+      "x": 420,
+      "y": 120,
+      "w": 72,
+      "h": 22,
+      "options": [
+        "1/4",
+        "1/8",
+        "1/16",
+        "1/32",
+        "Fit bar"
+      ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "Fixed_4",
+      "label": "Fix",
+      "x": 498,
+      "y": 121,
+      "w": 34,
+      "h": 20
+    },
+    {
+      "type": "note-field",
+      "param": "Note_4",
+      "label": "",
+      "dim-when": "!Fixed_4",
+      "x": 536,
+      "y": 120,
+      "w": 52,
+      "h": 22
+    },
+    {
+      "type": "combo",
+      "param": "Order",
+      "label": "",
+      "x": 242,
+      "y": 158,
+      "w": 90,
+      "h": 22,
+      "options": [
+        "Up",
+        "Down",
+        "Up-down",
+        "Random",
+        "As played"
+      ]
+    },
+    {
+      "type": "number-box",
+      "param": "Octaves",
+      "label": "",
+      "x": 336,
+      "y": 158,
+      "w": 40,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "combo",
+      "param": "Key",
+      "label": "",
+      "x": 400,
+      "y": 158,
+      "w": 48,
+      "h": 22,
+      "options": [
+        "C",
+        "C#",
+        "D",
+        "D#",
+        "E",
+        "F",
+        "F#",
+        "G",
+        "G#",
+        "A",
+        "A#",
+        "B"
+      ]
+    },
+    {
+      "type": "combo",
+      "param": "Scale",
+      "label": "",
+      "x": 444,
+      "y": 158,
+      "w": 144,
+      "h": 22,
+      "options": [
+        "Chromatic",
+        "Major",
+        "Minor",
+        "Pentatonic Minor",
+        "Dorian",
+        "Phrygian",
+        "Lydian",
+        "Mixolydian",
+        "Locrian",
+        "Harmonic Minor",
+        "Melodic Minor",
+        "Pentatonic Major",
+        "Blues",
+        "Whole Tone",
+        "Hirajoshi"
+      ]
+    },
+    {
+      "type": "knob",
+      "param": "Gate",
+      "label": "Gate",
+      "x": 242,
+      "y": 188,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "knob",
+      "param": "Velocity",
+      "label": "Vel",
+      "x": 304,
+      "y": 188,
+      "w": 56,
+      "h": 78
+    },
+    {
+      "type": "swing",
+      "x": 366,
+      "y": 200,
+      "w": 140,
+      "h": 20
+    },
+    {
+      "type": "minitoggle",
+      "param": "Latch",
+      "label": "Latch",
+      "x": 512,
+      "y": 200,
+      "w": 76,
+      "h": 20
+    },
+    {
+      "type": "label",
+      "label": "oct",
+      "x": 379,
+      "y": 162,
+      "w": 20,
+      "h": 13
+    }
+  ]
+}

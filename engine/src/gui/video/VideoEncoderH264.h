@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "gui/video/MovieSound.h"
+#include "gui/video/VideoSound.h"
 #include "gui/video/VideoEncoder.h"
 #include "gui/video/VideoLog.h"
 
@@ -35,8 +35,8 @@ class H264Writer : public VideoEncoder {
 public:
     H264Writer(const juce::File& file, int width, int height, double fps, int quality,
                bool live = false)
-        : width_(width & ~1), height_(height & ~1), fps_(fps > 0.0 ? fps : 30.0),
-          quality_(quality), live_(live) {
+        : width_(width & ~1), height_(height & ~1), quality_(quality), live_(live),
+          fps_(fps > 0.0 ? fps : 30.0) {
         av_log_set_level(videoLogOn() ? AV_LOG_INFO : AV_LOG_ERROR);
         if (width_ < 16 || height_ < 16) return;
         path_ = file.getFullPathName().toStdString();

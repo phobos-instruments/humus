@@ -3,7 +3,7 @@
   "height": 262,
   "controls": [
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File",
       "label": "",
       "x": 12,

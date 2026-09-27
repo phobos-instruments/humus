@@ -63,6 +63,12 @@ protected:
     ~HostGraph() = default;
 };
 
+struct InputReach {
+    std::string node;
+    std::vector<int> ports;
+    std::string instrument;
+};
+
 class HostNodes {
 public:
     virtual std::string addOrganism(const std::string& className, juce::Point<int> at,
@@ -81,8 +87,12 @@ public:
     virtual bool nodeRecordsAudio(const std::string& name) = 0;
     virtual bool nodeRecordsVideo(const std::string& name) = 0;
     virtual std::vector<std::string> arrangeableNodes() = 0;
+    virtual std::vector<std::string> recorderNodes() = 0;
     virtual std::string videoSourceInto(const std::string& dst, int dstPort) const = 0;
-    virtual std::string noteCaptureTarget() const = 0;
+    virtual void refreshArmedInputs() = 0;
+    virtual bool nodeIsMidiTrack(const std::string& name) const = 0;
+    virtual std::vector<InputReach> rowsReachedByInput() = 0;
+    virtual std::vector<std::string> ensureTracksFeeding(const std::vector<InputReach>& played) = 0;
 
 protected:
     ~HostNodes() = default;

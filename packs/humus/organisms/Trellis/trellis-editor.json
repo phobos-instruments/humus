@@ -3,27 +3,14 @@
   "height": 114,
   "controls": [
     {
-      "type": "combo",
+      "type": "note-field",
       "param": "Key",
       "label": "Key",
       "x": 8,
       "y": 14,
       "w": 136,
       "h": 22,
-      "options": [
-        "C",
-        "C#",
-        "D",
-        "D#",
-        "E",
-        "F",
-        "F#",
-        "G",
-        "G#",
-        "A",
-        "A#",
-        "B"
-      ]
+      "pitch-class": true
     },
     {
       "type": "combo",

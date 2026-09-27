@@ -13,6 +13,7 @@ enum Shed {
     ShedLocate,
     ShedLimiter,
     ShedKeep,
+    ShedPanic,
     ShedCaptions,
     ShedMax
 };
@@ -31,7 +32,7 @@ inline constexpr int kGap = 3;
 inline constexpr int kMeterW = 72;
 inline constexpr int kOutW = 30;
 inline constexpr int kOutCaptionW = 30;
-inline constexpr int kLimW = 34;
+inline constexpr int kLimW = 44;
 inline constexpr int kGrooveW = 134;
 inline constexpr int kGrooveCompactW = 64;
 
@@ -53,6 +54,7 @@ inline constexpr int widthFor(int shed) {
     if (shed < ShedLocate) w += 3 * (kNavW + 3) + kSep;
     if (shed < ShedLimiter) w += kLimW + 4;
     if (shed < ShedKeep)    w += 2 * kIcon;
+    if (shed < ShedPanic)   w += 28 + kGap;
     if (shed < ShedCaptions) w += kOutCaptionW + kGrooveW - kGrooveCompactW;
     if (shed > ShedNone)   w += kIcon;
     return w;

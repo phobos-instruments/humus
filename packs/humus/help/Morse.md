@@ -6,11 +6,11 @@ Type into Text and it is keyed out with dits, dahs, letter gaps and word gaps, l
 
 ## Parameters
 
-**Text** The message. Letters, digits and common punctuation; anything morse cannot say is skipped.
+**Text** The message. Letters, digits and common punctuation; anything morse cannot say is skipped. The tape under it draws the message as dits and dahs and lights the one being keyed.
 
 **WPM** Keying speed in words per minute, 5 to 40. One unit lasts 1.2 divided by WPM seconds.
 
-**Sync** Ignores WPM and makes one unit exactly one sixteenth, so the message becomes a rhythm on the grid and tempo changes re-time it.
+**Sync** Ignores WPM and makes one unit exactly one sixteenth, so the message becomes a rhythm on the grid and tempo changes re-time it. The message starts on beat 1 and its place follows the transport, so jumping or looping the timeline lands on the same letter every time.
 
 **Note** The tone's pitch as a note, following the patch Tuning.
 

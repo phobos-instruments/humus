@@ -7,6 +7,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/editor/inputs/NumberInputs.h"
 #include "gui/host/BrickHost.h"
 #include "gui/style/LookAndFeel.h"
 
@@ -16,8 +17,7 @@ class RhythmicUnitPicker : public juce::Component {
 public:
     RhythmicUnitPicker(BrickHost& host, std::string organism,
                        std::string multiplierParam, std::string unitParam)
-        : host_(host), name_(std::move(organism)),
-          multParam_(std::move(multiplierParam)), unitParam_(std::move(unitParam)) {
+        : unit_(host, std::move(organism), std::move(multiplierParam), std::move(unitParam)) {
         addAndMakeVisible(multBox_);
         addAndMakeVisible(xLabel_);
         addAndMakeVisible(unitBox_);
@@ -32,20 +32,17 @@ public:
         multBox_.onReturnKey = [this] { commitMultiplier(); };
         multBox_.onFocusLost = [this] { commitMultiplier(); };
 
-        static const char* units[] = {"1/1", "1/2", "1/4", "1/8", "1/16", "1/32", "1/64"};
-        for (auto* u : units) unitBox_.addItem(u, unitBox_.getNumItems() + 1);
+        for (const auto& u : input::RhythmicUnit::units()) unitBox_.addItem(u, unitBox_.getNumItems() + 1);
         unitBox_.setEditableText(true);
-        unitBox_.setTextWhenNothingSelected("1/16");
+        unitBox_.setTextWhenNothingSelected(input::RhythmicUnit::kDefaultUnit);
         unitBox_.onChange = [this] { commitUnit(); };
 
         refresh();
     }
 
     void refresh() {
-        double m = host_.liveParamValue(name_, multParam_);
-        multBox_.setText(juce::String(m), juce::dontSendNotification);
-        juce::String u = juce::String(host_.liveParamText(name_, unitParam_));
-        if (u.isEmpty()) u = "1/16";
+        multBox_.setText(juce::String(unit_.multiplier()), juce::dontSendNotification);
+        const juce::String u(unit_.unit());
         int id = 0;
         for (int i = 0; i < unitBox_.getNumItems(); ++i)
             if (unitBox_.getItemText(i) == u) { id = unitBox_.getItemId(i); break; }
@@ -64,17 +61,14 @@ public:
 
 private:
     void commitMultiplier() {
-        double m = multBox_.getText().getDoubleValue();
-        if (m < 0.001) m = 0.001;
-        host_.setParam(name_, multParam_, m);
+        unit_.commitMultiplier(multBox_.getText().getDoubleValue());
     }
 
     void commitUnit() {
-        host_.setParamText(name_, unitParam_, unitBox_.getText().toStdString());
+        unit_.commitUnit(unitBox_.getText().toStdString());
     }
 
-    BrickHost& host_;
-    std::string name_, multParam_, unitParam_;
+    input::RhythmicUnit unit_;
     juce::TextEditor multBox_;
     juce::Label xLabel_;
     juce::ComboBox unitBox_;

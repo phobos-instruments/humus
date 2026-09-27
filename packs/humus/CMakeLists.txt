@@ -27,12 +27,7 @@ target_link_libraries(hum_pack_humus PUBLIC
   nuked_opl3              # pH: OPL3 chip core (vendored, LGPL-2.1)
   resid                   # Silt: SID chip core (vendored, GPL-2.0-or-later)
   nsfplay_sound           # Grit: Famicom APU + expansion audio (vendored, NSFPlay)
-  juce::juce_core
-  juce::juce_audio_basics
-  juce::juce_audio_formats
-  juce::juce_dsp          # SoundSpace corpus analysis (FFT features)
-  juce::juce_graphics     # Halogen: decoding a picture into a spectrogram
-  juce::juce_video        # CameraIn camera capture (AVFoundation-backed)
+  xwax_timecode           # Deck: control-record decoder (vendored, GPL-3.0-only)
 )
 
 

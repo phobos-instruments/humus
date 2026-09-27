@@ -4,39 +4,45 @@
 
 #include <cmath>
 
+#include "core/app/AppPaths.h"
+#include "gui/app/StartDirs.h"
+
 namespace hum {
 
 ClipGridBrick::ClipGridBrick(BrickHost& host, std::string organism, const Bindings& bound)
-    : PolledBrick(host, std::move(organism), 2), p_{bound(bind::kFilePrefix), bound(bind::kInPrefix), bound(bind::kOutPrefix), bound(bind::kLoopPrefix), bound(bind::kLaunchPrefix)} {
+    : PolledBrick(host, organism, 2),
+      pads_(host, organism,
+            {bound(bind::kFilePrefix), bound(bind::kInPrefix), bound(bind::kOutPrefix), bound(bind::kLoopPrefix),
+             bound(bind::kLaunchPrefix)}) {
     for (int i = 0; i < VideoPadSource::kMaxClips; ++i) {
         auto& cell = cells_[(size_t) i];
         cell = std::make_unique<ClipCell>(i);
         cell->node = name_;
         addAndMakeVisible(*cell);
-        cell->onLaunch = [this, i] { launch(i); };
-        cell->onPlayPause = [this, i] { playPause(i); };
-        cell->onSetIn = [this, i] { stamp(i, p_.in); };
-        cell->onSetOut = [this, i] { stamp(i, p_.out); };
-        cell->onLoop = [this, i] {
-            host_.setParam(name_, p_.loop + suffix(i),
-                           host_.liveParamValue(name_, p_.loop + suffix(i)) >= 0.5 ? 0.0 : 1.0);
+        cell->onLaunch = [this, i] { pads_.launch(i); };
+        cell->onPlayPause = [this, i] {
+            JuceVideoTarget t(layer(i));
+            pads_.playPause(i, t.get());
         };
+        cell->onSetIn = [this, i] {
+            JuceVideoTarget t(layer(i));
+            pads_.stampIn(i, t.get());
+        };
+        cell->onSetOut = [this, i] {
+            JuceVideoTarget t(layer(i));
+            pads_.stampOut(i, t.get());
+        };
+        cell->onLoop = [this, i] { pads_.toggleLoop(i); };
         cell->onOpen = [this, i] { choose(i); };
-        cell->onDragIn = [this, i](double seconds) {
-            host_.setParam(name_, p_.in + suffix(i), std::round(seconds * 100.0) / 100.0);
-        };
-        cell->onDragOut = [this, i](double seconds) {
-            host_.setParam(name_, p_.out + suffix(i), std::round(seconds * 100.0) / 100.0);
-        };
+        cell->onDragIn = [this, i](double seconds) { pads_.setIn(i, seconds); };
+        cell->onDragOut = [this, i](double seconds) { pads_.setOut(i, seconds); };
         cell->onScrub = [this, i](double seconds) {
-            parkWant_[(size_t) i] = -1.0;
+            pads_.forgetPark(i);
             if (auto l = layer(i)) l->seekSeconds(seconds);
         };
-        cell->onDrop = [this, i](const juce::File& f) {
-            host_.setParamText(name_, p_.file + suffix(i), f.getFullPathName().toStdString());
-        };
+        cell->onDrop = [this, i](const juce::File& f) { pads_.load(i, f.getFullPathName().toStdString()); };
         cell->onMenu = [this, i](juce::Point<int> at) { padMenu(i, at); };
-        cell->onDropPad = [this, i](int from, bool move) { copyPad(from, i, move); };
+        cell->onDropPad = [this, i](int from, bool move) { pads_.copy(from, i, move); };
         cell->onDropClip = [this, i](const std::string& track, int clipId) {
             takeClip(i, host_.clips().rangeOf(track, clipId));
         };
@@ -73,132 +79,60 @@ void ClipGridBrick::hold(int i, const juce::File& file, bool onStage) {
     if (file == juce::File()) {
         h.reset();
         heldPath_[(size_t) i] = {};
-        parkWant_[(size_t) i] = -1.0;
+        pads_.forgetPark(i);
         return;
     }
     const auto path = file.getFullPathName();
-    const double in = std::max(0.0, host_.liveParamValue(name_, p_.in + suffix(i)));
+    const double in = std::max(0.0, pads_.in(i));
     const bool sameTape = h != nullptr && heldPath_[(size_t) i] == path;
     if (!sameTape) {
         heldPath_[(size_t) i] = path;
         const bool fresh = layer(i) == nullptr;
         h = VideoDeckPool::instance().open(name_ + "/" + suffix(i), path);
         if (h != nullptr && fresh && !onStage) h->setPaused(true);
-        armPark(i, in);
-    } else if (std::abs(parkIn_[(size_t) i] - in) > 1.0e-6) {
-        armPark(i, in);
+        pads_.armPark(i, in);
+    } else if (pads_.parkMoved(i, in)) {
+        pads_.armPark(i, in);
     }
-    if (onStage) parkWant_[(size_t) i] = -1.0;
+    if (onStage) pads_.forgetPark(i);
     else park(i);
 }
 
-void ClipGridBrick::armPark(int i, double seconds) {
-    parkIn_[(size_t) i] = seconds;
-    parkWant_[(size_t) i] = seconds;
-    parkTries_[(size_t) i] = 0;
-}
-
 void ClipGridBrick::park(int i) {
-    const double want = parkWant_[(size_t) i];
-    if (want < 0.0 || ++parkTries_[(size_t) i] > kParkTries) return;
     auto l = layer(i);
-    if (l == nullptr) return;
-    const auto f = l->latestFrame();
-    if (f != nullptr && f->pts >= 0.0 && std::abs(f->pts - want) < 0.2) {
-        parkWant_[(size_t) i] = -1.0;
-        return;
-    }
-    l->chase(want, 0.0);
-}
-
-void ClipGridBrick::launch(int i) {
-    host_.setParam(name_, p_.launch + suffix(i), 1.0);
-    release_[(size_t) i] = true;
-}
-
-void ClipGridBrick::playPause(int i) {
-    auto* clips = live<VideoPadSource>();
-    auto l = layer(i);
-    if (clips != nullptr && clips->clipState().active == i && l != nullptr)
-        l->setPaused(!l->isPaused());
-    else
-        launch(i);
-}
-
-void ClipGridBrick::stamp(int i, const std::string& which) {
-    auto l = layer(i);
-    if (l == nullptr) return;
-    host_.setParam(name_, which + suffix(i), std::round(l->positionSeconds() * 100.0) / 100.0);
+    const auto f = l != nullptr ? l->latestFrame() : nullptr;
+    const double want = pads_.parkWant(i);
+    if (pads_.parkStep(i, f != nullptr, f != nullptr ? f->pts : -1.0) == video::ClipPadsModel::Park::Chase
+        && l != nullptr)
+        l->chase(want, 0.0);
 }
 
 void ClipGridBrick::padMenu(int i, juce::Point<int> at) {
-    const bool loaded = !host_.liveParamText(name_, p_.file + suffix(i)).empty();
+    const bool loaded = !pads_.file(i).empty();
     juce::PopupMenu m;
     m.addItem(1, tr("clip-grid.clear-pad", "Clear pad"), loaded);
-    m.addItem(2, tr("clip-grid.loop", "Loop"), loaded, host_.liveParamValue(name_, p_.loop + suffix(i)) >= 0.5);
+    m.addItem(2, tr("clip-grid.loop", "Loop"), loaded, pads_.looped(i));
     m.addSeparator();
     m.addItem(3, tr("clip-grid.launch-control", "Launch control..."));
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({at.x, at.y, 1, 1}),
                     [this, i, at](int r) {
-                        if (r == 1) clearPad(i);
-                        else if (r == 2)
-                            host_.setParam(name_, p_.loop + suffix(i),
-                                           host_.liveParamValue(name_, p_.loop + suffix(i)) >= 0.5
-                                               ? 0.0 : 1.0);
+                        if (r == 1) pads_.clear(i);
+                        else if (r == 2) pads_.toggleLoop(i);
                         else if (r == 3)
-                            showAutomateMenu(host_, name_, p_.launch + suffix(i), at, {});
+                            showAutomateMenu(host_, name_, pads_.launchParam() + suffix(i), at, {});
                     });
 }
 
-void ClipGridBrick::clearPad(int i) {
-    host_.beginTransaction();
-    host_.setParamText(name_, p_.file + suffix(i), {});
-    host_.setParam(name_, p_.in + suffix(i), 0.0);
-    host_.setParam(name_, p_.out + suffix(i), 0.0);
-    host_.setParam(name_, p_.loop + suffix(i), 1.0);
-    host_.endTransaction();
-}
-
-void ClipGridBrick::copyPad(int a, int b, bool move) {
-    if (a == b || a < 0 || b < 0 || a >= VideoPadSource::kMaxClips
-        || b >= VideoPadSource::kMaxClips)
-        return;
-    struct Pad { std::string file; double in, out, loop; };
-    auto read = [this](int i) {
-        return Pad{host_.liveParamText(name_, p_.file + suffix(i)),
-                   host_.liveParamValue(name_, p_.in + suffix(i)),
-                   host_.liveParamValue(name_, p_.out + suffix(i)),
-                   host_.liveParamValue(name_, p_.loop + suffix(i))};
-    };
-    auto writeRange = [this](int i, const Pad& pad) {
-        host_.setParam(name_, p_.in + suffix(i), pad.in);
-        host_.setParam(name_, p_.out + suffix(i), pad.out);
-        host_.setParam(name_, p_.loop + suffix(i), pad.loop);
-    };
-    const Pad from = read(a), to = read(b);
-    host_.beginTransaction();
-    host_.setParamText(name_, p_.file + suffix(b), from.file);
-    if (move) host_.setParamText(name_, p_.file + suffix(a), to.file);
-    writeRange(b, from);
-    if (move) writeRange(a, to);
-    host_.endTransaction();
-}
-
 void ClipGridBrick::choose(int i) {
-    const auto cur = juce::String(host_.liveParamText(name_, p_.file + suffix(i)));
-    const auto start = cur.isNotEmpty()
-                           ? juce::File(cur).getParentDirectory()
-                           : juce::File::getSpecialLocation(juce::File::userMoviesDirectory);
-    chooser_ = std::make_unique<juce::FileChooser>("Load a clip", start,
-                                                   "*.mov;*.mp4;*.m4v;*.avi");
-    chooser_->launchAsync(juce::FileBrowserComponent::openMode
-                              | juce::FileBrowserComponent::canSelectFiles,
-                          [this, i](const juce::FileChooser& fc) {
-                              const auto f = fc.getResult();
-                              if (f == juce::File()) return;
-                              host_.setParamText(name_, p_.file + suffix(i),
-                                                 f.getFullPathName().toStdString());
-                          });
+    const auto key = mediaFolderKey("Videos");
+    auto from = keptFolder(key);
+    if (!from.isDirectory()) from = juce::File::getSpecialLocation(juce::File::userMoviesDirectory);
+    picker_.pick(pads_.request(i, from.getFullPathName().toStdString()),
+                 [this, i, key](const std::vector<std::string>& paths) {
+        if (paths.empty()) return;
+        keepFolder(key, fileAt(paths.front()));
+        pads_.load(i, paths.front());
+    });
 }
 
 juce::Image ClipGridBrick::thumbnailOf(const VideoLayer::Frame& f) const {
@@ -207,11 +141,7 @@ juce::Image ClipGridBrick::thumbnailOf(const VideoLayer::Frame& f) const {
 }
 
 void ClipGridBrick::takeClip(int i, const ClipEditor::MediaRange& r) {
-    if (r.file.empty()) return;
-    host_.setParamText(name_, p_.file + suffix(i), r.file);
-    host_.setParam(name_, p_.in + suffix(i), std::round(r.inSeconds * 100.0) / 100.0);
-    host_.setParam(name_, p_.out + suffix(i), std::round(r.outSeconds * 100.0) / 100.0);
-    host_.setParam(name_, p_.loop + suffix(i), r.looped ? 1.0 : 0.0);
+    pads_.take(i, {r.file, r.inSeconds, r.outSeconds, r.looped});
 }
 
 void ClipGridBrick::poll() {
@@ -221,11 +151,8 @@ void ClipGridBrick::poll() {
     const int pads = clips != nullptr ? clips->clipCount() : VideoPadSource::kMaxClips;
     for (int i = 0; i < VideoPadSource::kMaxClips; ++i) {
         cells_[(size_t) i]->setVisible(i < pads);
-        if (release_[(size_t) i]) {
-            release_[(size_t) i] = false;
-            host_.setParam(name_, p_.launch + suffix(i), 0.0);
-        }
-        const auto path = juce::String(host_.liveParamText(name_, p_.file + suffix(i)));
+        pads_.releaseLaunch(i);
+        const auto path = juce::String(pads_.file(i));
         const auto file = VideoDeckPool::resolveTape(host_.documentPath(), path);
         hold(i, file, st.active == i || st.outgoing == i);
         auto l = layer(i);
@@ -235,9 +162,7 @@ void ClipGridBrick::poll() {
         cell.setState(file == juce::File() ? juce::String() : file.getFileName(),
                       st.active == i, st.outgoing == i, l != nullptr && l->isPaused(),
                       l != nullptr ? l->positionSeconds() : 0.0, len,
-                      host_.liveParamValue(name_, p_.in + suffix(i)),
-                      host_.liveParamValue(name_, p_.out + suffix(i)),
-                      host_.liveParamValue(name_, p_.loop + suffix(i)) >= 0.5);
+                      pads_.in(i), pads_.out(i), pads_.looped(i));
         auto frame = l != nullptr ? l->latestFrame() : nullptr;
         if (frame != shown_[(size_t) i]) {
             shown_[(size_t) i] = frame;

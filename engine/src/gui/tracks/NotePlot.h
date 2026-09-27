@@ -44,12 +44,6 @@ inline NotePlot notePlot(juce::Rectangle<int> brick, int fullW, int lengthTicks,
     return np;
 }
 
-inline bool isBlackKey(int pitch) {
-    static const bool black[12] = {false, true, false, true, false, false,
-                                   true, false, true, false, true, false};
-    return black[(std::size_t) (((pitch % 12) + 12) % 12)];
-}
-
 struct RollPlot {
     float top = 0.0f, h = 0.0f;
     float rowH = 10.0f;

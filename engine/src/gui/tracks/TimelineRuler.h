@@ -44,6 +44,7 @@ private:
     double xToBeat(float x) const;
     bool overLoopLane(juce::Point<int> p) const;
     void paintBars(juce::Graphics& g);
+    void paintMarkers(juce::Graphics& g);
     void paintTools(juce::Graphics& g);
     void pressRuler(const juce::MouseEvent& e, juce::Point<int> p);
     void showLoopMenu(juce::Point<int> at);

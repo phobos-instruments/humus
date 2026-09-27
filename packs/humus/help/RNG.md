@@ -8,7 +8,7 @@ Every draw comes from system entropy rather than a formula, so the sequence cann
 
 **Rate** Draws per second while Sync is off, up to 50. Zero stops the clock so only Trigger draws.
 
-**Sync** Takes the draw clock from the transport instead of Rate, so draws land with the music and follow the tempo.
+**Sync** Takes the draw clock from the transport instead of Rate, so draws land with the music and follow the tempo. While the transport plays, a draw lands on beat 1 and then on every SyncBeats boundary, wherever you jump in the timeline.
 
 **SyncBeats** Musical time between draws while Sync is on: a quarter of a beat for something restless, four for one change a bar.
 

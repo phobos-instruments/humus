@@ -8,6 +8,10 @@ Per band the level is interpolated between source A and source B and the phase i
 
 **Morph** 0 is pure A, 1 is pure B, and everything between is a spectral blend of the two.
 
+**A** Hold to cut straight to A wherever Morph sits; let go and the blend comes back. Map it to a pad for a spectral cut.
+
+**B** Hold to cut straight to B. Holding both lands halfway.
+
 ## Recipe
 
 **Voice into pad** Cord a sung vowel from SoundIn to inlets 1 and 2 and a Substrate chord to inlets 3 and 4. Cord an LFO onto Morph with a period of eight bars so the voice turns into the pad and back. Keep both sources playing for the whole sweep.

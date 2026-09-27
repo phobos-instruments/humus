@@ -12,6 +12,7 @@
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
 #include "gui/pianoroll/NoteEdit.h"
+#include "gui/pianoroll/RollModel.h"
 #include "gui/tracks/TimelineTools.h"
 #include "gui/editor/OrganismEditor.h"
 #include "gui/host/BrickHost.h"
@@ -24,10 +25,10 @@ namespace hum {
 
 class PianoRollEditor : public OrganismEditor, private juce::Timer {
 public:
-    struct Playhead { double tick = -1.0; bool preview = false; };
+    using Playhead = roll::Playhead;
     Playhead playheadForTest() const { return playhead(); }
     juce::String barsTextForTest() const { return bars_.getText(); }
-    struct Params { std::string bars, swing, swingFollow, swingUnit; };
+    struct Params { std::string bars, swing, swingFollow, swingUnit, record, loop, quantize; };
 
     PianoRollEditor(BrickHost& host, std::string organism, Params params);
     ~PianoRollEditor() override;
@@ -50,21 +51,32 @@ public:
     void mouseDrag(const juce::MouseEvent&) override;
     void mouseUp(const juce::MouseEvent&) override;
     void mouseMove(const juce::MouseEvent&) override;
+    void mouseExit(const juce::MouseEvent&) override;
     void mouseDoubleClick(const juce::MouseEvent&) override;
     void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
     bool keyPressed(const juce::KeyPress&) override;
 
     juce::Point<int> pointForTest(int tick, int pitch) const {
-        return {(int) tickToX(tick), (int) pitchToY(pitch) + kRowH / 2};
+        return {(int) geometry().tickToX(tick), (int) geometry().pitchToY(pitch) + kRowH / 2};
     }
-    int topPitchForTest() const { return topPitch_; }
-    int selectionCountForTest() const { return (int) selection_.size(); }
     int paintedNoteCountForTest() const {
-        return (int) (gestureEditsNotes() ? gestureNotes_.size() : notes().size());
+        return (int) (model_.editsNotes() ? model_.gestureNotes().size() : model_.notes().size());
     }
 
     void selectAllNotes();
     void printGrooveToSelection();
+    void quantiseSelection(int gridTicks);
+
+    int selectedNotesColour() const;
+    void colourSelectedNotes(int colour, bool asUndoStep = true);
+    int selectedCCsColour() const;
+    void colourSelectedCCs(int colour, bool asUndoStep = true);
+    void deleteSelectedCCs();
+
+    roll::RollModel& modelForTest() { return model_; }
+    juce::Point<int> ccPointForTest(const CCEvent& c) const {
+        return {(int) geometry().tickToX(c.tick), (int) geometry().ccY(c.value, model_.laneCC)};
+    }
 
 private:
     friend class PianoRollRecordBridge;
@@ -77,37 +89,40 @@ private:
     int gridBottom() const { return getHeight() - kKbH - kVelH; }
     int gridLeft() const { return kKeyW; }
     int durationTicks() const;
-    double ppt() const;
-    float tickToX(double tick) const { return (float) (gridLeft() + tick * ppt()); }
-    int xToTick(float x) const { return (int) std::lround((x - gridLeft()) / ppt()); }
-    int pitchAt(int y) const { return topPitch_ - (y - gridTop()) / kRowH; }
-    float pitchToY(int pitch) const { return (float) (gridTop() + (topPitch_ - pitch) * kRowH); }
+    static constexpr int kSnapFreeId = 5;
     int snapTicks() const;
-    int snapTick(int tick) const;
+    bool snapFree() const { return snap_.getSelectedId() == kSnapFreeId; }
+    roll::Geometry geometry() const;
+    class Clip : public roll::ClipNotes {
+    public:
+        explicit Clip(PianoRollEditor& editor) : editor_(editor) {}
+        std::vector<NoteEvent> notes() const override;
+        void setNotes(const std::vector<NoteEvent>& notes, int durationTicks) override;
+        std::vector<CCEvent> ccs() const override;
+        void setCCs(const std::vector<CCEvent>& ccs) override;
+        void pushUndo() override;
 
-    std::vector<NoteEvent> notes() const { return host_.clips().notes(name_, clip_); }
-    void commit(const std::vector<NoteEvent>& notes);
+    private:
+        PianoRollEditor& editor_;
+    };
+
+    std::vector<roll::ClipSpan> clipSpans() const;
     double playheadClipTick() const;
     Playhead playhead() const;
-    juce::Rectangle<float> noteBounds(const NoteEvent& e) const {
-        const float x = tickToX(e.tick);
-        return {x, pitchToY(e.pitch),
-                juce::jmax(3.0f, tickToX(e.tick + e.lengthTicks) - x - 1.0f),
-                (float) (kRowH - 1)};
-    }
-    int noteAt(int tick, int pitch, noteedit::Grab& grab, int x) const;
 
     void fitPitch();
     void buildToolbar();
     void timerCallback() override;
 
+    void buildRecordButtons();
     void loopTap();
-    void loopClear();
+    void showLoopMenu();
     LooperState loopState() const {
-        return looperState(host_.midi().isRecordTarget(name_), loopTakeOpen_,
-                           !notes().empty());
+        return looperState(host_.midi().isRecordTarget(name_), host_.midi().loopTakeOpen(name_),
+                           !model_.notes().empty());
     }
     void updateLoopButton();
+    void syncRecordButtons();
 
     void nudgeSelection(int dTicks, int dSemis, int dVel);
     void deleteSelection();
@@ -115,7 +130,7 @@ private:
     void pasteClipboard();
     void duplicateSelection();
     void splitNoteAt(int noteIndex, int atTick);
-    void applyMarquee(juce::Rectangle<int> area, bool additive);
+    juce::Rectangle<int> marqueeRect() const { return toJuce(model_.marquee()); }
 
     void paintKeys(juce::Graphics& g);
     void repaintKeys() { repaint(0, gridTop(), kKeyW, gridBottom() - gridTop()); }
@@ -123,16 +138,20 @@ private:
     void paintGrid(juce::Graphics& g);
     void paintNotes(juce::Graphics& g);
     void paintVelocity(juce::Graphics& g);
+    void paintCutGuide(juce::Graphics& g);
+    void trackHover(juce::Point<int> p);
+    bool cutGuideAt(juce::Point<int> p) const;
+    float cutGuideX(int hoverX) const;
     void paintCCLane(juce::Graphics& g, int top, int h);
-    void applyVelocityLane(juce::Point<int> p);
-    void applyCCLane(juce::Point<int> p);
     void showLaneMenu();
+    void showNoteMenu(int hit);
+    void openColourPicker(bool ccs);
 
     BrickHost& host_;
     std::string name_;
     Params params_;
 
-    struct LoopButton : juce::TextButton {
+    struct MenuButton : juce::TextButton {
         using juce::TextButton::TextButton;
         std::function<void()> onRightClick;
         void mouseDown(const juce::MouseEvent& e) override {
@@ -144,9 +163,8 @@ private:
     void showBars(int bars);
 
     juce::ComboBox bars_, snap_;
-    LoopButton loop_{"Loop"};
-    bool loopTakeOpen_ = false;
-    juce::TextButton record_{"Rec"}, quantize_{"Q"};
+    MenuButton loop_{"Loop"}, record_{"Rec"}, quantize_{"Q"};
+    LooperState shownLoop_ = LooperState::Empty;
     struct ToolButton : juce::Button {
         explicit ToolButton(noteedit::Tool t) : juce::Button({}), tool(t) {}
         void paintButton(juce::Graphics& g, bool hover, bool) override {
@@ -157,8 +175,8 @@ private:
             g.fillRoundedRectangle(b, 3.0f);
             g.setColour(on ? Palette::accent : Palette::border);
             g.drawRoundedRectangle(b, 3.0f, 1.0f);
-            g.setColour(on ? Palette::accent : Palette::textDim);
-            timelinechrome::paintToolIcon(g, b.reduced(5.0f, 4.0f), tool);
+            timelinechrome::paintToolIcon(g, b.reduced(3.5f, 3.0f), tool,
+                                          on ? Palette::accent : Palette::textDim);
         }
         noteedit::Tool tool;
     };
@@ -170,33 +188,15 @@ private:
     void soundKey(int pitch);
     void releaseKey();
 
-    Tool tool_ = Tool::Pointer;
-    std::set<int> selection_;
-    bool nudgeOpen_ = false;
-    juce::Rectangle<int> marquee_;
-    static std::vector<NoteEvent> sharedClipboard_;
-
-    int topPitch_ = 83;
-    noteedit::WheelAccum pitchWheel_;
-    bool pitchScrolled_ = false;
     int clip_ = 0;
+    Clip clipNotes_{*this};
+    roll::RollModel model_{clipNotes_};
+    noteedit::WheelAccum pitchWheel_;
+    juce::Point<int> hover_{-1, -1};
     double lastPlayheadTick_ = -1.0;
     int loopTick_ = 0;
 
-    enum class Gesture { None, Create, Move, MoveGroup, Resize, ResizeL, Velocity,
-                         Marquee, Erase, VelLane, CCLane, Keys } gesture_ = Gesture::None;
-    bool gestureEditsNotes() const {
-        return gesture_ != Gesture::None && gesture_ != Gesture::Marquee
-            && gesture_ != Gesture::CCLane;
-    }
-    std::vector<NoteEvent> gestureNotes_;
-    std::vector<NoteEvent> gestureBase_;
-    std::vector<CCEvent> gestureCCs_;
-    int laneCC_ = -1;
-    int gestureIndex_ = -1;
-    int gestureStartTick_ = 0, gestureStartPitch_ = 0, gestureStartVel_ = 100;
-    int gestureTickOffset_ = 0;
-    juce::Point<int> dragStart_;
+    using Gesture = roll::RollModel::Gesture;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PianoRollEditor)
 };

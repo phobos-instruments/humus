@@ -24,7 +24,6 @@ const RoleName kRoleNames[9] = {{"settings.role-background", "Background"},
                                 {"settings.role-text", "Text"},
                                 {"settings.role-text-dim", "Text Dim"},
                                 {"settings.role-cord", "Cord"}};
-constexpr int customComboId() { return 100; }
 }
 
 AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanceChanged)
@@ -75,7 +74,7 @@ AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanc
         swatches_[(size_t) r]->onChange = [this](juce::Colour) {
             auto cols = coloursFromSwatches();
             setBaseColours(cols);
-            themeCombo_.setSelectedId(customComboId(), juce::dontSendNotification);
+            themeCombo_.setSelectedId(kCustomComboId, juce::dontSendNotification);
             auto& s = AppSettings::instance();
             s.set("themeMode", juce::String("custom"));
             s.set("customColours", themeColoursToString(cols));
@@ -85,6 +84,10 @@ AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanc
         addAndMakeVisible(*swatches_[(size_t) r]);
     }
 
+    addAndMakeVisible(rollThemeBtn_);
+    rollThemeBtn_.setTooltip(juce::String::fromUTF8(
+        "Roll a fresh set of colours - every roll stays readable. Save Theme keeps the one you like."));
+    rollThemeBtn_.onClick = [this] { rollTheme(); };
     addAndMakeVisible(saveCustomBtn_);
     saveCustomBtn_.onClick = [this] { promptSaveTheme(); };
     addAndMakeVisible(deleteThemeBtn_);
@@ -99,7 +102,7 @@ AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanc
         s.set("themeMode", juce::String("custom"));
         s.set("customColours", themeColoursToString(coloursFromSwatches()));
         rebuildThemeCombo();
-        themeCombo_.setSelectedId(customComboId(), juce::dontSendNotification);
+        themeCombo_.setSelectedId(kCustomComboId, juce::dontSendNotification);
         updateThemeButtons();
     };
     addAndMakeVisible(exportThemeBtn_);
@@ -189,7 +192,7 @@ void AppearanceSettingsView::rebuildThemeCombo() {
             themeCombo_.addItem(user[i].name, kUserThemeBase + (int) i);
     }
     themeCombo_.addSeparator();
-    themeCombo_.addItem(tr("settings.custom", "Custom"), customComboId());
+    themeCombo_.addItem(tr("settings.custom", "Custom"), kCustomComboId);
 }
 
 void AppearanceSettingsView::updateThemeButtons() {
@@ -200,11 +203,11 @@ void AppearanceSettingsView::rebuildFromState() {
     auto& s = AppSettings::instance();
     const auto mode = s.getString("themeMode", "preset");
     if (mode == "custom") {
-        themeCombo_.setSelectedId(customComboId(), juce::dontSendNotification);
+        themeCombo_.setSelectedId(kCustomComboId, juce::dontSendNotification);
     } else if (mode == "user") {
         const auto themes = themestore::list();
         const auto name = s.getString("themeName");
-        themeCombo_.setSelectedId(customComboId(), juce::dontSendNotification);
+        themeCombo_.setSelectedId(kCustomComboId, juce::dontSendNotification);
         for (size_t i = 0; i < themes.size(); ++i)
             if (themes[i].name == name)
                 themeCombo_.setSelectedId(kUserThemeBase + (int) i, juce::dontSendNotification);
@@ -242,6 +245,8 @@ void AppearanceSettingsView::resized() {
     auto themeRow = panel.removeFromTop(26);
     themeLabel_.setBounds(themeRow.removeFromLeft(70));
     themeCombo_.setBounds(themeRow.removeFromLeft(220));
+    themeRow.removeFromLeft(8);
+    rollThemeBtn_.setBounds(themeRow.removeFromLeft(90));
     panel.removeFromTop(12);
 
     constexpr int cols = 3, cellW = 124, labelH = 16, swatchH = 22, cellH = labelH + swatchH + 8;

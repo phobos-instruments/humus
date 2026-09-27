@@ -100,7 +100,7 @@ void hum_register_pack_core(Registry& r) {
                         [n] { return std::make_unique<AuxOut>(n + 1); });
     }
 
-    r.registerClass("MidiIn",  [] { return std::make_unique<MidiInNode>(0); });
+    r.registerClass("MidiIn",  [] { return std::make_unique<MidiInNode>(-1); });
     r.registerClass("MidiOut", [] { return std::make_unique<MidiOutNode>(0); });
     for (int n = 1; n <= 8; ++n) {
         r.registerClass("MidiIn" + std::to_string(n),

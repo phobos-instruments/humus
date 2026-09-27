@@ -71,6 +71,7 @@ double TracksPane::contentEndBeat() const {
 }
 
 void TracksPane::setPlaybackBeat(double beat) {
+    if (isVisible()) song_.pollInputLights();
     const bool located = host_.locateStamp() != lastLocate_;
     lastLocate_ = host_.locateStamp();
     if (located && isVisible() && !song_.dragging()) {
@@ -147,11 +148,7 @@ void TracksPane::beatsChanged(double from, double to) {
 
 void TracksPane::syncLiveTarget() {
     std::vector<std::string> t;
-    if (mode_ == Mode::Track) {
-        if (!rollView_.node().empty()) t.push_back(rollView_.node());
-    } else {
-        t = song_.liveTargets();
-    }
+    if (mode_ == Mode::Track && !rollView_.node().empty()) t.push_back(rollView_.node());
     host_.setLiveTargets(std::move(t));
 }
 

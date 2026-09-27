@@ -71,6 +71,8 @@ inline std::vector<std::string> helpCandidateNames(const std::string& displayCla
         if (std::isdigit((unsigned char) displayClass.front())) names.push_back("Multi" + g);
         names.push_back(g);
     }
+    if (const auto* manifest = PackRegistry::instance().classManifest(displayClass))
+        if (!manifest->help.empty() && manifest->help != displayClass) names.push_back(manifest->help);
     for (size_t i = 0; i < names.size(); ++i)
         if (const auto r = renamedHelpClass(names[i]); !r.empty()) {
             bool have = false;

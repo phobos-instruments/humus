@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/app/MainComponent.h"
+#include "gui/browser/Audition.h"
+#include "core/browser/BrowserIndex.h"
+#include "gui/editor/juce/JuceFilePicker.h"
 #include "gui/app/AboutWindow.h"
 #include "gui/app/AppUpdater.h"
 #include "gui/app/BounceJob.h"
@@ -54,6 +57,12 @@
 
 namespace hum {
 
+namespace {
+constexpr float kEtaFloor = 0.02f;
+constexpr double kEtaSettleMs = 800.0;
+constexpr double kMillisPerSecond = 1000.0;
+}
+
 MainComponent::MainComponent()
     : watchdog_(UiWatchdog::defaultBreadcrumb(), UiWatchdog::defaultLog(),
                 AppSettings::instance().getInt("watchdog.stallSec", 10) * 1000) {
@@ -106,13 +115,17 @@ MainComponent::MainComponent()
         auto centre = patcherView_.getViewArea().getCentre();
         addAt(cls, {centre.x - 75, centre.y - 36});
     };
+    canvas_->onRandomisePod = [this](const std::string& pod) { rollScope(pod); };
+    canvas_->onMapPodRandom = [this](const std::string& pod, juce::Point<int> at) {
+        showAutomateMenu(host_, host_.clockNodeName(), rollscope::podAction(pod), at, nullptr, false);
+    };
     canvas_->onOpenPluginUI = [this](const std::string& n) { openPluginUI(n); };
     canvas_->onOpenVisuals = [this](const std::string& n) { openVisualUI(n); };
     canvas_->onRecordNode = [this](const std::string& tk) {
         refreshTimelinePanes();
         if (!viewAutomation_.getToggleState())
             viewAutomation_.setToggleState(true, juce::sendNotification);
-        setStatus(juce::String::fromUTF8("Armed \xe2\x80\x9c") + tk
+        notify(juce::String::fromUTF8("Armed \xe2\x80\x9c") + tk
                   + juce::String::fromUTF8("\xe2\x80\x9d - press \xe2\x8f\xba Record, then \xe2\x96\xb6 Play to capture the take"));
     };
     host_.onBeforeRebuild = [this](const std::function<bool(const std::string&)>& survives) {
@@ -121,20 +134,17 @@ MainComponent::MainComponent()
         propsPane_->releaseEmbeddedEditorsWhere(
             [&](const std::string& n) { return !survives(n); });
     };
-    host_.openVisuals = [this](const std::string& n) { openVisualUI(n); };
+    host_.openVisuals = [this](const std::string& n, int w, int h) { openVisualUI(n, w, h); };
     addChildComponent(cards_);
-    host_.showCard = [this](std::unique_ptr<juce::Component> card) {
-        cards_.push(std::move(card));
-        placeUpdateNotice();
-        cards_.toFront(false);
-    };
+    cards::attach(host_, [this](std::unique_ptr<juce::Component> card) { presentCard(std::move(card)); });
+    notices_.present = [this](std::unique_ptr<juce::Component> card) { presentCard(std::move(card)); };
     deviceWatch_ = std::make_unique<DeviceWatch>(host_.audioDevices());
     deviceWatch_->onChange = [this](const DeviceChange& c) { showDeviceNotice(c); };
     host_.openParameterControl = [this](const std::string& c, const std::string& p) {
         openParameterControl(c, p);
     };
     host_.onBuildFailed = [this](const std::string& e) {
-        setStatus(tr("main.rebuild-failed", "the patch could not be rebuilt, the last good one keeps playing: ")
+        notifyError(tr("main.rebuild-failed", "the patch could not be rebuilt, the last good one keeps playing: ")
                   + juce::String(e));
     };
     host_.onTopologyChanged = [this] {
@@ -177,9 +187,6 @@ MainComponent::MainComponent()
     buildTransportRow();
     buildWorkspaceRail();
 
-    addAndMakeVisible(statusLabel_);
-    statusLabel_.setColour(juce::Label::textColourId, Palette::textDim);
-
     applySavedAppearance();
     refreshAppearance();
     buildDock();
@@ -198,7 +205,10 @@ MainComponent::MainComponent()
 
     MidiLearner::instance().onStatus =
         [safe = juce::Component::SafePointer<MainComponent>(this)](const juce::String& s) {
-            if (safe != nullptr) safe->setStatus(s);
+            if (safe == nullptr) return;
+            const bool waiting = MidiLearner::instance().armed() || OscLearner::instance().armed()
+                                 || followpick::armed();
+            if (waiting) safe->notifyErrorOn("learn", s); else safe->notifyOn("learn", s);
         };
     OscLearner::instance().onStatus = MidiLearner::instance().onStatus;
     FollowPicker::instance().onStatus = MidiLearner::instance().onStatus;
@@ -206,6 +216,7 @@ MainComponent::MainComponent()
     host_.applyMidiSyncFromSettings();
     host_.applyLinkFromSettings();
 
+    history_.begin({}, false, nowMs());
     tickerId_ = UiTicker::instance().add([this] { timerCallback(); });
 
     if (juce::JUCEApplication::getInstance() != nullptr) {
@@ -242,6 +253,8 @@ void MainComponent::parentHierarchyChanged() { ensureKeyboardFocus(); }
 void MainComponent::visibilityChanged() { ensureKeyboardFocus(); }
 
 MainComponent::~MainComponent() {
+    noteOpenTime();
+    cards::detach(host_);
 #if JUCE_MAC
     juce::MenuBarModel::setMacMainMenu(nullptr);
 #endif
@@ -252,6 +265,7 @@ MainComponent::~MainComponent() {
     MidiLearner::instance().cancel();
     OscLearner::instance().cancel();
     UiTicker::instance().remove(tickerId_);
+    JuceFilePicker::browserRoute() = {};
     stopTimer();
     persistDock();
     host_.stopAudio();
@@ -271,8 +285,57 @@ void MainComponent::addAt(const std::string& className, juce::Point<int> at) {
     canvas_->refresh();
 }
 
+juce::String MainComponent::loadLeftText(const EngineHost::Loading& load) {
+    if (load.progress < kEtaFloor || load.progress >= 1.0f) return {};
+    const double elapsed = juce::Time::getMillisecondCounterHiRes() - load.startMs;
+    if (elapsed < kEtaSettleMs) return {};
+    const int secs = juce::roundToInt(elapsed * (1.0 - load.progress) / load.progress
+                                      / kMillisPerSecond);
+    const juce::String about = "  " + tr("main.load-left", "about ");
+    if (secs < (int) kSecondsPerMinute)
+        return about + juce::String(std::max(1, secs)) + tr("main.load-left-sec", " s left");
+    return about + juce::String(secs / (int) kSecondsPerMinute + 1)
+         + tr("main.load-left-min", " min left");
+}
+
+void MainComponent::showLoadProgress() {
+    for (const auto& f : host_.takeLoadFaults())
+        notices_.say(tr("main.load-failed", "Could not load ") + juce::String(f.file) + ": "
+                         + juce::String(f.message),
+                     NoticeCard::Kind::Passing);
+    const auto loads = host_.loadsInFlight();
+    if (loads.empty()) {
+        if (loadNoticeShown_) {
+            loadNoticeShown_ = false;
+            notifyOn("loading", {});
+        }
+        return;
+    }
+    const auto& first = loads.front();
+    const bool listening = first.stage == EngineHost::Loading::Stage::Listening;
+    juce::String text = listening ? tr("main.load-beat", "Reading the beat of ")
+                                  : tr("main.loading", "Loading ");
+    text += juce::String(first.file);
+    if (loads.size() > 1)
+        text += " " + tr("main.and-others", "and ") + juce::String((int) loads.size() - 1)
+              + tr("main.more", " more");
+    if (!listening) {
+        text += "  " + juce::String(juce::roundToInt(first.progress * 100.0f)) + "%";
+        text += loadLeftText(first);
+    }
+    loadNoticeShown_ = true;
+    notices_.say(text, NoticeCard::Kind::Sticky, "loading");
+    if (auto* card = notices_.cardFor("loading")) {
+        card->setProgress(listening ? -1.0f : first.progress);
+        if (!card->hasAction())
+            card->setAction(tr("main.stop-loading", "Stop"), [this] { host_.abandonLoads(); });
+    }
+}
+
 void MainComponent::timerCallback() {
+    showLoadProgress();
     playBtn_.setOn(host_.isPlaying());
+    refreshTransportMarks();
     enableAudioBtn_.setOn(host_.audioRunning() || host_.audioStarting());
     enableMidiBtn_.setOn(host_.midi().enabled());
     if (viewParamControl_.getToggleState() != (paramControlWindow_ != nullptr))
@@ -298,8 +361,7 @@ void MainComponent::timerCallback() {
         const bool glow = host_.limiterEnabled() && host_.limiterReduction() > 0.01f;
         if (glow != limGlowLit_) {
             limGlowLit_ = glow;
-            limiterBtn_.setColour(juce::TextButton::textColourOnId,
-                                  glow ? Palette::warnAmber() : Palette::accent);
+            limiterBtn_.setWorking(glow);
         }
     }
     if (linkBtn_.getToggleState() != host_.linkEnabled())
@@ -317,6 +379,7 @@ void MainComponent::timerCallback() {
     host_.serviceCountIn();
     host_.pumpOscOut();
     host_.files().pollRecorders();
+    if (juce::Time::currentTimeMillis() - openSinceMs_ >= 60'000) noteOpenTime();
     if (sessionStartMs_ > 0 && telemetrySpool().enabled()) {
         const auto now = juce::Time::currentTimeMillis();
         if (TelemetrySpool::flushDue(now, lastTelemetryFlushMs_, true,
@@ -341,7 +404,8 @@ void MainComponent::timerCallback() {
     if (tracksPane_) {
         tracksPane_->setLiveRecording(host_.isPlaying()
                                       && (host_.record().capturing()
-                                          || host_.midi().anyRecordTarget()));
+                                          || host_.record().sessionActive()
+                                          || (host_.midi().anyRecordTarget() && !host_.midi().anyInletArmed())));
         tracksPane_->setPlaybackBeat(host_.positionBeats());
     }
     if (const unsigned ls = host_.laneStamp(); ls != lastLaneStamp_) {

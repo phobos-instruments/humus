@@ -13,6 +13,7 @@
 #include "gui/host/BrickHost.h"
 #include "gui/editor/ParamSlider.h"
 #include "gui/bricks/SoundFileSlot.h"
+#include "gui/editor/grids/PatternEditorModel.h"
 
 namespace hum {
 
@@ -53,16 +54,11 @@ private:
     int lanesBottom() const { return kKnobRowH + kRulerH + spec_.laneCount * kLaneH; }
     int gridX() const { return kLeftW + kGridPad; }
     int laneAt(int y) const;
-    double ppt() const { return ppb_ / Pattern::kTicksPerBeat; }
-    float tickToX(int tick) const { return (float) (gridX() + (tick - scrollTicks_) * ppt()); }
-    int xToTick(float x) const { return (int) std::lround(scrollTicks_ + (x - gridX()) / ppt()); }
-    int snapTicks() const;
-    int laneSnapTicks(int lane) const;
-    juce::String laneSnapText(int lane) const;
-    int snapTickForLane(int lane, int tick) const;
+    float tickToX(int tick) const { return model_.tickToX(tick, gridX()); }
+    int snapTicks() const { return model_.snapTicks(); }
+    juce::String laneSnapText(int lane) const { return juce::String(model_.laneSnap(lane)); }
 
-    const Pattern* pattern() const;
-    int nearestTrigger(int lane, int tick, int tolTicks) const;
+    const Pattern* pattern() const { return model_.pattern(); }
     void fitZoom();
     void build();
     void bindKnob(ParamSlider& k, const std::string& param);
@@ -72,6 +68,7 @@ private:
     BrickHost& host_;
     std::string name_;
     PatternEditorSpec spec_;
+    grids::PatternEditorModel model_;
 
     std::unique_ptr<ParamSlider> masterKnob_;
     std::unique_ptr<juce::ToggleButton> muteToggle_, gateToggle_;
@@ -83,15 +80,7 @@ private:
     std::vector<std::unique_ptr<juce::TextButton>> snapChips_;
     std::vector<std::unique_ptr<juce::TextButton>> laneNudgeL_, laneNudgeR_;
 
-    double ppb_ = 96.0;
-    double scrollTicks_ = 0.0;
-
-    int dragLane_ = -1, dragTick_ = -1;
-    bool dragAdded_ = false, dragMoved_ = false, deleteOnUp_ = false;
-
     void repaintTimeline();
-    double playTick_ = 0.0;
-    bool showPlayhead_ = false;
 };
 
 }

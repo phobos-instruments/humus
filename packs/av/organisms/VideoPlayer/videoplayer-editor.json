@@ -1,6 +1,6 @@
 {
   "width": 293,
-  "height": 186,
+  "height": 214,
   "controls": [
     {
       "type": "soundfile",
@@ -10,8 +10,8 @@
       "y": 6,
       "w": 269,
       "h": 24,
-      "filter": "*.mov;*.mp4;*.m4v;*.avi",
-      "title": "Load a tape"
+      "title": "Load a tape",
+      "videos": "only"
     },
     {
       "type": "video-transport",
@@ -55,6 +55,24 @@
         "Multiply",
         "Screen"
       ]
+    },
+    {
+      "type": "toggle",
+      "param": "Follow",
+      "label": "Follow",
+      "x": 12,
+      "y": 184,
+      "w": 86,
+      "h": 22
+    },
+    {
+      "type": "hslider",
+      "param": "Position",
+      "label": "Position",
+      "x": 106,
+      "y": 184,
+      "w": 175,
+      "h": 22
     }
   ]
 }

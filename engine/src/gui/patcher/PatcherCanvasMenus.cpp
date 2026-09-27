@@ -159,11 +159,23 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
         if (printTargets.size() > 1) {
             juce::PopupMenu to;
             for (int i = 0; i < (int) printTargets.size(); ++i)
-                to.addItem(kPrintTo + i, juce::String(juce::CharPointer_UTF8(printTargets[(size_t) i].c_str())));
+                to.addItem(kPrintTo + i, juce::String(printTargets[(size_t) i]));
             menu.addSubMenu(tr("patcher-canvas-menus.midi-to-track", "MIDI to Track"), to);
         } else {
             menu.addItem(Print, tr("patcher-canvas-menus.midi-to-track", "MIDI to Track"));
         }
+    }
+    const auto audioTakes = host_.audioTakesOf(node);
+    static constexpr int kAudioTo = 9300000;
+    if (!audioTakes.empty()) {
+        juce::PopupMenu to;
+        bool anyReady = false;
+        for (const auto& t : audioTakes) anyReady = anyReady || t.ready;
+        to.addItem(kAudioTo, tr("patcher-canvas-menus.all-takes", "All"), anyReady);
+        to.addSeparator();
+        for (const auto& t : audioTakes)
+            to.addItem(kAudioTo + 1 + t.index, juce::String(t.name), t.ready);
+        menu.addSubMenu(tr("patcher-canvas-menus.audio-to-track", "Audio to Track"), to, anyReady);
     }
 
     static constexpr int kRecv = 9000000;
@@ -186,8 +198,17 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
 
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
-                       [this, node, classOrder, two, canSwap, screenPos, printTargets](int r) {
+                       [this, node, classOrder, two, canSwap, screenPos, printTargets, takeCount = (int) audioTakes.size()](int r) {
         if (r == 0) return;
+        if (r >= kAudioTo && r <= kAudioTo + takeCount) {
+            std::string err;
+            host_.audioToTimeline(node, r == kAudioTo ? -1 : r - kAudioTo - 1, err);
+            if (!err.empty())
+                juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
+                                                       tr("patcher-canvas-menus.audio-to-track", "Audio to Track"),
+                                                       juce::String(err));
+            return;
+        }
         if (r >= kRecv && r <= kRecv + 17) {
             if (r == kRecv)          host_.midi().setReceiveMode(node, OrganismModel::kMidiOmni, 1);
             else if (r == kRecv + 1) host_.midi().setReceiveMode(node, OrganismModel::kMidiCordsOnly, 1);
@@ -214,7 +235,7 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
             if (!err.empty())
                 juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
                                                        "MIDI to Track",
-                                                       juce::String(juce::CharPointer_UTF8(err.c_str())));
+                                                       juce::String(err));
             return;
         }
         if (r == Help) {

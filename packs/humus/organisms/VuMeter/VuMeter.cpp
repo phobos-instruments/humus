@@ -6,9 +6,8 @@
 
 namespace hum {
 
-void VuMeter::process(const float* const* in, int numIn,
-                      float* const* out, int numOut,
-                      int numSamples, const Transport&) {
+void VuMeter::process(const float* const* in, int numIn, float* const*, int, int numSamples,
+                      const Transport&) {
     const float* l = numIn > 0 ? in[0] : nullptr;
     const float* r = numIn > 1 && in[1] != nullptr ? in[1] : l;
     const float* src[2] = {l, r};
@@ -26,10 +25,6 @@ void VuMeter::process(const float* const* in, int numIn,
                                      : 0.0f,
                       std::memory_order_relaxed);
         peak_[c].store(pk, std::memory_order_relaxed);
-        if (c < numOut && out[c] != nullptr) {
-            const float* s = src[c];
-            for (int n = 0; n < numSamples; ++n) out[c][n] = s ? s[n] : 0.0f;
-        }
     }
 }
 

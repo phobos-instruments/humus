@@ -16,7 +16,7 @@
 namespace hum {
 
 class PianoRoll : public Organism, public MidiNode, public ClipArrangement,
-                  public LiveMidiIn {
+                  public LiveMidiIn, public NoteRecorder {
 public:
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 0; }
@@ -45,6 +45,10 @@ public:
         }
         return n;
     }
+
+    std::string recordSwitch() const override { return "Record"; }
+    std::string loopSwitch() const override { return "Loop"; }
+    std::string quantizeSwitch() const override { return "Quantize"; }
 
     int liveMidiPort() const override { return -1; }
     void pushLiveMidi(const MidiEvent& e) override {

@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "Leafcutter/Leafcutter.h"
 
 #include <algorithm>
@@ -20,15 +21,17 @@ double loadRexLoop(const std::string& uri, juce::AudioBuffer<float>& buf,
                    double& sr, std::vector<SliceOnset>& onsets, int& mapLen) {
     std::string path = uri;
     if (path.rfind("file://", 0) == 0) path = path.substr(7);
-    const juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
-    const RexData rex = loadRexFile(f);
+    const auto f = fileAt(path);
+    const RexData rex = loadRexFile(path);
     if (!rex.parsed) {
         loadSoundFile(path, buf, sr);
         return 0.0;
     }
 
     if (rex.hasAudio) {
-        buf = rex.audio;
+        buf.setSize(rex.audio.numChannels(), rex.audio.numFrames());
+        for (int c = 0; c < rex.audio.numChannels(); ++c)
+            buf.copyFrom(c, 0, rex.audio.channel(c), rex.audio.numFrames());
         sr = rex.sampleRate > 0.0 ? rex.sampleRate : sr;
     } else {
         for (const char* ext : {".wav", ".aif", ".aiff", ".flac"}) {

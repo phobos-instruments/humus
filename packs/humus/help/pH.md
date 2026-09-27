@@ -2,7 +2,7 @@
 
 An FM synthesizer with four engines: a six-operator engine that reads DX7 .syx banks, and emulations of the OPN2, OPM and OPL3 chips.
 
-The bank decides the engine. A .syx holds six-operator voices; a .wopn, .tfi or .dmp holds OPN2 instruments for the Nuked-OPN2 core; a .opm holds OPM voices for Nuked-OPM; a .wopl holds OPL3 instruments for Nuked-OPL3. Load one and the right engine plays it: eight voices on the six-operator engine, six channels on the OPN2, eight on the OPM and eighteen on the OPL3. Pitch comes from the patch Tuning, so a microtonal scale plays on chip voices. A patch names its bank rather than carrying it, so share the bank alongside the patch. Cord a PianoRoll, DNA or MidiIn in.
+The bank decides the engine. A .syx holds six-operator voices; a .wopn, .tfi or .dmp holds OPN2 instruments for the [Nuked-OPN2](https://github.com/nukeykt/Nuked-OPN2) core; a .opm holds OPM voices for [Nuked-OPM](https://github.com/nukeykt/Nuked-OPM); a .wopl holds OPL3 instruments for [Nuked-OPL3](https://github.com/nukeykt/Nuked-OPL3). Load one and the right engine plays it: eight voices on the six-operator engine, six channels on the OPN2, eight on the OPM and eighteen on the OPL3. Pitch comes from the patch Tuning, so a microtonal scale plays on chip voices. A patch names its bank rather than carrying it, so share the bank alongside the patch. Cord a PianoRoll, DNA or MidiIn in.
 
 ## Parameters
 

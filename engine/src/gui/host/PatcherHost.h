@@ -14,6 +14,12 @@ namespace hum {
 class HostedPlugin;
 class PluginNode;
 
+struct AudioTakeInfo {
+    int index = 0;
+    std::string name;
+    bool ready = false;
+};
+
 class PatcherHost : public virtual BrickHost {
 public:
     ~PatcherHost() override = default;
@@ -54,7 +60,7 @@ public:
     virtual std::string importPatchAsPod(const std::string& path, juce::Point<int> at,
                                  const std::string& scope, std::string& error) = 0;
     virtual bool renameOrganism(const std::string& oldName, const std::string& newName) = 0;
-    virtual std::string replaceOrganism(const std::string& name, const std::string& newClass) = 0;
+    virtual std::string replaceOrganism(const std::string& name, const std::string& newClass) override = 0;
     virtual std::string substituteOrganism(const std::string& name, const std::string& newClass) = 0;
     virtual std::string insertBefore(const std::string& name, const std::string& newClass) = 0;
     virtual std::string insertAfter(const std::string& name, const std::string& newClass) = 0;
@@ -69,6 +75,7 @@ public:
     virtual int controlOutletsOf(const std::string& name) = 0;
     virtual std::string controlInletParam(const std::string& name, int inlet) const = 0;
     virtual std::string controlOutletValue(const std::string& name, int outlet) = 0;
+    virtual std::string controlOutletReading(const std::string& name, int outlet) = 0;
     virtual void connectControl(const std::string& src, int outlet, const std::string& dst, int inlet) = 0;
     virtual bool isConnected(const std::string& src, int outlet, const std::string& dst, int inlet) const = 0;
     virtual bool isMidiConnected(const std::string& src, int srcPort, const std::string& dst, int dstPort) const = 0;
@@ -90,6 +97,9 @@ public:
     virtual std::string printToTimeline(const std::string& node, std::string& error, int atTick = -1,
                                 const std::string& preferredTarget = {}) = 0;
     virtual std::vector<std::string> noteTargets(const std::string& node) = 0;
+    virtual std::vector<AudioTakeInfo> audioTakesOf(const std::string& node) = 0;
+    virtual int audioToTimeline(const std::string& node, int take, std::string& error, int atTick = -1,
+                                const std::string& folder = {}) = 0;
 };
 
 }

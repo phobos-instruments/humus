@@ -34,9 +34,12 @@ public:
 
     void onPlay();
     void onStop();
+    void noteRecordSwitch(const std::string& node, bool on);
+    void noteTransport(const std::string& node, const std::string& param, double value);
 
     juce::File recordingsDir() const;
     int videoTakesActive() const { return (int) videoTakes_.size(); }
+    int looseTakesActive() const { return (int) loose_.size(); }
     double videoTakeStartBeat(const std::string& node) const {
         for (const auto& t : videoTakes_)
             if (t.node == node && t.recorder->frames() > 0) return t.recorder->takeStartBeat();
@@ -49,14 +52,26 @@ public:
 private:
     void startRolling(bool capture);
     void beginSession();
+    void armWiredTracks();
     bool pendingCapture_ = false;
     bool pendingArm_ = false;
     void endSession();
+    static constexpr int kTakeNameTries = 9999;
+    juce::File freeTakeFile(const juce::File& dir, const std::string& node, const std::string& ext,
+                            std::vector<std::string>& existing);
     void beginVideoTake(const std::string& node, const juce::File& dir,
                         std::vector<std::string>& existing);
+    std::shared_ptr<VideoTakeRecorder> openVideoTake(const std::string& node,
+                                                     const juce::File& dir,
+                                                     std::vector<std::string>& existing,
+                                                     bool freeRunning);
+    bool recordsItsOwnPicture(const std::string& node) const;
+    void finishLooseTake(const std::string& node);
+    bool rollingLoose(const std::string& node) const;
+    void sweepEmptyTakeFolders() const;
     void endVideoTakes(double samplesPerBeat);
+    std::vector<std::string> pictured_;
     bool recordArmed(const std::string& node) const;
-    std::vector<std::string> autoArmed_;
     void setArmed(bool on);
 
     BrickHost& host_;
@@ -71,8 +86,11 @@ private:
     struct VideoTake {
         std::string node;
         std::shared_ptr<VideoTakeRecorder> recorder;
+        std::string sound;
     };
     std::vector<VideoTake> videoTakes_;
+    std::vector<VideoTake> loose_;
+    mutable juce::String unsaved_;
 };
 
 }

@@ -41,6 +41,7 @@ bool TimelineRuler::overLoopLane(juce::Point<int> p) const {
 void TimelineRuler::paint(juce::Graphics& g) {
     g.fillAll(Palette::background);
     paintBars(g);
+    paintMarkers(g);
     paintTools(g);
     ctx_.paintCrumb(g);
     const bool song = ctx_.showsSongEnd();
@@ -52,6 +53,26 @@ void TimelineRuler::paint(juce::Graphics& g) {
     if (!song) return;
     g.setColour(Palette::border);
     g.drawVerticalLine(tracksgeo::kStripW - 1, 0.0f, (float) getHeight());
+}
+
+void TimelineRuler::paintMarkers(juce::Graphics& g) {
+    const auto& model = ctx_.timelineHost().model();
+    const float top = (float) tracksgeo::rulerTop() + 1.0f;
+    const float h = (float) (tracksgeo::headerH() - tracksgeo::rulerTop()) * 0.5f;
+    g.setFont(juce::FontOptions(9.0f));
+    for (int slot = 1; slot <= kMarkers; ++slot) {
+        const double beat = markerBeatIn(model, slot);
+        if (beat < 0.0) continue;
+        const float x = beatToX(beat);
+        if (x < (float) tracksgeo::kStripW || x > (float) getWidth()) continue;
+        const juce::Rectangle<float> flag(x, top, 13.0f, h);
+        g.setColour(Palette::accent.withAlpha(alpha::nearOpaque));
+        g.fillRect(flag);
+        g.setColour(Palette::accent);
+        g.drawVerticalLine((int) x, top, (float) tracksgeo::headerH());
+        g.setColour(Palette::background);
+        g.drawText(juce::String(slot), flag, juce::Justification::centred, false);
+    }
 }
 
 void TimelineRuler::paintBars(juce::Graphics& g) {
@@ -111,9 +132,8 @@ void TimelineRuler::paintTools(juce::Graphics& g) {
         g.fillRoundedRectangle(b.toFloat(), 3.0f);
         g.setColour(on ? Palette::accent : Palette::border);
         g.drawRoundedRectangle(b.toFloat().reduced(0.5f), 3.0f, 1.0f);
-        const auto r = b.toFloat().reduced(6.0f, 5.0f);
-        g.setColour(on ? Palette::accent : Palette::textDim);
-        timelinechrome::paintToolIcon(g, r, t);
+        const auto r = b.toFloat().reduced(4.0f, 3.5f);
+        timelinechrome::paintToolIcon(g, r, t, on ? Palette::accent : Palette::textDim);
     }
     g.setColour(Palette::panel);
     g.fillRect(0, 0, getWidth(), tracksgeo::kTopH);

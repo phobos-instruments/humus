@@ -31,7 +31,8 @@ inline LayoutSpec layoutSpecFor(const std::string& cls) {
 inline banks::Slot bankSlotFor(const std::string& cls, const std::string& param = {}) {
     for (const auto& c : layoutSpecFor(cls).controls) {
         if (c.type != LayoutSpec::ControlType::BankFile
-            && c.type != LayoutSpec::ControlType::SoundFile) continue;
+            && c.type != LayoutSpec::ControlType::SoundFile
+            && c.type != LayoutSpec::ControlType::FileBox) continue;
         if (!param.empty() && c.param != param) continue;
         return {c.extraOr("kind", "Samples"), c.extraOr("filter"), c.extraOr("factory")};
     }

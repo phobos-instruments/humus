@@ -23,7 +23,8 @@ namespace hum {
 bool embeddedClipUpdate(juce::Component& editor, juce::ComponentPeer& peer,
                         juce::Rectangle<int> clipRegionInPeer,
                         juce::Point<int> editorOriginInPeer,
-                        float scale, juce::Colour background, void*& handle);
+                        float scale, juce::Colour background, void*& handle,
+                        juce::Point<int> panInPlugin);
 bool embeddedClipHide(void*& handle);
 void embeddedClipRemove(juce::Component& editor, juce::ComponentPeer* peer, void*& handle);
 }
@@ -36,6 +37,9 @@ public:
     EmbeddedPluginView(PluginsHost& host, std::string name)
         : host_(host), name_(std::move(name)) {
         setOpaque(false);
+        panBar_.setAutoHide(false);
+        panBar_.addListener(&panListener_);
+        addChildComponent(panBar_);
         startTimerHz(30);
     }
 
@@ -48,7 +52,7 @@ public:
 
     int heightForWidth(int w) const {
         if (naturalW_ <= 0 || naturalH_ <= 0) return DeviceStripView::kHeight;
-        if (fragile_) return naturalH_;
+        if (fragile_ || !zoomable()) return naturalH_ + (naturalW_ > w ? kPanBarH : 0);
         return juce::jmax(24, (int) std::lround((double) naturalH_ * w / naturalW_));
     }
     int naturalWidth() const { return naturalW_ > 0 ? naturalW_ : 360; }
@@ -76,6 +80,9 @@ public:
         editor_.reset();
 #endif
         naturalW_ = naturalH_ = 0;
+        actualSize_ = false;
+        judgeTicks_ = 0;
+        panX_ = 0;
         geomCached_ = wrapSettled_ = false;
         if (onLayoutChanged) onLayoutChanged();
         repaint();
@@ -89,7 +96,10 @@ public:
         updateEditorPosition();
     }
 
-    void resized() override { updateEditorPosition(); }
+    void resized() override {
+        layoutPanBar();
+        updateEditorPosition();
+    }
 
     void paint(juce::Graphics& g) override {
         if (editor_) return;
@@ -110,7 +120,33 @@ public:
         if (!editor_ && onWantsFloat) onWantsFloat();
     }
 
+    bool hasEditor() const { return editor_ != nullptr; }
+    bool actualSize() const { return actualSize_; }
+
+    void setActualSize(bool on) {
+        if (classRaw_.empty()) return;
+        if (on) embedsize::rememberActualSize(classRaw_);
+        else    embedsize::rememberFit(classRaw_);
+        applyActualSize(on);
+    }
+
+    bool scaledForTest() const { return zoomable(); }
+    int panForTest() const { return panX_; }
+
 private:
+
+    struct PanListener : juce::ScrollBar::Listener {
+        explicit PanListener(EmbeddedPluginView& o) : owner(o) {}
+        void scrollBarMoved(juce::ScrollBar*, double start) override {
+            const int want = juce::jlimit(0, owner.panRange(), (int) std::lround(start));
+            if (want == owner.panX_) return;
+            owner.panX_ = want;
+            owner.geomCached_ = false;
+            owner.updateEditorPosition();
+        }
+        EmbeddedPluginView& owner;
+    };
+
     struct PositionTracker : juce::ComponentMovementWatcher {
         explicit PositionTracker(EmbeddedPluginView& o)
             : juce::ComponentMovementWatcher(&o), owner(o) {}
@@ -120,6 +156,11 @@ private:
         EmbeddedPluginView& owner;
     };
 
+    juce::Rectangle<int> pluginArea() const {
+        return panBar_.isVisible() ? getLocalBounds().withTrimmedBottom(kPanBarH)
+                                   : getLocalBounds();
+    }
+
     void updateEditorPosition() {
         if (!editor_) return;
         if (editor_->getParentComponent() != this) return;
@@ -127,7 +168,7 @@ private:
         juce::Rectangle<int> vis, clipRegion;
         if (peer && isShowing()) {
             auto& pc = peer->getComponent();
-            vis = clipRegion = pc.getLocalArea(this, getLocalBounds());
+            vis = clipRegion = pc.getLocalArea(this, pluginArea());
             if (auto* vp = enclosingViewport()) {
                 clipRegion = pc.getLocalArea(vp->getViewedComponent(), vp->getViewArea());
                 vis = vis.getIntersection(clipRegion);
@@ -165,12 +206,12 @@ private:
                 EditorOpGuard g(classRaw_, "plugins.fragileEditor",
                                 zooming ? "zooming its embedded UI" : "embedding its UI");
                 native = embeddedClipUpdate(*editor_, *peer, clipRegion, origin, s,
-                                            Palette::panel, nativeClip_);
+                                            Palette::panel, nativeClip_, {panX_, 0});
                 const bool done = !native || nativeClip_ != nullptr;
                 if (done) { survivedFirstWrap_ = true; if (zooming) survivedFirstZoom_ = true; }
             } else {
                 native = embeddedClipUpdate(*editor_, *peer, clipRegion, origin, s,
-                                            Palette::panel, nativeClip_);
+                                            Palette::panel, nativeClip_, {panX_, 0});
             }
 #endif
             wrapSettled_ = !native || nativeClip_ != nullptr;
@@ -213,9 +254,29 @@ private:
         }
     }
 
+    static constexpr int kPanBarH = 10;
+    static constexpr int kJudgeTicks = 45;
+
+    bool zoomable() const { return !actualSize_; }
+
+    int panRange() const {
+        return zoomable() ? 0 : juce::jmax(0, naturalW_ - getWidth());
+    }
+
     float scaleFactor() const {
+        if (!zoomable()) return 1.0f;
         return naturalW_ > 0 && getWidth() > 0
                    ? (float) getWidth() / (float) naturalW_ : 1.0f;
+    }
+
+    void layoutPanBar() {
+        const int range = panRange();
+        panBar_.setVisible(range > 0);
+        if (range <= 0) { panX_ = 0; return; }
+        panBar_.setBounds(getLocalBounds().removeFromBottom(kPanBarH));
+        panBar_.setRangeLimits(0.0, (double) naturalW_, juce::dontSendNotification);
+        panBar_.setCurrentRange((double) panX_, (double) getWidth(), juce::dontSendNotification);
+        panX_ = juce::jlimit(0, range, panX_);
     }
 
     void timerCallback() override {
@@ -244,7 +305,27 @@ private:
                 if (onLayoutChanged) onLayoutChanged();
             }
         }
+        judgeZoom();
         startTimerHz(isShowing() ? 30 : 4);
+    }
+
+    void applyActualSize(bool on) {
+        if (on == actualSize_) return;
+        actualSize_ = on;
+        if (on) panX_ = 0;
+        geomCached_ = false;
+        layoutPanBar();
+        if (onLayoutChanged) onLayoutChanged();
+        updateEditorPosition();
+    }
+
+    void judgeZoom() {
+        if (!editor_ || actualSize_ || embedsize::wantsFit(classRaw_)) return;
+        if (judgeTicks_ >= kJudgeTicks) return;
+        ++judgeTicks_;
+        if (!embeddedViewResistsZoom(*editor_)) return;
+        embedsize::rememberActualSize(classRaw_);
+        applyActualSize(true);
     }
 
     void acquire() {
@@ -255,6 +336,7 @@ private:
         windowed_ = isWindowedEditor(classRaw_);
         if (windowed_) { repaint(); return; }
         fragile_ = isFragileEditor(classRaw_);
+        actualSize_ = embedsize::wantsActualSize(classRaw_);
         survivedFirstWrap_ = survivedFirstZoom_ = false;
         geomCached_ = wrapSettled_ = false;
         juce::AudioProcessorEditor* ed = nullptr;
@@ -270,6 +352,7 @@ private:
         naturalH_ = ed->getHeight();
         editor_.reset(ed);
         addAndMakeVisible(editor_.get());
+        judgeZoom();
         updateEditorPosition();
         if (onLayoutChanged) onLayoutChanged();
         repaint();
@@ -298,6 +381,11 @@ private:
     juce::Rectangle<int> lastVis_, lastClip_;
     juce::Point<int> lastOrigin_;
     float lastScale_ = 0.0f;
+    bool actualSize_ = false;
+    int judgeTicks_ = 0;
+    int panX_ = 0;
+    juce::ScrollBar panBar_{false};
+    PanListener panListener_{*this};
     PositionTracker tracker_{*this};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EmbeddedPluginView)

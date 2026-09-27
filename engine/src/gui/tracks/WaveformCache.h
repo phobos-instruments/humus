@@ -13,6 +13,7 @@
 
 #include <juce_core/juce_core.h>
 
+#include "core/app/AppPaths.h"
 #include "hum/dsp/SliceDetect.h"
 
 #include "hum/dsp/DspMath.h"
@@ -38,7 +39,7 @@ public:
 
     const Peaks* get(const std::string& path, std::function<void()> onReady) {
         if (path.empty()) return nullptr;
-        const juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
+        const auto f = fileAt(path);
         const std::int64_t mtime = f.getLastModificationTime().toMilliseconds();
         auto& e = cache_[path];
         if (e.peaks && e.peaks->ready && e.mtime == mtime) return e.peaks.get();
@@ -55,7 +56,7 @@ public:
 
     const Peaks* prime(const std::string& path) {
         if (path.empty()) return nullptr;
-        const juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
+        const auto f = fileAt(path);
         auto& e = cache_[path];
         e.mtime = f.getLastModificationTime().toMilliseconds();
         auto peaks = std::make_shared<Peaks>();
@@ -91,7 +92,7 @@ private:
     static void compute(const std::string& path, Peaks& out) {
         std::string uri = path;
         if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-        const juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+        const auto f = fileAt(uri);
         juce::AudioFormatManager fm; fm.registerBasicFormats();
         std::unique_ptr<juce::AudioFormatReader> rd(fm.createReaderFor(f));
         if (!rd || rd->lengthInSamples <= 0) {

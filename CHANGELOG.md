@@ -2,6 +2,154 @@
 
 User-facing changes to Humus, newest first.
 
+## [Unreleased]
+
+## [0.5.0] - 2026-09-27
+
+### Added
+- The Library is a file browser: places, ratings, tags, favourites, collections and one search that reads #tags, stars, kind, bpm and key
+- Click a sound in the browser to hear it, with its waveform, Loop and tempo Sync; what you audition is never recorded
+- Cmd+O and every file slot open the browser on the file you already have; Use File Browser... opens the system dialog
+- Projects gathers every project and patch wherever it lives, as cards, tiles or a list
+- Cmd+O comes back to the place you last opened a project from
+- Watched folders, Computer places and Import to Library; Refresh (Cmd+R) finds new, moved and deleted files
+- A place the browser has not read yet shows a spinning Loading
+- An inspector (I) and a batch bar rate, tag and collect one file or many
+- The Loads into column names the organisms that take a file; drop it on a box to load it, or on the canvas for a new organism
+- Missing media gets one card with Locate and Dismiss
+- Error and warning cards have a Copy button
+- Every MIDI mapping has a kind and a mode: knob or fader, button or pad, encoder
+- Math formulas read any Var in the patch by its name, and Vars corded into the Vars inlet lend theirs
+- LFO, RNG and Morse lock their phase to the beat when Sync is on
+- The keyboard on a MidiIn lights the keys held on a real MIDI keyboard
+- VideoMix takes 2 to 8 inputs; from three it is a channel mixer with a fader per feed
+- Audio to Track on Helix, for one strand or all, or drag a strand onto the timeline
+- SoundSpace: a square map, grains that flash where they play, Scatter and a Default preset
+- Sequence picks 1 to 8 rows, and its outlets follow
+- Kick and Trellis tune by pressing a key
+- Pink Trombone sings in stereo, with Width and Pan
+- Morse draws its message on a tape in dits and dahs and lights the one keyed
+- SpectralMorph: hold A or B to cut straight to one side
+- Shift-click selects every clip between the first and the one clicked; Option-click adds to the selection
+- A deck plays video: sound and picture from one file, picture on a video outlet
+- Scratching a video follows the platter, timecode and all
+- Hit record on a deck and it rolls on its own clock, timeline or not
+- A deck records the sound and the picture arriving into one take
+- Two lamps on a deck say what sound and what picture are arriving
+- Drop a video or a track straight onto a deck
+- A deck's whole transport is mappable, and FilePlayer, MidiPlayer and Paulstretch with it
+- Cue loops start where they land
+- Nudge shifts the last cue point, by a millisecond up to five seconds
+- Clear every cue point, held like Helix's Clear
+- A deck can burn in its own time, carried along the video cords
+- Random on a deck jumps to a random moment in the track
+- Helix wears a face: a lane per strand, inset meters, a drawn Level knob
+- One button per job on every Helix strand, with lamps, Play all and Stop all
+- Helix rings draw what is on each strand, with a halo for the level arriving
+- Snap puts a strand's first hit on the downbeat and fits it to the bar
+- Helix strands follow the tempo, by pitch or by stretch
+- A stereo inlet and a Monitor choice on every Helix strand
+- Follow, a fourth Helix sync: presses land on a running loop's seam
+- Hold playback inside a quarter of a Helix ring
+- MidiFilter: eight rules that block or remap a note or a controller
+- Firefly, a visual organism: a flash over the picture on the beat
+- Lumen's hallucination scene, with feedback, swirl and colour bleed
+- VideoPad has an audio outlet
+- Capture with nothing armed follows the cords and arms a track per node
+- Every armed MIDI track takes the same take and stays armed after Stop
+- An input chip on each MIDI track row: Auto, All, one port or None
+- A take landing in a MIDI clip adds to it, each pass in its own colour
+- Panic stops every hanging note, in the patch and on your hardware
+- File > History: snapshots of the patch, kept across restarts
+- PianoRoll's Rec, Loop and Q are mappable, and Rec records on its own
+- Quantise notes from the PianoRoll's right-click menu
+- Notes and controller points wear a colour
+- A note box's keyboard picks the note you play
+- The Sampler reads stage keyboard libraries, with loops and key ranges
+- Organism skins can be pictures: panel, knobs, sliders and buttons
+- Selecting a track in the timeline highlights its node on the canvas
+- The edit tools are proper themed icons, replaceable by an SVG
+- The AI settings page lists the models the local server holds
+- Riff names the note under every sounding step
+- A box's video and control jacks line up with their own row
+- The bounce-done card has a Go to folder button
+
+### Changed
+- Rings is now Atom, with Elements and Planets presets
+- The Console is redesigned, with tape labels that name what is plugged in
+- One swing control for every organism that swings
+- VuMeter, Scope and Spectrum only listen, with no outlets
+- The mapping inspector pictures each control behaviour, and right-click removes a curve point
+- A patch update says what changed in plain words
+- A patch that reopens a video output opens it in a window instead of filling your screen
+- The Deck's scroll wheel no longer zooms; the zoom buttons do
+- MidiPlayer drops the Play and Loop toggles the transport strip already carries
+- The help says video, not film or movie
+- Patches are read and written by our own XML code
+- The organism SDK no longer needs the GUI framework for its banks
+- The status line is gone: news arrives as a card that leaves on its own
+- Arming a MIDI track is what puts the keyboard on it
+- A new MidiIn listens to every input
+- A row's M silences it whatever drives it
+- A deck's quantize is off until you ask for it
+- The camera and the deck wear the same lit buttons as the rest of the app
+- A deck's Sync is an Audio delay you can type, and the pitch box is narrower
+- Takes from an unsaved patch gather in a folder named for the moment you started
+- A deck keeps its rows when you resize it, rolls included
+- Cue pads sit over two rows of four, with nudge and the clears to the right
+- The beatmatch options are buttons, like timecode and flip
+- The transport row packs its icons up and gives the display the rest
+- Random rolls a range as well as a value
+- File pickers open where you were last
+- The tempo reaches down to 1 BPM
+- Right-clicking a note opens its menu instead of deleting it
+- The bank browser splits into All, Recent, Yours, Imported and Bundled
+- A bank slot is its name and two arrows
+- The Sampler starts recording at -15 dB
+- The setup wizard offers a startup update check, already ticked
+
+### Fixed
+- The note editors' keyboard lines its black keys up with the notes
+- The master Out knob glides instead of stepping
+- Bypass and solo crossfade instead of clicking
+- Cmd-click no longer copies a clip in place
+- A cord behind a box can no longer be clicked through it
+- A corded Var's name wins over a built-in variable of the same name
+- Moving SoundSpace's X/Y stays out of undo
+- A controller resending the same Bits or Rate no longer reloads a Sampler's bank
+- Quitting while a file is still loading no longer crashes
+- Rewiring while a file reads no longer sends the load back to the start
+- A picture survives a moment of being unwired
+- A timecode record no longer drifts as it plays
+- Picture and sound arrive together on a deck
+- A deck's clock is its own, not its picture's
+- A preview takes the shape of what comes down the cord, without black borders
+- Pause and Stop answer while a deck is recording
+- A clip with no sound still loads, with a timeline to scroll
+- A take never writes over one already on disk
+- Clearing a deck's video lets go of the sound that came with it
+- A video take keeps its frame rate, and lets go of the file when it is done
+- The frame-rate overlay belongs to the brick you clicked
+- A MIDI mapping belongs to the controller it was learned on
+- A plug-in reporting nothing but zeroes no longer opens silent
+- Bypassing from the patcher updates the organism's own button
+- A looping bank holds instead of buzzing
+- A looping bank keeps its loop when Rate thins the file
+- The Sampler's coarse Rate no longer rings
+- Loop on the Sampler is On or Off
+- A one-shot fades instead of being cut off
+- A stage library sharing sample ids gives every key its own sample
+- A bank that left the disk says so
+- The bank arrows step on from the bank on show
+- A MidiIn passes controllers out of its cord
+- A track added while recording plays at once
+- Parameter Control: numbers drag again after a click
+- A dropdown dims what it gates straight away
+- A rotary switch on its first option shows its name
+- The PianoRoll's edit tools match the toolbar
+- Deck labels fit whatever font metrics the platform has
+- Opening a patch that automated the tempo no longer warns
+
 ## [0.4.0] - 2026-09-14
 
 ### Added
@@ -134,7 +282,7 @@ User-facing changes to Humus, newest first.
   four bars of the song played back before the playhead with recording
   punching in on the spot; pre-roll with nothing before the playhead
   counts in instead. Count-in follows the meter, and applies to
-  recording rather than every Play (UNTESTED BY HAND)
+  recording rather than every Play
 - File > Examples: the worked examples are a tree at the root of the
   source, one folder per scenario under Organisms with the sketch beside
   the patches that drive it, shipped with the app and mirrored as menus,
@@ -142,7 +290,7 @@ User-facing changes to Humus, newest first.
   wants it
 - Notes, a sticky note for the canvas: a box with no pins that holds a
   few lines of text, renamed for a headline, saved with the patch; the
-  comment of the patching tradition (UNTESTED BY HAND)
+  comment of the patching tradition
 - The organism picker takes the arrow keys, Return and Escape whether or
   not the search box has focus, remembers the row you opened at each
   level so going back lands on it, and scrolls a selected row's
@@ -153,21 +301,19 @@ User-facing changes to Humus, newest first.
   right, and a plugin keeps its monogram tile. The description is the
   class's new "blurb" in its manifest when it has one and the first
   sentence of its help otherwise; the core pack's boxes carry blurbs
-  (UNTESTED BY HAND)
 - A tempo change made by hand while the transport rolls is captured like
   any knob: dragging or tapping the tempo during Capture writes the
   Clock's Tempo lane, and Keep Last Bars keeps it too; at rest the tempo
-  box still just sets the tempo (UNTESTED BY HAND)
+  box still just sets the tempo
 - Pods carry control: a Control inlet port is a socket on the pod's box
   whose value appears on the port's outlet inside, a Control outlet port
   is the mirror, the pod canvas menu and the port editor offer both, and a
   control cord drawn onto a pod box is drawn at every scope it crosses.
   Every pod port, mono, stereo, MIDI, video and control, now lives in one
-  Pod category instead of the mono pair under Input/Output (UNTESTED BY
-  HAND)
+  Pod category instead of the mono pair under Input/Output
 - Halogen has a video inlet: a video cord from any video box, a camera
   included, makes the moving picture the field under the scan head, frame
-  by frame, and the File comes back when the cord goes (UNTESTED BY HAND)
+  by frame, and the File comes back when the cord goes
 - Cmd+R / Ctrl+R captures a performance, the same as the round record
   button; renaming a box moved to F2
 - Missing media is said out loud: a patch whose sounds, banks, images or
@@ -175,7 +321,7 @@ User-facing changes to Humus, newest first.
   listing them box by box, the file boxes show "missing:" in amber, Locate
   finds one file and with it every other that moved along, same folder or
   subfolder, and File > Locate Missing Media brings the window back; the
-  patch used to open silent with no word (UNTESTED BY HAND)
+  patch used to open silent with no word
 - Automation lanes draw the bar and beat grid across their body, in the
   arranger and in the automation editor a double-click opens, so a point
   can be placed against the bars rather than the ruler alone
@@ -187,8 +333,7 @@ User-facing changes to Humus, newest first.
 - Hovering or dragging a point in an automation lane shows a readout beside
   it: the value in the lane's unit (a range lane shows both ends) and the
   bar:beat it sits on; double-clicking a point opens a popup to type both,
-  the position as bar:beat and the value in the lane's unit (UNTESTED BY
-  HAND)
+  the position as bar:beat and the value in the lane's unit
 - The time signature is a real meter now: the chip beside the tempo offers
   the common signatures and a Custom entry for any other, 13/16 or 4/1
   included, the beat unit counts (a bar of 7/8 is seven eighths long), and
@@ -196,7 +341,7 @@ User-facing changes to Humus, newest first.
   defaults, bar-synced organisms, the Ableton Link quantum and MIDI export
   all follow it. "Automate the meter" on the same chip adds two held lanes on
   the Clock, Meter beats and Meter unit, so a song can change meter at any
-  bar, with the ruler labelling each change (UNTESTED BY HAND)
+  bar, with the ruler labelling each change
 - Board, an organism that talks to a microcontroller board running the
   standard Firmata sketch with nothing to program: up to six outlets each
   read an analog channel as 0..1 and double as Control-with sources, up to
@@ -204,13 +349,12 @@ User-facing changes to Humus, newest first.
   how many the box shows; presets for the Arduino Uno and Nano, Leonardo
   and Micro, Mega 2560, an ESP32 dev board and a Raspberry Pi Pico; two
   example patches walk a sensor into a filter and the microphone into an
-  LED (UNTESTED BY HAND against a real board)
+  LED
 - SerialOut speaks whatever the sketch at the other end expects: as many
   value sockets as its Values field says, two to eight, a trigger socket in
   On trigger mode, a Format field where %1 to %8 print the values with \n,
   \t and \xNN escapes, a Scale and an Int per value, and Send as
-  Continuous, On change or On trigger (UNTESTED BY HAND against a real
-  board)
+  Continuous, On change or On trigger
 - SerialIn reads up to eight numbers per line onto outlets a to h, takes a
   Parse template that is the mirror of SerialOut's Format ("T=%1;L=%2"
   reads what the sketch prints and ignores lines that do not fit), and shows
@@ -233,13 +377,11 @@ User-facing changes to Humus, newest first.
   brightness), paint.hum picks a pixel and its colour with four sliders,
   vu-meter.hum lights the ring from the microphone's level with the colour
   computed in the Format, spectrum.hum turns bass, mids and highs into red,
-  green and blue through a Crossover and three Followers (UNTESTED BY HAND
-  against a real ring)
+  green and blue through a Crossover and three Followers
 - A serial self-test pair, SerialTest.ino and serial-test.hum: the sketch
   prints a ramp, an echo of what it last heard and A0, the patch shows all
   three on Numbers, feeds the echo from an LFO and lights the board's
   built-in LED from a Button, so the link is proven before any wiring
-  (UNTESTED BY HAND against a real board)
 - A Reconnect button on Board, SerialIn and SerialOut closes the port and
   opens it again for every box sharing it, resetting the board on the way
   when Reset is on
@@ -267,16 +409,15 @@ User-facing changes to Humus, newest first.
 - OSC over serial: a board sending SLIP-framed OSC over USB joins the OSC
   control bus from Settings, MIDI & OSC, so OSC Learn, curves and the
   monitor apply to it, and OSC values sent out go over the same port
-  (UNTESTED BY HAND against a real board)
 - SerialIn and SerialOut take a Frame setting, 8N1, 8E1, 8O1 or 8N2, for
   the gear that is not 8N1, a baud list that runs up to 1000000 plus a
   Custom rate for anything else, and a Reset switch that decides whether
-  opening the port reboots the board (UNTESTED BY HAND on a real device)
+  opening the port reboots the board
 - A Boards & sensors guide page walking the Board stories, the sketch of
-  your own and the pixel ring (UNTESTED BY HAND against a real board)
+  your own and the pixel ring
 - Any number of SerialIn and SerialOut boxes share one serial port
 - Serial devices work on Windows: SerialIn and SerialOut open COM ports
-  there (UNTESTED BY HAND on Windows)
+  there
 - Control-with routes run inside the audio engine, once per block with a
   ramp, instead of thirty times a second on the window: a Follower ducking a
   Gain through a route no longer steps, routes keep working when the window
@@ -523,13 +664,11 @@ User-facing changes to Humus, newest first.
   patch's groove also plays from the moment it opens, in the plug-in and in
   a bounce, not only after the menu is touched again
 - The macOS disk image mounts with the Humus icon instead of a plain drive
-  (UNTESTED BY HAND on macOS)
 - Sandboxed plug-ins on macOS no longer die within a minute of loading: the
-  child was being declared dead the moment it started (UNTESTED BY HAND on
-  macOS and Windows)
+  child was being declared dead the moment it started
 - Sandboxed plug-ins on macOS and Windows wait for their block the way Linux
   does instead of giving up after a few microseconds, so they stop missing most
-  blocks (UNTESTED BY HAND on macOS and Windows)
+  blocks
 - The properties pane repaints far faster on high-density screens
 - Mute and gain no longer click or zipper on Gain, the mixers, Send and VCA:
   every level change rides a 5 ms ramp

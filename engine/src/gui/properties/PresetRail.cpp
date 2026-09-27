@@ -300,7 +300,7 @@ void PresetRail::importPreset() {
             if (c == nullptr) return;
             PresetDef def;
             const auto cls = presetlib::parsePresetFile(
-                juce::JSON::parse(f.loadFileAsString()), def);
+                f.loadFileAsString().toStdString(), def);
             if (cls.empty() || parseClassString(cls).display != c->displayClass) {
                 juce::AlertWindow::showMessageBoxAsync(
                     juce::MessageBoxIconType::WarningIcon, tr("preset.import-preset", "Import preset"),

@@ -158,6 +158,12 @@ void AudioGraph::prepareNodes(double sampleRate, int maxBlock, const AudioGraph*
                           std::vector<MidiEvent>(MidiNode::kMaxMidiEventsPerBlock));
         nd.midiOutCount.assign((size_t) nd.midiOuts, 0);
     }
+    int widest = 0;
+    for (const auto& nd : nodes_) widest = std::max(widest, nd.outChannels);
+    dryScratch_.assign((size_t) widest, std::vector<float>((size_t) std::max(1, maxBlock), 0.0f));
+    dryPtrs_.resize((size_t) widest);
+    for (int c = 0; c < widest; ++c) dryPtrs_[(size_t) c] = dryScratch_[(size_t) c].data();
+    bypassStep_ = (float) (1.0 / std::max(1.0, kBypassFadeMs * 0.001 * sampleRate));
     midiScratch_.assign(MidiNode::kMaxMidiEventsPerBlock, MidiEvent{});
     midiScratch2_.assign(2 * MidiNode::kMaxMidiEventsPerBlock, MidiEvent{});
     trackEdges_.assign(MidiNode::kMaxMidiEventsPerBlock, noteschedule::Edge{});
@@ -165,6 +171,7 @@ void AudioGraph::prepareNodes(double sampleRate, int maxBlock, const AudioGraph*
     computeOrder();
     computeLatencyCompensation();
     resolveTunings();
+    rebindNamedInlets();
     prepared_ = true;
 }
 
@@ -175,6 +182,7 @@ void AudioGraph::processBlock(int numSamples) {
             if (t > 0.0) { transport_.setTempo(t); break; }
         }
     applyAutomation();
+    openPanicSlice();
     if (transport_.meterMapped()) transport_.setBeatsPerBar(transport_.meter().quarterNotesPerBar());
 
     for (auto& nd : nodes_)
@@ -210,26 +218,8 @@ void AudioGraph::processBlock(int numSamples) {
             }
         }
 
-        if (rtLoadWord(nd.bypass)) {
-            passThrough(nd, node, numSamples);
-        } else {
-            if (nd.midi) routeMidiInto(nd, node, numSamples);
-
-            transport_.setActiveTuning(nd.tuning != nullptr ? nd.tuning : defaultTuning);
-            applyModRoutesInto(node, numSamples);
-            nd.c->process(nd.inPtrs.data(), nd.inChannels,
-                          nd.outPtrs.data(), nd.outChannels,
-                          numSamples, transport_);
-
-            int midiEmitted = 0;
-            for (int p = 0; p < nd.midiOuts; ++p) {
-                nd.midiOutCount[(size_t) p] = nd.midi->collectMidi(
-                    p, nd.midiOut[(size_t) p].data(), MidiNode::kMaxMidiEventsPerBlock);
-                midiEmitted += nd.midiOutCount[(size_t) p];
-            }
-            if (midiEmitted > 0)
-                rtStoreWord(nd.actMidi, nd.actMidi + (float) midiEmitted);
-        }
+        transport_.setActiveTuning(nd.tuning != nullptr ? nd.tuning : defaultTuning);
+        runBypassable(nd, node, numSamples);
 
         {
             const auto& bufs = nd.outChannels > 0 ? nd.outBuf : nd.inBuf;
@@ -286,6 +276,11 @@ float AudioGraph::nodeAudioActivity(int node) const {
                ? rtLoadWord(nodes_[(size_t) node].actAudio) : 0.0f;
 }
 
+unsigned AudioGraph::nodeMidiInletCount(int node) const {
+    return node >= 0 && node < (int) nodes_.size()
+               ? rtLoadWord(nodes_[(size_t) node].inletEvents) : 0u;
+}
+
 float AudioGraph::nodeMidiActivity(int node) const {
     return node >= 0 && node < (int) nodes_.size()
                ? rtLoadWord(nodes_[(size_t) node].actMidi) : 0.0f;
@@ -296,56 +291,6 @@ void AudioGraph::setNodeTrack(int node, std::vector<noteschedule::Voice> voices)
     auto& nd = nodes_[(std::size_t) node];
     nd.trackSwapped = true;
     nd.track = std::move(voices);
-}
-
-void AudioGraph::setNodeBypass(int node, bool on) {
-    if (node < 0 || node >= (int) nodes_.size()) return;
-    if (on) rtStoreWord(nodes_[(size_t) node].bypassFlush, true);
-    rtStoreWord(nodes_[(size_t) node].bypass, on);
-}
-
-bool AudioGraph::nodeBypass(int node) const {
-    if (node < 0 || node >= (int) nodes_.size()) return false;
-    return rtLoadWord(nodes_[(size_t) node].bypass);
-}
-
-void AudioGraph::passThrough(Node& nd, int node, int numSamples) {
-    if (rtLoadWord(nd.bypassFlush)) {
-        for (auto& ch : nd.bypassRing) std::fill(ch.begin(), ch.end(), 0.0f);
-        nd.bypassPos = 0;
-        rtStoreWord(nd.bypassFlush, false);
-    }
-
-    const int through = std::min(nd.inChannels, nd.outChannels);
-    const int lat = nd.bypassRing.empty() ? 0 : (int) nd.bypassRing[0].size();
-    for (int ch = 0; ch < through; ++ch) {
-        const float* s = nd.inBuf[(size_t) ch].data();
-        float* d = nd.outBuf[(size_t) ch].data();
-        if (lat == 0) { std::copy(s, s + numSamples, d); continue; }
-        float* ring = nd.bypassRing[(size_t) ch].data();
-        int p = nd.bypassPos;
-        for (int i = 0; i < numSamples; ++i) {
-            d[i] = ring[p];
-            ring[p] = s[i];
-            if (++p >= lat) p = 0;
-        }
-    }
-    if (lat > 0) nd.bypassPos = (nd.bypassPos + numSamples) % lat;
-    for (int ch = through; ch < nd.outChannels; ++ch)
-        std::fill(nd.outBuf[(size_t) ch].begin(),
-                  nd.outBuf[(size_t) ch].begin() + numSamples, 0.0f);
-
-    const int ports = std::min(nd.midiIns, nd.midiOuts);
-    int forwarded = 0;
-    for (int p = 0; p < ports; ++p) {
-        const int count = gatherMidiFor(node, p);
-        std::copy(midiScratch_.begin(), midiScratch_.begin() + count,
-                  nd.midiOut[(size_t) p].begin());
-        nd.midiOutCount[(size_t) p] = count;
-        forwarded += count;
-    }
-    for (int p = ports; p < nd.midiOuts; ++p) nd.midiOutCount[(size_t) p] = 0;
-    if (forwarded > 0) rtStoreWord(nd.actMidi, nd.actMidi + (float) forwarded);
 }
 
 }

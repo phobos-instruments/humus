@@ -10,14 +10,12 @@
 #include "gui/host/BrickHost.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
-#include "hum/caps/Audio.h"
+#include "gui/editor/readouts/ControlReadings.h"
 
 namespace hum {
 
 class GainReductionView : public PolledBrick {
 public:
-    static constexpr float kFullScaleDb = 24.0f;
-
     GainReductionView(BrickHost& host, std::string name)
         : PolledBrick(host, std::move(name)) {}
 
@@ -26,8 +24,7 @@ public:
     int preferredContentHeight(int) const override { return 84; }
 
     void poll() override {
-        const float db = grDb();
-        if (std::abs(db - shown_) > 0.1f) { shown_ = db; repaint(); }
+        if (reading_.poll(host_, name_)) repaint();
     }
 
     void paint(juce::Graphics& g) override {
@@ -35,7 +32,7 @@ public:
         g.setColour(Palette::background.darker(0.25f));
         g.fillRoundedRectangle(r.toFloat(), 3.0f);
         auto inner = r.reduced(2);
-        const float frac = std::clamp(grDb() / kFullScaleDb, 0.0f, 1.0f);
+        const float frac = readout::GainReduction::fill(readout::GainReduction::reductionDb(host_, name_));
         if (frac > 0.0f) {
             auto bar = inner.removeFromTop((int) std::round(frac * inner.getHeight()));
             g.setColour(ink::state::warning);
@@ -44,11 +41,7 @@ public:
     }
 
 private:
-    float grDb() const {
-        if (auto* s = live<GainReductionSource>()) return s->grDb();
-        return 0.0f;
-    }
-    float shown_ = -1.0f;
+    readout::GainReduction reading_;
 };
 
 }

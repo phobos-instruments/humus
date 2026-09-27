@@ -16,11 +16,8 @@ MetapadView::MetapadView(PropertiesHost& host)
     };
     addAndMakeVisible(newBtn_);
     newBtn_.setButtonText(tr("metapad.new-snapshot", "New Snapshot"));
-    newBtn_.onClick = [this] {
-        selected_ = host_.metapad().addSnapshot("");
-        rebuildList();
-        repaint();
-    };
+    newBtn_.onClick = [this] { newSnapshotToPlace(); };
+    setWantsKeyboardFocus(true);
     for (auto* b : {&midiXBtn_, &midiYBtn_}) { addAndMakeVisible(*b); styleBtn(*b); }
     midiXBtn_.onClick = [this] { targetMenu(kMetaXParam, midiXBtn_); };
     midiYBtn_.onClick = [this] { targetMenu(kMetaYParam, midiYBtn_); };
@@ -121,13 +118,56 @@ void MetapadView::paint(juce::Graphics& g) {
         g.drawLine(surface_.getX(), c.y, surface_.getRight(), c.y, 1.0f);
         g.fillEllipse(c.x - 4, c.y - 4, 8, 8);
     }
-    g.setColour(Palette::textDim);
+    paintPlacing(g);
+    g.setColour(placing_ >= 0 ? Palette::accent : Palette::textDim);
     g.setFont(11.0f);
-    g.drawText(interpolate_
-                   ? "Drag to morph  -  Alt-drag a point to move it  -  Ctrl-click = new snapshot here"
-                   : "Drag a point to move it  -  click empty space to place the selected snapshot",
+    g.drawText(placing_ >= 0
+                   ? "Click the pad to place " + nameFor(placing_) + "  -  Esc leaves it off the pad"
+               : interpolate_
+                   ? juce::String("Drag to morph  -  Alt-drag a point to move it  -  Ctrl-click = new snapshot here")
+                   : juce::String("Drag a point to move it  -  click empty space to place the selected snapshot"),
                (int) surface_.getX() + 4, (int) surface_.getBottom() - 18,
                (int) surface_.getWidth() - 8, 16, juce::Justification::centredLeft);
+}
+
+void MetapadView::newSnapshotToPlace() {
+    if (host_.model().metapad.interpolateMode != 0)
+        host_.setParam(host_.metapadNodeName(), kMetaInterpolateParam, 0.0);
+    selected_ = host_.metapad().addSnapshot("");
+    placing_ = selected_;
+    ghostOn_ = false;
+    syncFromHost();
+    rebuildList();
+    grabKeyboardFocus();
+    repaint();
+}
+
+void MetapadView::stopPlacing() {
+    if (placing_ < 0) return;
+    placing_ = -1;
+    ghostOn_ = false;
+    setMouseCursor(juce::MouseCursor::NormalCursor);
+    repaint();
+}
+
+bool MetapadView::keyPressed(const juce::KeyPress& k) {
+    if (placing_ < 0 || k.getKeyCode() != juce::KeyPress::escapeKey) return false;
+    stopPlacing();
+    return true;
+}
+
+void MetapadView::paintPlacing(juce::Graphics& g) {
+    if (placing_ < 0) return;
+    g.setColour(Palette::accent);
+    g.drawRect(surface_, 2.0f);
+    if (!ghostOn_) return;
+    const auto col = colourFor(placing_);
+    g.setColour(col.withAlpha(alpha::mid));
+    g.fillEllipse(ghost_.x - 7, ghost_.y - 7, 14, 14);
+    g.setColour(Palette::text);
+    g.drawEllipse(ghost_.x - 7, ghost_.y - 7, 14, 14, 1.5f);
+    g.setFont(11.0f);
+    g.drawText(nameFor(placing_), (int) ghost_.x + 9, (int) ghost_.y - 8, 120, 16, juce::Justification::centredLeft);
 }
 
 void MetapadView::mouseDown(const juce::MouseEvent& e) {
@@ -153,6 +193,14 @@ void MetapadView::mouseDown(const juce::MouseEvent& e) {
         return;
     }
     const auto n = toNorm(e.position.toFloat());
+    if (placing_ >= 0) {
+        host_.pushUndo();
+        host_.metapad().placeSnapshot(placing_, n.x, n.y);
+        dragPoint_ = (int) host_.model().metapad.points.size() - 1;
+        moveUndone_ = true;
+        stopPlacing();
+        return;
+    }
     if (interpolate_) {
         if (e.mods.isCtrlDown() || e.mods.isCommandDown()) {
             host_.pushUndo();
@@ -197,6 +245,13 @@ void MetapadView::mouseUp(const juce::MouseEvent&) {
 }
 
 void MetapadView::mouseMove(const juce::MouseEvent& e) {
+    if (placing_ >= 0) {
+        ghostOn_ = surface_.contains(e.position.toFloat());
+        ghost_ = e.position.toFloat();
+        setMouseCursor(ghostOn_ ? juce::MouseCursor::CrosshairCursor : juce::MouseCursor::NormalCursor);
+        repaint();
+        return;
+    }
     const int h = surface_.contains(e.position.toFloat()) ? pointAt(e.position.toFloat()) : -1;
     if (h == hoverPoint_) return;
     hoverPoint_ = h;
@@ -206,6 +261,7 @@ void MetapadView::mouseMove(const juce::MouseEvent& e) {
 }
 
 void MetapadView::mouseExit(const juce::MouseEvent&) {
+    if (ghostOn_) { ghostOn_ = false; repaint(); }
     if (hoverPoint_ < 0) return;
     hoverPoint_ = -1;
     setMouseCursor(juce::MouseCursor::NormalCursor);
@@ -240,6 +296,7 @@ void MetapadView::syncFromHost() {
         repaint();
     }
     const juce::Point<float> cur{(float) host_.metapadX(), (float) host_.metapadY()};
+    if (mode && placing_ >= 0) stopPlacing();
     if (mode == interpolate_ && cur == cursor_) return;
     interpolate_ = mode;
     cursor_ = cur;
@@ -263,6 +320,7 @@ void MetapadView::confirmClear(int index) {
                 host.metapad().clearSnapshot(index);
                 if (sp == nullptr) return;
                 if (sp->selected_ == index) sp->selected_ = -1;
+                if (sp->placing_ == index) sp->stopPlacing();
                 sp->rebuildList();
                 sp->repaint();
             }));

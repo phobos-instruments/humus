@@ -20,6 +20,11 @@ public:
 
     static std::vector<std::string> availableDevices();
 
+    static bool& listDevicesForTest() {
+        static bool on = true;
+        return on;
+    }
+
     static std::unique_ptr<CameraCapture> open(int index, int minWidth, int minHeight,
                                                int maxWidth, int maxHeight);
 
@@ -77,6 +82,7 @@ private:
 
 inline std::vector<std::string> CameraCapture::availableDevices() {
     std::vector<std::string> out;
+    if (!listDevicesForTest()) return out;
     for (const auto& n : juce::CameraDevice::getAvailableDevices())
         out.push_back(n.toStdString());
     return out;

@@ -3,6 +3,7 @@
 #include "RNG/RNG.h"
 
 #include <algorithm>
+#include <cmath>
 
 #include "RNG/Entropy.h"
 #include "common/NumberFormat.h"
@@ -15,6 +16,7 @@ void RNG::prepare(double sampleRate, int) {
     due_ = 0.0;
     pending_ = true;
     triggerHeld_ = false;
+    beatCell_ = kNoCell;
     format_.store((int) params.get("Format", 0.0), std::memory_order_relaxed);
 }
 
@@ -31,21 +33,35 @@ void RNG::process(const float* const* in, int numIn,
     triggerHeld_ = held;
 
     const bool sync = params.get("Sync", 0.0) >= 0.5;
-    const double every = sync
-        ? std::max(1.0, transport.samplesPerBeat() * std::max(0.0625, params.get("SyncBeats", 1.0)))
-        : (params.get("Rate", 2.0) > 0.0 ? sampleRate_ / params.get("Rate", 2.0) : 0.0);
-    if (every > 0.0) {
-        due_ -= (double) numSamples;
-        if (due_ <= 0.0) {
-            due_ = every;
-            pending_ = true;
-        }
-    }
+    const double syncBeats = std::max(0.0625, params.get("SyncBeats", 1.0));
+    if (sync && transport.playing()) rollOnBeat(numSamples, transport, syncBeats);
+    else rollFree(numSamples, sync ? transport.samplesPerBeat() * syncBeats : 0.0);
 
     if (pending_) {
         pending_ = false;
         value_.store(numfmt::spreadAcross(rng::unitFrom(state_), format),
                      std::memory_order_relaxed);
+    }
+}
+
+void RNG::rollOnBeat(int numSamples, const Transport& transport, double syncBeats) {
+    const double blockEnd = transport.beats() + numSamples / std::max(1.0, transport.samplesPerBeat());
+    const auto cell = (long long) std::floor(blockEnd / syncBeats - 1e-9);
+    if (cell != beatCell_) pending_ = true;
+    beatCell_ = cell;
+    due_ = transport.samplesPerBeat() * syncBeats;
+}
+
+void RNG::rollFree(int numSamples, double syncedEvery) {
+    beatCell_ = kNoCell;
+    const double rate = params.get("Rate", 2.0);
+    const double every = syncedEvery > 0.0 ? std::max(1.0, syncedEvery)
+                                           : (rate > 0.0 ? sampleRate_ / rate : 0.0);
+    if (every <= 0.0) return;
+    due_ -= (double) numSamples;
+    if (due_ <= 0.0) {
+        due_ = every;
+        pending_ = true;
     }
 }
 

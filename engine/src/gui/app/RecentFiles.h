@@ -24,6 +24,11 @@ inline void push(const juce::File& f) {
     AppSettings::instance().set("recentFiles", a.joinIntoString("\n"));
 }
 inline void clear() { AppSettings::instance().set("recentFiles", ""); }
+inline void remove(const juce::File& f) {
+    auto a = get();
+    a.removeString(f.getFullPathName());
+    AppSettings::instance().set("recentFiles", a.joinIntoString("\n"));
+}
 
 inline constexpr int kMenuIdBase = 200;
 

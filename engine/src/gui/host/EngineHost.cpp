@@ -2,7 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/EngineHost.h"
 
+#include "io/FfmpegAudioFormat.h"
+
 #include "core/library/BankLibrary.h"
+#include "hum/dsp/SoundFileBuffer.h"
 #include "core/library/UserLibrary.h"
 
 #include <algorithm>
@@ -26,8 +29,16 @@
 
 namespace hum {
 
-EngineHost::EngineHost() {
-    for (int i = 0; i < kMidiSourceCount; ++i) { midiState_.ccValue[i].store(-1); midiState_.ccLastApplied[i] = -1; }
+EngineHost::EngineHost() : EngineHost(messageThreadScheduler()) {}
+
+EngineHost::EngineHost(HostScheduler& scheduler) : EngineHost(scheduler, deviceAudioIo()) {}
+
+EngineHost::EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> audio)
+    : scheduler_(scheduler), audio_(std::move(audio)) {
+    static const bool soundFormatsInstalled = [] { installExtraSoundFormats(); return true; }();
+    juce::ignoreUnused(soundFormatsInstalled);
+    for (int row = 0; row < kMidiPortRows; ++row)
+        for (int i = 0; i < kMidiSourceCount; ++i) midiState_.ccValue[row][i].store(-1);
     for (int i = 0; i < kMaxDeviceChannels; ++i) { inMap_[i] = i; outMap_[i] = i; }
     seedDeviceFormatFromSettings();
     midiDeviceListConn_ = juce::MidiDeviceListConnection::make([this] {
@@ -44,6 +55,7 @@ EngineHost::EngineHost() {
 
 EngineHost::~EngineHost() {
     *hostAlive_ = false;
+    waitForLoads(true);
     midi().setEnabled(false);
     stopAudio();
 }
@@ -90,7 +102,7 @@ void EngineHost::rebuild() {
         };
     auto g = std::make_unique<AudioGraph>();
     std::string err;
-    if (!buildGraph(model_, *g, err, reuse)) {
+    if (!buildGraph(model_, *g, err, reuse, true)) {
         juce::Logger::writeToLog("rebuild failed, the previous graph keeps running: " + juce::String(err));
         if (onBuildFailed) onBuildFailed(err);
         return;
@@ -98,8 +110,9 @@ void EngineHost::rebuild() {
     if (canAdopt) g->prepare(sampleRate_, block_, model_.clock.tempo, *graph_);
     else g->prepare(sampleRate_, block_, model_.clock.tempo);
 
-    const bool audible = audioRunning_ && fadeGainPub_.load() > 0.0005f;
+    const bool audible = audioRunning_ && fadeGainPub_.load() > 0.0005f && !(midiOnlyEdit_ && canAdopt);
     if (audible) {
+        ++fadedRebuilds_;
         fadeTarget_.store(0.0f);
         for (int i = 0; i < 60 && fadeGainPub_.load() > 0.0005f; ++i)
             juce::Thread::sleep(1);
@@ -122,13 +135,14 @@ void EngineHost::rebuild() {
         }
         retired = std::move(graph_);
         graph_ = std::move(g);
+        refreshArmedInputs();
         graph_->setModRoutes([&] {
             std::vector<ModRoute> routes;
             for (const auto& e : mod_.map().entries()) {
                 const auto* target = model_.byName(e.organism);
                 if (target == nullptr || !routeLivesInEngine(*target, e.param)) continue;
                 ModRoute r;
-                r.dstParam = e.param;
+                aimModRoute(r, e.param);
                 if (fillModRoute(r, *target, model_.byName(e.source), e.value, e.min, e.max, e.shape,
                                  [&](const std::string& n) { return graph_->indexOf(n); }))
                     routes.push_back(std::move(r));
@@ -151,7 +165,8 @@ void EngineHost::rebuild() {
                     midiState_.targets.push_back({hp, c.midiReceiveMode, c.midiReceiveChannel});
                 if (auto* in = dynamic_cast<LiveMidiIn*>(node)) {
                     if (in->monitorsAllPorts()) midiMonitors_.push_back(in);
-                    else if (in->liveMidiPort() >= 0) liveMidiIns_.push_back(in);
+                    else if (in->liveMidiPort() >= 0 || in->liveMidiPort() == kLiveMidiAllPorts)
+                        liveMidiIns_.push_back(in);
                     namedLiveIns_.push_back({c.name, in});
                 }
                 if (auto* out = dynamic_cast<PendingMidiOut*>(node))
@@ -160,6 +175,7 @@ void EngineHost::rebuild() {
         }
         publishClock();
     }
+    if (!loadsOutliveGraph()) waitForLoads(true);
     retired.reset();
 
     preparedSampleRate_ = sampleRate_;
@@ -188,14 +204,18 @@ void EngineHost::rebuild() {
             if (p.name.rfind("File", 0) != 0) continue;
             if (p.text.rfind(kAssetScheme, 0) != 0
                 && p.text.rfind(banks::kLegacyPrefix, 0) != 0) continue;
+            const auto resolved = banks::resolve(p.text, cm.displayClass);
+            if (loadInBackground(cm.name, resolved)) continue;
             if (auto* fl = dynamic_cast<FileLoader*>(graph_ ? graph_->find(cm.name) : nullptr))
-                fl->loadFromFile(banks::resolve(p.text, cm.displayClass));
+                fl->loadFromFile(resolved);
         }
+    queueDeferredLoads();
     if (audioRunning_) requestFadeIn();
     scheduleAuxChannelCheck();
 }
 
 void EngineHost::discardLiveGraph() {
+    waitForLoads(true);
     if (onBeforeRebuild) onBeforeRebuild([](const std::string&) { return false; });
     {
         const juce::ScopedLock ml(midiState_.targetsLock);

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include <juce_core/juce_core.h>
+#include "hum/FileBytes.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -76,11 +76,7 @@ inline double centsToHz(double cents) { return 8.176 * std::pow(2.0, cents / 120
 inline double centibelsToGain(double cb) { return std::pow(10.0, -cb / 200.0); }
 inline double timecentsToSeconds(double tc) { return std::pow(2.0, tc / 1200.0); }
 
-inline bool isSf2Path(std::string uri) {
-    if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-    return juce::File(juce::String(juce::CharPointer_UTF8(uri.c_str())))
-               .getFileExtension().toLowerCase() == ".sf2";
-}
+inline bool isSf2Path(const std::string& uri) { return lowerExtension(uri) == ".sf2"; }
 
 namespace detail {
 
@@ -308,10 +304,10 @@ inline Sf2Data load(const std::uint8_t* data, std::size_t size) {
     return out;
 }
 
-inline Sf2Data loadFile(const juce::File& f) {
-    juce::MemoryBlock mb;
-    if (!f.loadFileAsData(mb) || mb.getSize() < 12) return {};
-    return load((const std::uint8_t*) mb.getData(), mb.getSize());
+inline Sf2Data loadFile(const std::string& path) {
+    std::vector<std::uint8_t> bytes;
+    if (!readFileBytes(path, bytes) || bytes.size() < 12) return {};
+    return load(bytes.data(), bytes.size());
 }
 
 }

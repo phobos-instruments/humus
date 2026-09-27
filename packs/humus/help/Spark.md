@@ -2,7 +2,7 @@
 
 A riser that never arrives: twelve short delay lines sweep as comb filters through the same octaves without ever leaving them.
 
-Six lines per channel, each only milliseconds long and each mixed back against the dry signal so it rings as a comb. Every line sweeps its comb through the same span of octaves, but each starts at a different point and fades in at the bottom and out at the top under its own gain window; six windows evenly spread sum to a constant, so nothing seams and the pitch climbs forever. Time and Range set where the comb lives, from a whistle at short times to a fluttering body at long ones. The dice rolls Rate, Time, Range, Feedback, Damp, Spark and Spread; Mode, Mix and Level stay put. Cord a pad, a Drums organism or a whole Mixer bus through it.
+Six lines per channel, each only milliseconds long and each mixed back against the dry signal so it rings as a comb. Every line sweeps its comb through the same span of octaves, but each starts at a different point and fades in at the bottom and out at the top under its own gain window; six windows evenly spread sum to a constant, so nothing seams and the pitch climbs forever. Time and Range set where the comb lives, from a whistle at short times to a fluttering body at long ones. Random rolls Rate, Time, Range, Feedback, Damp, Spark and Spread; Mode, Mix and Level stay put. Cord a pad, a Drums organism or a whole Mixer bus through it.
 
 ## Parameters
 

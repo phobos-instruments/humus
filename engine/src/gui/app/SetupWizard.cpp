@@ -135,16 +135,16 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
     addChildComponent(classicCard_);
     addChildComponent(modernCard_);
 
+    updatesToggle_.setButtonText(tr("setup-wizard.check-for-updates-at-startup", "Check for updates at startup"));
+    updatesToggle_.setToggleState(
+        wizard::updatesStartTicked(AppSettings::instance().getInt("updates.auto", wizard::kNeverChosen)),
+        juce::dontSendNotification);
+    addChildComponent(updatesToggle_);
     telemetryToggle_.setButtonText(tr("setup-wizard.share-anonymous-usage-data", "Share anonymous usage data"));
     telemetryToggle_.setToggleState(
         AppSettings::instance().getInt("telemetry.enabled", 0) != 0,
         juce::dontSendNotification);
     addChildComponent(telemetryToggle_);
-    updatesToggle_.setButtonText(tr("setup-wizard.check-for-updates-at-startup", "Check for updates at startup"));
-    updatesToggle_.setToggleState(
-        AppSettings::instance().getInt("updates.auto", 0) != 0,
-        juce::dontSendNotification);
-    addChildComponent(updatesToggle_);
 
     for (auto* b : {&backBtn_, &nextBtn_, &skipBtn_}) {
         styleBrandButton(*b);
@@ -189,8 +189,9 @@ void SetupWizard::setPage(wizard::Page p) {
     menuStyleLabel_.setVisible(menus);
     classicCard_.setVisible(menus);
     modernCard_.setVisible(menus);
-    telemetryToggle_.setVisible(p == wizard::kTelemetry);
+    if (p == wizard::kTelemetry) sawPrivacyPage_ = true;
     updatesToggle_.setVisible(p == wizard::kTelemetry);
+    telemetryToggle_.setVisible(p == wizard::kTelemetry);
 
     backBtn_.setEnabled(!wizard::isFirst(p));
     nextBtn_.setButtonText(wizard::isLast(p) ? tr("setup-wizard.finish", "Finish") : tr("setup-wizard.next", "Next"));
@@ -203,7 +204,9 @@ void SetupWizard::finish() {
     auto& st = AppSettings::instance();
     st.set("setup.completed", 1);
     st.set("telemetry.enabled", telemetryToggle_.getToggleState() ? 1 : 0);
-    st.set("updates.auto", updatesToggle_.getToggleState() ? 1 : 0);
+    const int updates = wizard::updatesToStore(sawPrivacyPage_, updatesToggle_.getToggleState(),
+                                               st.getInt("updates.auto", wizard::kNeverChosen));
+    if (updates != wizard::kNeverChosen) st.set("updates.auto", updates);
     telemetrySyncConsent();
     telemetryCount(telemetry::kWizardCompleted);
     if (cbs_.onFinished) cbs_.onFinished();
@@ -229,10 +232,10 @@ void SetupWizard::resized() {
     cards.removeFromLeft(16);
     modernCard_.setBounds(cards.removeFromLeft(cw));
 
-    telemetryToggle_.setBounds(content.getX(), content.getY() + 320,
-                               juce::jmin(content.getWidth(), 300), 26);
-    updatesToggle_.setBounds(content.getX(), content.getY() + 350,
+    updatesToggle_.setBounds(content.getX(), content.getY() + 320,
                              juce::jmin(content.getWidth(), 300), 26);
+    telemetryToggle_.setBounds(content.getX(), content.getY() + 350,
+                               juce::jmin(content.getWidth(), 300), 26);
 
     auto footer = getLocalBounds().removeFromBottom(kFooterH).reduced(24, 11);
     backBtn_.setBounds(footer.removeFromLeft(90));
@@ -269,22 +272,22 @@ void SetupWizard::paint(juce::Graphics& g) {
     if (page_ == wizard::kTelemetry) {
         auto r = content;
         g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
-        g.drawText(tr("setup-wizard.help-improve-humus", "Help improve Humus?"), r.removeFromTop(30),
+        g.drawText(tr("setup-wizard.updates-and-privacy", "Updates and privacy"), r.removeFromTop(30),
                    juce::Justification::centredLeft);
         r.removeFromTop(14);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(14.0f));
         for (const char* line :
-             {"If you opt in, Humus sends anonymous usage counts (like which",
-              "organisms you plant or how often you save) and whether the",
-              "last session crashed. It is tied to a random ID, not to you -",
+             {"Checking for updates at startup asks our server once per",
+              "launch. It sees a random ID, the app version and the platform,",
+              "and nothing about your patches. It is ticked because a beta",
+              "moves fast; untick it and Humus only checks when you ask.", "",
+              "If you opt in below, Humus also sends anonymous usage counts",
+              "(like which organisms you plant or how often you save) and",
+              "whether the last session crashed, tied to the same random ID -",
               "no names, no emails, no patch contents, ever.", "",
-              "Checking for updates at startup asks our server once per",
-              "launch; it sees the same random ID, the app version and the",
-              "platform.", "",
-              "Both are off until you turn them on. With them off, Humus",
-              "never touches the network except when you ask it to. Change",
-              "either any time in Settings > License & Privacy."})
+              "With both off, Humus never touches the network except when you",
+              "ask it to. Change either any time in Settings > License & Privacy."})
             g.drawText(line, r.removeFromTop(22), juce::Justification::centredLeft);
     } else if (page_ == wizard::kFinish) {
         auto r = content;

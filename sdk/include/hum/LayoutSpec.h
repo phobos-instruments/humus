@@ -13,13 +13,16 @@ struct LayoutSpec {
         VSlider,
         HSlider,
         RangeVSlider,
+        RangeKnob,
         Toggle,
         MiniToggle,
+        LitButton,
         Combo,
         IntSpinner,
         DoubleSpinner,
         RhythmicUnit,
         SoundFile,
+        FileBox,
         ScaleFile,
         BankFile,
         KnobGrid,
@@ -41,8 +44,13 @@ struct LayoutSpec {
         MidiLog,
         OscLog,
         LevelBars,
+        InletBars,
+        PictureLamp,
+        InletLamp,
         ThresholdMeter,
         PitchReadout,
+        TimecodeReadout,
+        RecordTransport,
         NoteField,
         GainShapeCurve,
         SequenceGrid,
@@ -62,6 +70,8 @@ struct LayoutSpec {
         TextReadout,
         FieldScope,
         SpectrumScope,
+        TraceScope,
+        RingFace,
         VideoPreview,
         VideoTransport,
         Formula,
@@ -76,6 +86,9 @@ struct LayoutSpec {
         BasslineImport,
         NumberBox,
         Led,
+        PitchField,
+        TapeLabel,
+        KeyedTape,
     };
 
     struct Control {
@@ -99,8 +112,10 @@ struct LayoutSpec {
 
     int width = 280;
     int height = 220;
+    int scrollFrom = -1;
     Resize resize = Resize::Scale;
     std::string skin;
+    std::string dir;
     std::vector<Control> controls;
     std::map<std::string, std::string> bind;
 };
@@ -116,10 +131,13 @@ inline const std::vector<ControlTypeName>& controlTypeNames() {
     static const std::vector<ControlTypeName> t = {
         {"knob", CT::Knob},                   {"vslider", CT::VSlider},
         {"hslider", CT::HSlider},             {"range-vslider", CT::RangeVSlider},
+        {"range-knob", CT::RangeKnob},
         {"toggle", CT::Toggle},               {"minitoggle", CT::MiniToggle},
+        {"lit-button", CT::LitButton},
         {"combo", CT::Combo},                 {"int-spinner", CT::IntSpinner},
         {"double-spinner", CT::DoubleSpinner},{"rhythmic-unit", CT::RhythmicUnit},
-        {"soundfile", CT::SoundFile},         {"scale-file", CT::ScaleFile},
+        {"soundfile", CT::SoundFile},         {"file-box", CT::FileBox},
+        {"scale-file", CT::ScaleFile},
         {"bank-file", CT::BankFile},
         {"knob-grid", CT::KnobGrid},
         {"file-transport", CT::FileTransport},
@@ -131,8 +149,10 @@ inline const std::vector<ControlTypeName>& controlTypeNames() {
         {"pattern-grid", CT::PatternGrid},    {"piano-roll", CT::PianoRoll},
         {"sound-map", CT::SoundMap},          {"camera", CT::Camera},
         {"midi-log", CT::MidiLog},            {"osc-log", CT::OscLog},
-        {"level-meter", CT::LevelBars},       {"pitch-readout", CT::PitchReadout},
-        {"note-field", CT::NoteField},        {"gain-shape", CT::GainShapeCurve},
+        {"level-meter", CT::LevelBars},       {"inlet-meter", CT::InletBars},       {"picture-lamp", CT::PictureLamp},       {"inlet-lamp", CT::InletLamp},       {"pitch-readout", CT::PitchReadout},
+        {"timecode-readout", CT::TimecodeReadout},
+        {"record-transport", CT::RecordTransport},
+        {"note-field", CT::NoteField}, {"pitch-field", CT::PitchField},  {"tape-label", CT::TapeLabel}, {"keyed-tape", CT::KeyedTape},        {"gain-shape", CT::GainShapeCurve},
         {"sequence-grid", CT::SequenceGrid},  {"hand-gestures", CT::HandGestures},
         {"enum-buttons", CT::EnumButtons},    {"sigil", CT::Sigil},
         {"rotary-switch", CT::RotarySwitch},  {"interval-rows", CT::IntervalRows},
@@ -145,6 +165,8 @@ inline const std::vector<ControlTypeName>& controlTypeNames() {
         {"text-readout", CT::TextReadout},
         {"field-scope", CT::FieldScope},
         {"spectrum-scope", CT::SpectrumScope},
+        {"trace-scope", CT::TraceScope},
+        {"ring-face", CT::RingFace},
         {"video-preview", CT::VideoPreview},
         {"video-transport", CT::VideoTransport},  {"formula", CT::Formula},
         {"slice-map", CT::SliceMap},        {"picture-field", CT::PictureField},          {"lfo-scope", CT::LfoScope},
@@ -202,6 +224,7 @@ inline std::string toJson(const LayoutSpec& spec) {
     using layout_detail::jsonString;
     std::string o = "{\"width\":" + std::to_string(spec.width)
                   + ",\"height\":" + std::to_string(spec.height);
+    if (spec.scrollFrom >= 0) o += ",\"scroll-from\":" + std::to_string(spec.scrollFrom);
     if (spec.resize == LayoutSpec::Resize::Stretch) o += ",\"resize\":\"stretch\"";
     if (spec.resize == LayoutSpec::Resize::Grow) o += ",\"resize\":\"grow\"";
     if (!spec.skin.empty() && spec.skin.front() == '{') o += ",\"skin\":" + spec.skin;
@@ -224,7 +247,7 @@ inline std::string toJson(const LayoutSpec& spec) {
         o += jsonString(controlTypeToName(c.type));
         if (!c.param.empty())  o += ",\"param\":" + jsonString(c.param);
         if (!c.param2.empty()) o += ",\"param2\":" + jsonString(c.param2);
-        if (!c.label.empty())  o += ",\"label\":" + jsonString(c.label);
+        if (!c.label.empty() || !c.param.empty()) o += ",\"label\":" + jsonString(c.label);
         o += ",\"x\":" + std::to_string(c.x) + ",\"y\":" + std::to_string(c.y)
            + ",\"w\":" + std::to_string(c.w) + ",\"h\":" + std::to_string(c.h);
         if (c.decimalPlaces != 2) o += ",\"decimals\":" + std::to_string(c.decimalPlaces);

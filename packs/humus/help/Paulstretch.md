@@ -1,8 +1,8 @@
 # Paulstretch
 
-An extreme time stretch that turns a sound file into a slow, phaseless cloud, after the public-domain Paulstretch algorithm.
+An extreme time stretch that turns a sound file into a slow, phaseless cloud.
 
-It is not a stretcher for tempo work: below about four times it smears, and the smear is the instrument. The playhead crawls through the file at one over Stretch speed; each step is windowed, its spectrum kept and its phases drawn fresh, so the harmony stays and the moment goes. The two channels draw their phases independently, so a mono file comes out wide. Feed it a chord, a voice or a whole track and cord the output to a Fern or a Verbatim for a bed, or straight to a Mixer. The transport strip under the file seeks through the source.
+It follows the public-domain [Paulstretch](https://github.com/paulnasca/paulstretch_python) algorithm by Nasca Octavian Paul. It is not a stretcher for tempo work: below about four times it smears, and the smear is the instrument. The playhead crawls through the file at one over Stretch speed; each step is windowed, its spectrum kept and its phases drawn fresh, so the harmony stays and the moment goes. The two channels draw their phases independently, so a mono file comes out wide. Feed it a chord, a voice or a whole track and cord the output to a Fern or a Verbatim for a bed, or straight to a Mixer. The transport strip under the file seeks through the source, and every button on it is a parameter, so right-click any of them for MIDI Learn, OSC Learn, Control with or Follow. The transport's Stop leaves it playing; press Stop a second time, when nothing is rolling, and it stops with everything else.
 
 ## Parameters
 

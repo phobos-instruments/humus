@@ -8,6 +8,7 @@
 #include "gui/host/BrickHost.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
+#include "gui/editor/inputs/NumberInputs.h"
 
 namespace hum {
 
@@ -15,7 +16,7 @@ class TextFieldBrick : public PolledBrick {
 public:
     TextFieldBrick(BrickHost& host, std::string organism, std::string param,
                    const juce::String& hint, int lines = 1)
-        : PolledBrick(host, std::move(organism), 4), pn_(std::move(param)) {
+        : PolledBrick(host, organism, 4), text_(host, organism, std::move(param)) {
         if (lines > 1) {
             field_.setMultiLine(true, false);
             field_.setReturnKeyStartsNewLine(true);
@@ -33,8 +34,7 @@ public:
 
     void reloadValues() override {
         if (field_.hasKeyboardFocus(true)) return;
-        field_.setText(juce::String(juce::CharPointer_UTF8(
-                           host_.liveParamText(name_, pn_).c_str())),
+        field_.setText(juce::String(text_.text()),
                        juce::dontSendNotification);
     }
     void poll() override {}
@@ -43,9 +43,9 @@ public:
     void resized() override { field_.setBounds(getLocalBounds()); }
 
 private:
-    void commit() { host_.setParamText(name_, pn_, field_.getText().toStdString()); }  // utf8-ok
+    void commit() { text_.commit(field_.getText().toStdString()); }  // utf8-ok
 
-    std::string pn_;
+    input::TextInput text_;
     juce::TextEditor field_;
 };
 

@@ -49,6 +49,27 @@
           "min": 0.0,
           "max": 1.0,
           "def": 1.0
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Loop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Quantize",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "bool": true
         }
       ],
       "editor": "layout:pianoroll-editor.json"

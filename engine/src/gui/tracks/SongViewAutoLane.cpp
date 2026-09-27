@@ -33,7 +33,7 @@ bool SongView::mouseDownAutoLane(const juce::MouseEvent& e, juce::Point<int> p) 
         if (p.x >= kStripW && !e.mods.isPopupMenu()) {
             const int hit = autoPointAt(sl, lnode, sl.param, p);
             if (tryBeginPointSelection(e, s, hit)) return true;
-            if (hit < 0 && !selPts_.empty()) clearPointSelection();
+            if (hit < 0 && hasPointSelection()) clearPointSelection();
         }
         bool muted = false;
         std::string kind = "double";
@@ -44,22 +44,15 @@ bool SongView::mouseDownAutoLane(const juce::MouseEvent& e, juce::Point<int> p) 
         if (e.mods.isPopupMenu()) {
             const int hit = (kind == "double" && p.x >= kStripW)
                                 ? autoPointAt(sl, lnode, sl.param, p) : -1;
-            if (hit >= 0) {
+            const bool inSelection = hit >= 0 && ((s == selPtSlot_ && selPts_.count(hit) != 0)
+                || (sidePts_.count(s) != 0 && sidePts_.at(s).count(hit) != 0));
+            if (hit >= 0 && !inSelection) {
                 host().pushUndo();
                 host().automation().deletePoint(lnode, sl.param, hit);
                 repaintAll();
                 return true;
             }
-            juce::PopupMenu m;
-            m.addItem(1, tr("tracks-pane-input.clear-lane-points", "Clear Lane Points"));
-            m.addItem(2, tr("tracks-pane-input.delete-lane", "Delete Lane"));
-            const auto sp = e.getScreenPosition();
-            m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
-                            [this, node = lnode, param = sl.param](int r) {
-                if (r == 1) host().automation().clearLane(node, param);
-                else if (r == 2) host().automation().remove(node, param);
-                if (r > 0) rebuild();
-            });
+            showPointMenu(e.getScreenPosition(), s, snapBeats(xToBeat((float) p.x), e.mods.isAltDown()));
             return true;
         }
         if (p.x < kStripW) {

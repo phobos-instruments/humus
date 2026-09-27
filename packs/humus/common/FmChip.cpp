@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "common/FmChip.h"
 
 #include <algorithm>
@@ -116,7 +117,7 @@ void FmChip::setMods(const FmMods& m) {
 }
 
 bool FmChip::loadTfi(const std::string& path) {
-    juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
+    auto f = fileAt(path);
     juce::MemoryBlock raw;
     if (!f.existsAsFile() || !f.loadFileAsData(raw) || raw.getSize() < 42) return false;
     const auto* d = static_cast<const uint8_t*>(raw.getData());
@@ -144,7 +145,7 @@ bool FmChip::loadTfi(const std::string& path) {
 }
 
 bool FmChip::loadWopn(const std::string& path) {
-    juce::File f(juce::String(juce::CharPointer_UTF8(path.c_str())));
+    auto f = fileAt(path);
     juce::MemoryBlock raw;
     if (!f.existsAsFile() || !f.loadFileAsData(raw) || raw.getSize() < 20) return false;
     const auto* d = static_cast<const uint8_t*>(raw.getData());

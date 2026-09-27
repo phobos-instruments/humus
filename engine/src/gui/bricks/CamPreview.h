@@ -11,7 +11,7 @@
 #include "gui/host/BrickHost.h"
 #include "hum/Organism.h"
 #include "gui/style/LookAndFeel.h"
-#include "hum/caps/Video.h"
+#include "gui/editor/video/VideoModels.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
@@ -19,8 +19,9 @@ namespace hum {
 class CamPreview : public PolledBrick {
 public:
     CamPreview(BrickHost& host, std::string organism)
-        : PolledBrick(host, std::move(organism)) {
+        : PolledBrick(host, organism), cam_(host, organism) {
         setOpaque(true);
+        meter_.watches(name_);
     }
 
     void reloadValues() override { repaint(); }
@@ -29,24 +30,18 @@ public:
     int preferredContentHeight(int) const override { return 234; }
 
     void mouseUp(const juce::MouseEvent& e) override {
-        if (FpsMeter::clickToggles(e.getPosition(), getLocalBounds())) repaint();
+        if (meter_.clickToggles(e.getPosition(), getLocalBounds())) repaint();
     }
 
     void paint(juce::Graphics& g) override {
         g.fillAll(juce::Colours::black);
         fetchIfStale(false);
-        auto* src = dynamic_cast<CamPreviewSource*>(host_.liveOrganism(name_));
-        const juce::String blocked =
-            src != nullptr ? juce::String(src->camUnavailable().c_str()) : juce::String();
-        if (!src || blocked.isNotEmpty() || !src->camActive() || stalled()) {
+        auto* src = cam_.source();
+        if (const auto message = cam_.message(stalled()); !message.empty()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(13.0f));
-            g.drawText(src == nullptr ? juce::String(tr("cam-preview.no-live-instance", "No live instance"))
-                       : blocked.isNotEmpty() ? blocked
-                       : stalled()
-                           ? juce::String("no picture arriving - is the source on?")
-                           : juce::String(tr("cam-preview.camera-off-turn-on-enabled", "Camera off - turn on Enabled below")),
-                       getLocalBounds().reduced(8), juce::Justification::centred, true);
+            g.drawText(juce::String::fromUTF8(message.c_str()), getLocalBounds().reduced(8),
+                       juce::Justification::centred, true);
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
             return;
@@ -86,25 +81,23 @@ public:
                            juce::Justification::centredLeft, false);
             }
             paintRate(g);
-            FpsMeter::paintButton(g, getLocalBounds());
+            meter_.paintButton(g, getLocalBounds());
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
             return;
         }
 
-        if (auto* vn = dynamic_cast<VideoNode*>(host_.liveOrganism(name_));
-            vn != nullptr && vn->numVideoOutputs() > 0) {
-            FpsMeter::paintButton(g, getLocalBounds());
+        if (cam_.producesVideo()) {
+            meter_.paintButton(g, getLocalBounds());
             g.setColour(Palette::border);
             g.drawRect(getLocalBounds());
             return;
         }
 
-        float x = 0.5f, y = 0.5f, motion = 0.0f, bright = 0.0f;
-        src->camSignals(x, y, motion, bright);
-        const float cx = img.getX() + x * img.getWidth();
-        const float cy = img.getY() + (1.0f - y) * img.getHeight();
-        const float r = 8.0f + motion * 26.0f;
+        const auto sig = cam_.signals();
+        const float cx = img.getX() + sig.x * img.getWidth();
+        const float cy = img.getY() + (1.0f - sig.y) * img.getHeight();
+        const float r = sig.radius();
         g.setColour(Palette::accent.withAlpha(alpha::heavy));
         g.drawEllipse(cx - r, cy - r, r * 2.0f, r * 2.0f, 2.0f);
         g.drawLine(cx - 5.0f, cy, cx + 5.0f, cy, 1.4f);
@@ -112,11 +105,11 @@ public:
 
         g.setColour(juce::Colours::white.withAlpha(alpha::heavy));
         g.setFont(juce::FontOptions(11.0f));
-        g.drawText(tr("cam-preview.motion", "motion ") + juce::String(motion, 2) + tr("cam-preview.bright", "   bright ") + juce::String(bright, 2),
+        g.drawText(juce::String::fromUTF8(cam_.signalText(sig).c_str()),
                    getLocalBounds().reduced(6).removeFromBottom(14),
                    juce::Justification::centredLeft, false);
         paintRate(g);
-        FpsMeter::paintButton(g, getLocalBounds());
+        meter_.paintButton(g, getLocalBounds());
         g.setColour(Palette::border);
         g.drawRect(getLocalBounds());
     }
@@ -129,17 +122,13 @@ private:
     bool stalled() const { return meter_.stalled(); }
 
     void fetchIfStale(bool repaintOnChange) {
-        auto* src = dynamic_cast<CamPreviewSource*>(host_.liveOrganism(name_));
+        auto* src = cam_.source();
         const unsigned gen = src ? src->camGeneration() : 0;
-        const bool active = src && src->camActive();
+        const bool active = cam_.active();
         if (active) meter_.note(gen);
         else meter_.reset();
         if (src != nullptr && src->camSourceHeld()) meter_.keepFresh();
-        const bool nowStalled = active && stalled();
-        if (gen != lastGen_ || active != lastActive_ || nowStalled != wasStalled_) {
-            wasStalled_ = nowStalled;
-            lastGen_ = gen;
-            lastActive_ = active;
+        if (cam_.frameChanged(stalled())) {
             if (src && active) {
                 const auto f = src->camFrame();
                 if (f.width > 0 && f.height > 0) {
@@ -157,11 +146,9 @@ private:
         }
     }
 
+    video::CamPreviewModel cam_;
     juce::Image frame_;
-    unsigned lastGen_ = ~0u;
-    bool lastActive_ = false;
     FpsMeter meter_;
-    bool wasStalled_ = false;
 };
 
 }

@@ -170,12 +170,34 @@ bool EngineHost::renamePod(const std::string& pod, const std::string& newLeaf) {
         if (c.name.rfind(pre, 0) == 0) inner.push_back(c.name);
     for (auto& n : inner)
         renameReferences(n, target + "/" + n.substr(pre.size()));
+    renamePodActions(pod, target);
     if (auto it = positions_.find(pod); it != positions_.end()) {
         positions_[target] = it->second;
         positions_.erase(it);
     }
     requestRebuild();
     return true;
+}
+
+void EngineHost::renamePodActions(const std::string& oldPod, const std::string& newPod) {
+    auto* clock = model_.byName(clockNodeNameIfAny());
+    if (clock == nullptr) return;
+    midi().syncMapToModel();
+    osc().syncMapToModel();
+    mod().syncMapToModel();
+    bool any = false;
+    auto follow = [&](std::string& param) {
+        const auto next = rollscope::actionAfterRename(param, oldPod, newPod);
+        any = any || next != param;
+        param = next;
+    };
+    for (auto& s : clock->midiSources) follow(s.propertyName);
+    for (auto& s : clock->oscSources) follow(s.propertyName);
+    for (auto& s : clock->modSources) follow(s.propertyName);
+    if (!any) return;
+    midi().syncMapFromModel();
+    osc().syncMapFromModel();
+    mod().syncMapFromModel();
 }
 
 void EngineHost::splicePodPorts(const std::string& pod, int domain) {

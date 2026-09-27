@@ -24,42 +24,44 @@ inline LayoutSpec consoleLayout(const std::string& cls) {
     const int n = parseBoundedInt(mid);
     if (n < 1 || n > 8) return spec;
 
+    const std::map<std::string, std::string> section{{"style", "section"}};
+    const std::map<std::string, std::string> pad{{"icon", "none"}};
+    spec.width = kRackFullW;
     spec.controls.push_back({CT::Combo, "", "", "Inputs", 8, 4, 92, 20, 2, false,
                              {"2", "3", "4", "5", "6", "7", "8"}, {{"reclass", "inputs"}}});
-    spec.controls.push_back({CT::Combo, "Flavor", "", "Flavor", 104, 4, 124, 20, 2, false,
+
+    const int topY = 30, topH = 110, knobY = topY + 18;
+    spec.controls.push_back({CT::Label, "", "", "Character", 8, topY, 392, topH, 0, false, {}, section});
+    spec.controls.push_back({CT::Combo, "Flavor", "", "", 20, knobY + 30, 116, 22, 2, false,
                              {"Clean", "British", "American", "Modern"}});
-    spec.controls.push_back({CT::MiniToggle, "Direct", "", "Direct", 232, 4, 40, 20, 2, false});
-
-    spec.width = kRackFullW;
-    const int knobH = kKnobH, colW = kKnobPitch;
-    const int chColW = std::clamp((spec.width - 16) / n, kKnobPitch, kKnobW + 40);
-    const int charY = 46;
-    spec.controls.push_back({CT::Label, "", "", "Console", 8, 30, 240, 14, 0, false});
-    const char* charKnobs[][2] = {{"Output", "Out"}, {"Drive", "Drive"},
-                                  {"Crosstalk", "X-Talk"}, {"Sag", "Sag"}};
-    for (int i = 0; i < 4; ++i)
+    const char* charKnobs[][2] = {{"Drive", "Drive"}, {"Crosstalk", "X-Talk"}, {"Sag", "Sag"}};
+    for (int i = 0; i < 3; ++i)
         spec.controls.push_back({CT::Knob, charKnobs[i][0], "", charKnobs[i][1],
-                                 8 + i * colW, charY, kKnobW, knobH, 2, false});
+                                 148 + i * (kKnobPitch + 18), knobY, kKnobW, kKnobH, 2, false});
+    spec.controls.push_back({CT::Label, "", "", "Master", 408, topY, 184, topH, 0, false, {}, section});
+    spec.controls.push_back({CT::Knob, "Output", "", "Out", 420, knobY, kKnobW, kKnobH, 2, false});
+    spec.controls.push_back({CT::LitButton, "Direct", "", "Direct", 496, knobY + 26, 84, 30, 2, false, {}, pad});
 
-    const int chLabelY = charY + knobH + 8, chY = chLabelY + 16;
-    const int panY = chY + knobH + 2;
-    const int msY = panY + knobH + 2;
-    spec.controls.push_back({CT::Label, "", "", "Channels", 8, chLabelY, 240, 14, 0, false});
+    const int chTop = topY + topH + 8, stripX = 16, stripSpan = spec.width - 2 * stripX;
+    const int chColW = std::clamp(stripSpan / n, kKnobPitch, kKnobW + 40);
+    const int tapeY = chTop + 18, gainY = tapeY + 26, panY = gainY + kKnobH + 2, msY = panY + 24;
+    const int chH = msY + 22 + 10 - chTop;
+    spec.controls.push_back({CT::Label, "", "", "Channels", 8, chTop, spec.width - 16, chH, 0, false, {}, section});
     for (int k = 0; k < n; ++k) {
         const std::string sfx = std::to_string(2 * k + 1) + "-" + std::to_string(2 * k + 2);
-        const int x = 8 + k * chColW;
-
-        spec.controls.push_back({CT::Knob, "Gain_" + sfx, "", sfx,
-                                 x, chY, kKnobW, knobH, 2, false, {},
+        const int x = stripX + k * chColW, w = chColW - 8, knobX = x + (w - kKnobW) / 2;
+        spec.controls.push_back({CT::TapeLabel, "Name_" + sfx, "", "", x, tapeY, w, 20, 0, false, {},
+                                 {{"inlet", std::to_string(2 * k)}, {"width", "2"}}});
+        spec.controls.push_back({CT::Knob, "Gain_" + sfx, "", sfx, knobX, gainY, kKnobW, kKnobH, 2, false, {},
                                  {{"meter", std::to_string(k)}}});
-        spec.controls.push_back({CT::Knob, "Pan_" + sfx, "", "Pan",
-                                 x, panY, kKnobW, knobH, 2, false});
-        spec.controls.push_back({CT::MiniToggle, "Mute_" + sfx, "", "M",
-                                 x, msY, 20, 16, 2, false});
-        spec.controls.push_back({CT::MiniToggle, "Solo_" + sfx, "", "S",
-                                 x + 22, msY, 20, 16, 2, false});
+        spec.controls.push_back({CT::HSlider, "Pan_" + sfx, "", "", x + 2, panY, w - 4, 20, 2, false, {},
+                                 {{"tooltip", "Pan"}, {"centre-fill", "1"}}});
+        const int half = (w - 4) / 2;
+        spec.controls.push_back({CT::LitButton, "Mute_" + sfx, "", "M", x, msY, half, 22, 2, false, {}, pad});
+        spec.controls.push_back({CT::LitButton, "Solo_" + sfx, "", "S", x + half + 4, msY, half, 22, 2, false, {},
+                                 {{"icon", "none"}, {"colour", "#e0a030"}}});
     }
-    spec.height = msY + 16 + 8;
+    spec.height = chTop + chH + 8;
     return spec;
 }
 

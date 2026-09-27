@@ -5,8 +5,23 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 #include "gui/app/AppSettings.h"
 #include "gui/settings/ThemeStore.h"
+#include "gui/style/ThemeRoll.h"
+
+#include <cstdint>
 
 namespace hum {
+
+void AppearanceSettingsView::rollTheme() {
+    const auto cols = themeroll::roll((std::uint32_t) juce::Random::getSystemRandom().nextInt());
+    setBaseColours(cols);
+    setSwatches(cols);
+    auto& s = AppSettings::instance();
+    s.set("themeMode", juce::String("custom"));
+    s.set("customColours", themeColoursToString(cols));
+    themeCombo_.setSelectedId(kCustomComboId, juce::dontSendNotification);
+    updateThemeButtons();
+    pushAppearance();
+}
 
 void AppearanceSettingsView::promptSaveTheme() {
     auto& s = AppSettings::instance();

@@ -27,7 +27,7 @@ void EngineHost::syncRoutes() {
         const auto* target = model_.byName(e.organism);
         if (target == nullptr || !routeLivesInEngine(*target, e.param)) continue;
         ModRoute r;
-        r.dstParam = e.param;
+        aimModRoute(r, e.param);
         if (fillModRoute(r, *target, model_.byName(e.source), e.value, e.min, e.max, e.shape,
                          [&](const std::string& n) { return graph_->indexOf(n); }))
             routes.push_back(std::move(r));

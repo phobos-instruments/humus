@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <functional>
 #include <map>
 #include <memory>
@@ -63,7 +65,8 @@ public:
         for (const auto& n : VideoPreviewStore::instance().wantedNodes()) {
             if (suppressed_ && suppressed_(n)) continue;
             if (!previewable(host_, n)) continue;
-            wants.push_back({n, isVideoOutputNode(host_, n), kBrickW, kBrickH, true});
+            const auto shape = previewShape(n);
+            wants.push_back({n, isVideoOutputNode(host_, n), shape.first, shape.second, true});
         }
         for (const auto& [node, e] : extra_)
             wants.push_back({node, true, e.w, e.h, false});
@@ -83,6 +86,7 @@ public:
             || stage_->canvas.getHeight() != h)
             stage_ = std::make_unique<Stage>(w, h);
         last_ = builder_.buildAll(wants);
+        noteSourceShapes();
         stage_->canvas.setPlan(last_);
         stage_->canvas.pump();
     }
@@ -116,6 +120,31 @@ private:
         void paint(juce::Graphics&) override {}
     };
 
+    static constexpr int kShapeMinH = 120, kShapeMaxH = 480, kShapeSlack = 8;
+
+    std::pair<int, int> previewShape(const std::string& node) const {
+        const auto it = shapes_.find(node);
+        if (it == shapes_.end() || it->second.first <= 0 || it->second.second <= 0)
+            return {kBrickW, kBrickH};
+        const double aspect = (double) it->second.first / (double) it->second.second;
+        if (!(aspect > 0.1) || !(aspect < 10.0)) return {kBrickW, kBrickH};
+        const int h = std::clamp((int) std::lround(kBrickW / aspect), kShapeMinH, kShapeMaxH);
+        return {kBrickW, h};
+    }
+
+    void noteSourceShapes() {
+        for (const auto& tap : last_.taps) {
+            if (tap.sink != nullptr || tap.step < 0 || tap.step >= (int) last_.steps.size()) continue;
+            const auto& frame = last_.steps[(std::size_t) tap.step].frame;
+            if (frame == nullptr || frame->width <= 0 || frame->height <= 0) continue;
+            auto& held = shapes_[tap.node];
+            const bool settled = held.first > 0
+                                 && std::abs(held.first * frame->height - held.second * frame->width)
+                                        <= kShapeSlack * held.second;
+            if (!settled) held = {frame->width, frame->height};
+        }
+    }
+
     struct Extra {
         int count = 0, w = 0, h = 0;
     };
@@ -125,6 +154,7 @@ private:
     std::unique_ptr<Stage> stage_;
     visual::Plan last_;
     std::map<std::string, Extra> extra_;
+    std::map<std::string, std::pair<int, int>> shapes_;
     std::function<bool(const std::string&)> suppressed_;
     int tickerId_ = 0, lastTapCount_ = 0;
 

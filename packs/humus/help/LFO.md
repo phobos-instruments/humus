@@ -14,7 +14,7 @@ It outputs Offset plus Amplitude times the wave at Rate, added to whatever arriv
 
 **Offset** The centre the wave moves around. Raise it to keep a bipolar wobble positive.
 
-**Sync** Locks one cycle to the transport instead of Rate.
+**Sync** Locks one cycle to the transport instead of Rate. While the transport plays, the cycle starts on beat 1 and follows every jump, loop and scrub; while it is stopped the wave keeps running at the tempo.
 
 **SyncBeats** How many beats one cycle lasts while Sync is on. One beat is a quarter note, so 0.5 is an eighth and 4 is a bar of four.
 

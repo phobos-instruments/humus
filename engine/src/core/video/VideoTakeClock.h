@@ -43,6 +43,23 @@ public:
         return a;
     }
 
+    Advance tickFree(double elapsedSeconds) {
+        if (startBeat_ < 0.0) {
+            startBeat_ = 0.0;
+            seconds_ = 0.0;
+            written_ = 1;
+            return {0, true};
+        }
+        seconds_ = elapsedSeconds > seconds_ ? elapsedSeconds : seconds_;
+        const auto slot = (std::int64_t) std::llround(seconds_ * fps_);
+        if (slot < written_) return {};
+        Advance a;
+        a.hold = (int) (slot - written_);
+        a.write = true;
+        written_ = slot + 1;
+        return a;
+    }
+
     bool started() const { return startBeat_ >= 0.0; }
     double startBeat() const { return startBeat_; }
     std::int64_t frames() const { return written_; }

@@ -19,6 +19,7 @@ namespace hum {
 void SongView::mouseDragAt(const juce::MouseEvent& e) {
     if (!dragSync_ && drag_ != Drag::None)
         dragSync_.emplace(host());
+    if (rowDrag_.armed) { dragRows(e.getPosition()); return; }
     ctx_.edgeScroll(e.getPosition());
     const auto p = e.getPosition();
     const double beat = std::max(0.0, xToBeat((float) p.x));
@@ -73,8 +74,9 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
         case Drag::BoxMove:
             boxDragDelta_ = snapBeats(beat, alt) - snapBeats(boxAnchor_, alt);
             if (dragBox_ >= 0 && dragBox_ < (int) host().automation().boxes().size())
-                boxDragDelta_ = std::max(boxDragDelta_,
-                    -host().automation().boxes()[(size_t) dragBox_].startBeat);
+                boxDragDelta_ = std::max(boxDragDelta_, -groupMoveFloorBeats());
+            if (groupMove_ && !moveBase_.empty())
+                moveSelection((int) std::llround(boxDragDelta_ * Pattern::kTicksPerBeat), 0);
             repaintAll();
             return;
         case Drag::BoxTrimL:
@@ -91,6 +93,8 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
     }
 
     if (drag_ == Drag::ClipMarquee) { updateClipMarquee(p); return; }
+    if (drag_ == Drag::PointMarquee) { updatePointMarquee(p); return; }
+    if (drag_ == Drag::PointGroup) { dragSelectedPoints(e); return; }
     if (dragRow_ < 0 || dragClip_ < 0) return;
     const auto& node = rows_[(size_t) dragRow_];
     const auto clips = host().clips().list(node);
@@ -104,10 +108,16 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
 
     switch (drag_) {
         case Drag::ClipMove: {
+            if (!duplicateOnceMoved(p)) break;
+            if (p.getDistanceFrom(dragDownAt_) >= kDuplicateSlopPx) altDrop_.reset();
             if (leftForGood(p)) { dragClipOut(rows_[(size_t) dragRow_]); break; }
             const int overRow = rowAt(p.y);
-            moveSelection(snapT(tick - dragGrabTicks_) - dragOriginTick_,
-                          overRow >= 0 ? overRow - moveGrabRow_ : 0);
+            int byTicks = snapT(tick - dragGrabTicks_) - dragOriginTick_;
+            if (groupMove_) {
+                byTicks = std::max(byTicks, -(int) std::floor(groupMoveFloorBeats() * Pattern::kTicksPerBeat));
+                boxDragDelta_ = (double) byTicks / Pattern::kTicksPerBeat;
+            }
+            moveSelection(byTicks, groupMove_ || overRow < 0 ? 0 : overRow - moveGrabRow_);
             break;
         }
         case Drag::ClipCreate:
@@ -130,12 +140,6 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
             repaintAll();
             break;
         }
-        case Drag::PointMarquee:
-            updatePointMarquee(p);
-            break;
-        case Drag::PointGroup:
-            dragSelectedPoints(e);
-            break;
         case Drag::ClipFadeL:
         case Drag::ClipFadeR: {
             const auto clips = host().clips().list(dragRow_ >= 0 ? rows_[(size_t) dragRow_]
@@ -222,6 +226,7 @@ void SongView::dragClipOut(const std::string& node) {
         int homeRow = dragRow_;
         for (const auto& m : moveBase_) if (m.id == moveGrabId_) homeRow = m.row;
         restoreClipMove();
+        boxDragDelta_ = 0.0;
         home = rows_[(size_t) homeRow];
         clip = clipIndexOfId(home, moveGrabId_);
         if (clip < 0) return;
@@ -237,7 +242,7 @@ void SongView::dragClipOut(const std::string& node) {
     if (!audio) {
         const auto tag = video ? juce::String(clipdrag::videoClip(home, clips[(size_t) clip].id))
                                : juce::String("noteclip:")
-                                     + juce::String(juce::CharPointer_UTF8(home.c_str()))
+                                     + juce::String(home)
                                      + ":" + juce::String(clips[(size_t) clip].id);
         if (auto* dnd = juce::DragAndDropContainer::findParentDragContainerFor(this))
             dnd->startDragging(tag, this, juce::ScaledImage(chip, kChipScale), true);
@@ -246,7 +251,7 @@ void SongView::dragClipOut(const std::string& node) {
     juce::StringArray files;
     auto addExport = [&](const std::string& n, int c) {
         const auto path = host().clips().exportFile(n, c);
-        if (!path.empty()) files.add(juce::String(juce::CharPointer_UTF8(path.c_str())));
+        if (!path.empty()) files.add(juce::String(path));
     };
     std::set<std::pair<std::string, int>> done;
     for (const auto& ref : sel_) {
@@ -305,7 +310,7 @@ void SongView::itemDropped(const juce::DragAndDropTarget::SourceDetails& d) {
     host().printToTimeline(node, err, at);
     if (!err.empty())
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon, tr("tracks-pane-input.midi-to-track", "MIDI to Track"),
-                                               juce::String(juce::CharPointer_UTF8(err.c_str())));
+                                               juce::String(err));
     rebuild();
     repaintAll();
 }

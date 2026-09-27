@@ -27,6 +27,8 @@ void AssistantEngine::send(const juce::String& userText) {
     rounds_ = 0;
     edited_ = false;
     nudged_ = false;
+    askedAgain_ = false;
+    turn_ = std::make_shared<AiClient::Ticket>();
     setBusy(true);
     host_.beginTransaction();
     continueLoop();
@@ -41,6 +43,13 @@ void AssistantEngine::setBusy(bool b) {
     if (onBusy) onBusy(b);
 }
 
+void AssistantEngine::stop() {
+    if (!busy_) return;
+    if (turn_ != nullptr) turn_->cancel();
+    line("tool", tr("assistant-engine.stopped", "Stopped. Anything already changed stays changed."));
+    finishTurn();
+}
+
 void AssistantEngine::finishTurn() {
     host_.endTransaction();
     setBusy(false);
@@ -48,18 +57,20 @@ void AssistantEngine::finishTurn() {
 }
 
 void AssistantEngine::continueLoop() {
+    if (stopped()) return;
     AiClient::ChatRequest req;
     req.system = assistantSystemPrompt();
     req.messages = messages_;
     req.tools = assistantToolsSpec();
     AiClient::chat(std::move(req),
                        [this, alive = alive_](juce::var response, juce::String error) {
-        if (!*alive) return;
+        if (!*alive || stopped()) return;
         if (error.isNotEmpty()) { line("error", error); finishTurn(); return; }
+        const auto calls = extractToolCalls(response);
+        if (calls.empty() && extractText(response).trim().isEmpty()) { answerSilence(); return; }
         messages_.append(assistantMessage(response));
         line("assistant", extractText(response));
 
-        const auto calls = extractToolCalls(response);
         if (calls.empty() || !wantsTools(response)) {
             const auto text = extractText(response);
             const bool phantomProse = !edited_ && claimsEdits(text);
@@ -87,10 +98,24 @@ void AssistantEngine::continueLoop() {
         }
         runToolChain(std::make_shared<std::vector<ToolCall>>(calls), 0,
                      std::make_shared<std::vector<std::pair<juce::String, juce::String>>>());
-    });
+    }, turn_);
+}
+
+void AssistantEngine::answerSilence() {
+    if (!askedAgain_) {
+        askedAgain_ = true;
+        messages_.append(userMessage(silenceNudge()));
+        continueLoop();
+        return;
+    }
+    line("error", tr("assistant-engine.empty-reply",
+                     "The model sent back nothing, twice. Ask again in other words, or pick a "
+                     "stronger model in Settings > AI."));
+    finishTurn();
 }
 
 void AssistantEngine::runToolChain(std::shared_ptr<std::vector<ToolCall>> calls, size_t i, std::shared_ptr<std::vector<std::pair<juce::String, juce::String>>> results) {
+    if (stopped()) return;
     if (i >= calls->size()) {
         messages_.append(toolResultsMessage(*results));
         continueLoop();
@@ -99,7 +124,7 @@ void AssistantEngine::runToolChain(std::shared_ptr<std::vector<ToolCall>> calls,
     const ToolCall& c = (*calls)[i];
     line("tool", progressLine(c));
     runToolAsync(c, [this, alive = alive_, calls, i, results, id = c.id](juce::String result) {
-        if (!*alive) return;
+        if (!*alive || stopped()) return;
         if (result.startsWith("error")) line("error", result);
         results->emplace_back(id, result);
         runToolChain(calls, i + 1, results);

@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <cctype>
+#include <cstddef>
 #include <cstdlib>
+#include <map>
 #include <memory>
 #include <set>
+#include <cstring>
 #include <string>
 #include <utility>
 #include <vector>
@@ -13,8 +16,11 @@
 #include "hum/Parameter.h"
 #include "hum/Meter.h"
 #include "hum/Pattern.h"
+#include "hum/Transport.h"
+#include "core/net/ControlShape.h"
+#include "core/params/RollScope.h"
 
-namespace juce { class XmlElement; }
+namespace hum::xml { class Element; }
 
 namespace hum {
 
@@ -55,16 +61,12 @@ struct MidiControllerSource {
     int cc = 0;
     std::vector<int> held;
     int port = 0;
+    int legacyChannel = 0;
     int channel = 0;
-    std::string specType = "7-bit-control-change";
+    std::string device;
     double mapMin = 0.0;
     double mapMax = 1.0;
-    double smoothing = 0.0;
-    std::vector<std::pair<double, double>> curve;
-    bool isSwitch = false;
-    bool inverted = false;
-    bool toggle = false;
-    double threshold = 0.5;
+    ControlShape shape;
 };
 
 struct OscControllerSource {
@@ -73,12 +75,7 @@ struct OscControllerSource {
     std::string address;
     double mapMin = 0.0;
     double mapMax = 1.0;
-    double smoothing = 0.0;
-    std::vector<std::pair<double, double>> curve;
-    bool isSwitch = false;
-    bool inverted = false;
-    bool toggle = false;
-    double threshold = 0.5;
+    ControlShape shape;
 };
 
 struct ModControllerSource {
@@ -88,12 +85,7 @@ struct ModControllerSource {
     std::string sourceValue;
     double mapMin = 0.0;
     double mapMax = 1.0;
-    double smoothing = 0.0;
-    std::vector<std::pair<double, double>> curve;
-    bool isSwitch = false;
-    bool inverted = false;
-    bool toggle = false;
-    double threshold = 0.5;
+    ControlShape shape;
 };
 
 class SharedString {
@@ -137,7 +129,11 @@ struct OrganismModel {
     int midiReceiveMode = kMidiCordsOnly;
     int midiReceiveChannel = 1;
     int midiReceivePort = 0;
+    enum TrackInput { kTrackInputAuto = -1, kTrackInputAll = -2, kTrackInputNone = -3 };
+    int trackInput = kTrackInputAuto;
+    int timelineRow = -1;
     std::set<std::string> rollLocked;
+    std::map<std::string, std::string> rangeModes;
 
     std::string currentPresetName;
     std::string currentPresetSource;
@@ -166,12 +162,37 @@ inline constexpr const char* kGoToStartAction = "Go To Start";
 inline constexpr const char* kGoToEndAction = "Go To End";
 inline constexpr const char* kCaptureAction = "Record";
 inline constexpr const char* kLoopToggleAction = "Loop";
+inline constexpr const char* kPanicAction = "Panic";
+
+inline constexpr int kMarkers = 8;
+inline constexpr const char* kMarkerActionPrefix = "Marker ";
+inline constexpr const char* kMarkerBeatPrefix = "Marker At ";
+inline constexpr const char* kMarkerNextAction = "Marker Next";
+inline constexpr const char* kMarkerPrevAction = "Marker Prev";
+
+inline std::string markerAction(int slot) {
+    return std::string(kMarkerActionPrefix) + std::to_string(slot);
+}
+inline std::string markerBeatParam(int slot) {
+    return std::string(kMarkerBeatPrefix) + std::to_string(slot);
+}
+inline int markerOfAction(const std::string& param) {
+    const std::size_t n = std::strlen(kMarkerActionPrefix);
+    if (param.compare(0, n, kMarkerActionPrefix) != 0) return 0;
+    const auto tail = param.substr(n);
+    if (tail.empty() || tail.find_first_not_of("0123456789") != std::string::npos) return 0;
+    const int slot = std::atoi(tail.c_str());
+    return slot >= 1 && slot <= kMarkers ? slot : 0;
+}
+inline bool isMarkerStepAction(const std::string& param) {
+    return param == kMarkerNextAction || param == kMarkerPrevAction;
+}
 
 inline bool isTransportAction(const std::string& param) {
     return param == kPlayAction || param == kStopAction
            || param == kPlayFromStartAction || param == kGoToStartAction
            || param == kGoToEndAction || param == kCaptureAction
-           || param == kLoopToggleAction;
+           || param == kLoopToggleAction || param == kPanicAction;
 }
 
 inline bool isClockPseudo(const std::string& displayClass) {
@@ -179,9 +200,9 @@ inline bool isClockPseudo(const std::string& displayClass) {
 }
 
 inline constexpr const char* kTempoParam = "Tempo";
-inline constexpr double kTempoMin = 20.0;
-inline constexpr double kTempoMax = 999.0;
-inline constexpr double kTempoLaneMin = 40.0;
+inline constexpr double kTempoMin = kMinTempoBpm;
+inline constexpr double kTempoMax = kMaxTempoBpm;
+inline constexpr double kTempoLaneMin = kTempoMin;
 inline constexpr const char* kMeterBeatsParam = "Meter beats";
 inline constexpr const char* kMeterUnitParam = "Meter unit";
 inline constexpr double kMeterLaneMin = 1.0;
@@ -216,7 +237,7 @@ inline bool isMetapadAction(const std::string& param) {
 inline bool isHostSwitchTarget(const std::string& param) {
     return param == kBypassParam || param == kTrackMuteParam
         || param == kSoloParam || param == kArmParam
-        || param == kRandomAction || isPresetStepAction(param)
+        || param == kRandomAction || rollscope::isPodAction(param) || isPresetStepAction(param)
         || isTransportAction(param);
 }
 
@@ -423,9 +444,20 @@ struct PatchDocumentModel {
     }
 };
 
+inline double markerBeatIn(const PatchDocumentModel& model, int slot) {
+    if (slot < 1 || slot > kMarkers) return -1.0;
+    const auto name = markerBeatParam(slot);
+    for (const auto& cm : model.organisms) {
+        if (!isClockPseudo(cm.displayClass)) continue;
+        for (const auto& p : cm.properties)
+            if (p.name == name) return p.value;
+    }
+    return -1.0;
+}
+
 bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::string& error,
-                  std::unique_ptr<juce::XmlElement>* rawOut = nullptr);
+                  std::unique_ptr<xml::Element>* rawOut = nullptr);
 bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::string& error,
-                  std::unique_ptr<juce::XmlElement>* rawOut = nullptr);
+                  std::unique_ptr<xml::Element>* rawOut = nullptr);
 
 }

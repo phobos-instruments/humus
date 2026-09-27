@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include <cstddef>
 #include "gui/video/VisualPlanBuilder.h"
+
+#include "hum/FileBytes.h"
 #include "hum/caps/Audio.h"
 #include "hum/caps/Video.h"
 
@@ -41,6 +44,27 @@ visual::Plan VisualPlanBuilder::build() {
     if (host_.bypassed(name_)) p.noSignal = true;
     p.taps.clear();
     return p;
+}
+
+void VisualPlanBuilder::dropDoubledOpacity(visual::Plan& p) {
+    std::set<int> handled;
+    for (const auto& s : p.steps) {
+        for (const auto& l : s.layers)
+            if (l.src >= 0) handled.insert(l.src);
+        if (s.mixSum && s.mixB >= 0) handled.insert(s.mixB);
+    }
+    for (const int at : handled)
+        if (at < (int) p.steps.size()) p.steps[(std::size_t) at].opacity = 1.0f;
+}
+
+void VisualPlanBuilder::carryStamps(const visual::Plan& p, visual::Step& s) {
+    auto from = [&](int step) {
+        if (step < 0 || step >= (int) p.steps.size() || &p.steps[(std::size_t) step] == &s) return;
+        for (const auto& st : p.steps[(std::size_t) step].stamps) s.stamps.push_back(st);
+    };
+    from(s.mixA);
+    from(s.mixB);
+    for (const auto& l : s.layers) from(l.src);
 }
 
 visual::Plan VisualPlanBuilder::buildAll(const std::vector<Want>& wants) {
@@ -115,6 +139,18 @@ visual::Plan VisualPlanBuilder::buildAll(const std::vector<Want>& wants) {
             buildTrackStep(node, *track, s, p, live,
                            trackShowsInput(node, *track) ? input : -1);
             live.insert(node);
+        } else if (auto* own = dynamic_cast<PlaysOwnPicture*>(org);
+                   own != nullptr && vn != nullptr && vn->numVideoOutputs() > 0) {
+            if (own->watchingVideoInput() && vn->numVideoInputs() > 0) {
+                s.kind = visual::Step::Mix;
+                s.mixA = sourceStep(node, 0, stepOf, &p);
+                s.mixB = -1;
+                s.mixFade = 0.0f;
+            } else {
+                s.kind = visual::Step::Deck;
+                buildDeckStep(node, s);
+            }
+            live.insert(node);
         } else if (vn != nullptr && vn->numVideoInputs() == 0
                    && vn->numVideoOutputs() > 0) {
             s.kind = visual::Step::Deck;
@@ -130,6 +166,12 @@ visual::Plan VisualPlanBuilder::buildAll(const std::vector<Want>& wants) {
             s.mixA = sourceStep(node, 0, stepOf, &p);
             s.mixB = -1;
             s.mixFade = 0.0f;
+        } else if (vn != nullptr && vn->numVideoInputs() >= 2 && vn->numVideoOutputs() > 0
+                   && org->params.byName(channelLevel(1).c_str()) != nullptr) {
+            s.kind = visual::Step::Mix;
+            s.mixA = layerChannels(node, vn->numVideoInputs(), stepOf, p);
+            s.mixB = -1;
+            s.mixFade = 0.0f;
         } else if (vn != nullptr && vn->numVideoInputs() >= 2
                    && vn->numVideoOutputs() > 0) {
             s.kind = visual::Step::Mix;
@@ -138,6 +180,8 @@ visual::Plan VisualPlanBuilder::buildAll(const std::vector<Want>& wants) {
             s.mixFade = paramOr(node, "Fade", 0.0f);
             s.mixCurve = paramOr(node, "Curve", 0.0f);
         }
+        carryStamps(p, s);
+        s.opacity = juce::jlimit(0.0f, 1.0f, paramOr(node, "Opacity", 1.0f));
         stepOf[node] = (int) p.steps.size();
         p.steps.push_back(std::move(s));
     }
@@ -159,8 +203,13 @@ visual::Plan VisualPlanBuilder::buildAll(const std::vector<Want>& wants) {
     const double now = juce::Time::getMillisecondCounterHiRes();
     for (auto it = decks_.begin(); it != decks_.end();) {
         if (live.count(it->first)) { ++it; continue; }
-        if (it->second.layer != nullptr)
-            retired_.push_back({std::move(it->second.layer), now});
+        auto& held = it->second;
+        if (held.layer != nullptr && !held.owner.empty()
+            && host_.model().byName(held.owner) != nullptr) {
+            ++it;
+            continue;
+        }
+        if (held.layer != nullptr) retired_.push_back({std::move(held.layer), now});
         it = decks_.erase(it);
     }
     for (auto it = retired_.begin(); it != retired_.end();)
@@ -168,6 +217,8 @@ visual::Plan VisualPlanBuilder::buildAll(const std::vector<Want>& wants) {
     for (auto it = scenes_.begin(); it != scenes_.end();)
         it = stepOf.count(it->first) ? std::next(it) : scenes_.erase(it);
 
+    for (std::size_t i = 0; i < p.steps.size(); ++i) carryStamps(p, p.steps[i]);
+    dropDoubledOpacity(p);
     return p;
 }
 
@@ -206,11 +257,50 @@ int VisualPlanBuilder::sourceStep(const std::string& node, int inlet, const std:
     return base;
 }
 
+std::string VisualPlanBuilder::channelLevel(int channel) {
+    return "Level_" + std::to_string(channel);
+}
+
+int VisualPlanBuilder::layerChannels(const std::string& node, int channels,
+                                     const std::map<std::string, int>& stepOf, visual::Plan& p) {
+    int below = -1;
+    for (int ch = 1; ch <= channels; ++ch) {
+        const float level = juce::jlimit(0.0f, 1.0f, paramOr(node, channelLevel(ch).c_str(), 0.0f));
+        const int src = sourceStep(node, ch - 1, stepOf, &p);
+        if (src < 0 || level <= 0.0f) continue;
+        if (below < 0 && level >= 1.0f) { below = src; continue; }
+        visual::Step layer;
+        layer.kind = visual::Step::Mix;
+        layer.node = node + "#" + std::to_string(ch);
+        layer.mixA = below;
+        layer.mixB = src;
+        layer.mixFade = level;
+        below = (int) p.steps.size();
+        p.steps.push_back(std::move(layer));
+    }
+    return below;
+}
+
 float VisualPlanBuilder::paramOr(const std::string& node, const char* param, float def) {
     if (auto* c = host_.liveOrganism(node))
         if (c->params.byName(param) != nullptr)
             return (float) host_.liveParamValue(node, param);
     return def;
+}
+
+std::shared_ptr<const lut::Cube> VisualPlanBuilder::loadLut(const juce::String& path) {
+    if (path.isEmpty()) return nullptr;
+    const auto key = path.toStdString();
+    if (const auto it = luts_.find(key); it != luts_.end()) return it->second;
+    std::shared_ptr<const lut::Cube> loaded;
+    std::vector<std::uint8_t> bytes;
+    if (readFileBytes(key, bytes)) {
+        std::string error;
+        auto cube = lut::parseCube(std::string(bytes.begin(), bytes.end()), error);
+        if (cube.valid()) loaded = std::make_shared<const lut::Cube>(std::move(cube));
+    }
+    luts_[key] = loaded;
+    return loaded;
 }
 
 juce::String VisualPlanBuilder::paramText(const std::string& node, const juce::String& param) const {

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "core/packs/Categories.h"
+#include "hum/Organism.h"
 #include "core/graph/PodModel.h"
 #include "gui/app/AppSettings.h"
 
@@ -133,30 +134,55 @@ int PatcherCanvas::nodeWidth(const std::string& name) {
     const int nC = std::max(cIns, cOuts);
     const int nM = std::max(mIns, mOuts);
     const int nV = std::max(vIns, vOuts);
-    int need = kPortPad * 2 + kPort + std::max(0, nA - 1) * (kPort + kPortGap);
+    int need = kPortPad * 2 + kPort + std::max(0, nA - 1) * (kPort + kPortGap) + kGroupGap * audioBreaks(name);
     if (nC > 0) need += (nA > 0 ? kMidiGap : 0) + nC * (kPort + kPortGap) - (nA > 0 ? 0 : kPort + kPortGap);
-    if (nV > 0) need += (nA > 0 || nC > 0 ? kMidiGap : 0) + nV * (kPort + kPortGap);
+    if (nV > 0) need += (nA > 0 || nC > 0 ? kVideoGap : 0) + nV * (kPort + kPortGap);
     if (nM > 0) need += kMidiGap + nM * (kPort + kPortGap);
     return std::max(kW, need);
 }
 
-juce::Point<int> PatcherCanvas::controlInletPos(const std::string& name, int port) {
-    auto b = nodeBounds(name);
+int PatcherCanvas::afterAudioX(const std::string& name, bool outlets) {
     int ins, outs;
     portCounts(name, ins, outs);
-    const int nA = std::max(ins, outs);
-    const int x = kPortPad + kPort / 2 + (nA > 0 ? nA * (kPort + kPortGap) + kMidiGap : 0)
-                  + port * (kPort + kPortGap);
-    return {b.getX() + x, b.getY()};
+    const int nA = outlets ? outs : ins;
+    return kPortPad + kPort / 2
+           + (nA > 0 ? nA * (kPort + kPortGap) + kMidiGap + kGroupGap * portSide(name, outlets).breaks() : 0);
+}
+
+juce::Point<int> PatcherCanvas::controlInletPos(const std::string& name, int port) {
+    auto b = nodeBounds(name);
+    return {b.getX() + afterAudioX(name, false) + port * (kPort + kPortGap), b.getY()};
 }
 juce::Point<int> PatcherCanvas::controlOutletPos(const std::string& name, int port) {
     auto b = nodeBounds(name);
+    return {b.getX() + afterAudioX(name, true) + port * (kPort + kPortGap), b.getBottom()};
+}
+
+const portgroups::Side& PatcherCanvas::portSide(const std::string& name, bool outlets) const {
     int ins, outs;
     portCounts(name, ins, outs);
-    const int nA = std::max(ins, outs);
-    const int x = kPortPad + kPort / 2 + (nA > 0 ? nA * (kPort + kPortGap) + kMidiGap : 0)
-                  + port * (kPort + kPortGap);
-    return {b.getX() + x, b.getBottom()};
+    const auto* cm = host_.model().byName(name);
+    const std::string cls = cm != nullptr ? cm->classRaw : std::string();
+    auto& cached = portSides_[name];
+    if (cached.ins != ins || cached.outs != outs || cached.cls != cls || !cached.resolved) {
+        auto* live = isPodBox(name) ? nullptr : const_cast<PatcherHost&>(host_).liveOrganism(name);
+        const auto* ports = dynamic_cast<const PortNames*>(live);
+        cached.ins = ins;
+        cached.outs = outs;
+        cached.cls = cls;
+        cached.resolved = live != nullptr || isPodBox(name);
+        cached.in = portgroups::describe(ports, ins, false);
+        cached.out = portgroups::describe(ports, outs, true);
+    }
+    return outlets ? cached.out : cached.in;
+}
+
+int PatcherCanvas::audioBreaks(const std::string& name) const {
+    return std::max(portSide(name, false).breaks(), portSide(name, true).breaks());
+}
+
+std::string PatcherCanvas::portName(const std::string& node, int port, bool outlet) const {
+    return portSide(node, outlet).name(port);
 }
 
 juce::Rectangle<int> PatcherCanvas::nodeBounds(const std::string& name) {
@@ -167,52 +193,52 @@ juce::Rectangle<int> PatcherCanvas::nodeBounds(const std::string& name) {
 juce::Point<int> PatcherCanvas::inletPos(const std::string& name, int inlet, int count) {
     juce::ignoreUnused(count);
     auto b = nodeBounds(name);
-    return {b.getX() + kPortPad + kPort / 2 + inlet * (kPort + kPortGap), b.getY()};
+    return {b.getX() + kPortPad + kPort / 2 + inlet * (kPort + kPortGap)
+                + kGroupGap * portSide(name, false).breaksAt(inlet), b.getY()};
 }
 juce::Point<int> PatcherCanvas::outletPos(const std::string& name, int outlet, int count) {
     juce::ignoreUnused(count);
     auto b = nodeBounds(name);
-    return {b.getX() + kPortPad + kPort / 2 + outlet * (kPort + kPortGap), b.getBottom()};
+    return {b.getX() + kPortPad + kPort / 2 + outlet * (kPort + kPortGap)
+                + kGroupGap * portSide(name, true).breaksAt(outlet), b.getBottom()};
+}
+
+int PatcherCanvas::videoBlockWidth(const std::string& name, bool outlets) {
+    int vIns, vOuts;
+    videoPortCounts(name, vIns, vOuts);
+    const int nV = outlets ? vOuts : vIns;
+    return nV > 0 ? nV * (kPort + kPortGap) + kMidiGap : 0;
 }
 
 juce::Point<int> PatcherCanvas::midiInletPos(const std::string& name, int port) {
     auto b = nodeBounds(name);
     int mIns, mOuts;
     midiPortCounts(name, mIns, mOuts);
-    return {b.getRight() - kPortPad - kPort / 2 - (mIns - 1 - port) * (kPort + kPortGap),
+    return {b.getRight() - kPortPad - kPort / 2 - videoBlockWidth(name, false)
+                - (mIns - 1 - port) * (kPort + kPortGap),
             b.getY()};
 }
 juce::Point<int> PatcherCanvas::midiOutletPos(const std::string& name, int port) {
     auto b = nodeBounds(name);
     int mIns, mOuts;
     midiPortCounts(name, mIns, mOuts);
-    return {b.getRight() - kPortPad - kPort / 2 - (mOuts - 1 - port) * (kPort + kPortGap),
+    return {b.getRight() - kPortPad - kPort / 2 - videoBlockWidth(name, true)
+                - (mOuts - 1 - port) * (kPort + kPortGap),
             b.getBottom()};
 }
 
 juce::Point<int> PatcherCanvas::videoInletPos(const std::string& name, int port) {
     auto b = nodeBounds(name);
-    int ins, outs, cIns, cOuts;
-    portCounts(name, ins, outs);
-    controlPortCounts(name, cIns, cOuts);
-    const int nA = std::max(ins, outs);
-    const int nC = std::max(cIns, cOuts);
-    int x = kPortPad + kPort / 2;
-    if (nA > 0) x += nA * (kPort + kPortGap) + kMidiGap;
-    if (nC > 0) x += nC * (kPort + kPortGap) + kMidiGap;
-    return {b.getX() + x + port * (kPort + kPortGap), b.getY()};
+    int vIns, vOuts;
+    videoPortCounts(name, vIns, vOuts);
+    return {b.getRight() - kPortPad - kPort / 2 - (vIns - 1 - port) * (kPort + kPortGap), b.getY()};
 }
 juce::Point<int> PatcherCanvas::videoOutletPos(const std::string& name, int port) {
     auto b = nodeBounds(name);
-    int ins, outs, cIns, cOuts;
-    portCounts(name, ins, outs);
-    controlPortCounts(name, cIns, cOuts);
-    const int nA = std::max(ins, outs);
-    const int nC = std::max(cIns, cOuts);
-    int x = kPortPad + kPort / 2;
-    if (nA > 0) x += nA * (kPort + kPortGap) + kMidiGap;
-    if (nC > 0) x += nC * (kPort + kPortGap) + kMidiGap;
-    return {b.getX() + x + port * (kPort + kPortGap), b.getBottom()};
+    int vIns, vOuts;
+    videoPortCounts(name, vIns, vOuts);
+    return {b.getRight() - kPortPad - kPort / 2 - (vOuts - 1 - port) * (kPort + kPortGap),
+            b.getBottom()};
 }
 
 std::string PatcherCanvas::hitNode(juce::Point<int> p) {
@@ -226,6 +252,7 @@ bool PatcherCanvas::hitCord(juce::Point<int> p, Edge& out) const {
     const juce::Point<float> fp = p.toFloat();
     float best = 1e9f;
     auto* self = const_cast<PatcherCanvas*>(this);
+    if (!self->hitNode(p).empty()) return false;
     for (const auto& c : self->host_.controlCordsInScope(scope_)) {
         const auto a = self->controlOutletPos(c.src, c.srcOutlet).toFloat();
         const auto b = self->controlInletPos(c.dst, c.dstInlet).toFloat();

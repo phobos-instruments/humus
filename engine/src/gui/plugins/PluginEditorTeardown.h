@@ -47,6 +47,45 @@ inline void enrollWindowedEditor(const std::string& classRaw) {
     AppSettings::instance().set("plugins.windowedEditor", list.joinIntoString("\n"));
 }
 
+namespace embedsize {
+
+inline juce::StringArray listOf(const char* setting) {
+    juce::StringArray list;
+    list.addTokens(AppSettings::instance().getString(setting, ""), "\n", "");
+    list.removeEmptyStrings();
+    return list;
+}
+
+inline juce::String keyOf(const std::string& classRaw) {
+    return juce::String(classRaw).upToFirstOccurrenceOf("?", false, false);
+}
+
+inline constexpr const char* kLifeSizeKey = "plugins.lifeSize";
+inline constexpr const char* kFitKey = "plugins.fitWidth";
+
+inline void file(const std::string& classRaw, const char* into, const char* outOf) {
+    auto in = listOf(into), out = listOf(outOf);
+    in.addIfNotAlreadyThere(keyOf(classRaw));
+    out.removeString(keyOf(classRaw));
+    AppSettings::instance().set(into, in.joinIntoString("\n"));
+    AppSettings::instance().set(outOf, out.joinIntoString("\n"));
+}
+
+inline bool wantsActualSize(const std::string& classRaw) {
+    return listOf(kLifeSizeKey).contains(keyOf(classRaw));
+}
+inline bool wantsFit(const std::string& classRaw) {
+    return listOf(kFitKey).contains(keyOf(classRaw));
+}
+inline void rememberActualSize(const std::string& classRaw) {
+    file(classRaw, kLifeSizeKey, kFitKey);
+}
+inline void rememberFit(const std::string& classRaw) {
+    file(classRaw, kFitKey, kLifeSizeKey);
+}
+
+}
+
 class EditorOpGuard {
 public:
     EditorOpGuard(const std::string& classRaw, const char* listSetting,

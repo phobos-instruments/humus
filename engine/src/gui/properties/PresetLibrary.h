@@ -18,11 +18,17 @@ namespace hum {
 namespace presetlib {
 
 inline juce::File libraryDir() { return userLibraryRoot().getChildFile("Presets"); }
+inline juce::File groupFile(const juce::File& dir, const std::string& className, const std::string& group) {
+    return juce::File(juce::String::fromUTF8(presetGroupFile(dir.getFullPathName().toStdString(), className, group).c_str()));
+}
+inline std::vector<PresetDef> loadTree(const juce::File& dir, const std::string& className) {
+    return loadPresetTree(dir.getFullPathName().toStdString(), className);
+}
 inline juce::File libraryFile(const std::string& className, const std::string& group = {}) {
-    return presetGroupFile(libraryDir(), className, group);
+    return groupFile(libraryDir(), className, group);
 }
 
-inline std::vector<PresetDef> parse(const juce::var& v) { return parsePresetDefs(v); }
+inline std::vector<PresetDef> parse(const std::string& jsonText) { return parsePresetDefs(json::parse(jsonText)); }
 
 inline void writeDef(juce::DynamicObject& o, const PresetDef& pd) {
     o.setProperty("name", juce::String(pd.name));
@@ -49,14 +55,14 @@ inline juce::var toVar(const std::vector<PresetDef>& defs) {
 
 inline void writeGroup(const juce::File& dir, const std::string& className,
                        const std::string& group, const std::vector<PresetDef>& defs) {
-    const auto f = presetGroupFile(dir, className, group);
+    const auto f = groupFile(dir, className, group);
     if (defs.empty()) { f.deleteFile(); return; }
     f.getParentDirectory().createDirectory();
     f.replaceWithText(juce::JSON::toString(toVar(defs)));
 }
 
 inline void removeIn(const juce::File& dir, const std::string& className, const std::string& name) {
-    const auto all = loadPresetTree(dir, className);
+    const auto all = loadTree(dir, className);
     std::vector<std::string> touched;
     for (const auto& pd : all)
         if (pd.name == name && std::find(touched.begin(), touched.end(), pd.group) == touched.end())
@@ -70,12 +76,12 @@ inline void removeIn(const juce::File& dir, const std::string& className, const 
 inline void saveIn(const juce::File& dir, const std::string& className, const PresetDef& def) {
     removeIn(dir, className, def.name);
     std::vector<PresetDef> group;
-    for (auto& pd : loadPresetTree(dir, className)) if (pd.group == def.group) group.push_back(std::move(pd));
+    for (auto& pd : loadTree(dir, className)) if (pd.group == def.group) group.push_back(std::move(pd));
     group.push_back(def);
     writeGroup(dir, className, def.group, group);
 }
 
-inline std::vector<PresetDef> list(const std::string& className) { return loadPresetTree(libraryDir(), className); }
+inline std::vector<PresetDef> list(const std::string& className) { return loadTree(libraryDir(), className); }
 inline void save(const std::string& className, const PresetDef& def) { saveIn(libraryDir(), className, def); }
 inline void remove(const std::string& className, const std::string& name) { removeIn(libraryDir(), className, name); }
 
@@ -87,11 +93,12 @@ inline juce::var presetFileVar(const std::string& className, const PresetDef& de
     return juce::var(o);
 }
 
-inline std::string parsePresetFile(const juce::var& v, PresetDef& out) {
-    if (v["humus"].toString() != "preset") return {};
-    const auto cls = v["class"].toString().toStdString();
+inline std::string parsePresetFile(const std::string& jsonText, PresetDef& out) {
+    const auto v = json::parse(jsonText);
+    if (v["humus"].text() != "preset") return {};
+    const auto cls = v["class"].text();
     if (cls.empty()) return {};
-    auto defs = parse(juce::var(juce::Array<juce::var>{v}));
+    auto defs = parsePresetDefs(json::Value::fromItems({v}));
     if (defs.size() != 1) return {};
     out = std::move(defs[0]);
     return cls;

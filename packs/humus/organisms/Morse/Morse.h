@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <array>
+#include <atomic>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -12,8 +15,19 @@
 
 namespace hum {
 
-class Morse : public Organism, public MidiNode {
+class Morse : public Organism, public MidiNode, public KeyedTape {
 public:
+    int tapeRuns(int* units, bool* on, int capacity) const override {
+        const std::lock_guard<std::mutex> hold(tapeLock_);
+        const int n = std::min(capacity, (int) tape_.size());
+        for (int i = 0; i < n; ++i) {
+            units[i] = tape_[(size_t) i].units;
+            on[i] = tape_[(size_t) i].on;
+        }
+        return n;
+    }
+    int tapeRunNow() const override { return runNow_.load(std::memory_order_relaxed); }
+
     int numAudioInputs() const override { return 0; }
     int numAudioOutputs() const override { return 1; }
     int numMidiInputs() const override { return 0; }
@@ -39,7 +53,9 @@ public:
     void onTextChanged(const std::string& param, const std::string& text) override {
         if (param != "Text") return;
         appliedText_ = text;
-        pendingPattern_.publish(morse::encode(text));
+        auto runs = morse::encode(text);
+        setTape(runs);
+        pendingPattern_.publish(std::move(runs));
     }
     void reset() override {
         seg_ = 0;
@@ -53,7 +69,11 @@ public:
                  int numSamples, const Transport& transport) override;
 
 private:
+    static constexpr double kUnitsPerBeat = 4.0;
+    static constexpr long kLoopGapUnits = 7;
+
     void emit(int offset, bool on, int note);
+    void placeAt(double units, double unitSamples, bool loop);
 
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> outEvents_;
     int outCount_ = 0;
@@ -65,8 +85,17 @@ private:
         if (text == appliedText_) return;
         appliedText_ = text;
         pattern_ = morse::encode(text);
+        setTape(pattern_);
     }
 
+    void setTape(const std::vector<morse::Seg>& runs) {
+        const std::lock_guard<std::mutex> hold(tapeLock_);
+        tape_ = runs;
+    }
+
+    mutable std::mutex tapeLock_;
+    std::vector<morse::Seg> tape_;
+    std::atomic<int> runNow_{-1};
     std::vector<morse::Seg> pattern_;
     Prepared<std::vector<morse::Seg>> pendingPattern_;
     std::string appliedText_;

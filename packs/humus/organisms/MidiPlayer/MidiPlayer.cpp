@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "MidiPlayer/MidiPlayer.h"
 
 #include <algorithm>
@@ -45,7 +46,7 @@ void MidiPlayer::loadBank(const std::string& uri) {
     if (uri == loadedBank_) return;
     loadedBank_ = uri;
     if (uri.empty()) return;
-    const juce::File file(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+    const auto file = fileAt(uri);
     if (sf2::isSf2Path(uri)) {
         voiceAllOff(-1);
         if (sf2_.load(file)) engine_ = Engine::SoundFont;
@@ -87,7 +88,7 @@ void MidiPlayer::loadFromFile(const std::string& uri) {
     loadedSong_ = uri;
     auto fresh = std::make_unique<midisong::Song>();
     if (!uri.empty())
-        midisong::loadSong(juce::File(juce::String(juce::CharPointer_UTF8(uri.c_str()))), *fresh);
+        midisong::loadSong(fileAt(uri), *fresh);
     const juce::ScopedLock lock(swapLock_);
     pending_ = std::move(fresh);
     hasPending_.store(true);
@@ -108,6 +109,10 @@ void MidiPlayer::adoptPending() {
     }
     if (taken == nullptr) return;
     song_ = std::move(*taken);
+    used_.fill(false);
+    for (const auto& e : song_.events)
+        if (e.kind == midisong::Kind::NoteOn && e.channel < midisong::kChannels)
+            used_[(size_t) e.channel] = true;
     lenSamples_.store((std::int64_t) (song_.secondsForBeats(song_.lengthBeats) * sampleRate_));
     rewind();
 }
@@ -121,6 +126,17 @@ bool MidiPlayer::muted(int channel) const {
     return params.get("Mute" + std::to_string(channel + 1), 0.0) > 0.5;
 }
 
+void MidiPlayer::sendOut(int channel, int status, int a, int b) {
+    if (outCount_ >= (int) outEvents_.size()) return;
+    auto& e = outEvents_[(size_t) outCount_++];
+    e.sampleOffset = 0;
+    e.data[0] = (unsigned char) (status | (channel & 0x0f));
+    e.data[1] = (unsigned char) (a & 0x7f);
+    e.data[2] = (unsigned char) (b & 0x7f);
+    e.size = status == 0xc0 ? 2 : 3;
+    e.ext = nullptr;
+}
+
 void MidiPlayer::emitUpTo(double beat) {
     while (next_ < song_.events.size() && song_.events[next_].beat <= beat) {
         const auto& e = song_.events[next_++];
@@ -128,17 +144,28 @@ void MidiPlayer::emitUpTo(double beat) {
         if (ch < 0 || ch >= kChannels) continue;
         switch (e.kind) {
             case midisong::Kind::NoteOn:
-                if (!muted(ch)) voiceNoteOn(ch, e.a, e.b);
+                if (muted(ch)) break;
+                voiceNoteOn(ch, e.a, e.b);
+                sendOut(ch, 0x90, e.a, e.b);
                 break;
-            case midisong::Kind::NoteOff:  voiceNoteOff(ch, e.a); break;
-            case midisong::Kind::AllNotesOff: voiceAllOff(ch); break;
+            case midisong::Kind::NoteOff:
+                voiceNoteOff(ch, e.a);
+                sendOut(ch, 0x80, e.a, e.b);
+                break;
+            case midisong::Kind::AllNotesOff:
+                voiceAllOff(ch);
+                sendOut(ch, 0xb0, 123, 0);
+                break;
             case midisong::Kind::Program:
                 if (programFor(ch) == 0) voiceProgram(ch, e.a);
+                sendOut(ch, 0xc0, programFor(ch) > 0 ? programFor(ch) - 1 : e.a, 0);
                 break;
             case midisong::Kind::PitchBend:
                 voiceBend(ch, e.a | (e.b << 7));
+                sendOut(ch, 0xe0, e.a, e.b);
                 break;
             case midisong::Kind::Controller:
+                sendOut(ch, 0xb0, e.a, e.b);
                 break;
         }
     }
@@ -164,7 +191,10 @@ void MidiPlayer::process(const float* const*, int, float* const* out, int numOut
 
     const bool playing = params.get("Play", 0.0) > 0.5 && !song_.events.empty();
     if (playing && !wasPlaying_ && cursor_ >= song_.lengthBeats) rewind();
-    if (!playing && wasPlaying_) voiceAllOff(-1);
+    if (!playing && wasPlaying_) {
+        voiceAllOff(-1);
+        for (int c = 0; c < kChannels; ++c) sendOut(c, 0xb0, 123, 0);
+    }
     wasPlaying_ = playing;
 
     if (playing) {
@@ -174,8 +204,12 @@ void MidiPlayer::process(const float* const*, int, float* const* out, int numOut
         cursor_ += (double) numSamples / sampleRate_ * bpm / kSecondsPerMinute;
         emitUpTo(cursor_);
         if (cursor_ >= song_.lengthBeats) {
-            if (params.get("Loop", 0.0) > 0.5) rewind();
-            else voiceAllOff(-1);
+            if (params.get("Loop", 0.0) > 0.5) {
+                rewind();
+            } else {
+                voiceAllOff(-1);
+                for (int c = 0; c < kChannels; ++c) sendOut(c, 0xb0, 123, 0);
+            }
         }
         posSamples_.store((std::int64_t) (song_.secondsForBeats(cursor_) * sampleRate_));
     }

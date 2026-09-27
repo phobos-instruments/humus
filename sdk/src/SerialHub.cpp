@@ -4,17 +4,20 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
+#include <condition_variable>
 #include <cstdint>
 #include <map>
 #include <mutex>
+#include <thread>
 
 namespace hum::serial {
 
-class Hub : public juce::Thread {
+class Hub {
 public:
-    explicit Hub(std::string path) : juce::Thread("hum-serial-hub"), path_(std::move(path)) {}
-    ~Hub() override {
-        stopThread(2000);
+    explicit Hub(std::string path) : path_(std::move(path)) {}
+    ~Hub() {
+        stop();
         port_.close();
     }
 
@@ -25,20 +28,20 @@ public:
     void reopen() { reopen_.store(true); }
 
     void want(const Settings& settings) {
-        const juce::SpinLock::ScopedLockType sl(settingsLock_);
+        const std::lock_guard<SpinLock> sl(settingsLock_);
         if (settings_ == settings) return;
         settings_ = settings;
         reopen_.store(true);
     }
 
     void subscribe(Link* link) {
-        const juce::SpinLock::ScopedLockType sl(linksLock_);
+        const std::lock_guard<SpinLock> sl(linksLock_);
         links_.push_back(link);
-        if (!isThreadRunning()) startThread();
+        if (!thread_.joinable()) thread_ = std::thread([this] { run(); });
     }
 
     void unsubscribe(Link* link) {
-        const juce::SpinLock::ScopedLockType sl(linksLock_);
+        const std::lock_guard<SpinLock> sl(linksLock_);
         links_.erase(std::remove(links_.begin(), links_.end(), link), links_.end());
     }
 
@@ -51,17 +54,31 @@ public:
     }
 
 private:
-    void run() override {
-        while (!threadShouldExit()) {
+    void stop() {
+        {
+            const std::lock_guard<std::mutex> l(idleLock_);
+            exit_.store(true);
+        }
+        idle_.notify_all();
+        if (thread_.joinable()) thread_.join();
+    }
+
+    void idle(int ms) {
+        std::unique_lock<std::mutex> l(idleLock_);
+        idle_.wait_for(l, std::chrono::milliseconds(ms), [this] { return exit_.load(); });
+    }
+
+    void run() {
+        while (!exit_.load()) {
             if (reopen_.exchange(false)) closePort();
             if (!port_.isOpen()) {
-                if (!openPort()) { wait(1000); continue; }
+                if (!openPort()) { idle(1000); continue; }
             }
             std::uint8_t buf[256];
             const int n = port_.read(buf, sizeof(buf), 50);
             if (n < 0) { closePort(); continue; }
             if (n == 0) continue;
-            const juce::SpinLock::ScopedLockType sl(linksLock_);
+            const std::lock_guard<SpinLock> sl(linksLock_);
             for (auto* l : links_) l->deliver(buf, n);
         }
         closePort();
@@ -71,7 +88,7 @@ private:
         const std::lock_guard<std::mutex> wl(writeLock_);
         Settings settings;
         {
-            const juce::SpinLock::ScopedLockType sl(settingsLock_);
+            const std::lock_guard<SpinLock> sl(settingsLock_);
             settings = settings_;
         }
         if (!port_.open(path_, settings)) return false;
@@ -88,14 +105,18 @@ private:
 
     std::string path_;
     Port port_;
-    juce::SpinLock settingsLock_;
+    SpinLock settingsLock_;
     Settings settings_;
     std::atomic<bool> open_{false};
     std::atomic<bool> reopen_{false};
     std::atomic<unsigned> generation_{0};
     std::mutex writeLock_;
-    juce::SpinLock linksLock_;
+    SpinLock linksLock_;
     std::vector<Link*> links_;
+    std::atomic<bool> exit_{false};
+    std::mutex idleLock_;
+    std::condition_variable idle_;
+    std::thread thread_;
 };
 
 namespace {
@@ -141,20 +162,24 @@ unsigned Link::generation() const { return hub_ ? hub_->generation() : 0; }
 
 void Link::deliver(const std::uint8_t* bytes, int n) {
     {
-        const juce::SpinLock::ScopedLockType sl(queueLock_);
+        const std::lock_guard<SpinLock> sl(queueLock_);
         for (int i = 0; i < n; ++i) {
             queue_[head_] = bytes[i];
             head_ = (head_ + 1) % kQueue;
             if (head_ == tail_) tail_ = (tail_ + 1) % kQueue;
         }
     }
-    arrived_.signal();
+    {
+        const std::lock_guard<std::mutex> l(arrivedLock_);
+        signalled_ = true;
+    }
+    arrived_.notify_all();
 }
 
 int Link::read(void* buf, int max, int timeoutMs) {
     if (max <= 0) return 0;
     auto pop = [&]() -> int {
-        const juce::SpinLock::ScopedLockType sl(queueLock_);
+        const std::lock_guard<SpinLock> sl(queueLock_);
         int n = 0;
         auto* dst = (std::uint8_t*) buf;
         while (n < max && tail_ != head_) {
@@ -164,7 +189,12 @@ int Link::read(void* buf, int max, int timeoutMs) {
         return n;
     };
     if (const int n = pop(); n > 0) return n;
-    if (!arrived_.wait(timeoutMs)) return 0;
+    {
+        std::unique_lock<std::mutex> l(arrivedLock_);
+        if (!arrived_.wait_for(l, std::chrono::milliseconds(std::max(0, timeoutMs)), [this] { return signalled_; }))
+            return 0;
+        signalled_ = false;
+    }
     return pop();
 }
 

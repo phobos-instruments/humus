@@ -16,8 +16,7 @@
 namespace hum {
 
 PatternEditor::PatternEditor(BrickHost& host, std::string organism, PatternEditorSpec spec)
-    : host_(host), name_(std::move(organism)), spec_(std::move(spec)) {
-    host_.patterns().ensure(name_, spec_.laneCount);
+    : host_(host), name_(organism), spec_(std::move(spec)), model_(host, host.patterns(), organism, spec_.laneCount) {
     build();
     setSize(preferredContentWidth(), preferredContentHeight(preferredContentWidth()));
     startTimerHz(60);
@@ -28,19 +27,7 @@ void PatternEditor::repaintTimeline() {
 }
 
 void PatternEditor::timerCallback() {
-    if (!host_.isPlaying()) {
-        if (showPlayhead_) { showPlayhead_ = false; repaintTimeline(); }
-        return;
-    }
-    double tick = host_.positionBeats() * Pattern::kTicksPerBeat;
-    if (const auto* p = pattern(); p && p->duration > 0) tick = std::fmod(tick, (double) p->duration);
-    showPlayhead_ = true;
-    if (std::abs(tick - playTick_) > 0.5) { playTick_ = tick; repaintTimeline(); }
-}
-
-const Pattern* PatternEditor::pattern() const {
-    if (auto* cm = host_.model().byName(name_)) return &cm->pattern;
-    return nullptr;
+    if (model_.followPlayhead() != grids::PatternEditorModel::Playhead::Unchanged) repaintTimeline();
 }
 
 int PatternEditor::preferredContentHeight(int) const {
@@ -111,7 +98,7 @@ void PatternEditor::build() {
             m.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(snapChips_[(size_t) i].get()),
                             [this, i, res](int r) {
                 if (r < 1) return;
-                host_.patterns().setChannelSnap(name_, i, res[r - 1]);
+                model_.setLaneSnap(i, res[r - 1]);
                 snapChips_[(size_t) i]->setButtonText(res[r - 1]);
                 repaint();
             });
@@ -122,8 +109,8 @@ void PatternEditor::build() {
         auto nr = std::make_unique<juce::TextButton>(">");
         nl->setTooltip(tr("pattern-editor.nudge-this-lane-left-fine", "Nudge this lane left (fine, 1 tick)"));
         nr->setTooltip(tr("pattern-editor.nudge-this-lane-right-fine", "Nudge this lane right (fine, 1 tick)"));
-        nl->onClick = [this, i] { host_.patterns().nudgeChannel(name_, i, -1); repaint(); };
-        nr->onClick = [this, i] { host_.patterns().nudgeChannel(name_, i, +1); repaint(); };
+        nl->onClick = [this, i] { model_.nudgeLane(i, -1); repaint(); };
+        nr->onClick = [this, i] { model_.nudgeLane(i, +1); repaint(); };
         addAndMakeVisible(*nl); addAndMakeVisible(*nr);
         laneNudgeL_.push_back(std::move(nl)); laneNudgeR_.push_back(std::move(nr));
     }
@@ -135,7 +122,7 @@ void PatternEditor::build() {
     for (int i = 0; i < 4; ++i) if (cur == res[i]) snapBox_->setSelectedId(i + 1, juce::dontSendNotification);
     if (snapBox_->getSelectedId() == 0) snapBox_->setSelectedId(3, juce::dontSendNotification);
     snapBox_->onChange = [this] {
-        host_.patterns().setResolution(name_, snapBox_->getText().toStdString());
+        model_.setResolution(snapBox_->getText().toStdString());
         for (int i = 0; i < (int) snapChips_.size(); ++i)
             snapChips_[(size_t) i]->setButtonText(laneSnapText(i));
         repaint();
@@ -150,10 +137,10 @@ void PatternEditor::build() {
     coarseR_->setTooltip(tr("pattern-editor.nudge-grid-right-by-the", "Nudge grid right by the snap step"));
     fineL_->setTooltip(tr("pattern-editor.nudge-grid-left-fine-1", "Nudge grid left (fine, 1 tick)"));
     fineR_->setTooltip(tr("pattern-editor.nudge-grid-right-fine-1", "Nudge grid right (fine, 1 tick)"));
-    coarseL_->onClick = [this] { host_.patterns().reframe(name_, -snapTicks()); repaint(); };
-    coarseR_->onClick = [this] { host_.patterns().reframe(name_, +snapTicks()); repaint(); };
-    fineL_->onClick   = [this] { host_.patterns().reframe(name_, -1); repaint(); };
-    fineR_->onClick   = [this] { host_.patterns().reframe(name_, +1); repaint(); };
+    coarseL_->onClick = [this] { model_.reframe(-snapTicks()); repaint(); };
+    coarseR_->onClick = [this] { model_.reframe(+snapTicks()); repaint(); };
+    fineL_->onClick   = [this] { model_.reframe(-1); repaint(); };
+    fineR_->onClick   = [this] { model_.reframe(+1); repaint(); };
     for (auto* b : {coarseL_.get(), fineL_.get(), fineR_.get(), coarseR_.get()}) addAndMakeVisible(*b);
 }
 
@@ -172,10 +159,7 @@ void PatternEditor::reloadValues() {
 }
 
 void PatternEditor::fitZoom() {
-    const auto* p = pattern();
-    const double beats = (p && p->duration > 0) ? (double) p->duration / Pattern::kTicksPerBeat : 4.0;
-    const double avail = getWidth() - gridX() - 6.0;
-    if (avail > 0.0) ppb_ = juce::jlimit(18.0, 160.0, avail / std::max(1.0, beats));
+    model_.fitZoom(getWidth() - gridX() - 6.0);
 }
 
 void PatternEditor::resized() {
@@ -234,8 +218,8 @@ void PatternEditor::paint(juce::Graphics& g) {
     paintRuler(g);
     for (int i = 0; i < spec_.laneCount; ++i) paintLane(g, i);
 
-    if (showPlayhead_) {
-        const float x = tickToX((int) std::lround(playTick_));
+    if (model_.playheadShown()) {
+        const float x = tickToX((int) std::lround(model_.playTick()));
         if (x >= gridX() && x <= getWidth()) {
             g.setColour(Palette::accent.withAlpha(alpha::heavy));
             g.drawVerticalLine((int) x, (float) kKnobRowH, (float) lanesBottom());
@@ -262,7 +246,7 @@ void PatternEditor::paintRuler(juce::Graphics& g) {
     const int ticksPerBar = bpb * Pattern::kTicksPerBeat;
     const int ticksPerBeat = Pattern::kTicksPerBeat;
     const int sub = std::max(1, snapTicks());
-    const int firstTick = ((int) (scrollTicks_) / sub) * sub;
+    const int firstTick = 0;
     for (int tick = firstTick; ; tick += sub) {
         const float x = tickToX(tick);
         if (x > w) break;
@@ -320,8 +304,8 @@ void PatternEditor::paintLane(juce::Graphics& g, int i) {
     for (int t : chans[(size_t) i]->triggers) {
         const float x = tickToX(t);
         if (x < gridX() - 2 || x > w) continue;
-        const double since = playTick_ - t;
-        const bool lit = showPlayhead_ && enabled && since >= 0.0 && since < flashWin;
+        const double since = model_.playTick() - t;
+        const bool lit = model_.playheadShown() && enabled && since >= 0.0 && since < flashWin;
         g.setColour(!enabled ? Palette::textDim : lit ? juce::Colours::white : Palette::accent);
         const float r = lit ? 6.5f : 5.0f;
         const float ww = r + 4.0f;
@@ -335,45 +319,6 @@ int PatternEditor::laneAt(int y) const {
     const int top = kKnobRowH + kRulerH;
     if (y < top || y >= lanesBottom()) return -1;
     return (y - top) / kLaneH;
-}
-
-static int resToTicks(const juce::String& r) {
-    const int denom = r.fromFirstOccurrenceOf("/", false, false).getIntValue();
-    return denom > 0 ? (4 * Pattern::kTicksPerBeat) / denom : Pattern::kTicksPerBeat / 4;
-}
-
-int PatternEditor::snapTicks() const {
-    return resToTicks(pattern() ? juce::String(pattern()->matrixResolution) : "1/16");
-}
-
-juce::String PatternEditor::laneSnapText(int lane) const {
-    const auto* p = pattern();
-    if (p) {
-        const auto ch = p->triggerChannels();
-        if (lane >= 0 && lane < (int) ch.size() && !ch[(size_t) lane]->snap.empty())
-            return juce::String(ch[(size_t) lane]->snap);
-    }
-    return p ? juce::String(p->matrixResolution) : "1/16";
-}
-
-int PatternEditor::laneSnapTicks(int lane) const { return resToTicks(laneSnapText(lane)); }
-
-int PatternEditor::snapTickForLane(int lane, int tick) const {
-    const int s = std::max(1, laneSnapTicks(lane));
-    return ((tick + s / 2) / s) * s;
-}
-
-int PatternEditor::nearestTrigger(int lane, int tick, int tolTicks) const {
-    const auto* p = pattern();
-    if (!p) return -1;
-    const auto chans = p->triggerChannels();
-    if (lane < 0 || lane >= (int) chans.size()) return -1;
-    int best = -1, bd = tolTicks + 1;
-    for (int t : chans[(size_t) lane]->triggers) {
-        const int d = std::abs(t - tick);
-        if (d < bd) { bd = d; best = t; }
-    }
-    return best;
 }
 
 }

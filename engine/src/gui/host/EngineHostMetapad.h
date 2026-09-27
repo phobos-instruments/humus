@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "gui/host/BrickHost.h"
+#include "core/params/MetapadScope.h"
 #include "gui/host/HostCore.h"
 
 namespace hum {
@@ -31,6 +32,9 @@ public:
     void movePoint(int pointIndex, double x, double y);
     void removePoint(int pointIndex);
     void setMask(const std::string& organism, int propertyIndex, bool restore);
+    void scopeMask(metascope::Scope scope, const std::string& pod);
+    std::vector<metascope::Entry> maskEntries() const;
+    void completeMask();
     void setTemperature(double t);
     void applyTarget(const std::string& param, double value);
     double x() const { return metaX_; }

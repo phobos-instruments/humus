@@ -10,6 +10,7 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/app/AppPaths.h"
 #include "core/library/MediaProbe.h"
 #include "gui/host/EngineHostAutomation.h"
 #include "gui/host/EngineHostClips.h"
@@ -48,7 +49,7 @@ inline void heading(std::vector<Row>& rows, const juce::String& text) {
     rows.push_back({text, ""});
 }
 
-inline void movieRows(std::vector<Row>& rows, const media::Movie& m) {
+inline void videoRows(std::vector<Row>& rows, const media::Vid& m) {
     if (!m.brand.empty()) rows.push_back({tr("media-info.container", "Container"), juce::String(m.brand).trim()});
     if (m.seconds > 0.0) rows.push_back({tr("media-info.duration", "Duration"), clock(m.seconds) + "  (" + seconds(m.seconds) + ")"});
     int n = 0;
@@ -185,13 +186,13 @@ inline void clipRows(std::vector<Row>& rows, TracksHost& host, const std::string
 
 inline Report build(TracksHost& host, const std::string& node, const ClipEditor::ClipInfo& ci) {
     Report r;
-    r.file = juce::File(juce::String(juce::CharPointer_UTF8(ci.audioFile.c_str())));
+    r.file = fileAt(ci.audioFile);
     r.title = ci.name.empty() ? r.file.getFileName() : juce::String(ci.name);
     clipRows(r.rows, host, node, ci);
     fileRows(r.rows, r.file);
     if (!r.file.existsAsFile()) return r;
-    if (const auto movie = media::probeMovie(r.file); movie.ok) {
-        movieRows(r.rows, movie);
+    if (const auto vid = media::probeVideo(r.file); vid.ok) {
+        videoRows(r.rows, vid);
     } else if (!soundFileRows(r.rows, r.file) && isVideoFile(r.file)) {
         heading(r.rows, tr("media-info.picture", "Picture"));
         if (const double s = probeVideoSeconds(r.file); s > 0.0)

@@ -19,7 +19,7 @@ public:
                                const std::string& podScope = {}) = 0;
     virtual void removeOrganism(const std::string& name) = 0;
     virtual bool renameOrganism(const std::string& oldName, const std::string& newName) = 0;
-    virtual std::string replaceOrganism(const std::string& name, const std::string& newClass) = 0;
+    virtual std::string replaceOrganism(const std::string& name, const std::string& newClass) override = 0;
     virtual void connect(const std::string& src, int outlet, const std::string& dst, int inlet) = 0;
     virtual void removeConnection(const std::string& src, int outlet, const std::string& dst, int inlet) = 0;
     virtual void connectMidi(const std::string& src, int srcPort, const std::string& dst, int dstPort) = 0;

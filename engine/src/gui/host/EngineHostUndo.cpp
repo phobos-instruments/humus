@@ -79,7 +79,7 @@ void EngineHost::pushUndo() {
     ++changeStamp_;
     paramEditKey_.clear();
     paramStepOpen_ = false;
-    if (inTxn_ && txnPushed_) return;
+    if ((inTxn_ && txnPushed_) || (undoGroupDepth_ > 0 && groupPushed_)) return;
     UndoState s;
     s.snapshot = true;
     s.wasDirty = wasDirty;
@@ -89,6 +89,7 @@ void EngineHost::pushUndo() {
     trimHistory(undo_);
     redo_.clear();
     if (inTxn_) txnPushed_ = true;
+    if (undoGroupDepth_ > 0) groupPushed_ = true;
 }
 
 void EngineHost::pushParamStep() {
@@ -199,6 +200,16 @@ void EngineHost::endTransaction() {
     inTxn_ = false;
     txnPushed_ = false;
     if (rebuildDue_) rebuild();
+}
+
+void EngineHost::beginUndoGroup() {
+    if (undoGroupDepth_++ == 0) groupPushed_ = false;
+}
+
+void EngineHost::endUndoGroup() {
+    if (undoGroupDepth_ > 0 && --undoGroupDepth_ > 0) return;
+    undoGroupDepth_ = 0;
+    groupPushed_ = false;
 }
 
 bool EngineHost::undo() {

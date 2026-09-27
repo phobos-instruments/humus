@@ -7,7 +7,7 @@
 
 #include "core/packs/ClassString.h"
 #include "core/packs/PackRegistry.h"
-#include "core/plugins/PluginHost.h"
+#include "core/plugins/HostedPlugins.h"
 #include "core/packs/Roles.h"
 
 namespace hum {
@@ -32,10 +32,9 @@ std::string categoryOf(const std::string& c) {
     if (isHiddenOrganism(c)) return "";
 
     if (const auto id = parseClassString(c); isPluginKind(id.kind)) {
-        auto& ph = PluginHost::instance();
         const std::string fmt = id.kind == "au" ? "Audio Units" : id.kind == "lv2" ? "LV2" : "VST3";
-        return fmt + " · " + (ph.isInstrument(c) ? std::string("Instruments · ")   // utf8-ok: data
-                                                 : std::string("Effects · ")) + ph.vendorOf(c);   // utf8-ok: data
+        return fmt + " · " + (hostedPlugins().isInstrument(c) ? std::string("Instruments · ")   // utf8-ok: data
+                                                    : std::string("Effects · ")) + hostedPlugins().vendorOf(c);   // utf8-ok: data
     }
 
     if (c == "PodIn" || c == "PodOut" || c == "SPodIn" || c == "SPodOut"

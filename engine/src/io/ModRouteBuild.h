@@ -25,6 +25,11 @@ inline void socketDefaultRange(const ParamDesc& d, double& lo, double& hi) {
     hi = unitFits ? 1.0 : d.max;
 }
 
+inline void aimModRoute(ModRoute& r, const std::string& param) {
+    r.dstEnd = rangeEndOf(param);
+    r.dstParam = rangeBaseOf(param);
+}
+
 inline bool routeLivesInEngine(const OrganismModel& target, const std::string& param) {
     return !isHostSwitchTarget(param) && !isMetapadPseudo(target.displayClass)
            && !isClockPseudo(target.displayClass);
@@ -55,7 +60,7 @@ inline bool fillModRoute(ModRoute& r, const OrganismModel& target, const Organis
         r.dstLo = d->min;
         r.dstHi = d->max;
         if (rangeUnset && d->max > d->min) { r.min = d->min; r.max = d->max; }
-        if (!r.shape.isSwitch)
+        if (r.shape.isFader())
             r.shape.logScale = !d->isBool && !d->isEnum && rangeIsLogarithmic(d->min, d->max);
     }
     return true;
@@ -72,14 +77,9 @@ inline std::vector<ModRoute> modRoutesFor(const std::vector<OrganismModel>& orga
         for (const auto& s : cm.modSources) {
             if (!routeLivesInEngine(cm, s.propertyName)) continue;
             ModRoute r;
-            r.dstParam = s.propertyName;
-            ControlShape sh;
-            sh.smoothing = s.smoothing;
-            sh.curve = s.curve;
-            sh.isSwitch = s.isSwitch;
-            sh.inverted = s.inverted;
-            sh.toggle = s.toggle;
-            sh.threshold = s.threshold;
+            aimModRoute(r, s.propertyName);
+            ControlShape sh = s.shape;
+            sh.logScale = false;
             if (fillModRoute(r, cm, byName(s.sourceOrganism), s.sourceValue, s.mapMin, s.mapMax, sh,
                              indexOf))
                 out.push_back(std::move(r));

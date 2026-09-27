@@ -50,6 +50,7 @@ public:
     bool collapsed() const { return collapsed_; }
     void setCollapsed(bool c);
     static constexpr int kMinW = 180;
+    static constexpr int kProtectItem = kAutomateMenuFirstOwnId;
     void refreshLiveValues() {
         if (editor_) editor_->refreshAutomatedValues();
         const bool off = host_.bypassed(name_);
@@ -144,6 +145,8 @@ private:
     std::tuple<int, bool, size_t> presetSig_{-1, false, 0};
     ViewSwitch viewSwitch_;
     FloatButton pluginUi_;
+    juce::TextButton fitSize_;
+    void refreshFitSize();
     DockHeaderButton close_{DockHeaderButton::Close};
     DockHeaderButton detach_{DockHeaderButton::Detach};
     DockHeaderButton up_{DockHeaderButton::Up}, down_{DockHeaderButton::Down};

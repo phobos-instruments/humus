@@ -21,6 +21,8 @@ public:
     void setOnColour(juce::Colour c) { onColour_ = c; repaint(); }
 
     void setCompact(bool c) { if (c != compact_) { compact_ = c; repaint(); } }
+    void setGuarded(bool g) { if (g != guarded_) { guarded_ = g; repaint(); } }
+    bool guarded() const { return guarded_; }
 
     std::function<void(juce::Point<int>)> onRightClick;
 
@@ -68,10 +70,15 @@ public:
             g.setFont(captionFont());
             g.drawText(caption_, inner, juce::Justification::centredLeft, false);
         }
+        if (guarded_) {
+            g.setColour(Palette::warnAmber());
+            g.fillEllipse(b.getRight() - kGuardDot - 3.0f, b.getY() + 3.0f, kGuardDot, kGuardDot);
+        }
     }
 
 private:
     static constexpr int kGlyph = 13;
+    static constexpr float kGuardDot = 5.0f;
     static constexpr int kGap = 5;
     static constexpr int kPad = 6;
     static constexpr int kSlack = 4;
@@ -88,6 +95,7 @@ private:
     juce::Colour onColour_ = Palette::recordRed();
     bool on_ = false;
     bool compact_ = false;
+    bool guarded_ = false;
 };
 
 }

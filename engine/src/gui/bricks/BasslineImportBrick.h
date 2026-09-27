@@ -21,16 +21,23 @@ public:
         button_.setButtonText(label.isNotEmpty() ? label
                                                  : juce::String::fromUTF8("Load riffs\xe2\x80\xa6"));
         button_.setTooltip(tr("bassline-import.tooltip", "Pattern dumps, .seq or MIDI files"));
-        button_.onClick = [this] { choose(); };
+        button_.onClick = [this] { browse(); };
         addAndMakeVisible(button_);
     }
 
     std::function<void()> onLoaded;
 
+    void browse() {
+        juce::Component::SafePointer<BasslineImportBrick> safe(this);
+        browseRiffs(host_, name_, button_.getScreenBounds(),
+                    [safe] { if (safe != nullptr) safe->choose(); },
+                    [safe] { if (safe != nullptr) safe->loaded(); });
+    }
+
     void choose() {
-        chooseRiffFiles(host_, name_, chooser_,
+        chooseRiffFiles(host_, name_, picker_,
                         [safe = juce::Component::SafePointer<BasslineImportBrick>(this)] {
-            if (safe != nullptr && safe->onLoaded) safe->onLoaded();
+            if (safe != nullptr) safe->loaded();
         });
     }
 
@@ -41,10 +48,12 @@ public:
     void resized() override { button_.setBounds(getLocalBounds()); }
 
 private:
+    void loaded() { if (onLoaded) onLoaded(); }
+
     BrickHost& host_;
     std::string name_;
     juce::TextButton button_;
-    std::unique_ptr<juce::FileChooser> chooser_;
+    JuceFilePicker picker_;
 };
 
 }

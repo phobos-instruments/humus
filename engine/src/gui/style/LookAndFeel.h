@@ -101,12 +101,16 @@ public:
 };
 
 void pebbleBody(juce::Graphics&, juce::Rectangle<float> bounds, juce::Colour base, bool active);
+void knobFace(juce::Graphics&, juce::Point<float> centre, float knobR, float angle, juce::Colour mark);
 
 void fillOrganicPill(juce::Graphics&, juce::Rectangle<float>, float cornerRadius,
                      juce::Colour fill, juce::Colour outline, bool raised);
 
 void paintVerticalFader(juce::Graphics&, juce::Rectangle<float> bounds, float thumbY, bool muted);
-void paintHorizontalFader(juce::Graphics&, juce::Rectangle<float> bounds, float thumbX, bool muted);
+inline const juce::Identifier kCentreFill{"centreFill"};
+
+void paintHorizontalFader(juce::Graphics&, juce::Rectangle<float> bounds, float thumbX, bool muted,
+                          bool fromCentre = false);
 
 void drawFaderPot(juce::Graphics&, juce::Rectangle<float> body,
                   float gradTop, float gradBottom, float lineY, bool active,

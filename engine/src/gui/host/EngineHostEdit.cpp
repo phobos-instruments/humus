@@ -24,9 +24,21 @@
 #include "core/packs/Roles.h"
 #include "gui/properties/PresetLibrary.h"
 #include "hum/caps/Midi.h"
+#include "hum/caps/Video.h"
 #include "hum/Registry.h"
 
 namespace hum {
+
+namespace {
+
+int outletsInUse(const std::vector<ConnectionModel>& cords, const std::string& name) {
+    int most = 0;
+    for (const auto& c : cords)
+        if (c.src == name) most = std::max(most, c.srcOutlet + 1);
+    return most;
+}
+
+}
 
 int EngineHost::reconcilePropertyTypes(PatchDocumentModel& doc) {
     int fixed = 0;
@@ -208,6 +220,17 @@ bool EngineHost::renameOrganism(const std::string& oldName, const std::string& n
     return true;
 }
 
+void EngineHost::keepMidiTailOutlets(const std::string& name, const std::string& oldClass,
+                                     const std::string& newClass, const MidiNode* now) {
+    const auto* manifest = PackRegistry::instance().classManifest(newClass);
+    if (manifest == nullptr || manifest->fixedTailOutlets <= 0 || now == nullptr) return;
+    const auto before = Registry::instance().create(canonicalClass(oldClass));
+    const auto* was = dynamic_cast<const MidiNode*>(before.get());
+    if (was == nullptr) return;
+    keepTailOutlets(model_.midiConnections, name, was->numMidiOutputs(), now->numMidiOutputs(),
+                    manifest->fixedTailOutlets);
+}
+
 std::string EngineHost::replaceOrganism(const std::string& nameIn, const std::string& newClassIn) {
     const std::string newClass = canonicalClass(newClassIn);
     std::string name = nameIn;
@@ -245,9 +268,13 @@ std::string EngineHost::replaceOrganism(const std::string& nameIn, const std::st
                           probe ? probe->numAudioInputs() : 0,
                           probe ? probe->numAudioOutputs() : 0);
     auto* probeMidi = dynamic_cast<MidiNode*>(probe.get());
+    keepMidiTailOutlets(name, oldDisplay, newClass, probeMidi);
     reclaimCordsForResize(model_.midiConnections, name,
                           probeMidi ? probeMidi->numMidiInputs() : 0,
                           probeMidi ? probeMidi->numMidiOutputs() : 0);
+    if (auto* probeVideo = dynamic_cast<VideoNode*>(probe.get()))
+        reclaimCordsForResize(model_.videoConnections, name, probeVideo->numVideoInputs(),
+                              std::max(probeVideo->numVideoOutputs(), outletsInUse(model_.videoConnections, name)));
 
     const auto* wasIn = PackRegistry::instance().folderOf(canonicalClass(oldDisplay));
     const auto* nowIn = PackRegistry::instance().folderOf(newClass);

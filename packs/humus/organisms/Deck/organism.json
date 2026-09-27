@@ -1,191 +1,432 @@
 {
- "classes": [
-  {
-   "class": "Deck",
-   "roles": ["deck"],
-   "category": "Players",
-   "params": [
+  "classes": [
     {
-     "name": "File",
-     "min": 0.0,
-     "max": 0.0,
-     "def": 0.0,
-     "isText": true
-    },
-    {
-     "name": "Active",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 0.0,
-     "bool": true
-    },
-    {
-     "name": "Loop",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 0.0,
-     "bool": true
-    },
-    {
-     "name": "Sync",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 0.0,
-     "bool": true
-    },
-    {
-     "name": "Master",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 0.0,
-     "bool": true
-    },
-    {
-     "name": "Keylock",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 0.0,
-     "bool": true
-    },
-    {
-     "name": "HQ",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 1.0,
-     "bool": true
-    },
-    {
-     "name": "Quantize",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 1.0,
-     "bool": true
-    },
-    {
-     "name": "Timecode",
-     "min": 0.0,
-     "max": 1.0,
-     "def": 0.0,
-     "bool": true
-    },
-    {
-     "name": "TimecodeHz",
-     "min": 500.0,
-     "max": 4000.0,
-     "def": 1000.0
-    },
-    {
-     "name": "BPM",
-     "min": 20.0,
-     "max": 300.0,
-     "def": 120.0
-    },
-    {
-     "name": "PitchPercent",
-     "min": -50.0,
-     "max": 50.0,
-     "def": 0.0
-    },
-    {
-     "name": "PitchRange",
-     "min": 8.0,
-     "max": 50.0,
-     "def": 8.0
-    },
-    {
-     "name": "Volume",
-     "min": 0.0,
-     "max": 2.0,
-     "def": 1.0
-    },
-    {
-     "name": "GridOffset",
-     "min": 0.0,
-     "max": 1000000000.0,
-     "def": 0.0
-    },
-    {
-     "name": "LoopIn",
-     "min": 0.0,
-     "max": 1000000000.0,
-     "def": 0.0
-    },
-    {
-     "name": "LoopOut",
-     "min": 0.0,
-     "max": 1000000000.0,
-     "def": 0.0
-    },
-    {
-     "name": "LoopBeats",
-     "min": 0.25,
-     "max": 32.0,
-     "def": 4.0
-    },
-    {
-     "name": "Cue",
-     "min": 0.0,
-     "max": 1000000000.0,
-     "def": 0.0
-    },
-    {
-     "name": "Key",
-     "min": 0.0,
-     "max": 0.0,
-     "def": 0.0,
-     "isText": true,
-     "plainText": true
-    },
-    {
-     "name": "HotCue_1",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_2",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_3",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_4",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_5",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_6",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_7",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
-    },
-    {
-     "name": "HotCue_8",
-     "min": -1.0,
-     "max": 1000000000.0,
-     "def": -1.0
+      "class": "Deck",
+      "blurb": "A player for audio and video alike: pitch fader, beatgrid, cues and timecode.",
+      "roles": [
+        "deck"
+      ],
+      "category": "Players",
+      "params": [
+        {
+          "name": "File",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "FileSound",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true
+        },
+        {
+          "name": "AudioTrack",
+          "min": 0.0,
+          "max": 15.0,
+          "def": 0.0,
+          "int": true
+        },
+        {
+          "name": "Active",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Record",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Loop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Sync",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Keylock",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Quantize",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "PictureSync",
+          "min": -250.0,
+          "max": 250.0,
+          "def": 0.0,
+          "unit": "ms"
+        },
+        {
+          "name": "Timestamp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Timecode",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "TimecodeHz",
+          "min": 500.0,
+          "max": 4000.0,
+          "def": 1000.0
+        },
+        {
+          "name": "TimecodeFlip",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "BPM",
+          "min": 20.0,
+          "max": 300.0,
+          "def": 120.0
+        },
+        {
+          "name": "PitchPercent",
+          "min": -50.0,
+          "max": 50.0,
+          "def": 0.0
+        },
+        {
+          "name": "PitchRange",
+          "min": 8.0,
+          "max": 50.0,
+          "def": 8.0
+        },
+        {
+          "name": "Volume",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
+        },
+        {
+          "name": "GridOffset",
+          "min": 0.0,
+          "max": 1000000000.0,
+          "def": 0.0
+        },
+        {
+          "name": "LoopIn",
+          "min": 0.0,
+          "max": 1000000000.0,
+          "def": 0.0
+        },
+        {
+          "name": "LoopOut",
+          "min": 0.0,
+          "max": 1000000000.0,
+          "def": 0.0
+        },
+        {
+          "name": "LoopBeats",
+          "min": 0.25,
+          "max": 32.0,
+          "def": 4.0
+        },
+        {
+          "name": "Cue",
+          "min": 0.0,
+          "max": 1000000000.0,
+          "def": 0.0
+        },
+        {
+          "name": "Key",
+          "min": 0.0,
+          "max": 0.0,
+          "def": 0.0,
+          "isText": true,
+          "plainText": true
+        },
+        {
+          "name": "HotCue_1",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_2",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_3",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_4",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_5",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_6",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_7",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "HotCue_8",
+          "min": -1.0,
+          "max": 1000000000.0,
+          "def": -1.0
+        },
+        {
+          "name": "Pad_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Pad_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "CueSet",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "CueJump",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "LoopHalve",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "LoopDouble",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "BeatLoop_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "BeatLoop_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "BeatLoop_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Roll_1_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Roll_1_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Roll_1_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Roll_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "PadClear",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "PadClearAll",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "NudgeStep",
+          "min": 0.0,
+          "max": 4.0,
+          "def": 1.0,
+          "enum": true
+        },
+        {
+          "name": "BendUp",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "BendDown",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "CueNudgeBack",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "CueNudgeForward",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Stop",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "Rewind",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SeekBack",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
+          "name": "SeekForward",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        }
+      ],
+      "editor": "layout:editor.json"
     }
-   ],
-   "editor": "layout:editor.json"
-  }
- ]
+  ]
 }

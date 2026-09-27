@@ -12,7 +12,7 @@
 #include <objbase.h>
 #endif
 
-#if HUM_MOVIE_NATIVE
+#if HUM_VIDEO_NATIVE
 #include "gui/video/VideoEncoderNative.h"
 #endif
 
@@ -20,9 +20,9 @@ namespace hum {
 
 namespace {
 
-class HapMovie : public VideoEncoder {
+class HapVideo : public VideoEncoder {
 public:
-    HapMovie(const juce::File& file, int width, int height, double fps)
+    HapVideo(const juce::File& file, int width, int height, double fps)
         : writer_(file, width, height, fps) {}
 
     bool ok() const override { return writer_.ok(); }
@@ -40,7 +40,7 @@ private:
     hap::Writer writer_;
 };
 
-class NoMovie : public VideoEncoder {
+class NoVideo : public VideoEncoder {
 public:
     bool ok() const override { return false; }
     int frameCount() const override { return 0; }
@@ -52,28 +52,28 @@ public:
 
 }
 
-MovieThread::MovieThread() {
+VideoThread::VideoThread() {
 #if JUCE_WINDOWS
     joined_ = SUCCEEDED(CoInitializeEx(nullptr, COINIT_MULTITHREADED));
 #endif
 }
 
-MovieThread::~MovieThread() {
+VideoThread::~VideoThread() {
 #if JUCE_WINDOWS
     if (joined_) CoUninitialize();
 #endif
 }
 
-bool movieKindAvailable(MovieKind kind) {
-    if (kind == MovieKind::Hap) return true;
-#if HUM_MOVIE_NATIVE
+bool videoKindAvailable(VideoKind kind) {
+    if (kind == VideoKind::Hap) return true;
+#if HUM_VIDEO_NATIVE
     return true;
 #else
     return HUM_H264_WRITER != 0;
 #endif
 }
 
-bool movieLogIsLoud() {
+bool videoLogIsLoud() {
 #if HUM_H264_WRITER
     return av_log_get_level() > AV_LOG_ERROR;
 #else
@@ -81,21 +81,21 @@ bool movieLogIsLoud() {
 #endif
 }
 
-const char* movieKindExtension(MovieKind kind) {
-    return kind == MovieKind::Hap ? "mov" : "mp4";
+const char* videoKindExtension(VideoKind kind) {
+    return kind == VideoKind::Hap ? "mov" : "mp4";
 }
 
-std::unique_ptr<VideoEncoder> makeMovieWriter(MovieKind kind, const juce::File& file, int width,
+std::unique_ptr<VideoEncoder> makeVideoWriter(VideoKind kind, const juce::File& file, int width,
                                               int height, double fps, int quality, bool live) {
-    if (kind == MovieKind::Hap) return std::make_unique<HapMovie>(file, width, height, fps);
+    if (kind == VideoKind::Hap) return std::make_unique<HapVideo>(file, width, height, fps);
     const int graded = juce::jlimit(kQualityFinest, kQualityCoarsest, quality);
-#if HUM_MOVIE_NATIVE
-    return makeNativeMovieWriter(file, width, height, fps, graded, live);
+#if HUM_VIDEO_NATIVE
+    return makeNativeVideoWriter(file, width, height, fps, graded, live);
 #elif HUM_H264_WRITER
     return std::make_unique<H264Writer>(file, width, height, fps, graded, live);
 #else
     juce::ignoreUnused(graded, live);
-    return std::make_unique<NoMovie>();
+    return std::make_unique<NoVideo>();
 #endif
 }
 

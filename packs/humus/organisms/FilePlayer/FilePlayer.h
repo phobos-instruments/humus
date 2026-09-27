@@ -27,6 +27,7 @@ public:
     int64_t playbackPositionSamples() const override { return playPos_.load(); }
     int64_t fileLengthSamples() const override { return fileLen_.load(); }
     double  playbackSampleRate() const override { return fileSr_.load(); }
+    std::string playSwitch() const override { return "Active"; }
     void    requestSeekSamples(int64_t s) override { seekReq_.store(s < 0 ? 0 : s); }
 
     void    loadFromFile(const std::string& uri) override;

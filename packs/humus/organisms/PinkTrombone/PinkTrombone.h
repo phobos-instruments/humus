@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 
+#include "PinkTrombone/VoiceSpread.h"
 #include "hum/caps/Midi.h"
 #include "hum/HeldNotes.h"
 #include "hum/PitchBend.h"
@@ -96,7 +97,7 @@ struct TromboneTract {
 class PinkTrombone : public Organism, public MidiNode {
 public:
     int numAudioInputs() const override { return 0; }
-    int numAudioOutputs() const override { return 1; }
+    int numAudioOutputs() const override { return 2; }
     int numMidiInputs() const override { return 1; }
     int numMidiOutputs() const override { return 0; }
 
@@ -120,6 +121,7 @@ private:
         void clear() { x1 = x2 = y1 = y2 = 0.0; }
     };
 
+    VoiceSpread spread_;
     TromboneGlottis glottis_;
     TromboneTract tract_;
     Bandpass aspFilter_, fricFilter_;

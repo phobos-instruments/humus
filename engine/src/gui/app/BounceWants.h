@@ -16,7 +16,7 @@ struct BounceWants {
     std::string soundKind = "wav";
     int mp3Rate = kMp3RateBest;
     std::string videoNode;
-    MovieKind kind = MovieKind::H264;
+    VideoKind kind = VideoKind::H264;
     int quality = kQualityDefault;
     int width = 1280, height = 720;
     double fps = 30.0;
@@ -27,10 +27,17 @@ struct BounceWants {
     juce::File fileFor(const char* extension) const {
         return folder.getChildFile(stem + "." + juce::String(extension));
     }
-    juce::File movieFile() const { return fileFor(movieKindExtension(kind)); }
+    juce::File videoFile() const { return fileFor(videoKindExtension(kind)); }
     juce::File soundFile() const { return fileFor(soundKind.c_str()); }
     juce::File notesFile() const { return fileFor("mid"); }
     bool nothingChosen() const { return !audio && !video && !midi; }
+
+    juce::File written() const {
+        for (const auto& file : {video ? videoFile() : juce::File(), audio ? soundFile() : juce::File(),
+                                 midi ? notesFile() : juce::File()})
+            if (file.existsAsFile()) return file;
+        return folder;
+    }
 };
 
 struct BounceOffer {

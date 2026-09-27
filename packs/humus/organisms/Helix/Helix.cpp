@@ -5,9 +5,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
-#include <string>
-
-#include "hum/dsp/SoundFileBuffer.h"
 
 namespace hum {
 
@@ -17,7 +14,8 @@ std::array<Helix::StrandParams, Helix::kStrands> Helix::makeStrandParams() {
         auto ref = [t](const char* prefix) { return ParamRef::numbered(prefix, t + 1); };
         out[(size_t) t] = {ref("Level"), ref("Mute"), ref("Solo"), ref("Sync"), ref("Rec"),
                            ref("Stop"), ref("Play"), ref("Undo"), ref("Redo"), ref("Clear"),
-                           ref("Rev"), ref("Half"), ref("Shot")};
+                           ref("Rev"), ref("Half"), ref("Shot"), ref("Tempo"), ref("Record"), ref("Dub"), ref("Monitor"),
+                           ref("Slice"), ref("Nudge")};
     }
     return out;
 }
@@ -26,186 +24,49 @@ void Helix::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     maxLoopSamples_ = (std::int64_t) std::llround(kMaxSeconds * sampleRate);
     holdSamples_ = (std::int64_t) std::llround(kHoldSeconds * sampleRate);
-    for (auto& s : strands_) {
-        for (auto& ch : s.buf) ch.assign((size_t) maxLoopSamples_, 0.0f);
-        for (auto& ch : s.undo) ch.assign((size_t) maxLoopSamples_, 0.0f);
+    for (size_t t = 0; t < kStrands; ++t) {
+        for (auto& ch : strands_[t].buf) ch.assign((size_t) maxLoopSamples_, 0.0f);
+        for (auto& ch : strands_[t].undo) ch.assign((size_t) maxLoopSamples_, 0.0f);
+        const auto chunks = (size_t) (maxLoopSamples_ / kPeakChunk + 2);
+        strands_[t].chunkPeak.assign(chunks, 0.0f);
+        strands_[t].undoChunkPeak.assign(chunks, 0.0f);
+        stretch_[t].prepare(sampleRate);
     }
+    dubLag_ = stretch_[0].dubLatency();
     reset();
     loadSessionAudio();
 }
 
 void Helix::reset() {
-    for (auto& s : strands_) {
+    for (size_t t = 0; t < kStrands; ++t) {
+        auto& s = strands_[t];
         clearStrand(s);
         s.prevRec = s.prevStop = s.prevUndo = s.prevClear = false;
         s.prevRedo = false;
         s.dubPress = false;
         s.heldSamples = 0;
+        s.prevRecord = s.prevDub = s.dubHoldArmed = false;
+        s.dubHeldSamples = 0;
         s.level = s.levelPrev = 1.0f;
         s.half = false;
         s.speed = 1.0;
+        s.tempoRatio = 1.0;
+        s.stretch = false;
         s.revPend = s.halfPend = -1;
+        stretch_[t].reset();
     }
     prevRolling_ = false;
+    prevPlayAll_ = prevStopAll_ = false;
     expectBeats_ = 0.0;
 }
 
-void Helix::clearStrand(Strand& s) {
-    s.len = s.recCount = 0;
-    s.pos = 0.0;
-    s.state = SState::Empty;
-    s.dubStart = s.dubWritten = s.snapCursor = 0;
-    s.lastWrite = -1;
-    s.snapDone = true;
-    s.undoReady = s.redo = false;
-    s.layers = 0;
-    s.pending = Pending::None;
-    s.pendingLate = 0;
-}
-
-void Helix::closeLoop(Strand& s, std::int64_t late, bool thenPlay) {
-    late = std::clamp<std::int64_t>(late, 0, s.recCount > 1 ? s.recCount - 1 : 0);
-    s.len = std::max<std::int64_t>(1, s.recCount - late);
-    s.pos = thenPlay ? (double) (late % s.len) : 0.0;
-    s.layers = 1;
-    s.undoReady = s.redo = false;
-    s.snapDone = true;
-    s.state = thenPlay ? SState::Play : SState::Stopped;
-}
-
-void Helix::beginDub(Strand& s) {
-    s.dubStart = (std::int64_t) s.pos;
-    s.dubDir = s.reverse ? -1 : 1;
-    s.dubWritten = 0;
-    s.lastWrite = -1;
-    s.snapCursor = 0;
-    s.snapDone = s.len <= 0;
-    s.undoReady = s.redo = false;
-    ++s.layers;
-    s.state = SState::Dub;
-}
-
-void Helix::recPress(Strand& s, std::int64_t late) {
-    switch (s.state) {
-        case SState::Empty: {
-            late = std::clamp<std::int64_t>(late, 0, maxLoopSamples_ - 1);
-            for (auto& ch : s.buf) std::fill(ch.begin(), ch.begin() + (size_t) late, 0.0f);
-            s.recCount = late;
-            s.layers = 0;
-            s.undoReady = s.redo = false;
-            s.state = SState::Rec;
-            break;
-        }
-        case SState::Rec: closeLoop(s, late, true); break;
-        case SState::Play: beginDub(s); s.dubPress = true; break;
-        case SState::Dub: s.state = SState::Play; break;
-        case SState::Stopped:
-            s.pos = s.reverse ? (double) std::max<std::int64_t>(0, s.len - 1) : 0.0;
-            s.state = SState::Play;
-            break;
-    }
-}
-
-void Helix::stopPress(Strand& s, std::int64_t late) {
-    switch (s.state) {
-        case SState::Rec: closeLoop(s, late, false); break;
-        case SState::Play:
-        case SState::Dub:
-            s.state = SState::Stopped;
-            s.pos = 0.0;
-            break;
-        default: break;
-    }
-}
-
-void Helix::playPress(Strand& s, std::int64_t late) {
-    if (s.len <= 0 || s.state == SState::Rec) return;
-    const auto off = late % s.len;
-    s.pos = s.reverse ? (double) (s.len - 1 - off) : (double) off;
-    s.state = SState::Play;
-}
-
-void Helix::snapshotAhead(Strand& s, std::int64_t upTo) {
-    if (s.snapDone) return;
-    const std::int64_t stop = std::min(upTo, s.len);
-    while (s.snapCursor < stop) {
-        const auto i = (size_t) (((s.dubStart + s.dubDir * s.snapCursor) % s.len + s.len) % s.len);
-        s.undo[0][i] = s.buf[0][i];
-        s.undo[1][i] = s.buf[1][i];
-        ++s.snapCursor;
-    }
-    if (s.snapCursor >= s.len) {
-        s.snapDone = true;
-        s.undoReady = true;
-    }
-}
-
-void Helix::undoPress(Strand& s) {
-    if (s.state == SState::Rec) {
-        clearStrand(s);
-        return;
-    }
-    if (s.state == SState::Dub) {
-        if (s.snapDone) {
-            for (int c = 0; c < 2; ++c) std::swap(s.buf[(size_t) c], s.undo[(size_t) c]);
-        } else {
-            for (std::int64_t j = 0; j < std::min(s.dubWritten, s.len); ++j) {
-                const auto i = (size_t) (((s.dubStart + s.dubDir * j) % s.len + s.len) % s.len);
-                s.buf[0][i] = s.undo[0][i];
-                s.buf[1][i] = s.undo[1][i];
-            }
-        }
-        --s.layers;
-        s.snapDone = true;
-        s.undoReady = s.redo = false;
-        s.state = SState::Play;
-        return;
-    }
-    if ((s.state == SState::Play || s.state == SState::Stopped) && s.undoReady && !s.redo) {
-        for (int c = 0; c < 2; ++c) std::swap(s.buf[(size_t) c], s.undo[(size_t) c]);
-        s.redo = true;
-        --s.layers;
-    }
-}
-
-void Helix::redoPress(Strand& s) {
-    if ((s.state == SState::Play || s.state == SState::Stopped) && s.undoReady && s.redo) {
-        for (int c = 0; c < 2; ++c) std::swap(s.buf[(size_t) c], s.undo[(size_t) c]);
-        s.redo = false;
-        ++s.layers;
-    }
-}
-
-void Helix::applyRev(Strand& s, bool v) {
-    if (s.state == SState::Dub) s.state = SState::Play;
-    s.reverse = v;
-}
-
-void Helix::applyHalf(Strand& s, bool v) {
-    s.half = v;
-    s.speed = v ? 0.5 : 1.0;
-}
-
-void Helix::anchorToTransport(Strand& s, int sync, double beats, double spb) {
-    if (s.len <= 0 || (s.state != SState::Play && s.state != SState::Dub)) return;
-    if (s.state == SState::Dub) s.state = SState::Play;
-    if (sync != 0) {
-        const double off = std::fmod(std::max(0.0, beats) * spb * s.speed, (double) s.len);
-        s.pos = s.reverse ? (double) s.len - 1.0 - off : off;
-        if (s.pos < 0.0) s.pos += (double) s.len;
-    } else if (beats < 1e-6) {
-        s.pos = s.reverse ? (double) (s.len - 1) : 0.0;
-    }
-}
-
-void Helix::applyPending(Strand& s) {
-    const auto what = s.pending;
-    const auto late = s.pendingLate;
-    s.pending = Pending::None;
-    s.pendingLate = 0;
-    if (what == Pending::RecPress) recPress(s, late);
-    else if (what == Pending::StopPress) stopPress(s, late);
-    else if (what == Pending::PlayPress) playPress(s, late);
+void Helix::followTempo(Strand& s, int mode, bool canStretch) const {
+    if (s.len > 0 && s.recBpm <= 0.0) s.recBpm = tempoNow_;
+    s.tempoRatio = mode == kTempoOff || s.recBpm <= 0.0
+                       ? 1.0
+                       : std::clamp(tempoNow_ / s.recBpm, kMinRatio, kMaxRatio);
+    s.stretch = mode == kTempoStretch && canStretch;
+    s.speed = (s.half ? 0.5 : 1.0) * s.tempoRatio;
 }
 
 void Helix::process(const float* const* in, int numIn, float* const* out, int numOut,
@@ -213,8 +74,17 @@ void Helix::process(const float* const* in, int numIn, float* const* out, int nu
     for (int c = 0; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
     if (numSamples <= 0) return;
 
-    const bool monitor = params.get("Monitor", 1.0) >= 0.5;
+    const double monitorAll = params.get("Monitor", kMonitorMix);
+    std::array<int, kStrands> monitorOf {};
+    bool monitor = false;
+    for (int t = 0; t < kStrands; ++t) {
+        monitorOf[(size_t) t] =
+            std::clamp((int) std::lround(strandParams_[(size_t) t].monitor.get(params, monitorAll)), 0, 2);
+        monitor = monitor || monitorOf[(size_t) t] == kMonitorMix;
+    }
     decay_ = std::clamp(params.get("Decay", 1.0), 0.0, 1.0);
+    tempoNow_ = transport.tempo();
+    barBeats_ = transport.beatsPerBar();
     const double spb = transport.samplesPerBeat();
     const double beats0 = transport.beats();
     const bool rolling = transport.playing() && spb > 0.0;
@@ -229,39 +99,56 @@ void Helix::process(const float* const* in, int numIn, float* const* out, int nu
     prevRolling_ = rolling;
     expectBeats_ = rolling ? beats0 + (double) numSamples / spb : beats0;
 
+    const bool playAll = params.get("PlayAll", 0.0) >= 0.5;
+    const bool stopAll = params.get("StopAll", 0.0) >= 0.5;
+    const auto master = masterPresses(playAll && !prevPlayAll_, stopAll && !prevStopAll_);
+    prevPlayAll_ = playAll;
+    prevStopAll_ = stopAll;
+    const double bar = transport.beatsPerBar();
+    const Grid playAllGrid = gridFor(master.playSync, -1, beats0, bar, spb);
+    const Grid stopAllGrid = gridFor(master.stopSync, -1, beats0, bar, spb);
+
     std::array<int, kStrands> pendAt {}, revAt {}, halfAt {};
     for (int t = 0; t < kStrands; ++t) {
         auto& s = strands_[(size_t) t];
         const auto& sp = strandParams_[(size_t) t];
         s.level = (float) std::clamp(sp.level.get(params, 1.0), 0.0, 1.0);
+        s.nudge = s.state == SState::Play ? (int) std::lround(std::clamp(sp.nudge.get(params, 0.0), -1.0, 1.0)) : 0;
+        s.slice = (int) std::lround(std::clamp(sp.slice.get(params, 0.0), 0.0, (double) kSlices));
+        if (s.slice != s.slicePrev) {
+            if (s.slice > 0 && s.len > 0)
+                s.pos = (double) ((s.slice - 1) * (s.len / kSlices));
+            s.slicePrev = s.slice;
+        }
         const bool audible = !sp.mute.on(params) && (!anySolo || sp.solo.on(params));
         if (!audible) s.level = 0.0f;
-        const int sync = std::clamp((int) std::lround(sp.sync.get(params, 2.0)), 0, 2);
+        const int sync = syncOf(t);
         const bool rec = sp.rec.on(params);
         const bool stop = sp.stop.on(params);
         const bool play = sp.play.on(params);
+        const bool record = sp.record.on(params);
+        const bool dub = sp.dub.on(params);
         const bool undo = sp.undo.on(params);
         const bool redo = sp.redo.on(params);
         const bool clear = sp.clear.on(params);
         const bool rev = sp.rev.on(params);
         const bool half = sp.half.on(params);
         s.oneShot = sp.shot.on(params);
+        followTempo(s, std::clamp((int) std::lround(sp.tempo.get(params, kTempoPitch)), 0, 2),
+                    stretch_[(size_t) t].available());
 
         if (jumped) anchorToTransport(s, sync, beats0, spb);
 
-        const double unit = sync == 2 ? std::max(1.0, transport.beatsPerBar()) : 1.0;
-        const double inUnit = beats0 - std::floor(beats0 / unit) * unit;
-        const double nextLine = (std::floor(beats0 / unit) + 1.0) * unit;
-        const bool inGrace = inUnit < std::min(kGraceBeats, unit * 0.5);
+        const Grid grid = gridFor(sync, t, beats0, bar, spb);
         const bool quant = sync != 0 && rolling && s.len > 0
                            && (s.state == SState::Play || s.state == SState::Dub);
 
         auto latch = [&](bool want, bool have, int& pend, double& beat, auto&& apply) {
             if (want == have) { pend = -1; return; }
             if (pend == (want ? 1 : 0)) return;
-            if (!quant || inGrace) { apply(s, want); pend = -1; return; }
+            if (!quant || grid.inGrace) { apply(s, want); pend = -1; return; }
             pend = want ? 1 : 0;
-            beat = nextLine;
+            beat = grid.nextLine;
         };
         latch(rev, s.reverse, s.revPend, s.revBeat,
               [this](Strand& x, bool v) { applyRev(x, v); });
@@ -272,31 +159,45 @@ void Helix::process(const float* const* in, int numIn, float* const* out, int nu
         if (undo && !s.prevUndo) undoPress(s);
         if (redo && !s.prevRedo) redoPress(s);
 
-        auto press = [&](Pending what) {
+        auto press = [&](Pending what, const Grid& at) {
             s.pending = what;
             s.pendingBeat = beats0;
             s.pendingLate = 0;
-            if (sync == 0 || !rolling) return;
-            if (inGrace)
-                s.pendingLate = (std::int64_t) std::llround(inUnit * spb);
+            if (at.sync == 0 || !rolling) return;
+            if (at.inGrace)
+                s.pendingLate = (std::int64_t) std::llround(at.inUnit * spb);
             else
-                s.pendingBeat = nextLine;
+                s.pendingBeat = at.nextLine;
         };
         if (rec && !s.prevRec) {
             s.heldSamples = 0;
-            press(Pending::RecPress);
+            press(Pending::RecPress, grid);
         }
-        if (stop && !s.prevStop) press(Pending::StopPress);
-        if (play && !s.prevPlay) press(Pending::PlayPress);
+        if (stop && !s.prevStop) press(Pending::StopPress, grid);
+        if (play && !s.prevPlay) press(Pending::PlayPress, grid);
+        if (record && !s.prevRecord) press(Pending::RecordPress, grid);
+        if (dub && !s.prevDub) {
+            s.dubHeldSamples = 0;
+            press(Pending::DubPress, grid);
+        }
+        if (master.play[(size_t) t]) press(Pending::PlayPress, playAllGrid);
+        if (master.stop[(size_t) t]) press(Pending::StopPress, stopAllGrid);
         if (!rec && s.prevRec) {
             if (s.dubPress && s.state == SState::Dub && s.heldSamples >= holdSamples_)
-                s.state = SState::Play;
+                finishDub(s);
             s.dubPress = false;
         }
         if (rec) s.heldSamples += numSamples;
+        if (!dub && s.prevDub) {
+            if (s.dubHoldArmed && s.state == SState::Dub && s.dubHeldSamples >= holdSamples_) finishDub(s);
+            s.dubHoldArmed = false;
+        }
+        if (dub) s.dubHeldSamples += numSamples;
         s.prevRec = rec;
         s.prevStop = stop;
         s.prevPlay = play;
+        s.prevRecord = record;
+        s.prevDub = dub;
         s.prevUndo = undo;
         s.prevRedo = redo;
         s.prevClear = clear;
@@ -331,148 +232,26 @@ void Helix::process(const float* const* in, int numIn, float* const* out, int nu
                 applyHalf(s, s.halfPend > 0);
                 s.halfPend = -1;
             }
-            switch (s.state) {
-                case SState::Rec:
-                    if (s.recCount < maxLoopSamples_) {
-                        s.buf[0][(size_t) s.recCount] = inL;
-                        s.buf[1][(size_t) s.recCount] = inR;
-                        if (++s.recCount >= maxLoopSamples_) closeLoop(s, 0, true);
-                    }
-                    break;
-                case SState::Play:
-                case SState::Dub: {
-                    if (frozen) break;
-                    const auto i0 = (std::int64_t) s.pos;
-                    const auto i1 = i0 + 1 >= s.len ? 0 : i0 + 1;
-                    const float fr = (float) (s.pos - (double) i0);
-                    const float l = s.buf[0][(size_t) i0] * (1.0f - fr)
-                                    + s.buf[0][(size_t) i1] * fr;
-                    const float r = s.buf[1][(size_t) i0] * (1.0f - fr)
-                                    + s.buf[1][(size_t) i1] * fr;
-                    if (s.state == SState::Dub && i0 != s.lastWrite) {
-                        snapshotAhead(s, s.dubWritten + 1);
-                        s.buf[0][(size_t) i0] = (float) (s.buf[0][(size_t) i0] * decay_) + inL;
-                        s.buf[1][(size_t) i0] = (float) (s.buf[1][(size_t) i0] * decay_) + inR;
-                        s.lastWrite = i0;
-                        ++s.dubWritten;
-                    }
-                    const float lvl = s.levelPrev
-                                      + (s.level - s.levelPrev) * (float) n / (float) numSamples;
-                    const float dl = l * lvl, dr = r * lvl;
-                    oL += dl;
-                    oR += dr;
-                    const int d0 = 2 + t * 2;
-                    if (numOut > d0) out[d0][n] = dl;
-                    if (numOut > d0 + 1) out[d0 + 1][n] = dr;
-                    bool wrapped = false;
-                    s.pos += s.reverse ? -s.speed : s.speed;
-                    if (s.pos >= (double) s.len) { s.pos -= (double) s.len; wrapped = true; }
-                    else if (s.pos < 0.0) { s.pos += (double) s.len; wrapped = true; }
-                    if (wrapped && s.oneShot && s.state == SState::Play) {
-                        s.state = SState::Stopped;
-                        s.pos = 0.0;
-                    }
-                    break;
-                }
-                default: break;
+            const int own = 2 + 2 * t;
+            const float ownL = (numIn > own && in && in[own]) ? in[own][n] : 0.0f;
+            const float ownR = (numIn > own + 1 && in && in[own + 1]) ? in[own + 1][n] : ownL;
+            if (monitorOf[(size_t) t] == kMonitorMix) {
+                oL += ownL;
+                oR += ownR;
+            }
+            s.inPeak = std::max(s.inPeak, std::max(std::fabs(inL + ownL), std::fabs(inR + ownR)));
+            runStrand(t, inL + ownL, inR + ownR, n, numSamples, frozen, out, numOut, oL, oR);
+            if (monitorOf[(size_t) t] == kMonitorOut && numOut > own + 1) {
+                out[own][n] += inL + ownL;
+                out[own + 1][n] += inR + ownR;
             }
         }
         if (numOut > 0) out[0][n] = oL;
         if (numOut > 1) out[1][n] = oR;
     }
 
-    for (auto& s : strands_) {
-        s.levelPrev = s.level;
-        s.uiState.store((int) s.state, std::memory_order_relaxed);
-        s.uiPhase.store(s.len > 0 && (s.state == SState::Play || s.state == SState::Dub)
-                            ? (float) ((double) s.pos / (double) s.len)
-                            : -1.0f,
-                        std::memory_order_relaxed);
-        s.uiLayers.store(s.layers, std::memory_order_relaxed);
-        s.uiPending.store(s.pending != Pending::None || s.revPend >= 0 || s.halfPend >= 0,
-                          std::memory_order_relaxed);
-    }
-}
-
-bool Helix::storeSessionAudio(const std::string& pathPrefix,
-                              std::vector<std::pair<std::string, std::string>>& out) {
-    bool any = false;
-    for (int t = 0; t < kStrands; ++t) {
-        auto& s = strands_[(size_t) t];
-        const std::string param = "Loop" + std::to_string(t + 1);
-        if (s.len <= 0) {
-            if (!params.getText(param).empty()) {
-                out.push_back({param, {}});
-                any = true;
-            }
-            continue;
-        }
-        juce::AudioBuffer<float> b(2, (int) s.len);
-        for (int c = 0; c < 2; ++c)
-            b.copyFrom(c, 0, s.buf[(size_t) c].data(), (int) s.len);
-        const std::string path = pathPrefix + "-loop" + std::to_string(t + 1) + ".wav";
-        if (!writeSoundFile(path, b, sampleRate_)) continue;
-        out.push_back({param, path});
-        strands_[(size_t) t].loadedUri = path;
-        any = true;
-    }
-    return any;
-}
-
-void Helix::loadSessionAudio() {
-    for (int t = 0; t < kStrands; ++t) {
-        auto& s = strands_[(size_t) t];
-        if (maxLoopSamples_ <= 0) continue;
-        const auto uri = params.getText("Loop" + std::to_string(t + 1));
-        if (uri.empty() || (uri == s.loadedUri && s.state != SState::Empty)) continue;
-        if (s.state == SState::Rec || s.state == SState::Dub) continue;
-        if (s.state != SState::Empty) clearStrand(s);
-        juce::AudioBuffer<float> b;
-        double fsr = 0.0;
-        if (!loadSoundFile(uri, b, fsr) || b.getNumSamples() <= 0) continue;
-        const double ratio = fsr > 0.0 ? sampleRate_ / fsr : 1.0;
-        const auto len = std::min<std::int64_t>(
-            maxLoopSamples_, (std::int64_t) std::llround((double) b.getNumSamples() * ratio));
-        if (len <= 0) continue;
-        const int src = b.getNumSamples();
-        for (int c = 0; c < 2; ++c) {
-            const float* from = b.getReadPointer(std::min(c, b.getNumChannels() - 1));
-            for (std::int64_t i = 0; i < len; ++i) {
-                const double x = (double) i / ratio;
-                const int a = std::min((int) x, src - 1);
-                const int a1 = std::min(a + 1, src - 1);
-                const float fr = (float) (x - (double) a);
-                s.buf[(size_t) c][(size_t) i] = from[a] * (1.0f - fr) + from[a1] * fr;
-            }
-        }
-        s.pos = 0.0;
-        s.len = len;
-        s.layers = 1;
-        s.loadedUri = uri;
-        s.state = SState::Stopped;
-        s.uiState.store((int) SState::Stopped, std::memory_order_relaxed);
-        s.uiLayers.store(1, std::memory_order_relaxed);
-    }
-}
-
-int Helix::strandState(int strand) const {
-    return strand >= 0 && strand < kStrands
-               ? strands_[(size_t) strand].uiState.load(std::memory_order_relaxed) : 0;
-}
-
-float Helix::strandPhase(int strand) const {
-    return strand >= 0 && strand < kStrands
-               ? strands_[(size_t) strand].uiPhase.load(std::memory_order_relaxed) : -1.0f;
-}
-
-int Helix::strandLayers(int strand) const {
-    return strand >= 0 && strand < kStrands
-               ? strands_[(size_t) strand].uiLayers.load(std::memory_order_relaxed) : 0;
-}
-
-bool Helix::strandPending(int strand) const {
-    return strand >= 0 && strand < kStrands
-           && strands_[(size_t) strand].uiPending.load(std::memory_order_relaxed);
+    for (auto& s : strands_) s.levelPrev = s.level;
+    publishUi();
 }
 
 }

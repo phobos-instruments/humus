@@ -46,6 +46,8 @@ public:
 
     void send(const juce::String& userText);
 
+    void stop();
+
 private:
     static constexpr int kMaxRounds = 12;
 
@@ -54,6 +56,7 @@ private:
     void finishTurn();
 
     void continueLoop();
+    void answerSilence();
 
     void runToolChain(std::shared_ptr<std::vector<ToolCall>> calls, size_t i, std::shared_ptr<std::vector<std::pair<juce::String, juce::String>>> results);
 
@@ -130,13 +133,17 @@ private:
 
     juce::String describeJson(const std::string& nameOrClass) const;
 
+    bool stopped() const { return turn_ != nullptr && turn_->cancelled(); }
+
     AssistantHost& host_;
     Ticker ticker_;
+    AiClient::TicketPtr turn_;
     juce::var messages_;
     int rounds_ = 0;
     bool busy_ = false;
     bool edited_ = false;
     bool nudged_ = false;
+    bool askedAgain_ = false;
     std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
 };
 

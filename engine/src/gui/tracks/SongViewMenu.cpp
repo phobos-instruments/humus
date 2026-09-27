@@ -301,9 +301,11 @@ void SongView::showAddTrackMenu(juce::Point<int> screenPos) {
                     [this](int res) {
         if (res == 0) return;
         host().pushUndo();
-        if (res == 1) addTrack(true, {});
-        else if (res == 4) host().addOrganism(classWithRole(role::kVideoTrack), host().spotBelowPatch());
-        else if (res == 3) addMidiTrack();
+        const auto anchor = newTrackAnchor();
+        const auto made = res == 1 ? addTrack(true, {})
+                        : res == 4 ? host().addOrganism(classWithRole(role::kVideoTrack), host().spotBelowPatch())
+                        : res == 3 ? addMidiTrack() : std::string();
+        placeRowBelow(made, anchor);
         rebuild();
         repaintAll();
         ctx_.patchChanged();

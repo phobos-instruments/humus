@@ -20,7 +20,7 @@ void Sequence::emit(int port, int offset, bool on, int note, int vel) {
     e.data[2] = (unsigned char) (on ? vel : 0);
     e.size = 3;
     e.sampleOffset = offset;
-    for (int p : {port, kMaster}) {
+    for (int p : {port, master()}) {
         auto& count = outCount_[(size_t) p];
         if (count < (int) outEvents_[(size_t) p].size()) outEvents_[(size_t) p][(size_t) count++] = e;
     }
@@ -55,7 +55,7 @@ void Sequence::process(const float* const*, int, float* const*, int,
     static const double kGmDefault[kRows] = {36, 35, 39, 42, 46, 38, 37, 45};
     const auto rows = pattern_.triggerChannels();
     const int base = kRows * std::clamp((int) params.get("Bank", 0.0), 0, kPatternBanks - 1);
-    for (int r = 0; r < kRows && base + r < (int) rows.size(); ++r) {
+    for (int r = 0; r < rows_ && base + r < (int) rows.size(); ++r) {
         const auto& row = rowParams_[(size_t) r];
         if (!row.enable.on(params, 1.0)) continue;
         const int note =

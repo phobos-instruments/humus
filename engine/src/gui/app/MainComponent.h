@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <memory>
@@ -17,8 +18,12 @@
 #include "gui/editor/ParamSlider.h"
 #include "gui/host/EngineHost.h"
 #include "gui/style/IconButton.h"
+#include "gui/style/LitPad.h"
 #include "gui/editor/Mappable.h"
+#include "gui/app/CardDesk.h"
+#include "gui/host/HostHistory.h"
 #include "gui/app/CardStack.h"
+#include "gui/app/NoticeCard.h"
 #include "gui/app/TempoSlider.h"
 #include "gui/app/GroovePots.h"
 #include "gui/app/TransportWidgets.h"
@@ -34,7 +39,6 @@ class FloatingPaneWindow;
 class FreeWindow;
 class GuideView;
 class MetapadWindow;
-class NagCard;
 class PatcherCanvas;
 class PluginEditorWindow;
 class PropertiesPane;
@@ -48,6 +52,7 @@ class VideoTrackerFeed;
 class VisualWindow;
 
 namespace examples { struct Node; }
+namespace browser { class BrowserIndex; class Audition; class FileBrowserView; struct PickRequest; struct PlaceRoots; }
 
 class MainComponent : public juce::Component,
                       public juce::DragAndDropContainer,
@@ -77,6 +82,17 @@ public:
     void openBugReport();
     juce::PopupMenu menuForTest(int index) { return getMenuForIndex(index, {}); }
     EngineHost& hostForTest() { return host_; }
+    void routeFilePicksToBrowser();
+    browser::FileBrowserView* libraryViewForTest() { return libraryView_; }
+    bool libraryOpenForTest() const { return libraryWindow_ != nullptr; }
+    void pickForTest(const browser::PickRequest& r, std::function<void(const std::vector<std::string>&)> done) {
+        pickWithBrowser(r, std::move(done));
+    }
+    void browseLibraryForTest() { browseLibrary(); }
+    int cardCountForTest() const { return cards_.count(); }
+    void noteBounceForTest(double seconds) { noteBounce(seconds); }
+    bool bounceWindowOpenForTest() const { return bounceWindow_ != nullptr; }
+    void closeBounceWindowForTest() { closeBounceWindow(); }
     PropertiesPane& propsForTest() { return *propsPane_; }
     void setRightWidthForTest(int w) { rightW_ = w; resized(); }
     juce::StringArray menuNamesForTest() { return getMenuBarNames(); }
@@ -109,6 +125,10 @@ private:
     void globalRoll();
     void showTempoMenu(juce::Point<int> screen);
     void timerCallback() override;
+    void refreshTransportMarks();
+    std::vector<std::pair<Mappable<IconButton>*, std::string>> mappedTransport_;
+    void showLoadProgress();
+    static juce::String loadLeftText(const EngineHost::Loading& load);
 
     void newPatch();
     void newPatchImpl();
@@ -116,29 +136,58 @@ private:
     void openPatchImpl();
     void savePatch(std::function<void()> onSaved = nullptr);
     void savePatchAs(std::function<void()> onSaved = nullptr);
+    void savePatchInto(const juce::File& chosen, std::function<void()> onSaved);
     void bounce();
     void startBounce(const BounceWants& wants);
     void closeBounceWindow();
     void toggleMixRecording();
     void revertPatch();
     void locateMissingMedia();
+    void offerToLocate(int missing);
     void openSettings(int category = -1);
     void openAudioSettings();
     void openNotes();
     void openLibrary();
+    browser::BrowserIndex& browserIndex();
+    browser::Audition& audition();
+    void noteOpened(const juce::File& f);
+    void openFromBrowser(const std::string& path);
+    std::string browserLoadTarget(const std::string& path);
+    browser::PlaceRoots browserRoots() const;
+    void pickWithBrowser(const browser::PickRequest& request, std::function<void(const std::vector<std::string>&)> done,
+                         std::function<void()> other = {});
+    void openPatchNative();
+    void endBrowserPick(bool closeWindow);
+    void browseLibrary();
     void openDocSwitcher();
     void openParameterControl(const std::string& organism = {},
                               const std::string& param = {});
     void wireGlobalKeys(FreeWindow&);
     void openPluginUI(const std::string& name);
     void openPluginUIImpl(const std::string& name);
-    void openVisualUI(const std::string& name);
+    void openVisualUI(const std::string& name, int width = 0, int height = 0);
+    void reopenVisualOutputs();
+    int displayHoldingMain() const;
     void closeVisualUI(const std::string& name);
     void openClipEditor(const std::string& node, int clip);
     void refreshTimelinePanes();
     void closePluginUI(const std::string& name);
     void updateDspReadout();
-    void setStatus(const juce::String& s) { statusLabel_.setText(s, juce::dontSendNotification); }
+    void presentCard(std::unique_ptr<juce::Component> card);
+    void notify(const juce::String& s) { notices_.say(s); }
+    void notifyError(const juce::String& s, const juce::String& details = {}) {
+        notices_.warn(s, {}, details);
+    }
+    void notifyOn(const char* key, const juce::String& s) {
+        notices_.say(s, NoticeCard::Kind::Passing, key);
+    }
+    void notifyErrorOn(const char* key, const juce::String& s) {
+        notices_.warn(s, key);
+    }
+
+    void openHistory();
+    void refreshAfterLoad();
+    static std::int64_t nowMs() { return juce::Time::currentTimeMillis(); }
 
     void autosaveTick();
     void performAutosave();
@@ -160,30 +209,28 @@ private:
     juce::Viewport patcherView_;
     std::unique_ptr<PropertiesPane> propsPane_;
 
-    IconButton undoBtn_{IconButton::Glyph::Undo, "Undo (Ctrl+Z) - takes back the last roll"};
+    IconButton undoBtn_{IconButton::Glyph::Undo, "Undo (Ctrl+Z)"};
     IconButton redoBtn_{IconButton::Glyph::Redo, "Redo (Ctrl+Shift+Z)"};
     Mappable<IconButton> playFromStartBtn_{IconButton::Glyph::PlayFromStart, tr("main.play-from-start", "Play From Start")};
     Mappable<IconButton> playBtn_{IconButton::Glyph::Play, tr("main.play-space", "Play (Space)")};
     Mappable<IconButton> stopBtn_{IconButton::Glyph::Stop, "Stop"};
     Mappable<IconButton> recordBtn_{IconButton::Glyph::Record,
-                                    "Record the performance (every knob move, morph & MIDI in one "
-                                    "pass). Right-click: Touch or Latch automation"};
+                                    "Record the performance"};
+    Mappable<IconButton> panicBtn_{IconButton::Glyph::Panic,
+        tr("main.panic", "Panic - stop every hanging note")};
     IconButton keepBtn_{IconButton::Glyph::Keep,
-                        "Keep the last 8 bars (retroactive: what you just played "
-                        "becomes lanes + audio - no arming needed, the soil remembers)"};
-    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, tr("main.go-to-start-reset-clock", "Go to Start (reset clock to 1-1.00)")};
+                        "Keep the last 8 bars"};
+    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, tr("main.go-to-start", "Go to start")};
     Mappable<IconButton> goEndBtn_{IconButton::Glyph::GoToEnd,
-                         "Go to End (song-end marker, or the end of the content)"};
+                         "Go to end"};
     Mappable<IconButton> loopBtn_{IconButton::Glyph::Loop, tr("main.enable-automation-loop", "Enable Automation Loop")};
-    IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, tr("main.enable-audio-real-time-engine", "Enable Audio (real-time engine on/off)")};
+    IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, tr("main.audio-on-off", "Audio on or off")};
     IconButton enableMidiBtn_{IconButton::Glyph::EnableMidi,
-                              "Enable MIDI (open the MIDI devices for control, notes and sync)"};
+                              "MIDI on or off"};
     IconButton qwertyBtn_{IconButton::Glyph::QwertyPiano,
-                          "Virtual MIDI keyboard - play notes with the computer keyboard"
-                          " while a piano strip is open (Z/X shift octave)"};
+                          "Play notes from the computer keyboard"};
     Mappable<IconButton> globalDiceBtn_{IconButton::Glyph::Dice,
-                                        "Roll the dice on every organism at once"
-                                        " (right-click to map a pad or an LFO)"};
+                                        "Randomise everything"};
     TempoSlider tempo_;
     TimeSigChip tsig_;
     juce::TextButton tapBtn_{"Tap"};
@@ -198,6 +245,7 @@ private:
         MainComponent& mc;
     };
     MetroMenu metroMenu_{*this};
+    void rollScope(const std::string& pod);
     void showMetroMenu();
     struct LinkMenu : juce::MouseListener {
         explicit LinkMenu(MainComponent& o) : mc(o) {}
@@ -212,7 +260,7 @@ private:
     ClockReadout clock_;
     ParamSlider masterLevel_{juce::Slider::RotaryVerticalDrag, juce::Slider::NoTextBox};
     juce::Label masterCaption_;
-    juce::TextButton limiterBtn_{"Lim"};
+    LitPad limiterBtn_{LitPad::Look{std::nullopt, "LIMIT"}};
     GroovePots groove_{host_};
     bool limGlowLit_ = false;
     TransportMeter meter_;
@@ -242,7 +290,8 @@ private:
     IconButton viewLibrary_{IconButton::Glyph::Library,
                             "Library (your samples and impulses - drag onto file slots)"};
     IconButton settingsBtn_{IconButton::Glyph::Gear, "Settings"};
-    juce::Label statusLabel_;
+    NoticeDesk notices_;
+    bool loadNoticeShown_ = false;
 
     std::unique_ptr<TracksPane> tracksPane_;
     std::unique_ptr<MetapadWindow> metaWindow_;
@@ -254,7 +303,7 @@ private:
     std::unique_ptr<UpdateNotice> updateNotice_;
     std::unique_ptr<AppUpdater> updater_;
     juce::File downloaded_;
-    std::unique_ptr<NagCard> nagCard_;
+    juce::int64 openSinceMs_ = 0;
     std::unique_ptr<DeviceWatch> deviceWatch_;
     void showDeviceNotice(const DeviceChange& change);
     CardStack cards_;
@@ -263,8 +312,8 @@ private:
                           const std::string& notes, const std::string& sha256);
     void placeUpdateNotice();
     void dismissUpdateNotice();
-    void maybeShowNag();
-    void dismissNag();
+    void noteOpenTime();
+    void noteBounce(double seconds);
     void flushTelemetry();
     juce::int64 lastTelemetryFlushMs_ = 0;
     juce::int64 lastTelemetrySaveMs_ = 0;
@@ -301,6 +350,10 @@ private:
     AutosaveStore autosave_;
     int autosaveTicks_ = 0;
     juce::uint64 lastAutosaveStamp_ = 0;
+    HostHistory history_{host_};
+    std::unique_ptr<browser::BrowserIndex> browserIndex_;
+    std::unique_ptr<browser::Audition> audition_;
+    std::unique_ptr<FreeWindow> historyWindow_;
     UiWatchdog watchdog_;
     int tickerId_ = 0;
     juce::String lastTitle_;
@@ -318,6 +371,7 @@ private:
     std::unique_ptr<FreeWindow> paramControlWindow_;
     std::unique_ptr<FreeWindow> notesWindow_;
     std::unique_ptr<FreeWindow> libraryWindow_;
+    browser::FileBrowserView* libraryView_ = nullptr;
     std::unique_ptr<FreeWindow> helpWindow_;
     std::unique_ptr<FreeWindow> docSwitcherWindow_;
     std::map<std::string, std::unique_ptr<PluginEditorWindow>> pluginWindows_;

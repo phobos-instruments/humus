@@ -26,7 +26,7 @@ struct Ref {
     bool isClip() const { return channel >= 0; }
     juce::String leaf() const {
         return resolved != juce::File() ? resolved.getFileName()
-                                        : juce::String(juce::CharPointer_UTF8(text.c_str()));
+                                        : juce::String(text);
     }
 };
 
@@ -64,7 +64,7 @@ inline juce::File resolveRef(const std::string& text, const std::string& classNa
     if (text.rfind(kAssetScheme, 0) == 0) return resolveAssetRef(juce::String(text));
     if (text.rfind(banks::kLegacyPrefix, 0) == 0) {
         const auto hit = banks::resolve(text, className);
-        return hit == text ? juce::File() : juce::File(juce::String(juce::CharPointer_UTF8(hit.c_str())));
+        return hit == text ? juce::File() : fileAt(hit);
     }
     const juce::String s = stripFileScheme(library::resolve(text));
     if (juce::File::isAbsolutePath(s)) return juce::File(s);

@@ -19,7 +19,7 @@ struct Sample {
     std::uint32_t size = 0;
 };
 
-struct Movie {
+struct Vid {
     bool ok = false;
     int width = 0, height = 0;
     double fps = 30.0;
@@ -162,8 +162,8 @@ inline void parseTrak(juce::InputStream& in, const Box& trak, TrackTables& t) {
 
 }
 
-inline Movie open(const juce::File& file) {
-    Movie m;
+inline Vid open(const juce::File& file) {
+    Vid m;
     juce::FileInputStream in(file);
     if (!in.openedOk()) return m;
     const auto end = in.getTotalLength();

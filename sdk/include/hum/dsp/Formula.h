@@ -31,7 +31,21 @@ enum FVar : std::uint8_t {
     fvNote, fvFreq, fvGate, fvVel,
     fvCh,
     fvDt,
+    fvIn0,
+    fvInLast = fvIn0 + 7,
     fvCount
+};
+
+struct FormulaInlets {
+    static constexpr int kMax = fvInLast - fvIn0 + 1;
+    static constexpr int kChars = 16;
+    char names[kMax][kChars] = {};
+    int count = 0;
+    int find(const char* name) const {
+        for (int k = 0; k < count; ++k)
+            if (std::strcmp(names[k], name) == 0) return k;
+        return -1;
+    }
 };
 
 struct FormulaProgram {
@@ -267,6 +281,7 @@ inline const Konst* constants(int& count) {
 
 struct Parser {
     const char* s;
+    const FormulaInlets* inlets = nullptr;
     int i = 0;
     int depth = 0;
     FormulaProgram prog;
@@ -357,7 +372,7 @@ struct Parser {
         skip();
         if (!(s[i] >= 'a' && s[i] <= 'z')) return false;
         int n = 0;
-        while ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= '0' && s[i] <= '9')) {
+        while ((s[i] >= 'a' && s[i] <= 'z') || (s[i] >= '0' && s[i] <= '9') || s[i] == '_') {
             if (n + 1 >= cap) { fail("name too long"); return false; }
             buf[n++] = s[i++];
         }
@@ -412,6 +427,10 @@ struct Parser {
                         emit(fns[f].op, (std::uint8_t) prog.n, 0.0f, 1 - fns[f].arity);
                         return;
                     }
+            }
+            if (const int k = inlets != nullptr ? inlets->find(name) : -1; k >= 0) {
+                emit(FOp::PushVar, (std::uint8_t) (fvIn0 + k), 0.0f, +1);
+                return;
             }
             int varCount = 0;
             const Var* vars = variables(varCount);
@@ -535,8 +554,9 @@ inline const char* formulaRoleName(FormulaRole r) {
     return r == FormulaRole::Effect ? "EFFECT" : r == FormulaRole::Voice ? "VOICE" : "MODULATOR";
 }
 
-inline bool compileFormula(const char* src, FormulaProgram& out, FormulaError* err = nullptr) {
-    formula_detail::Parser p{src != nullptr ? src : ""};
+inline bool compileFormula(const char* src, FormulaProgram& out, FormulaError* err = nullptr,
+                           const FormulaInlets* inlets = nullptr) {
+    formula_detail::Parser p{src != nullptr ? src : "", inlets};
     p.skip();
     if (p.s[p.i] == 0) {
         if (err != nullptr) *err = {"empty expression", 0};

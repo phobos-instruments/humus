@@ -34,6 +34,7 @@ void ParameterPanel::show(const std::string& name) {
     };
 
     for (const auto& d : schemaFor(cm->classRaw)) {
+        if (d.namedInlet) continue;
         Row row;
         row.param = d.name;
         row.label = std::make_unique<juce::Label>();
@@ -137,7 +138,7 @@ int ParameterPanel::labelLines() const {
         if (lh > 0.0f)
             lines = juce::jmax(lines, (int) std::lround(tl.getHeight() / lh));
     }
-    return juce::jlimit(1, 3, lines);
+    return juce::jlimit(1, 5, lines);
 }
 
 int ParameterPanel::labelHeight() const { return 16 + (labelLines() - 1) * 13; }

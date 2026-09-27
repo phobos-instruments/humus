@@ -6,6 +6,8 @@
 #include <set>
 #include <utility>
 
+#include "gui/editor/ControlArt.h"
+#include "gui/editor/juce/JuceControlArt.h"
 #include "gui/style/LookAndFeel.h"
 #include "hum/LayoutSpec.h"
 
@@ -21,6 +23,7 @@ struct Reader {
     std::vector<std::string>* problems;
     std::string where;
     const Skin::Anchors* anchors = nullptr;
+    std::string dir;
 
     void problem(const std::string& what) const {
         if (problems != nullptr) problems->push_back(where + ": " + what);
@@ -58,14 +61,15 @@ const std::set<std::string>& knownKeys() {
     static const std::set<std::string> keys{
         "shape", "theme", "x", "y", "w", "h", "fill", "stroke", "stroke-width", "radius",
         "pitch", "offset", "margin", "inset", "size", "spread", "mark", "text", "font-size",
-        "bold", "justify", "shadow", "around", "pad"};
+        "bold", "justify", "shadow", "around", "pad", "src"};
     return keys;
 }
 
 bool shapeFrom(const juce::String& s, SkinLayer::Shape& out) {
     using S = SkinLayer::Shape;
     static const std::pair<const char*, S> names[] = {
-        {"rect", S::Rect}, {"lines", S::Lines}, {"screws", S::Screws}, {"lamp", S::Lamp}, {"text", S::Text}};
+        {"rect", S::Rect}, {"lines", S::Lines}, {"screws", S::Screws}, {"lamp", S::Lamp}, {"text", S::Text},
+        {"image", S::Image}};
     for (const auto& [n, v] : names)
         if (s == n) { out = v; return true; }
     return false;
@@ -153,6 +157,11 @@ SkinLayer readLayer(const Reader& in) {
     l.size = in.number("size", l.size);
     l.spread = in.number("spread", 0.0f);
     l.text = in.layer["text"].toString();
+    if (l.shape == SkinLayer::Shape::Image) {
+        const auto src = in.layer["src"].toString().toStdString();
+        l.image = ArtImage::load(art::pathIn(in.dir, src)).image;
+        if (!l.image.isValid()) in.problem("no image at '" + src + "'");
+    }
     l.fontSize = in.number("font-size", l.fontSize);
     l.bold = (bool) in.layer.getProperty("bold", false);
     if (const auto j = in.layer["justify"].toString(); j.isNotEmpty() && !justifyFrom(j, l.justify))
@@ -226,10 +235,11 @@ Skin Skin::forBlueprint(const LayoutSpec& spec, std::vector<std::string>* proble
             if (c.param == param && found++ == 0)
                 area = {(float) c.x, (float) c.y, (float) c.w, (float) c.h};
         return found == 1;
-    });
+    }, spec.dir);
 }
 
-Skin Skin::parse(const std::string& json, std::vector<std::string>* problems, const Anchors& anchors) {
+Skin Skin::parse(const std::string& json, std::vector<std::string>* problems, const Anchors& anchors,
+                 const std::string& dir) {
     Skin skin;
     const auto root = juce::JSON::parse(juce::String::fromUTF8(json.c_str()));
     if (!root.isObject()) {
@@ -250,7 +260,7 @@ Skin Skin::parse(const std::string& json, std::vector<std::string>* problems, co
         auto& into = face ? skin.face_ : skin.panel_;
         for (int i = 0; i < list.size(); ++i)
             into.push_back(readLayer({list[i], problems, std::string(part) + "[" + std::to_string(i) + "]",
-                                      face ? &anchors : nullptr}));
+                                      face ? &anchors : nullptr, dir}));
     }
     return skin;
 }
@@ -270,6 +280,7 @@ void Skin::paint(juce::Graphics& g, const std::vector<SkinLayer>& layers, juce::
             case SkinLayer::Shape::Screws: paintScrews(g, l, r); break;
             case SkinLayer::Shape::Lamp: paintLamp(g, l, r.getPosition()); break;
             case SkinLayer::Shape::Text: paintText(g, l, r); break;
+            case SkinLayer::Shape::Image: g.drawImage(l.image, r, juce::RectanglePlacement::stretchToFit); break;
         }
     }
 }

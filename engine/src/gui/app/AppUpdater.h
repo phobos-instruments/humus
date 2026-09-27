@@ -20,11 +20,12 @@ public:
     std::function<void(bool ok, juce::String message, juce::File file)> onDone;
 
     void start(const juce::String& url, const juce::String& sha256,
-               const juce::String& version) {
+               const juce::String& version, const juce::String& instanceId = {}) {
         stopThread(2000);
         url_ = url;
         sha_ = sha256.toLowerCase();
         version_ = version;
+        instance_ = instanceId;
         startThread();
     }
 
@@ -58,8 +59,13 @@ private:
         auto leaf = url.getFileName();
         if (leaf.isEmpty()) leaf = "Humus-" + version_;
 
+        juce::String headers = "x-humus-version: " + version_;
+        if (instance_.isNotEmpty())
+            headers << "\r\nx-humus-instance: " << instance_;
+
         auto stream = url.createInputStream(
             juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                .withExtraHeaders(headers)
                 .withConnectionTimeoutMs(15000)
                 .withNumRedirectsToFollow(5));
         if (stream == nullptr) {
@@ -125,7 +131,7 @@ private:
         finish(true, sha_.isEmpty() ? tr("app-updater.downloaded-unchecked", "Downloaded (unchecked)") : "Downloaded", target);
     }
 
-    juce::String url_, sha_, version_;
+    juce::String url_, sha_, version_, instance_;
 };
 
 }

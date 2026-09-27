@@ -58,6 +58,8 @@ public:
     bool deleteSelectedNotes();
     bool duplicateSelectedNotes();
     void quantiseSelectedNotes(int gridTicks);
+    int selectedNotesColour() const;
+    void colourSelectedNotes(int colour, bool asUndoStep = true);
     int selectedClip() const { return selClip_; }
     void selectClip(int clip);
     void resizeSelectedClipTo(int absTick, bool fromLeft);
@@ -96,6 +98,7 @@ private:
     void commitNotes(std::map<int, std::vector<NoteEvent>> perClip, const std::vector<NoteKey>& keep);
     void eraseNoteUnder(juce::Point<int> p);
     void showNoteMenu(juce::Point<int> screenPos);
+    void openNoteColourPicker(juce::Point<int> screenPos);
     void soundRollKey(int pitch);
     bool mouseDownRoll(const juce::MouseEvent& e, juce::Point<int> p);
     bool mouseDownRollGrid(const juce::MouseEvent& e, juce::Point<int> p);

@@ -23,6 +23,10 @@
     },
     {
       "type": "file-transport",
+      "stop": "Stop",
+      "rewind": "Rewind",
+      "seek-back": "SeekBack",
+      "seek-forward": "SeekForward",
       "active": "Play",
       "loop": "Loop",
       "label": "",
@@ -33,27 +37,9 @@
     },
     {
       "type": "toggle",
-      "param": "Play",
-      "label": "Play",
-      "x": 8,
-      "y": 116,
-      "w": 90,
-      "h": 24
-    },
-    {
-      "type": "toggle",
-      "param": "Loop",
-      "label": "Loop",
-      "x": 104,
-      "y": 116,
-      "w": 90,
-      "h": 24
-    },
-    {
-      "type": "toggle",
       "param": "FollowHost",
       "label": "Host tempo",
-      "x": 200,
+      "x": 8,
       "y": 116,
       "w": 132,
       "h": 24
@@ -62,7 +48,7 @@
       "type": "int-spinner",
       "param": "Chips",
       "label": "Chips",
-      "x": 340,
+      "x": 148,
       "y": 116,
       "w": 110,
       "h": 24
@@ -71,7 +57,7 @@
       "type": "knob",
       "param": "Level",
       "label": "Level",
-      "x": 462,
+      "x": 270,
       "y": 112,
       "w": 60,
       "h": 60
@@ -118,7 +104,8 @@
       "x": 38,
       "y": 226,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel1"
     },
     {
       "type": "minitoggle",
@@ -127,7 +114,8 @@
       "x": 202,
       "y": 226,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel1"
     },
     {
       "type": "label",
@@ -144,7 +132,8 @@
       "x": 38,
       "y": 252,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel2"
     },
     {
       "type": "minitoggle",
@@ -153,7 +142,8 @@
       "x": 202,
       "y": 252,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel2"
     },
     {
       "type": "label",
@@ -170,7 +160,8 @@
       "x": 38,
       "y": 278,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel3"
     },
     {
       "type": "minitoggle",
@@ -179,7 +170,8 @@
       "x": 202,
       "y": 278,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel3"
     },
     {
       "type": "label",
@@ -196,7 +188,8 @@
       "x": 38,
       "y": 304,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel4"
     },
     {
       "type": "minitoggle",
@@ -205,7 +198,8 @@
       "x": 202,
       "y": 304,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel4"
     },
     {
       "type": "label",
@@ -222,7 +216,8 @@
       "x": 38,
       "y": 330,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel5"
     },
     {
       "type": "minitoggle",
@@ -231,7 +226,8 @@
       "x": 202,
       "y": 330,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel5"
     },
     {
       "type": "label",
@@ -248,7 +244,8 @@
       "x": 38,
       "y": 356,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel6"
     },
     {
       "type": "minitoggle",
@@ -257,7 +254,8 @@
       "x": 202,
       "y": 356,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel6"
     },
     {
       "type": "label",
@@ -274,7 +272,8 @@
       "x": 38,
       "y": 382,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel7"
     },
     {
       "type": "minitoggle",
@@ -283,7 +282,8 @@
       "x": 202,
       "y": 382,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel7"
     },
     {
       "type": "label",
@@ -300,7 +300,8 @@
       "x": 38,
       "y": 408,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel8"
     },
     {
       "type": "minitoggle",
@@ -309,7 +310,8 @@
       "x": 202,
       "y": 408,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel8"
     },
     {
       "type": "label",
@@ -326,7 +328,8 @@
       "x": 334,
       "y": 226,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel9"
     },
     {
       "type": "minitoggle",
@@ -335,7 +338,8 @@
       "x": 498,
       "y": 226,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel9"
     },
     {
       "type": "label",
@@ -352,7 +356,8 @@
       "x": 334,
       "y": 252,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel10"
     },
     {
       "type": "minitoggle",
@@ -361,7 +366,8 @@
       "x": 498,
       "y": 252,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel10"
     },
     {
       "type": "label",
@@ -378,7 +384,8 @@
       "x": 334,
       "y": 278,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel11"
     },
     {
       "type": "minitoggle",
@@ -387,7 +394,8 @@
       "x": 498,
       "y": 278,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel11"
     },
     {
       "type": "label",
@@ -404,7 +412,8 @@
       "x": 334,
       "y": 304,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel12"
     },
     {
       "type": "minitoggle",
@@ -413,7 +422,8 @@
       "x": 498,
       "y": 304,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel12"
     },
     {
       "type": "label",
@@ -430,7 +440,8 @@
       "x": 334,
       "y": 330,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel13"
     },
     {
       "type": "minitoggle",
@@ -439,7 +450,8 @@
       "x": 498,
       "y": 330,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel13"
     },
     {
       "type": "label",
@@ -456,7 +468,8 @@
       "x": 334,
       "y": 356,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel14"
     },
     {
       "type": "minitoggle",
@@ -465,7 +478,8 @@
       "x": 498,
       "y": 356,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel14"
     },
     {
       "type": "label",
@@ -482,7 +496,8 @@
       "x": 334,
       "y": 382,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel15"
     },
     {
       "type": "minitoggle",
@@ -491,7 +506,8 @@
       "x": 498,
       "y": 382,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel15"
     },
     {
       "type": "label",
@@ -508,7 +524,8 @@
       "x": 334,
       "y": 408,
       "w": 158,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel16"
     },
     {
       "type": "minitoggle",
@@ -517,7 +534,8 @@
       "x": 498,
       "y": 408,
       "w": 88,
-      "h": 24
+      "h": 24,
+      "dim-when": "!?channel16"
     }
   ]
 }

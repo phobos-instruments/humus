@@ -1,12 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <memory>
 #include <string>
 #include <vector>
 
-#include <juce_events/juce_events.h>
-
 #include "gui/host/BrickHost.h"
+#include "gui/host/HostScheduler.h"
 
 namespace hum {
 
@@ -21,10 +21,11 @@ struct GamepadSnapshot {
 
 void gamepadPlatformPoll(std::vector<GamepadSnapshot>& out);
 
-class GamepadHost : private juce::Timer {
+class GamepadHost {
 public:
-    explicit GamepadHost(BrickHost& host) : host_(host) {}
-    ~GamepadHost() override { stopTimer(); }
+    static constexpr int kPollMs = 33;
+
+    GamepadHost(BrickHost& host, HostScheduler& scheduler) : host_(host), scheduler_(scheduler) {}
 
     void setEnabled(bool on);
     bool enabled() const { return enabled_; }
@@ -33,7 +34,7 @@ public:
     std::string statusText() const;
 
 private:
-    void timerCallback() override;
+    void poll();
 
     struct Last {
         float axes[GamepadSnapshot::kAxes] = {};
@@ -42,6 +43,8 @@ private:
     };
 
     BrickHost& host_;
+    HostScheduler& scheduler_;
+    std::unique_ptr<HostRepeat> polling_;
     std::vector<Last> last_;
     std::vector<std::string> names_;
     bool enabled_ = false;

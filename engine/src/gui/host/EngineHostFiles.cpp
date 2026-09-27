@@ -11,8 +11,44 @@
 #include <vector>
 
 #include "hum/caps/Files.h"
+#include "gui/editor/files/TransportModel.h"
 
 namespace hum {
+
+namespace {
+
+struct TransportTrigger { const char* param; double seconds; bool stops, toStart; };
+
+const TransportTrigger kTransport[] = {
+    {"Stop", 0.0, true, true},
+    {"Rewind", 0.0, false, true},
+    {"SeekBack", -files::kNudgeSeconds, false, false},
+    {"SeekForward", files::kNudgeSeconds, false, false},
+};
+
+}
+
+bool FileHost::fireTrigger(const std::string& name, const std::string& param, double value) {
+    if (audio_.graph() == nullptr) return false;
+    auto* cap = dynamic_cast<FileTransportCap*>(audio_.graph()->find(name));
+    if (cap == nullptr) return false;
+    for (const auto& t : kTransport) {
+        if (param != t.param) continue;
+        if (value < 0.5) return true;
+        if (t.stops)
+            if (const auto play = cap->playSwitch(); !play.empty())
+                host_.setParam(name, play, 0.0);
+        if (t.toStart) cap->requestSeekSamples(0);
+        else {
+            const auto at = files::nudgedSample(cap->playbackPositionSamples(),
+                                                cap->fileLengthSamples(),
+                                                cap->playbackSampleRate(), t.seconds);
+            if (at >= 0) cap->requestSeekSamples(at);
+        }
+        return true;
+    }
+    return false;
+}
 
 std::int64_t FileHost::playbackPosition(const std::string& name) {
     if (audio_.graph())
@@ -67,7 +103,7 @@ void FileHost::setRecorderActive(const std::string& name, bool on) {
     const auto takesDir = recording_.recorder().recordingsDir().getChildFile("samples");
     const auto now = juce::Time::getCurrentTime();
     const auto stamped = [&](int track) {
-        juce::String stem = juce::String(juce::CharPointer_UTF8(name.c_str())) + "-"
+        juce::String stem = juce::String(name) + "-"
                             + now.formatted("%Y%m%d-%H%M%S") + "-"
                             + juce::String(now.getMilliseconds()).paddedLeft('0', 3);
         if (track > 1) stem += "-" + juce::String(track);
@@ -77,9 +113,9 @@ void FileHost::setRecorderActive(const std::string& name, bool on) {
             .toStdString();
     };
     const auto ourOwn = [&](const std::string& path) {
-        const juce::File f(juce::String(juce::CharPointer_UTF8(strip(path).c_str())));
+        const juce::File f(juce::String(strip(path)));
         return f.getParentDirectory() == takesDir
-               && f.getFileName().startsWith(juce::String(juce::CharPointer_UTF8(name.c_str()))
+               && f.getFileName().startsWith(juce::String(name)
                                              + "-");
     };
 

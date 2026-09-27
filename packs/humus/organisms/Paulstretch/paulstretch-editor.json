@@ -11,7 +11,7 @@
       "h": 16
     },
     {
-      "type": "soundfile",
+      "type": "soundfile", "kind": "Samples",
       "param": "File",
       "label": "",
       "x": 8,
@@ -21,6 +21,10 @@
     },
     {
       "type": "file-transport",
+      "stop": "Stop",
+      "rewind": "Rewind",
+      "seek-back": "SeekBack",
+      "seek-forward": "SeekForward",
       "active": "Active",
       "loop": "Loop",
       "label": "",

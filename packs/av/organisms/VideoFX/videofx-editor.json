@@ -1,6 +1,6 @@
 {
   "width": 600,
-  "height": 196,
+  "height": 226,
   "controls": [
     {
       "type": "knob",
@@ -123,6 +123,28 @@
       "y": 122,
       "w": 84,
       "h": 22
+    },
+    {
+      "type": "knob",
+      "param": "LUTMix",
+      "label": "Look",
+      "x": 492,
+      "y": 100,
+      "w": 84,
+      "h": 84,
+      "decimals": 0
+    },
+    {
+      "type": "soundfile",
+      "param": "LUT",
+      "label": "LUT",
+      "x": 12,
+      "y": 192,
+      "w": 576,
+      "h": 24,
+      "filter": "*.cube",
+      "title": "Choose a colour LUT",
+      "tooltip": "A .cube colour table. Look mixes it in."
     }
   ]
 }

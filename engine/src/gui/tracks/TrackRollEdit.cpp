@@ -11,7 +11,6 @@
 #include "gui/host/TracksHost.h"
 #include "gui/pianoroll/NoteEdit.h"
 #include "gui/tracks/CutGuide.h"
-#include "gui/tracks/QuantiseMenu.h"
 #include "io/PatchDocument.h"
 #include "hum/dsp/DspMath.h"
 
@@ -325,36 +324,6 @@ void TrackRollView::snapshotNotes() {
     for (const auto& ci : clips)
         base_[ci.index] = host().clips().notes(node_, ci.index);
     selBase_ = sel_;
-}
-
-void TrackRollView::showNoteMenu(juce::Point<int> screenPos) {
-    enum { kNoteDelete = 1, kNoteLouder, kNoteSofter, kNoteSelectAll };
-    juce::PopupMenu m;
-    const int n = (int) sel_.size();
-    const auto count = n == 1 ? juce::String("note") : juce::String(n) + " notes";
-    m.addSectionHeader(n > 0 ? count : juce::String(tr("tracks-pane-menu.no-notes-selected", "No notes selected")));
-    m.addItem(kNoteSelectAll, tr("tracks-pane-menu.select-all", "Select All"), true);
-    if (n > 0) {
-        m.addSeparator();
-        m.addSubMenu(tr("tracks-pane-menu.quantise-to", "Quantise to"), quantise::menu(ctx_.gridBeats()));
-        m.addSeparator();
-        m.addItem(kNoteLouder, tr("tracks-pane-menu.louder", "Louder"));
-        m.addItem(kNoteSofter, tr("tracks-pane-menu.softer", "Softer"));
-        m.addSeparator();
-        m.addItem(kNoteDelete, tr("tracks-pane-menu.delete", "Delete"));
-    }
-    m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screenPos, screenPos}),
-                    [this](int res) {
-        if (res == 0) return;
-        if (res == kNoteSelectAll) { selectAllNotes(); return; }
-        if (const int q = quantise::ticksFor(res, ctx_.gridBeats()); q > 0) {
-            quantiseSelectedNotes(q);
-            return;
-        }
-        if (res == kNoteDelete) { deleteSelectedNotes(); ctx_.rebuildRows(); return; }
-        if (res == kNoteLouder) nudgeNotes(0, 0, 10);
-        if (res == kNoteSofter) nudgeNotes(0, 0, -10);
-    });
 }
 
 }

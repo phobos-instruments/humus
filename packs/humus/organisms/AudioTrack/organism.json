@@ -2,6 +2,7 @@
   "classes": [
     {
       "class": "AudioTrack",
+      "blurb": "A timeline row that plays its audio clips and records takes of what reaches it.",
       "roles": ["audio-track"],
       "category": "Sequencers",
       "params": [

@@ -3,6 +3,7 @@
 #include "gui/video/VisualPlanBuilder.h"
 #include "hum/dsp/DspMath.h"
 #include "hum/caps/Audio.h"
+#include "hum/caps/Files.h"
 #include "hum/caps/Video.h"
 
 #include <cmath>
@@ -235,6 +236,14 @@ void VisualPlanBuilder::buildFxStep(const std::string& node, visual::Step& s) {
     f.invert = paramOr(node, "Invert", 0.0f) >= 0.5f ? 1.0f : 0.0f;
     f.pixelate = paramOr(node, "Pixelate", 0.0f);
     f.mirror = (int) paramOr(node, "Mirror", 0.0f);
+    f.lut = loadLut(paramText(node, "LUT"));
+    f.lutMix = juce::jlimit(0.0f, 1.0f, paramOr(node, "LUTMix", 1.0f));
+    if (auto* flash = dynamic_cast<VideoFlashSource*>(host_.liveOrganism(node))) {
+        f.flashCount = flash->flashCount();
+        f.flashSeconds = std::max(0.0f, flash->flashSeconds());
+        f.flashStrength = juce::jlimit(0.0f, 1.0f, flash->flashStrength());
+        flash->flashColour(f.flashR, f.flashG, f.flashB);
+    }
     s.active = true;
 }
 
@@ -262,10 +271,16 @@ bool VisualPlanBuilder::padOutletWired(const std::string& node, int slot) const 
 void VisualPlanBuilder::buildClipsStep(const std::string& node, VideoPadSource& clips, visual::Step& s, visual::Plan& p, std::set<std::string>& live, std::map<std::string, int>& stepOf) {
     const auto st = clips.clipState();
     auto& launch = decks_[node];
+    launch.owner = node;
     const bool launched = launch.trigSeen && st.launches != launch.lastTrig;
     launch.trigSeen = true;
     launch.lastTrig = st.launches;
     const float rate = paramOr(node, "Rate", 1.0f);
+    auto* heads = dynamic_cast<ClipPlayhead*>(host_.liveOrganism(node));
+    const double lag = exact_ || heads == nullptr
+                           ? 0.0
+                           : pictureLagSeconds(host_.blockSize(), host_.outputLatencySamples(),
+                                               host_.sampleRate());
     for (int slot = 0; slot < clips.clipCount(); ++slot) {
         const auto n = std::to_string(slot + 1);
         const auto key = node + "/" + n;
@@ -273,6 +288,7 @@ void VisualPlanBuilder::buildClipsStep(const std::string& node, VideoPadSource& 
         if (path.isEmpty()) continue;
         live.insert(key);
         auto& d = decks_[key];
+        d.owner = node;
         auto layer = openDeck(d, key, path);
         if (layer == nullptr) continue;
         VideoLayer::LoopRange r;
@@ -283,14 +299,17 @@ void VisualPlanBuilder::buildClipsStep(const std::string& node, VideoPadSource& 
             d.range = r;
             layer->setLoopRange(r);
         }
-        if (std::abs(rate - d.lastRate) > 1.0e-3f) {
+        const double heard = heads != nullptr ? heads->clipSeconds(slot) : -1.0;
+        if (heard >= 0.0) {
+            followPlayhead(d, std::max(0.0, heard - lag), rate);
+        } else if (std::abs(rate - d.lastRate) > 1.0e-3f) {
             d.lastRate = rate;
             layer->setRate(rate);
         }
         clips.noteClipLength(slot, layer->lengthSeconds());
         const bool wired = padOutletWired(node, slot);
         const bool onStage = slot == st.active || slot == st.outgoing || wired;
-        if (launched && slot == st.active) layer->restart();
+        if (launched && slot == st.active && heads == nullptr) layer->restart();
         if (d.staged != (onStage ? 1 : 0)) {
             d.staged = onStage ? 1 : 0;
             layer->setPaused(!onStage);
@@ -329,6 +348,7 @@ int VisualPlanBuilder::stageTrackClip(const std::string& node, const VideoTimeli
     const auto key = node + "/c" + std::to_string(cue.clip);
     live.insert(key);
     auto& d = decks_[key];
+    d.owner = node;
     auto layer = openDeck(d, key, juce::String(tape));
     if (layer == nullptr) return -1;
     layer->chase(cue.seconds, exact_ ? 0.0 : cue.rolling ? cue.rate : 0.0);
@@ -369,17 +389,52 @@ void VisualPlanBuilder::buildTrackStep(const std::string& node, const VideoTimel
     if (next.clip >= 0 && next.clip != cue.clip) stageTrackClip(node, track, next, false, p, live);
 }
 
+void VisualPlanBuilder::followPlayhead(DeckState& d, double seconds, double rate) {
+    const auto step = followStep(d.lastSeek, d.lastRate, seconds, (float) (exact_ ? 0.0 : rate));
+    if (!step.chase) return;
+    d.lastSeek = step.seconds;
+    d.lastRate = step.rate;
+    d.layer->chase(step.seconds, step.rate);
+    if (exact_) settle(*d.layer, step.seconds, d);
+}
+
 void VisualPlanBuilder::buildDeckStep(const std::string& node, visual::Step& s) {
+    const bool wantsStamp = paramOr(node, "Timestamp", 0.0f) >= 0.5f;
     auto& d = decks_[node];
-    if (auto* cam = dynamic_cast<CamPreviewSource*>(host_.liveOrganism(node)))
+    d.owner = node;
+    auto* org = host_.liveOrganism(node);
+    if (auto* cam = dynamic_cast<CamPreviewSource*>(org))
         return buildCameraStep(*cam, d, s);
-    if (openDeck(d, node, paramText(node, "File")) == nullptr) return;
-    const auto rate = paramOr(node, "Rate", 1.0f);
-    if (std::abs(rate - d.lastRate) > 1.0e-3f) {
-        d.lastRate = rate;
-        d.layer->setRate(rate);
+    auto* deck = dynamic_cast<DeckControl*>(org);
+    double at = 0.0;
+    if (deck != nullptr) {
+        const double sr = deck->playbackSampleRate();
+        const double lag = exact_ ? 0.0
+                                  : pictureLagSeconds(host_.blockSize(),
+                                                      host_.outputLatencySamples(),
+                                                      host_.sampleRate());
+        const double ahead = sr > 0.0 ? (double) deck->playbackPositionSamples() / sr : 0.0;
+        const double trim = (double) paramOr(node, "PictureSync", 0.0f) * 0.001;
+        at = std::max(0.0, ahead - lag * std::abs(deck->playbackSpeed()) + trim);
+        if (wantsStamp) s.stamps.push_back({node, at});
     }
-    if (auto* vn = dynamic_cast<VideoNode*>(host_.liveOrganism(node))) {
+    const auto* held = dynamic_cast<LoadedPicture*>(org);
+    if (openDeck(d, node, held != nullptr ? juce::String(held->loadedPicture())
+                                          : paramText(node, "File")) == nullptr) return;
+    if (deck != nullptr) {
+        followPlayhead(d, at, deck->playbackSpeed());
+    } else if (paramOr(node, "Follow", 0.0f) >= 0.5f) {
+        const double span = d.layer->lengthSeconds();
+        if (span > 0.0) followPlayhead(d, (double) paramOr(node, "Position", 0.0f) * span, 0.0);
+    } else {
+        d.lastSeek = -1.0;
+        const auto rate = paramOr(node, "Rate", 1.0f);
+        if (std::abs(rate - d.lastRate) > 1.0e-3f) {
+            d.lastRate = rate;
+            d.layer->setRate(rate);
+        }
+    }
+    if (auto* vn = dynamic_cast<VideoNode*>(org)) {
         const unsigned t = vn->videoLaunchCount();
         if (!d.trigSeen) { d.trigSeen = true; d.lastTrig = t; }
         else if (t != d.lastTrig) { d.lastTrig = t; d.layer->restart(); }

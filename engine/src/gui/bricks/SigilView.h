@@ -1,8 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
-#include <array>
-
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/style/Colours.h"
@@ -12,7 +10,7 @@
 #include "gui/style/LookAndFeel.h"
 #include "gui/editor/OrganismEditor.h"
 #include "gui/common/UiTicker.h"
-#include "hum/caps/Video.h"
+#include "gui/editor/readouts/ScopeReadings.h"
 
 namespace hum {
 
@@ -36,12 +34,11 @@ public:
         g.setColour(Palette::border);
         g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 4.0f, 1.0f);
 
-        auto* src = dynamic_cast<SigilSource*>(host_.liveOrganism(name_));
-        if (src == nullptr) return;
+        if (!readout::Sigil::present(host_, name_)) return;
         const double t = frozenClock() >= 0.0
                              ? frozenClock()
                              : juce::Time::getMillisecondCounterHiRes() * 0.001;
-        const int n = src->sigil(prims_.data(), (int) prims_.size(), t);
+        const int n = reading_.draw(host_, name_, t);
         if (n <= 0) return;
 
         juce::Colour fam = Palette::accent;
@@ -50,7 +47,7 @@ public:
         juce::Image img(juce::Image::ARGB, kGrid, kGrid, true);
         {
             juce::Graphics ig(img);
-            for (int i = 0; i < n; ++i) drawPrim(ig, prims_[(size_t) i], fam);
+            for (int i = 0; i < n; ++i) drawPrim(ig, reading_.prim(i), fam);
         }
         const auto cell = r.reduced(3).toFloat();
         const float side = juce::jmin(cell.getWidth(), cell.getHeight());
@@ -96,13 +93,13 @@ public:
 
 private:
     void timerCallback() override {
-        if (dynamic_cast<SigilSource*>(host_.liveOrganism(name_)) != nullptr) repaint();
+        if (readout::Sigil::present(host_, name_)) repaint();
     }
 
     BrickHost& host_;
     int tickerId_ = 0;
     std::string name_;
-    std::array<SigilSource::Prim, 48> prims_;
+    readout::Sigil reading_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SigilView)
 };

@@ -188,8 +188,8 @@ void GlCanvas::renderScene(const visual::Step& s, int w, int h, juce::String& fi
         glActiveTexture((GLenum) (GL_TEXTURE0 + kUnderUnit));
         glBindTexture(GL_TEXTURE_2D, sp.under);
         glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
-        const auto l = loc("u_texture");
-        if (l >= 0) glUniform1i(l, kUnderUnit);
+        for (const char* name : {"u_texture", "hum_Input"})
+            if (const auto l = loc(name); l >= 0) glUniform1i(l, kUnderUnit);
     }
 
     if (sp.imageTex.size() != s.scene.images.size()) {
@@ -212,8 +212,8 @@ void GlCanvas::renderScene(const visual::Step& s, int w, int h, juce::String& fi
     if (sp.finalTex != 0) {
         glActiveTexture((GLenum) (GL_TEXTURE0 + finalUnit));
         glBindTexture(GL_TEXTURE_2D, sp.finalTex);
-        const auto l = loc("syn_FinalPass");
-        if (l >= 0) glUniform1i(l, finalUnit);
+        for (const char* name : {"syn_FinalPass", "hum_Feedback"})
+            if (const auto l = loc(name); l >= 0) glUniform1i(l, finalUnit);
     }
 
     for (int j = 0; j < (int) sp.feedback.size(); ++j) {

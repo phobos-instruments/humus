@@ -4,32 +4,71 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
 
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
 
-FormulaProgram MathNode::compileExpression(const std::string& source, const FormulaProgram& last) {
+FormulaProgram MathNode::compileExpression(const std::string& source, const FormulaProgram& last,
+                                           const FormulaInlets& inlets) {
     FormulaProgram prog = last;
     std::string text = source;
-    while (!compileFormula(text.c_str(), prog) && !prog.valid() && text.size() > 1)
+    while (!compileFormula(text.c_str(), prog, nullptr, &inlets) && !prog.valid() && text.size() > 1)
         text.pop_back();
     return prog;
+}
+
+void MathNode::setInletNames(const char (*names)[kNameChars], int count) {
+    FormulaInlets next;
+    next.count = std::clamp(count, 0, FormulaInlets::kMax);
+    for (int k = 0; k < next.count; ++k)
+        std::snprintf(next.names[k], FormulaInlets::kChars, "%s", names[k]);
+    bool same = next.count == inlets_.count;
+    for (int k = 0; same && k < next.count; ++k) same = std::strcmp(next.names[k], inlets_.names[k]) == 0;
+    if (same) return;
+    inlets_ = next;
+    pendingProg_.publish(compileExpression(appliedText_, prog_, inlets_));
+}
+
+bool MathNode::readsName(const char* name) const {
+    const std::string& text = appliedText_;
+    const size_t len = std::strlen(name);
+    auto identChar = [](char c) { return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '_'; };
+    for (size_t at = text.find(name); at != std::string::npos; at = text.find(name, at + 1)) {
+        const bool startOk = at == 0 || !identChar(text[at - 1]);
+        const bool endOk = at + len >= text.size() || !identChar(text[at + len]);
+        if (startOk && endOk) return true;
+    }
+    return false;
+}
+
+const char* MathNode::knobForName(const char* name) const {
+    static const char* const kKnobs[][2] = {{"x", "X"}, {"y", "Y"}, {"z", "Z"}, {"w", "W"}};
+    for (const auto& k : kKnobs)
+        if (std::strcmp(name, k[0]) == 0) return k[1];
+    return nullptr;
+}
+
+int MathNode::inletNames(char (*out)[kNameChars], int capacity) const {
+    const int n = std::min(capacity, inlets_.count);
+    for (int k = 0; k < n; ++k) std::snprintf(out[k], kNameChars, "%s", inlets_.names[k]);
+    return n;
 }
 
 void MathNode::syncExpression() {
     const std::string text = params.getText("Expression");
     if (text == appliedText_) return;
     appliedText_ = text;
-    prog_ = compileExpression(text, prog_);
+    prog_ = compileExpression(text, prog_, inlets_);
     for (auto& st : state_) seedFormulaState(st.data(), prog_);
 }
 
 void MathNode::onTextChanged(const std::string& param, const std::string& text) {
     if (param != "Expression") return;
     appliedText_ = text;
-    pendingProg_.publish(compileExpression(text, prog_));
+    pendingProg_.publish(compileExpression(text, prog_, inlets_));
 }
 
 void MathNode::process(const float* const* in, int numIn, float* const* out, int numOut,
@@ -70,6 +109,8 @@ void MathNode::process(const float* const* in, int numIn, float* const* out, int
     env.dt = (float) (1.0 / sampleRate_);
     env.v[fvBpm] = (float) transport.tempo();
     env.v[fvSr] = (float) sampleRate_;
+    for (int k = 0; k < FormulaInlets::kMax; ++k)
+        env.v[fvIn0 + k] = inletValues_[(size_t) k].load(std::memory_order_relaxed);
 
     const float* a = (numIn > 0 && in != nullptr) ? in[0] : nullptr;
     const float* b = (numIn > 1 && in != nullptr) ? in[1] : nullptr;

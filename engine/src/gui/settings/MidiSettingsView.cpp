@@ -3,6 +3,7 @@
 #include "gui/settings/MidiSettingsView.h"
 #include "gui/host/EngineHostMidiControl.h"
 #include "gui/host/GamepadHost.h"
+#include "gui/properties/ControlModeText.h"
 
 namespace hum {
 
@@ -285,14 +286,16 @@ void MidiSettingsView::rebuildMappings() {
     };
     for (const auto& m : host_->midi().map().modifiers()) addModifierRow(m);
     for (const auto& e : entries)
-        addRow(juce::String(midiSourceLabel(e.source())) + "   " + juce::String(e.organism)
+        addRow(juce::String(midiSourceLabel(e.source())) + "   [" + behaviourText(e.shape) + "]   "
+                   + juce::String(e.organism)
                    + " / " + juce::String(e.param) + "   (" + juce::String(e.min, 2)
                    + " .. " + juce::String(e.max, 2) + ")",
                [this, src = e.source(), c = e.organism, p = e.param] {
                    if (host_ != nullptr) host_->midi().clearCC(src, c, p);
                });
     for (const auto& e : oscEntries)
-        addRow("OSC " + juce::String(e.address) + "   " + juce::String(e.organism)
+        addRow("OSC " + juce::String(e.address) + "   [" + behaviourText(e.shape) + "]   "
+                   + juce::String(e.organism)
                    + " / " + juce::String(e.param) + "   (" + juce::String(e.min, 2)
                    + " .. " + juce::String(e.max, 2) + ")",
                [this, a = e.address, c = e.organism, p = e.param] {
@@ -313,7 +316,7 @@ void MidiSettingsView::rebuildMappings() {
 void MidiSettingsView::addModifierRow(const MidiModifier& m) {
     MapRow row;
     row.text = std::make_unique<juce::Label>();
-    row.text->setText(juce::String(midiSourceLabel(m.source)) + tr("midi-settings.shift-button", "   shift button"),
+    row.text->setText(juce::String(midiSourceLabel(m.source)) + tr("midi-settings.combo-key", "   combo key"),
                       juce::dontSendNotification);
     row.text->setFont(juce::FontOptions(12.0f));
     mapRows_.addAndMakeVisible(*row.text);

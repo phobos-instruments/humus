@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <vector>
 
@@ -17,9 +18,9 @@ namespace {
 constexpr int kFftOrder = 12;
 constexpr int kWin = 1 << kFftOrder;
 constexpr int kBins = kWin / 2;
-constexpr int kFeatures = 6;
-
-using Feature = std::array<float, kFeatures>;
+static_assert(kWin == SoundSpace::kWindow);
+constexpr int kFeatures = SoundSpace::kFeatures;
+using Feature = SoundSpace::Feature;
 
 Feature featuresOf(const float* mags, const float* time, int timeLen,
                    const float* prevMags, double sampleRate) {
@@ -57,7 +58,9 @@ Feature featuresOf(const float* mags, const float* time, int timeLen,
             (float) zc / (float) std::max(1, timeLen)};
 }
 
-void pca2(const std::vector<Feature>& rows, std::vector<float>& outX, std::vector<float>& outY) {
+template <typename Fit>
+void pca2(const std::vector<Feature>& rows, std::vector<float>& outX, std::vector<float>& outY,
+          Fit& fit) {
     const int n = (int) rows.size();
     outX.assign((size_t) n, 0.5f);
     outY.assign((size_t) n, 0.5f);
@@ -121,6 +124,9 @@ void pca2(const std::vector<Feature>& rows, std::vector<float>& outX, std::vecto
     }
     const float sx = hiX - loX > 1.0e-6f ? 0.94f / (hiX - loX) : 0.0f;
     const float sy = hiY - loY > 1.0e-6f ? 0.94f / (hiY - loY) : 0.0f;
+    fit.fitted = true;
+    fit.mean = mean; fit.sd = sd; fit.first = e1; fit.second = e2;
+    fit.loX = loX; fit.loY = loY; fit.scaleX = sx; fit.scaleY = sy;
     for (int i = 0; i < n; ++i) {
         outX[(size_t) i] = 0.03f + (sx > 0.0f ? (outX[(size_t) i] - loX) * sx : 0.47f);
         outY[(size_t) i] = 0.03f + (sy > 0.0f ? (outY[(size_t) i] - loY) * sy : 0.47f);
@@ -129,15 +135,68 @@ void pca2(const std::vector<Feature>& rows, std::vector<float>& outX, std::vecto
 
 }
 
+class SoundSpace::Analyser {
+public:
+    Analyser() : fft_(kFftOrder), window_((size_t) kWin), fftBuf_((size_t) kWin * 2),
+                 mags_((size_t) kBins), prevMags_((size_t) kBins) {}
+
+    float* window() { return window_.data(); }
+    void forgetPrevious() { havePrev_ = false; }
+
+    Feature measure(double sampleRate) {
+        for (int i = 0; i < kWin; ++i) {
+            const float w = 0.5f - 0.5f * std::cos(kTwoPiF * i / (kWin - 1));
+            fftBuf_[(size_t) i] = window_[(size_t) i] * w;
+        }
+        std::fill(fftBuf_.begin() + kWin, fftBuf_.end(), 0.0f);
+        fft_.performFrequencyOnlyForwardTransform(fftBuf_.data());
+        std::copy(fftBuf_.begin(), fftBuf_.begin() + kBins, mags_.begin());
+        const Feature feature = featuresOf(mags_.data(), window_.data(), kWin,
+                                           havePrev_ ? prevMags_.data() : nullptr, sampleRate);
+        prevMags_ = mags_;
+        havePrev_ = true;
+        return feature;
+    }
+
+private:
+    juce::dsp::FFT fft_;
+    std::vector<float> window_, fftBuf_, mags_, prevMags_;
+    bool havePrev_ = false;
+};
+
+void SoundSpace::AnalyserDeleter::operator()(Analyser* a) const { delete a; }
+
+SoundSpace::Analyser* SoundSpace::makeAnalyser() { return new Analyser(); }
+
+SoundSpace::Feature SoundSpace::measureLive(Analyser& analyser, const float* mono, double sampleRate) {
+    std::copy(mono, mono + kWin, analyser.window());
+    return analyser.measure(sampleRate);
+}
+
+void SoundSpace::forgetPrevious(Analyser& analyser) { analyser.forgetPrevious(); }
+
+void SoundSpace::Projection::place(const Feature& feature, float& x, float& y) const {
+    if (!fitted) {
+        x = std::clamp(1.6f * std::sqrt(std::max(0.0f, feature[1])), 0.03f, 0.97f);
+        y = std::clamp(std::sqrt(std::max(0.0f, feature[3])), 0.03f, 0.97f);
+        return;
+    }
+    double px = 0.0, py = 0.0;
+    for (int f = 0; f < kFeatures; ++f) {
+        const double z = sd[(size_t) f] > 1.0e-9 ? (feature[(size_t) f] - mean[(size_t) f]) / sd[(size_t) f] : 0.0;
+        px += z * first[(size_t) f];
+        py += z * second[(size_t) f];
+    }
+    x = std::clamp(0.03f + (scaleX > 0.0f ? ((float) px - loX) * scaleX : 0.47f), 0.0f, 1.0f);
+    y = std::clamp(0.03f + (scaleY > 0.0f ? ((float) py - loY) * scaleY : 0.47f), 0.0f, 1.0f);
+}
+
 std::shared_ptr<SoundSpace::Corpus> SoundSpace::analyzeCorpus(
         const std::array<std::string, kFiles>& uris, double engineRate) {
     juce::ignoreUnused(engineRate);
     auto corpus = std::make_shared<Corpus>();
     std::vector<Feature> feats;
-
-    juce::dsp::FFT fft(kFftOrder);
-    std::vector<float> window((size_t) kWin), fftBuf((size_t) kWin * 2);
-    std::vector<float> mags((size_t) kBins), prevMags((size_t) kBins);
+    Analyser analyser;
 
     for (int f = 0; f < kFiles; ++f) {
         const std::string& uri = uris[(size_t) f];
@@ -150,30 +209,21 @@ std::shared_ptr<SoundSpace::Corpus> SoundSpace::analyzeCorpus(
         const int len = buf.getNumSamples();
         const int chans = buf.getNumChannels();
         const int hop = std::max(kWin / 2, (len - kWin) / std::max(1, kGrainsPerFile - 1));
-        bool havePrev = false;
+        analyser.forgetPrevious();
         for (int start = 0; start + kWin <= len; start += hop) {
+            float* window = analyser.window();
             for (int i = 0; i < kWin; ++i) {
                 float s = 0.0f;
                 for (int c = 0; c < chans; ++c) s += buf.getSample(c, start + i);
-                s /= (float) chans;
-                const float w = 0.5f - 0.5f * std::cos(kTwoPiF * i / (kWin - 1));
-                window[(size_t) i] = s;
-                fftBuf[(size_t) i] = s * w;
+                window[i] = s / (float) chans;
             }
-            std::fill(fftBuf.begin() + kWin, fftBuf.end(), 0.0f);
-            fft.performFrequencyOnlyForwardTransform(fftBuf.data());
-            std::copy(fftBuf.begin(), fftBuf.begin() + kBins, mags.begin());
-
-            feats.push_back(featuresOf(mags.data(), window.data(), kWin,
-                                       havePrev ? prevMags.data() : nullptr, sr));
+            feats.push_back(analyser.measure(sr));
             corpus->grains.push_back({f, start, kWin, 0.5f, 0.5f});
-            prevMags = mags;
-            havePrev = true;
         }
     }
 
     std::vector<float> xs, ys;
-    pca2(feats, xs, ys);
+    pca2(feats, xs, ys, corpus->projection);
     for (size_t i = 0; i < corpus->grains.size(); ++i) {
         corpus->grains[i].x = xs[i];
         corpus->grains[i].y = ys[i];

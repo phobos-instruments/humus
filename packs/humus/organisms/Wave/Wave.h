@@ -22,6 +22,7 @@ namespace hum {
 class Wave : public Organism, public MidiNode, public LiveMidiIn {
 public:
     static constexpr int kVoices = 8;
+    static constexpr int kMaxUnison = 16;
     static constexpr int kLevels = 10;
     static constexpr int kMaxFrames = 16;
 
@@ -57,7 +58,7 @@ private:
         bool gate = false;
         double env = 0.0;
         double phase = 0.0;
-        double uphase[6] = {};
+        double uphase[kMaxUnison - 1] = {};
         double subPhase = 0.0;
         double hz = 0.0;
     };

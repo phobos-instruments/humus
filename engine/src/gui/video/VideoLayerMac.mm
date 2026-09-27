@@ -369,6 +369,23 @@ std::unique_ptr<VideoLayer> VideoLayer::createOffline() {
     return std::make_unique<AvReaderLayer>();
 }
 
+bool VideoLayer::systemCanPlay(const juce::File& file) {
+    NSString* p = [NSString stringWithUTF8String:file.getFullPathName().toRawUTF8()];
+    if (p == nil) return false;
+    AVURLAsset* asset = [AVURLAsset URLAssetWithURL:[NSURL fileURLWithPath:p] options:nil];
+    dispatch_semaphore_t done = dispatch_semaphore_create(0);
+    __block bool usable = false;
+    [asset loadValuesAsynchronouslyForKeys:@[ @"tracks", @"playable" ] completionHandler:^{
+        NSError* err = nil;
+        if ([asset statusOfValueForKey:@"tracks" error:&err] == AVKeyValueStatusLoaded)
+            usable = asset.isPlayable
+                     && [asset tracksWithMediaType:AVMediaTypeVideo].count > 0;
+        dispatch_semaphore_signal(done);
+    }];
+    dispatch_semaphore_wait(done, dispatch_time(DISPATCH_TIME_NOW, (int64_t) (5 * NSEC_PER_SEC)));
+    return usable;
+}
+
 double VideoLayer::probeLengthSeconds(const juce::File& file) {
     NSString* p = [NSString stringWithUTF8String:file.getFullPathName().toRawUTF8()];
     if (p == nil) return 0.0;

@@ -123,23 +123,11 @@
       "h": 84
     },
     {
-      "type": "minitoggle",
-      "param": "SwingFollow",
-      "label": "Follow",
+      "type": "swing",
       "x": 38,
       "y": 224,
-      "w": 64,
+      "w": 294,
       "h": 20
-    },
-    {
-      "type": "hslider",
-      "param": "Swing",
-      "label": "Swing",
-      "x": 112,
-      "y": 224,
-      "w": 220,
-      "h": 20,
-      "dim-when": "SwingFollow"
     }
   ]
 }

@@ -117,11 +117,39 @@ inline std::string encodeOctaveRow(const std::vector<bool>& ups) {
     return m;
 }
 
+inline constexpr int kNoColour = -1;
+
+inline const char* readColourToken(const char* p, int& colour) {
+    while (*p == ' ' || *p == '\t') ++p;
+    if (*p != '#') return p;
+    ++p;
+    int rgb = 0, digits = 0;
+    for (; digits < 6; ++digits, ++p) {
+        const char ch = *p;
+        const int v = ch >= '0' && ch <= '9' ? ch - '0'
+                    : ch >= 'a' && ch <= 'f' ? ch - 'a' + 10
+                    : ch >= 'A' && ch <= 'F' ? ch - 'A' + 10 : -1;
+        if (v < 0) break;
+        rgb = rgb * 16 + v;
+    }
+    if (digits == 6) colour = rgb;
+    return p;
+}
+
+inline std::string colourToken(int colour) {
+    if (colour < 0) return {};
+    static constexpr char kHex[] = "0123456789abcdef";
+    std::string s = " #";
+    for (int shift = 20; shift >= 0; shift -= 4) s += kHex[(colour >> shift) & 0xF];
+    return s;
+}
+
 struct NoteEvent {
     int tick = 0;
     int pitch = 60;
     int lengthTicks = 12;
     int velocity = 100;
+    int colour = kNoColour;
 };
 
 inline std::vector<NoteEvent> decodeNoteEvents(const std::string& text) {
@@ -140,6 +168,7 @@ inline std::vector<NoteEvent> decodeNoteEvents(const std::string& text) {
         n.pitch = (int) (pitch < 0 ? 0 : pitch > kMidiMax ? kMidiMax : pitch);
         n.lengthTicks = (int) (len < 1 ? 1 : len);
         n.velocity = (int) (vel < 1 ? 1 : vel > kMidiMax ? kMidiMax : vel);
+        p = readColourToken(p, n.colour);
         out.push_back(n);
     }
     return out;
@@ -149,7 +178,8 @@ inline std::string encodeNoteEvents(const std::vector<NoteEvent>& notes) {
     std::string m;
     for (const auto& n : notes)
         m += std::to_string(n.tick) + " " + std::to_string(n.pitch) + " "
-           + std::to_string(n.lengthTicks) + " " + std::to_string(n.velocity) + "\n";
+           + std::to_string(n.lengthTicks) + " " + std::to_string(n.velocity)
+           + colourToken(n.colour) + "\n";
     return m;
 }
 
@@ -157,7 +187,13 @@ struct CCEvent {
     int tick = 0;
     int controller = 1;
     int value = 64;
+    int colour = kNoColour;
 };
+
+inline constexpr int kMidiChannels = 16;
+inline constexpr int kSustainController = 64;
+inline constexpr int kAllSoundOffController = 120;
+inline constexpr int kAllNotesOffController = 123;
 
 inline constexpr int kBendController = 128;
 inline constexpr int kBendMax = 16383;
@@ -201,6 +237,7 @@ inline std::vector<CCEvent> decodeCCEvents(const std::string& text) {
                         c.controller = (int) (num < 0 ? 0 : num > kBendController ? kBendController : num);
                         const long top = ccValueMax(c.controller);
                         c.value = (int) (val < 0 ? 0 : val > top ? top : val);
+                        p = readColourToken(p, c.colour);
                         out.push_back(c);
                     }
                 }
@@ -216,7 +253,7 @@ inline std::string encodeCCEvents(const std::vector<CCEvent>& ccs) {
     std::string m;
     for (const auto& c : ccs)
         m += "c " + std::to_string(c.tick) + " " + std::to_string(c.controller) + " "
-           + std::to_string(c.value) + "\n";
+           + std::to_string(c.value) + colourToken(c.colour) + "\n";
     return m;
 }
 

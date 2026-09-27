@@ -2,7 +2,10 @@
 
 Eight clip pads with a dissolve between launches.
 
-Each pad holds a clip: drop a video on it or click the folder to load one, click the picture to launch it, and the next launch dissolves into it over the Fade time. The MIDI inlet launches pads by note, middle C for pad 1 and the semitones above it for the rest; launching a pad that is already playing restarts it from In. The dice roll a fresh In, Out and Loop for every loaded pad and launch one. Cord the main outlet into a Lumen layer, a VideoFX, a VideoMix or a VideoOut.
+Each pad holds a clip: drop a video on it or click the folder to load one, click the picture to launch it, and the next launch dissolves into it over the Fade time. The MIDI inlet launches pads by note, middle C for pad 1 and the semitones above it for the rest; launching a pad that is already playing restarts it from In. Random rolls a fresh In, Out and Loop for every loaded pad and launches one. Cord the main outlet into a Lumen layer, a VideoFX, a VideoMix or a VideoOut.
+
+
+The pads carry their sound as well as their picture. A launched clip plays its own audio from the stereo outlet, from its in point, looping between in and out if that pad loops, and handing over to the next pad on the same fade the picture crosses on. Mute takes both. The picture follows the sound rather than running beside it, so a cut lands in both at once instead of drifting apart over a long clip - and a pad pressed while it is already playing goes back to its in point, sound and picture together.
 
 ## Pad editing
 
@@ -14,11 +17,11 @@ The upper line under each picture is the whole tape with the In to Out stretch l
 
 **Launch1** Launches pad 1. Momentary; right-click a pad for Launch control to map it, and so on for 2 to 8.
 
-**In1** Where pad 1's clip starts, in seconds. Rolled by the dice, and so on for 2 to 8.
+**In1** Where pad 1's clip starts, in seconds. Rolled by Random, and so on for 2 to 8.
 
-**Out1** Where pad 1's clip ends, in seconds; 0 runs to the end of the file. Rolled by the dice, and so on for 2 to 8.
+**Out1** Where pad 1's clip ends, in seconds; 0 runs to the end of the file. Rolled by Random, and so on for 2 to 8.
 
-**Loop1** Whether pad 1 cycles between In and Out or plays through once and holds its last frame. Rolled by the dice, and so on for 2 to 8.
+**Loop1** Whether pad 1 cycles between In and Out or plays through once and holds its last frame. Rolled by Random, and so on for 2 to 8.
 
 **Stop** Dissolves the picture to black over the Fade time.
 

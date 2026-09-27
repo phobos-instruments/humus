@@ -1,27 +1,32 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
-#include <juce_core/juce_core.h>
+#include <string>
+
+#include "core/xml/Xml.h"
 
 #include "io/PatchDocument.h"
 
 namespace hum {
 
-void addValue(juce::XmlElement& prop, const Parameter& p);
-void writeProperty(juce::XmlElement& props, const Parameter& p);
-void writePattern(juce::XmlElement& propEl, const Pattern& pat);
-void writePresets(juce::XmlElement& presets, const OrganismModel& c);
-void writeRollLocks(juce::XmlElement& ce, const OrganismModel& c);
-void writeAutomationLanes(juce::XmlElement& mod, const OrganismModel& c);
-void writeMidiSources(juce::XmlElement& mod, const OrganismModel& c);
-void writeOscSources(juce::XmlElement& mod, const OrganismModel& c);
-void writeModSources(juce::XmlElement& mod, const OrganismModel& c);
-void writeAutomationView(juce::XmlElement& e, const AutomationView& v);
-juce::String pluginStateTag(const std::string& kind);
-void writeMidiSettings(juce::XmlElement& ce, const OrganismModel& c);
-void writeOrganism(juce::XmlElement& ce, const OrganismModel& c);
-void writeConnection(juce::XmlElement& e, const ConnectionModel& conn);
-void writeView(juce::XmlElement& ve, const OrganismView& v);
-void writeMetapad(juce::XmlElement& root, const MetapadModel& ms);
+void addValue(xml::Element& prop, const Parameter& p);
+void writeProperty(xml::Element& props, const Parameter& p);
+void writePattern(xml::Element& propEl, const Pattern& pat);
+void writePresets(xml::Element& presets, const OrganismModel& c);
+void writeRollLocks(xml::Element& ce, const OrganismModel& c);
+void writeRangeModes(xml::Element& ce, const OrganismModel& c);
+void writeTrackInput(xml::Element& ce, const OrganismModel& c);
+void writeTimelineRow(xml::Element& ce, const OrganismModel& c);
+void writeAutomationLanes(xml::Element& mod, const OrganismModel& c);
+void writeMidiSources(xml::Element& mod, const OrganismModel& c);
+void writeOscSources(xml::Element& mod, const OrganismModel& c);
+void writeModSources(xml::Element& mod, const OrganismModel& c);
+void writeAutomationView(xml::Element& e, const AutomationView& v);
+std::string pluginStateTag(const std::string& kind);
+void writeMidiSettings(xml::Element& ce, const OrganismModel& c);
+void writeOrganism(xml::Element& ce, const OrganismModel& c);
+void writeConnection(xml::Element& e, const ConnectionModel& conn);
+void writeView(xml::Element& ve, const OrganismView& v);
+void writeMetapad(xml::Element& root, const MetapadModel& ms);
 
 }

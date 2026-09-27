@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/browser/BrowserIndex.h"
 #include "gui/app/AboutCredits.h"
 #include "gui/app/MainComponent.h"
+#include "gui/app/UsageLog.h"
 #include "gui/patcher/PatcherCanvas.h"
 #include "gui/properties/PropertiesPane.h"
 #include "gui/tracks/TracksPane.h"
@@ -59,13 +61,15 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
 #if JUCE_MAC
         m.addItem(3, tr("menu.save-mac", "Save (Cmd+S)"), !currentFile_.isEmpty());
         m.addItem(4, tr("menu.save-as-mac", "Save As... (Cmd+Shift+S)"));
+        m.addItem(5, tr("menu.bounce-mac", "Bounce... (Cmd+B)"));
 #else
         m.addItem(3, tr("menu.save-win", "Save (Ctrl+S)"), !currentFile_.isEmpty());
         m.addItem(4, tr("menu.save-as-win", "Save As... (Ctrl+Shift+S)"));
+        m.addItem(5, tr("menu.bounce-win", "Bounce... (Ctrl+B)"));
 #endif
-        m.addItem(5, tr("menu.bounce", "Bounce..."));
         m.addSeparator();
         m.addItem(6, tr("menu.revert", "Revert"), !currentFile_.isEmpty());
+        m.addItem(61, tr("menu.history", "History..."));
         m.addItem(9, tr("menu.locate-missing-media", "Locate Missing Media..."),
                   !host_.missingMedia().empty());
 #if JUCE_MAC
@@ -149,6 +153,7 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
         m.addItem(56, tr("menu.start-window", "Start Window..."));
         m.addItem(57, tr("menu.report-a-bug", "Report a Bug..."));
         m.addItem(54, tr("menu.enter-license", "Enter License..."));
+        m.addItem(58, tr("menu.support-humus", "Support Humus..."));
 #if !JUCE_MAC
         m.addItem(53, tr("menu.check-for-updates", "Check for Updates..."));
         m.addSeparator();
@@ -178,6 +183,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 7: juce::JUCEApplication::getInstance()->systemRequestedQuit(); break;
         case 8: closeProject(); break;
         case 9: locateMissingMedia(); break;
+        case 61: openHistory(); break;
         case 15: canvas_->undo(); break;
         case 17: canvas_->redo(); break;
         case 16: openSettings(); break;
@@ -188,6 +194,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 55: openHelpBrowser(); break;
         case 56: showStartWindow(); break;
         case 57: openBugReport(); break;
+        case 58: usagelog::openDonatePage(); break;
         case 10: canvas_->copySelection(); break;
         case 14: canvas_->cutSelection(); break;
         case 11: canvas_->pasteClipboard(); break;
@@ -197,7 +204,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 34: canvas_->renameSelection(); break;
         case 33:
             canvas_->autoArrange();
-            setStatus(tr("menu.arranged-as-a-top-down", "arranged as a top-down flow (Undo restores the old layout)"));
+            notify(tr("menu.arranged-as-a-top-down", "arranged as a top-down flow (Undo restores the old layout)"));
             break;
         case 20: toggleAudio(); break;
         case 27: openAudioSettings(); break;
@@ -206,13 +213,13 @@ void MainComponent::menuItemSelected(int id, int) {
         case 31:
             host_.setMidiSyncMode(host_.midiSyncMode() == EngineHost::kSyncGenerate
                                       ? EngineHost::kSyncOff : EngineHost::kSyncGenerate);
-            setStatus(host_.midiSyncMode() == EngineHost::kSyncGenerate
+            notify(host_.midiSyncMode() == EngineHost::kSyncGenerate
                           ? tr("menu.sending-midi-clock", "sending MIDI clock") : tr("menu.midi-clock-off", "MIDI clock off"));
             break;
         case 32:
             host_.setMidiSyncMode(host_.midiSyncMode() == EngineHost::kSyncChase
                                       ? EngineHost::kSyncOff : EngineHost::kSyncChase);
-            setStatus(host_.midiSyncMode() == EngineHost::kSyncChase
+            notify(host_.midiSyncMode() == EngineHost::kSyncChase
                           ? tr("menu.chasing-incoming-midi-clock", "chasing incoming MIDI clock") : tr("menu.midi-clock-off", "MIDI clock off"));
             break;
         case 21: ensureAudio(); host_.playFromStart(); break;
@@ -238,14 +245,15 @@ void MainComponent::menuItemSelected(int id, int) {
                      host_.automation().clearTimeRange(f, t); tracksPane_->rebuild(); } } break;
         case 29: openAssistant(); break;
         case 30:
-            samplelab::open(host_, [this](juce::String s) {
-                setStatus(s);
-                canvas_->refresh();
-                propsPane_->reload();
-            });
+            samplelab::open(host_,
+                            [this](std::unique_ptr<juce::Component> card) { presentCard(std::move(card)); },
+                            [this] { canvas_->refresh(); propsPane_->reload(); });
             break;
         case 50: showAbout(); break;
-        case 59: recents::clear(); break;
+        case 59:
+            recents::clear();
+            browserIndex().edit([](browser::FileIndex& i) { i.forgetRecentPatches(); });
+            break;
         default:
             if (id >= recents::kMenuIdBase && id < recents::kMenuIdBase + 10) {
                 if (const auto f = recents::resolve(recentMenu_, id); f != juce::File())
@@ -285,6 +293,8 @@ void MainComponent::showAbout() {
         dismiss();
         openSettings(SettingsComponent::kLicense);
     };
+    a.onSupport = [] { usagelog::openDonatePage(); };
+    noteOpenTime();
     aboutWin_ = std::make_unique<AboutWindow>(std::move(a));
     aboutWin_->addToDesktop(juce::ComponentPeer::windowHasDropShadow);
     aboutWin_->setCentrePosition(getScreenBounds().getCentre());

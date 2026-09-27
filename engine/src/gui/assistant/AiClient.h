@@ -45,6 +45,29 @@ public:
     }
     static bool needsApiKey() { return provider() == "claude" && apiKey().isEmpty(); }
 
+    static juce::StringArray modelNamesFromTags(const juce::var& tags) {
+        juce::StringArray names;
+        if (const auto* models = tags["models"].getArray())
+            for (const auto& m : *models)
+                if (m["name"].isString()) names.addIfNotAlreadyThere(m["name"].toString());
+        names.sortNatural();
+        return names;
+    }
+
+    static juce::StringArray ollamaModels(const juce::String& base, juce::String& error) {
+        int status = 0;
+        auto stream = juce::URL(base + "/api/tags").createInputStream(
+            juce::URL::InputStreamOptions(juce::URL::ParameterHandling::inAddress)
+                .withConnectionTimeoutMs(5000)
+                .withStatusCode(&status));
+        if (stream == nullptr) {
+            error = "Could not reach " + base
+                    + (status > 0 ? " (HTTP " + juce::String(status) + ")" : juce::String());
+            return {};
+        }
+        return modelNamesFromTags(juce::JSON::parse(stream->readEntireStreamAsString()));
+    }
+
     class Ticket {
     public:
         void cancel() {

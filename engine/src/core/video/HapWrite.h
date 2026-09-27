@@ -103,7 +103,7 @@ public:
         if (!open_) return false;
         open_ = false;
         const auto end = out_->getPosition();
-        const auto moov = mov::movieHeader(picture_, sound_);
+        const auto moov = mov::videoHeader(picture_, sound_);
         bool wrote = out_->write(moov.data(), moov.size());
         const auto span = (std::uint64_t) (end - mdatAt_);
         mov::Bytes size;

@@ -140,6 +140,8 @@ private:
     void ensureSceneTextures(SceneProg& sp, const visual::SceneSpec& spec, int w, int h);
 
     void drawNoSignal(int w, int h);
+    void drawStamps(int w, int h, const std::vector<std::string>& lines);
+    void fadeStep(float opacity);
 
     void drawQuad(unsigned int programId);
 
@@ -156,6 +158,7 @@ private:
     void ensureFbos(int count, int w, int h);
 
     void ensureBlackTex();
+    unsigned int lutTexture(const std::shared_ptr<const lut::Cube>& cube);
 
     unsigned int stepTex(int idx) const {
         return idx >= 0 && idx < (int) fbos_.size() ? fbos_[(size_t) idx].tex : texBlack_;
@@ -169,6 +172,8 @@ private:
 
     void renderMix(const visual::Step& s);
 
+    float flashNow(const visual::Step& s);
+
     void renderFx(const visual::Step& s, int w, int h);
 
     void renderScene(const visual::Step& s, int w, int h, juce::String& firstError);
@@ -181,9 +186,12 @@ private:
         mixProgram_, fxProgram_, presentProgram_;
     std::map<std::string, SceneProg> scenePrograms_;
     std::map<std::string, DeckTex> deckTex_;
+    struct FlashState { unsigned count = 0; double startMs = 0.0; bool seen = false; };
+    std::map<std::string, FlashState> flashes_;
     std::vector<Fbo> fbos_;
     int fboW_ = 0, fboH_ = 0;
-    unsigned int quad_ = 0, texWave_ = 0, texFft_ = 0, texBlack_ = 0;
+    unsigned int quad_ = 0, texWave_ = 0, texFft_ = 0, texBlack_ = 0, texLut_ = 0;
+    std::shared_ptr<const lut::Cube> lutShown_;
     unsigned int passFbo_ = 0;
 
     int prevW_ = 160, prevH_ = 90;

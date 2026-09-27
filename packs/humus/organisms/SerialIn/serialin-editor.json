@@ -82,7 +82,7 @@
     },
     {
       "type": "label",
-      "label": "Parse - empty takes every number; %1, %b1, %w1 capture",
+      "label": "Parse - empty takes any number; %1, %b1, %w1 capture",
       "x": 8,
       "y": 128,
       "w": 277,
@@ -107,7 +107,7 @@
     },
     {
       "type": "label",
-      "label": "Outlets a to h carry the values; match fires when a line fits",
+      "label": "Outlets a to h carry values; match fires when a line fits",
       "x": 8,
       "y": 262,
       "w": 277,

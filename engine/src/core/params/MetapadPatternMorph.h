@@ -132,7 +132,7 @@ inline PatternChannel morphChannel(const std::vector<Contributor>& src, size_t d
         return out;
     }
     if (type == "note-events") {
-        struct Cell { double w = 0.0, vel = 0.0, len = 0.0; };
+        struct Cell { double w = 0.0, vel = 0.0, len = 0.0, lead = -1.0; int colour = kNoColour; };
         std::map<std::pair<int, int>, Cell> cells;
         double wsum = 0.0;
         for (const auto& c : src) {
@@ -144,6 +144,10 @@ inline PatternChannel morphChannel(const std::vector<Contributor>& src, size_t d
                 cell.w += c.weight;
                 cell.vel += c.weight * n.velocity;
                 cell.len += c.weight * n.lengthTicks;
+                if (c.weight > cell.lead) {
+                    cell.lead = c.weight;
+                    cell.colour = n.colour;
+                }
             }
         }
         std::vector<NoteEvent> notes;
@@ -151,7 +155,8 @@ inline PatternChannel morphChannel(const std::vector<Contributor>& src, size_t d
             if (cell.w >= 0.5 * wsum - 1e-9)
                 notes.push_back({key.first, key.second,
                                  std::max(1, (int) std::lround(cell.len / cell.w)),
-                                 std::clamp((int) std::lround(cell.vel / cell.w), 1, kMidiMax)});
+                                 std::clamp((int) std::lround(cell.vel / cell.w), 1, kMidiMax),
+                                 cell.colour});
         out.matrix = encodeNoteEvents(notes)
                    + encodeCCEvents(decodeCCEvents(out.matrix));
         return out;

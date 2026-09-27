@@ -18,6 +18,274 @@
      "max": 1.0,
      "def": 0.0
     }
+   ],
+   "canonical": "VideoMix2"
+  },
+  {
+   "class": "VideoMix2",
+   "category": "Visual",
+   "editor": "layout:videomix-editor.json",
+   "params": [
+    {
+     "name": "Fade",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "random": true
+    },
+    {
+     "name": "Curve",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
+   ],
+   "hidden": true
+  },
+  {
+   "class": "VideoMix3",
+   "category": "Visual",
+   "hidden": true,
+   "editor": "gen:videomix",
+   "params": [
+    {
+     "name": "Level_1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Level_2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
+   ]
+  },
+  {
+   "class": "VideoMix4",
+   "category": "Visual",
+   "hidden": true,
+   "editor": "gen:videomix",
+   "params": [
+    {
+     "name": "Level_1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Level_2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
+   ]
+  },
+  {
+   "class": "VideoMix5",
+   "category": "Visual",
+   "hidden": true,
+   "editor": "gen:videomix",
+   "params": [
+    {
+     "name": "Level_1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Level_2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
+   ]
+  },
+  {
+   "class": "VideoMix6",
+   "category": "Visual",
+   "hidden": true,
+   "editor": "gen:videomix",
+   "params": [
+    {
+     "name": "Level_1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Level_2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
+   ]
+  },
+  {
+   "class": "VideoMix7",
+   "category": "Visual",
+   "hidden": true,
+   "editor": "gen:videomix",
+   "params": [
+    {
+     "name": "Level_1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Level_2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_7",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
+   ]
+  },
+  {
+   "class": "VideoMix8",
+   "category": "Visual",
+   "hidden": true,
+   "editor": "gen:videomix",
+   "params": [
+    {
+     "name": "Level_1",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 1.0
+    },
+    {
+     "name": "Level_2",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_3",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_4",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_5",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_6",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_7",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    },
+    {
+     "name": "Level_8",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0
+    }
    ]
   }
  ]

@@ -30,6 +30,8 @@ The Inputs dropdown sets how many stereo channels the desk sums, 2 to 8, and re-
 
 **Solo_1-2** Silences every channel but this one. A channel's own Mute always wins. And so on for 3-4 to 11-12.
 
+**Name_1-2** The tape above channel 1. Blank until something is corded in, then it shows that organism's name. Double-click to write your own; clear it to go back to the corded name. And so on for 3-4 to 11-12.
+
 ## Recipe
 
 **Glue a mix** Pick Flavor first, since it moves the target for everything else. Set the channel Gains for balance with Drive and Sag low, raise Sag until the mix breathes with the kick, then add Drive last for weight. If it pumps too obviously, lower the loudest channel rather than Sag, and make up any lost level at Output.

@@ -36,6 +36,11 @@ public:
 
     void mouseMove(const juce::MouseEvent& e) override;
     void mouseExit(const juce::MouseEvent&) override;
+    bool keyPressed(const juce::KeyPress& k) override;
+
+    void newSnapshotToPlace();
+    int placingForTest() const { return placing_; }
+    juce::Rectangle<float> surfaceForTest() const { return surface_; }
 
 private:
     struct Row : juce::Component {
@@ -130,7 +135,11 @@ private:
     juce::String fieldSig_;
     bool interpolate_ = false;
     bool surfaceDrag_ = false;
-    int selected_ = -1, dragPoint_ = -1, hoverPoint_ = -1;
+    int selected_ = -1, dragPoint_ = -1, hoverPoint_ = -1, placing_ = -1;
+    juce::Point<float> ghost_;
+    bool ghostOn_ = false;
+    void stopPlacing();
+    void paintPlacing(juce::Graphics& g);
     bool moveUndone_ = true;
     juce::Point<float> cursor_{0.5f, 0.5f};
 

@@ -1,7 +1,6 @@
 {
   "width": 293,
   "height": 224,
-  "resize": "grow",
   "controls": [
     {
       "type": "video-preview",
@@ -14,21 +13,23 @@
       "h": 151
     },
     {
-      "type": "toggle",
+      "type": "lit-button",
       "param": "Preview",
       "label": "Preview",
       "x": 12,
-      "y": 165,
-      "w": 90,
-      "h": 22
+      "y": 163,
+      "w": 80,
+      "h": 26,
+      "tooltip": "Show the picture here as well as wherever it is going.",
+      "icon": "none"
     },
     {
       "type": "combo",
       "param": "Screen",
       "label": "",
-      "x": 110,
+      "x": 96,
       "y": 165,
-      "w": 110,
+      "w": 96,
       "h": 22,
       "options": [
         "Window",
@@ -36,6 +37,15 @@
         "Display 2",
         "Display 3"
       ]
+    },
+    {
+      "type": "minitoggle",
+      "param": "OnTop",
+      "label": "On top",
+      "x": 196,
+      "y": 166,
+      "w": 58,
+      "h": 20
     },
     {
       "type": "screen-button",

@@ -89,7 +89,7 @@ void TuningNode::rebuild() {
             tuning_ = Tuning::equalDivisions(13, kTritaveCents, root, rootHz);
             break;
         case kCustom: {
-            const int n = std::clamp((int) std::lround(lastDivisions_), 5, 64);
+            const int n = std::clamp((int) std::lround(lastDivisions_), 1, Tuning::kMaxDegrees);
             tuning_ = Tuning::equalDivisions(n, 1200.0, root, rootHz);
             break;
         }

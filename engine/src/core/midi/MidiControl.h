@@ -1,12 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "core/net/ControlShape.h"
 #include "core/midi/MidiSource.h"
+#include "core/midi/MidiSourceFrame.h"
+#include "core/net/ControlShape.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -15,6 +20,8 @@ namespace hum {
 struct MidiMapEntry {
     int cc = 0;
     std::vector<int> held;
+    int port = kAnyMidiPort;
+    int channel = kAnyMidiChannel;
     std::string organism;
     std::string param;
     double min = 0.0;
@@ -24,9 +31,11 @@ struct MidiMapEntry {
     bool engaged = false;
     bool wasPressed = false;
 
-    MidiSource source() const { return MidiSource(cc, held); }
+    MidiSource source() const { return MidiSource(cc, held, port, channel); }
+    int lane() const { return midiLane(port, channel); }
     bool is(const MidiSource& s, const std::string& org, const std::string& prm) const {
-        return cc == s.cc && held == s.held && organism == org && param == prm;
+        return cc == s.cc && held == s.held && lane() == s.lane()
+               && organism == org && param == prm;
     }
 };
 
@@ -38,11 +47,8 @@ struct MidiModifier {
     bool wasPressed = false;
 };
 
-struct MidiParamUpdate {
-    std::string organism;
-    std::string param;
-    double value = 0.0;
-};
+using MidiParamUpdate = ControlUpdate;
+using CurrentValueFn = std::function<double(const std::string&, const std::string&)>;
 
 class MidiControlMap {
 public:
@@ -51,7 +57,8 @@ public:
         for (auto& e : entries_)
             if (e.is(src, organism, param)) { e.min = min; e.max = max; return; }
         MidiMapEntry e;
-        e.cc = src.cc; e.held = src.held; e.organism = organism; e.param = param;
+        e.cc = src.cc; e.held = src.held; e.port = src.port; e.channel = src.channel;
+        e.organism = organism; e.param = param;
         e.min = min; e.max = max;
         entries_.push_back(std::move(e));
         syncModifiers();
@@ -159,31 +166,35 @@ public:
         return out;
     }
 
-    std::vector<MidiParamUpdate> tick(const int* sourceValues, const bool* fresh, double dtSeconds) {
-        bool held[kMidiSourceCount];
-        updateHeld(sourceValues, held);
-        int best[kMidiSourceCount];
-        for (auto& b : best) b = -1;
-        for (const auto& e : entries_)
-            if (isMidiSource(e.cc) && eligible(e, held))
-                best[e.cc] = std::max(best[e.cc], (int) e.held.size());
-
+    std::vector<MidiParamUpdate> tick(const MidiSourceFrame& frame, double dtSeconds,
+                                      const CurrentValueFn& currentOf = nullptr) {
+        prepareLanes(frame);
         std::vector<MidiParamUpdate> out;
         for (auto& e : entries_) {
-            const int raw = isMidiSource(e.cc) ? sourceValues[e.cc] : -1;
-            if (raw < 0) continue;
-            if (e.state.lastOut < 0.0 && !fresh[e.cc]) continue;
-            const bool active = eligible(e, held) && (int) e.held.size() == best[e.cc];
-            const double t = raw / kMidiMaxD;
-            if (e.shape.isSwitch) {
-                if (!consumesPress(e, active, t)) continue;
-            } else if (!active) {
-                if (fresh[e.cc] || e.state.lastOut < 0.0) trackSilently(e, t);
+            if (!isMidiSource(e.cc)) continue;
+            const int lane = e.lane();
+            const bool active = isActive(e);
+            if (e.shape.isEncoder()) {
+                if (!active) continue;
+                const auto a = encoderAction(e.shape, frame.encoderTicks(e.shape.encoder, lane, e.cc));
+                if (!a.none()) out.push_back(controlUpdate(e.organism, e.param, e.shape, e.min, e.max, a));
                 continue;
             }
-            const double shaped = advanceControlShape(e.shape, e.state, t, dtSeconds);
-            if (shaped < 0.0) continue;
-            out.push_back({e.organism, e.param, shapedToRange(e.shape, e.min, e.max, shaped)});
+            const int raw = frame.value(lane, e.cc);
+            const bool ready = frame.fresh(lane, e.cc);
+            if (raw < 0) continue;
+            if (e.state.lastOut < 0.0 && !e.state.seen && !ready) continue;
+            const double t = raw / (double) sourceMaxValue(e.cc);
+            if (e.shape.isButton()) {
+                if (!consumesPress(e, active, t)) continue;
+            } else if (!active) {
+                if (ready || e.state.lastOut < 0.0) trackSilently(e, t);
+                continue;
+            }
+            const auto a = advanceControl(e.shape, e.state, t, dtSeconds);
+            if (a.none()) continue;
+            if (!pickedUp(e, a, currentOf)) continue;
+            out.push_back(controlUpdate(e.organism, e.param, e.shape, e.min, e.max, a));
         }
         return out;
     }
@@ -191,25 +202,68 @@ public:
     static int clamp7(int v) { return v < 0 ? 0 : (v > kMidiMax ? kMidiMax : v); }
 
 private:
-    void updateHeld(const int* v, bool* held) {
-        for (int s = 0; s < kMidiSourceCount; ++s) held[s] = v[s] > kHeldThreshold;
+    struct LaneState {
+        int lane = 0;
+        std::vector<char> held;
+        std::vector<int> best;
+    };
+
+    void prepareLanes(const MidiSourceFrame& frame) {
+        lanes_.clear();
+        for (const auto& e : entries_) {
+            const int lane = e.lane();
+            bool known = false;
+            for (const auto& l : lanes_) known = known || l.lane == lane;
+            if (!known) lanes_.push_back({lane, std::vector<char>(kMidiSourceCount, 0),
+                                          std::vector<int>(kMidiSourceCount, -1)});
+        }
+        const int* any = frame.laneValues(midiLane(kAnyMidiPort, kAnyMidiChannel));
         for (auto& m : modifiers_) {
-            if (!isMidiSource(m.source)) continue;
-            const bool pressed = v[m.source] > kHeldThreshold;
-            if (m.latching) {
-                if (pressed && !m.wasPressed) m.on = !m.on;
-                held[m.source] = m.on;
-            }
+            if (!canBeHeld(m.source)) continue;
+            const bool pressed = any[m.source] > kHeldThreshold;
+            if (m.latching && pressed && !m.wasPressed) m.on = !m.on;
             m.wasPressed = pressed;
+        }
+        for (auto& l : lanes_) {
+            const int* v = frame.laneValues(l.lane);
+            for (int s = 0; s < kMidiSourceCount; ++s)
+                l.held[(std::size_t) s] = canBeHeld(s) && v[s] > kHeldThreshold ? 1 : 0;
+            for (const auto& m : modifiers_)
+                if (m.latching && canBeHeld(m.source)) l.held[(std::size_t) m.source] = m.on ? 1 : 0;
+        }
+        for (const auto& e : entries_) {
+            if (!isMidiSource(e.cc)) continue;
+            auto& l = laneOf(e.lane());
+            if (eligible(e, l.held)) {
+                auto& b = l.best[(std::size_t) e.cc];
+                b = std::max(b, (int) e.held.size());
+            }
         }
     }
 
-    bool eligible(const MidiMapEntry& e, const bool* held) const {
+    LaneState& laneOf(int lane) {
+        for (auto& l : lanes_) if (l.lane == lane) return l;
+        return lanes_.front();
+    }
+
+    bool isActive(const MidiMapEntry& e) {
+        auto& l = laneOf(e.lane());
+        return eligible(e, l.held) && (int) e.held.size() == l.best[(std::size_t) e.cc];
+    }
+
+    bool eligible(const MidiMapEntry& e, const std::vector<char>& held) const {
         for (int h : e.held)
-            if (!isMidiSource(h) || !held[h]) return false;
+            if (!canBeHeld(h) || held[(std::size_t) h] == 0) return false;
         if (e.held.empty())
             if (const auto* m = modifierOf(e.cc); m != nullptr && !m->ownAction) return false;
         return true;
+    }
+
+    static bool pickedUp(MidiMapEntry& e, const ControlAction& a, const CurrentValueFn& currentOf) {
+        if (!e.shape.picksUp() || !currentOf || a.kind != ControlActionKind::Absolute) return true;
+        const double current = currentOf(e.organism, e.param);
+        if (std::isnan(current)) return true;
+        return pickUpAllows(e.state, a.value, rangeToShaped(e.shape, e.min, e.max, current));
     }
 
     static bool consumesPress(MidiMapEntry& e, bool active, double t) {
@@ -251,26 +305,7 @@ private:
     }
     std::vector<MidiMapEntry> entries_;
     std::vector<MidiModifier> modifiers_;
+    std::vector<LaneState> lanes_;
 };
-
-struct MidiOutMessage {
-    int status = 0;
-    int data1 = 0;
-    int data2 = 0;
-};
-
-inline std::vector<MidiOutMessage> midiOutMessages(const std::string& changedParam,
-                                                   int channel, int controller, int value,
-                                                   int note, int velocity, double gate) {
-    const int ch = (MidiControlMap::clamp7(channel < 1 ? 1 : channel) - 1) & 0x0F;
-    std::vector<MidiOutMessage> out;
-    if (changedParam == "Value" || changedParam == "Controller")
-        out.push_back({0xB0 | ch, MidiControlMap::clamp7(controller), MidiControlMap::clamp7(value)});
-    else if (changedParam == "Gate")
-        out.push_back(gate >= 0.5
-                          ? MidiOutMessage{0x90 | ch, MidiControlMap::clamp7(note), MidiControlMap::clamp7(velocity)}
-                          : MidiOutMessage{0x80 | ch, MidiControlMap::clamp7(note), 0});
-    return out;
-}
 
 }

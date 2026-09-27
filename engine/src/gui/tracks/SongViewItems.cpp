@@ -166,6 +166,24 @@ void SongView::toggleSelected(const ItemRef& r) {
     if (!sel_.insert(r).second) sel_.erase(r);
 }
 
+bool SongView::extendSelectionTo(int row, int clip) {
+    if (selClipRow_ < 0 || selClipRow_ >= (int) rows_.size() || selClip_ < 0) return false;
+    const auto anchors = host().clips().list(rows_[(size_t) selClipRow_]);
+    const auto targets = host().clips().list(rows_[(size_t) row]);
+    if (selClip_ >= (int) anchors.size() || clip < 0 || clip >= (int) targets.size()) return false;
+    const auto& from = anchors[(size_t) selClip_];
+    const auto& to = targets[(size_t) clip];
+    const int lo = std::min(from.startTick, to.startTick);
+    const int hi = std::max(from.startTick + from.lengthTicks, to.startTick + to.lengthTicks);
+    for (int r = std::min(selClipRow_, row); r <= std::max(selClipRow_, row); ++r) {
+        const auto cs = host().clips().list(rows_[(size_t) r]);
+        for (const auto& c : cs)
+            if (c.startTick < hi && c.startTick + c.lengthTicks > lo)
+                sel_.insert({ItemRef::Kind::Clip, r, c.id});
+    }
+    return true;
+}
+
 std::vector<ItemRef> SongView::selectedOf(ItemRef::Kind k) const {
     std::vector<ItemRef> out;
     for (const auto& r : sel_) if (r.kind == k) out.push_back(r);

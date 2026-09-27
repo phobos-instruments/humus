@@ -3,9 +3,12 @@
 #include "gui/host/EngineHost.h"
 
 #include <cmath>
+#include <cstddef>
 #include <cstdlib>
 
 #include "core/plugins/HostedPlugin.h"
+#include "core/midi/MidiOutMessages.h"
+#include "gui/host/ControlApply.h"
 #include "core/packs/Roles.h"
 
 #include "hum/dsp/DspMath.h"
@@ -42,21 +45,28 @@ void EngineHost::handleIncomingMidiMessage(juce::MidiInput* source, const juce::
             break;
         }
     pushToMonitors(m, port);
+    const int row = midiPortRow(port);
+    const int channel = m.getChannel();
+    auto control = [&](int src, int value, bool learnable) {
+        midiState_.ccValue[row][src].store(value);
+        midiState_.ccValue[kAnyMidiPortRow][src].store(value);
+        midiState_.inbox.push({src, value, port, channel, juce::Time::getMillisecondCounterHiRes()});
+        if (!learnable) return;
+        midiState_.lastPort.store(port);
+        midiState_.lastChannel.store(channel);
+        midiState_.lastCc.store(src);
+    };
     if (m.isController()) {
         const int cc = m.getControllerNumber();
-        if (cc >= 0 && cc < kNoteSourceBase) {
-            midiState_.ccValue[cc].store(m.getControllerValue());
-            midiState_.lastCc.store(cc);
-        }
-        return;
-    }
-    if (m.isNoteOnOrOff()) {
-        const int note = m.getNoteNumber();
-        if (note >= 0 && note < kNoteSourceBase) {
-            const int src = sourceForNote(note);
-            midiState_.ccValue[src].store(m.isNoteOn() ? kMidiMax : 0);
-            if (m.isNoteOn()) midiState_.lastCc.store(src);
-        }
+        if (isCcSource(cc)) control(cc, m.getControllerValue(), true);
+    } else if (m.isNoteOnOrOff()) {
+        const int key = m.getNoteNumber();
+        if (key >= 0 && key < 128)
+            control(sourceForNote(key), m.isNoteOn() ? kMidiMax : 0, m.isNoteOn());
+    } else if (m.isPitchWheel()) {
+        control(kPitchBendSource, m.getPitchWheelValue(), true);
+    } else if (m.isChannelPressure()) {
+        control(kPressureSource, m.getChannelPressureValue(), false);
     }
     routeLiveMidi(m, port);
 }
@@ -64,6 +74,7 @@ void EngineHost::handleIncomingMidiMessage(juce::MidiInput* source, const juce::
 void EngineHost::pollMidiControl() {
     flushMidiRecording();
     extendLatchPasses();
+    releaseQuietTouches(juce::Time::getMillisecondCounterHiRes());
 
     if (playing_ && !capturing_ && metapad().hasMorphPath()) {
         const double b = positionBeats();
@@ -99,17 +110,19 @@ void EngineHost::pollMidiControl() {
     const double nowMs = juce::Time::getMillisecondCounterHiRes();
     const double dt = ctrlPollMs_ > 0.0 ? juce::jlimit(0.0, 0.25, (nowMs - ctrlPollMs_) / 1000.0) : 0.0;
     ctrlPollMs_ = nowMs;
-    int ccVals[kMidiSourceCount];
-    bool fresh[kMidiSourceCount];
-    for (int cc = 0; cc < kMidiSourceCount; ++cc) {
-        ccVals[cc] = midiState_.ccValue[cc].load();
-        fresh[cc] = ccVals[cc] >= 0 && ccVals[cc] != midiState_.ccLastApplied[cc];
-        if (fresh[cc]) midiState_.ccLastApplied[cc] = ccVals[cc];
+    auto& feed = midiState_.feed;
+    feed.beginTick();
+    midiState_.inbox.drainInto(midiState_.drained);
+    for (const auto& e : midiState_.drained) feed.take(e);
+    if (!midiState_.map.empty()) {
+        const auto current = [this](const std::string& organism, const std::string& param) {
+            return currentParamValue(*this, organism, param);
+        };
+        for (const auto& u : midiState_.map.tick(feed.frame(), dt, current))
+            applyControl(*this, u);
     }
-    for (const auto& u : midiState_.map.tick(ccVals, fresh, dt))
-        setParam(u.organism, u.param, u.value);
     for (const auto& u : osc().tickSmoothing(dt))
-        setParam(u.organism, u.param, u.value);
+        applyControl(*this, u);
 }
 
 }

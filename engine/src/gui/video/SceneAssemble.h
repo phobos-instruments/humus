@@ -20,7 +20,8 @@ inline const char* sceneHumPreamble() {
         "uniform float hum_Level, hum_Brightness;\n"
         "uniform float hum_Bands[8];\n"
         "uniform float hum_Knob1, hum_Knob2, hum_Knob3, hum_Knob4;\n"
-        "uniform sampler2D hum_Wave, hum_Spectrum;\n";
+        "uniform sampler2D hum_Wave, hum_Spectrum;\n"
+        "uniform sampler2D hum_Input, hum_Feedback;\n";
 }
 
 inline const char* sceneVertexSrc() {
@@ -69,6 +70,8 @@ inline AssembledScene assembleScene(const juce::String& text) {
         return a;
     }
     a.spec = {assembleGlsl(sceneHumPreamble(), text), "hum_Wave", "hum_Spectrum"};
+    a.spec.wantsUnder = text.contains("hum_Input");
+    a.spec.wantsFinal = text.contains("hum_Feedback");
     return a;
 }
 

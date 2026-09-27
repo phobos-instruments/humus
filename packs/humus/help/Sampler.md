@@ -2,7 +2,7 @@
 
 A polyphonic zone-mapped sample player with eight slots, sound bank loading and recording off the patch.
 
-Load up to eight sound files, give each a root note and play them over MIDI from a MidiIn, a PianoRoll or the on-screen keyboard. Or load a whole sound bank file (.sf2) and play its instruments; a loaded bank is the instrument, and the slots play only when no bank is loaded. Cord a signal into the audio inlet and Record captures a take straight into a slot, as a sound file that saves with the patch. It opens coarse, twelve bits at 32 kHz, in the tradition of the late-eighties rack sampler; the preset rail walks from Ancient to Pristine, moving Bits and Rate and nothing else. Velocity scales level, and past Polyphony the oldest voice is stolen.
+Load up to eight sound files, give each a root note and play them over MIDI from a MidiIn, a PianoRoll or the on-screen keyboard. Or load a whole sound bank file (.sf2, or a stage keyboard's .nsmp3 and .nsmp4 sample libraries) and play its instruments; a loaded bank is the instrument, and the slots play only when no bank is loaded. Cord a signal into the audio inlet and Record captures a take straight into a slot, as a sound file that saves with the patch. It opens coarse, twelve bits at 32 kHz, in the tradition of the late-eighties rack sampler; the preset rail walks from Ancient to Pristine, moving Bits and Rate and nothing else. Velocity scales level, and past Polyphony the oldest voice is stolen.
 
 ## Slots and banks
 
@@ -26,7 +26,7 @@ In Pitched mode the zones split the keyboard at the midpoints between their root
 
 **Polyphony** The number of voices sounding at once. Past it the oldest voice is stolen.
 
-**Loop** Repeats the sample while a key is held. A file with its own loop points uses them; otherwise it loops end to end.
+**Loop** On holds a note on the loop points the file brings, for as long as you keep the key down; a file that carries none plays through either way. Off ignores every loop point and lets each note run to the end of its sample, which is the one to reach for when a library's loops sit badly. The turn is crossfaded, so a loop whose two ends do not line up holds instead of clicking once a cycle.
 
 **File1** The sound file in slot 1, and so on for File2 to File8.
 
@@ -42,9 +42,9 @@ In Pitched mode the zones split the keyboard at the midpoints between their root
 
 **Record** Starts a take from the audio inlet. Press it again to stop.
 
-**Bits** Sample word length, 8 to 24. Below 24 the file is stored coarsely, the way early hardware samplers did, and moving it re-reads the file.
+**Bits** Sample word length, 8 to 24. Below 24 the file is stored coarsely, the way early hardware samplers did, with dither so the coarseness lands as a steady floor instead of a buzz that follows the note down. Moving it re-reads the file. The arrows step through the standard depths, 8, 12, 16 and 24; type any other number in the box.
 
-**Rate** Sample rate in kHz, 4 to 48. At 48 the file is left alone.
+**Rate** Sample rate in kHz, 4 to 48. The file is filtered down to the new rate before it is thinned, the way the converter in front of a rack sampler did, so what sat above the new ceiling goes quiet rather than folding back as metallic ringing. At 48 the file is left alone. The arrows step through the standard rates, 4, 8, 11, 16, 22, 32, 44 and 48; type any other number in the box.
 
 **Monitor** Passes the inlet through to the outputs so you hear what you are about to take. Off by default, so a Sampler already on a mixer does not double the signal.
 

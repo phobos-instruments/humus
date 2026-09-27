@@ -124,25 +124,4 @@ void EngineHost::keepLast(int bars) {
     if (record_.onSessionEnded) record_.onSessionEnded();
 }
 
-std::string EngineHost::noteCaptureTarget() const {
-    auto isNoteNode = [this](const std::string& n) {
-        auto* g = graph_.get();
-        if (g == nullptr) return false;
-        auto* live = g->find(n);
-        return dynamic_cast<ClipArrangement*>(live) != nullptr
-               && dynamic_cast<ClipRecorder*>(live) == nullptr;
-    };
-    if (noteCaptureHint) {
-        const auto hinted = noteCaptureHint();
-        if (!hinted.empty() && isNoteNode(hinted)) return hinted;
-    }
-    std::string only;
-    for (const auto& cm : model_.organisms) {
-        if (!isNoteNode(cm.name)) continue;
-        if (!only.empty()) return {};
-        only = cm.name;
-    }
-    return only;
-}
-
 }

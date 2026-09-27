@@ -43,7 +43,7 @@ bool HumusProcessor::loadPatchText(const std::string& amhXml, std::string& error
     g->transport().setPlaying(true);
 
     docText_ = amhXml;
-    docXml_ = juce::XmlDocument::parse(juce::String(juce::CharPointer_UTF8(amhXml.c_str())));
+    docXml_ = hum::xml::parse(amhXml);
     model_ = std::move(model);
     {
         const juce::ScopedLock sl(stageLock_);

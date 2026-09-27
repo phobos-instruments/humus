@@ -10,6 +10,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/app/AboutCredits.h"
+#include "gui/app/UsageLog.h"
 #include "gui/app/BrandPanel.h"
 #include "gui/style/Colours.h"
 #include "gui/app/LicenseStore.h"
@@ -90,9 +91,10 @@ public:
     struct Actions {
         std::function<void()> onDismiss;
         std::function<void()> onEnterLicense;
+        std::function<void()> onSupport;
     };
 
-    static constexpr int kW = 560, kH = 604, kHeadH = 276;
+    static constexpr int kW = 560, kH = 620, kHeadH = 292;
 
     explicit AboutWindow(Actions actions) : actions_(std::move(actions)) {
         auto styleButton = [this](juce::TextButton& b, std::function<void()> fn) {
@@ -106,6 +108,8 @@ public:
         styleButton(closeBtn_, [this] { if (actions_.onDismiss) actions_.onDismiss(); });
         if (actions_.onEnterLicense)
             styleButton(licenseBtn_, [this] { actions_.onEnterLicense(); });
+        if (actions_.onSupport)
+            styleButton(supportBtn_, [this] { actions_.onSupport(); });
 
         body_.layoutFor(kW - 2);
         view_.setViewedComponent(&body_, false);
@@ -126,6 +130,7 @@ public:
 
         std::vector<juce::TextButton*> btns;
         if (actions_.onEnterLicense) btns.push_back(&licenseBtn_);
+        if (actions_.onSupport) btns.push_back(&supportBtn_);
         btns.push_back(&siteBtn_);
         btns.push_back(&sourceBtn_);
         btns.push_back(&closeBtn_);
@@ -169,6 +174,9 @@ public:
             g.drawText(tr("about.registered-to", "Registered to") + " " + juce::String(lic.name.empty() ? lic.plan : lic.name),
                        0, 258, getWidth(), 14, juce::Justification::centred);
         }
+        g.setColour(line.withAlpha(alpha::mid));
+        g.setFont(juce::Font(juce::FontOptions(11.0f)));
+        g.drawText(usagelog::summary(usagelog::read()), 0, 274, getWidth(), 14, juce::Justification::centred);
     }
 
     bool keyPressed(const juce::KeyPress& k) override {
@@ -184,7 +192,8 @@ private:
     AboutBody body_{ink::brand::line};
     juce::Viewport view_;
     juce::TextButton siteBtn_{tr("about.website", "Website")}, sourceBtn_{tr("about.source", "Source")},
-                     closeBtn_{tr("about.close", "Close")}, licenseBtn_{tr("about.enter-license", "Enter License...")};
+                     closeBtn_{tr("about.close", "Close")}, licenseBtn_{tr("about.enter-license", "Enter License...")},
+                     supportBtn_{tr("about.support", "Support")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AboutWindow)
 };

@@ -257,6 +257,7 @@ void AutomationHost::setPoints(const std::string& organism, const std::string& p
                                const std::vector<AutomationBreakpoint>& points) {
     auto* c = doc_.document().byName(organism);
     if (!c) return;
+    if (findLane(*c, param) == nullptr) add(organism, param);
     auto* lane = findLane(*c, param);
     if (!lane) return;
     lane->points = points;

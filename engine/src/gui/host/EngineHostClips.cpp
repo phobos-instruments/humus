@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/app/AppPaths.h"
 #include "gui/host/EngineHost.h"
 
 #include "core/timeline/ClipOps.h"
@@ -291,7 +292,7 @@ ClipEditor::Tape ClipEditor::tape(const std::string& file) const {
     if (const auto it = tapes_.find(file); it != tapes_.end()) return it->second;
     Tape t;
     const auto uri = file.rfind("file://", 0) == 0 ? file.substr(7) : file;
-    const juce::File f(juce::String(juce::CharPointer_UTF8(uri.c_str())));
+    const auto f = fileAt(uri);
     if (!f.existsAsFile()) return t;
     if (isVideoFile(f)) {
         t.seconds = probeVideoSeconds(f);

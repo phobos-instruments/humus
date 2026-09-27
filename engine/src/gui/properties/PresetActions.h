@@ -12,6 +12,8 @@
 #include "core/params/ParamSchema.h"
 #include "gui/assistant/AiClient.h"
 #include "gui/host/PropertiesHost.h"
+#include "gui/host/PresetRecall.h"
+#include "gui/app/CardDesk.h"
 #include "gui/app/GenieCard.h"
 #include "gui/host/NodeRandomize.h"
 #include "gui/common/Localisation.h"
@@ -24,14 +26,6 @@ inline const std::vector<ParamDesc>& schemaOf(PropertiesHost& host, const std::s
     static const std::vector<ParamDesc> none;
     const auto* cm = host.model().byName(node);
     return cm ? schemaFor(cm->classRaw) : none;
-}
-
-inline void recallBracketed(PropertiesHost& host, const std::string& node,
-                            const std::function<void()>& op) {
-    auto& hist = host.paramHistory();
-    hist.commit(node, host.captureNodeState(node));
-    op();
-    hist.commit(node, host.captureNodeState(node));
 }
 
 inline void evolve(PropertiesHost& host, const std::string& node) {
@@ -80,7 +74,7 @@ inline void showGenie(PropertiesHost& host, const std::string& node,
             if (key.isNotEmpty()) AiClient::setApiKey(key);
             auto card = std::make_unique<GenieCard>(*hostPtr, node, prompt, onChanged);
             card->start();
-            hostPtr->presentCard(std::move(card));
+            cards::present(*hostPtr, std::move(card));
         }), false);
 }
 

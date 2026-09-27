@@ -9,6 +9,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 
 #include "core/graph/AudioGraph.h"
+#include "core/xml/Xml.h"
 #include "core/graph/GraphIo.h"
 #include "core/graph/GraphMidi.h"
 #include "io/PatchDocument.h"
@@ -102,7 +103,7 @@ private:
     juce::CriticalSection editLock_;
 
     std::string docText_;
-    std::unique_ptr<juce::XmlElement> docXml_;
+    std::unique_ptr<hum::xml::Element> docXml_;
     juce::String patchName_;
     double sampleRate_ = kDefaultSampleRate;
     int blockSize_ = 512;

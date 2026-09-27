@@ -4,17 +4,28 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
   target_sources(hum_snapshot PRIVATE
     src/gui/snapshot/Snapshot.cpp
     src/gui/snapshot/BoardsChrome.cpp
+    src/gui/snapshot/BoardsBrowser.cpp
+    src/gui/snapshot/ChecksBrowser.cpp
+    src/gui/snapshot/BoardsCards.cpp
+    src/gui/snapshot/BoardsPorts.cpp
     src/gui/snapshot/BoardsPanes.cpp
     src/gui/snapshot/BoardsScenes.cpp
-    src/gui/snapshot/ChecksAutomation.cpp
-    src/gui/snapshot/ChecksLatch.cpp
-    src/gui/snapshot/ChecksWaveMorph.cpp
     src/gui/snapshot/ChecksBounce.cpp
     src/gui/snapshot/ChecksBounceAudio.cpp
     src/gui/snapshot/ChecksBounceExport.cpp
     src/gui/snapshot/ChecksBounceJob.cpp
     src/gui/snapshot/ChecksBounceVideo.cpp
-    src/gui/snapshot/MovieProbe.cpp
+    src/gui/snapshot/VideoBoxProbe.cpp
+    src/gui/snapshot/ChecksAssistant.cpp
+    src/gui/snapshot/ChecksAssistantTalk.cpp
+    src/gui/snapshot/ChecksWizard.cpp
+    src/gui/snapshot/ChecksPointOps.cpp
+    src/gui/snapshot/ChecksRowOrder.cpp
+    src/gui/snapshot/ChecksMetapadPlace.cpp
+    src/gui/snapshot/ChecksScope.cpp
+    src/gui/snapshot/ChecksAtom.cpp
+    src/gui/snapshot/ChecksLitPad.cpp
+    src/gui/snapshot/ChecksEmbedHit.cpp
     src/gui/snapshot/ChecksBox.cpp
     src/gui/snapshot/ChecksMeters.cpp
     src/gui/snapshot/ChecksPresetStack.cpp
@@ -24,7 +35,6 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksEdit.cpp
     src/gui/snapshot/ChecksSaves.cpp
     src/gui/snapshot/ChecksParamEdit.cpp
-    src/gui/snapshot/ChecksMap.cpp
     src/gui/snapshot/ChecksGraph.cpp
     src/gui/snapshot/ChecksPods.cpp
     src/gui/snapshot/ChecksPodText.cpp
@@ -39,27 +49,35 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksRebuild.cpp
     src/gui/snapshot/ChecksHelp.cpp
     src/gui/snapshot/ChecksLayout.cpp
+    src/gui/snapshot/ChecksSkinArt.cpp
     src/gui/snapshot/ChecksPaneLayout.cpp
     src/gui/snapshot/ChecksTrackRoll.cpp
     src/gui/snapshot/ChecksTracksBench.cpp
     src/gui/snapshot/ChecksTrackEdit.cpp
     src/gui/snapshot/ChecksTrackAdd.cpp
     src/gui/snapshot/ChecksTrackKeys.cpp
-    src/gui/snapshot/ChecksDeviceNotice.cpp
+    src/gui/snapshot/ChecksCardTimer.cpp
+    src/gui/snapshot/ChecksAiModels.cpp
+    src/gui/snapshot/ChecksNoticeCard.cpp
+    src/gui/snapshot/ChecksHistory.cpp
+    src/gui/snapshot/ChecksHostSeams.cpp
     src/gui/snapshot/ChecksTrackLanes.cpp
     src/gui/snapshot/ChecksSpinner.cpp
     src/gui/snapshot/ChecksRecorder.cpp
     src/gui/snapshot/ChecksLanePoints.cpp
     src/gui/snapshot/ChecksMidiPlayer.cpp
     src/gui/snapshot/ChecksRiffImport.cpp
-    src/gui/snapshot/ChecksGroove.cpp
     src/gui/snapshot/ChecksTheme.cpp
     src/gui/snapshot/ChecksGenie.cpp
     src/gui/snapshot/ChecksCanvas.cpp
+    src/gui/snapshot/ChecksClipModifiers.cpp
+    src/gui/snapshot/ChecksTapeLabel.cpp
+    src/gui/snapshot/ChecksPortSpots.cpp
+    src/gui/snapshot/ChecksPanelScroll.cpp
     src/gui/snapshot/ChecksSearch.cpp
     src/gui/snapshot/ChecksParamControl.cpp
+    src/gui/snapshot/ChecksControlModes.cpp
     src/gui/snapshot/ChecksGrit.cpp
-    src/gui/snapshot/ChecksDeclaredRoll.cpp
     src/gui/snapshot/ChecksBrickBinding.cpp
     src/gui/snapshot/ChecksClip.cpp
     src/gui/snapshot/ChecksHelix.cpp
@@ -67,12 +85,12 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksAssets.cpp
     src/gui/snapshot/ChecksSockets.cpp
     src/gui/snapshot/ChecksRollOrganism.cpp
+    src/gui/snapshot/ChecksNoteColour.cpp
     src/gui/snapshot/ChecksSelect.cpp
+    src/gui/snapshot/ChecksSoundMap.cpp
+    src/gui/snapshot/ChecksZipper.cpp
     src/gui/snapshot/ChecksSession.cpp
-    src/gui/snapshot/ChecksMedia.cpp
     src/gui/snapshot/ChecksMidiInput.cpp
-    src/gui/snapshot/ChecksTimeSig.cpp
-    src/gui/snapshot/ChecksDevice.cpp
     src/gui/snapshot/ChecksShader.cpp
     src/gui/snapshot/ChecksUnits.cpp
     src/gui/snapshot/ChecksWelcome.cpp
@@ -85,17 +103,13 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
   )
   target_include_directories(hum_snapshot PRIVATE src ${HUM_GENERATED_DIR}
                              ../packs/humus/organisms tests)
-  add_dependencies(hum_snapshot hum_build_id)
+  add_dependencies(hum_snapshot hum_build_id hum_face_probe)
+  # First, so every JUCE module is taken from the modal archive (cmake/JuceShared.cmake).
   target_link_libraries(hum_snapshot PRIVATE
+    hum_juce_modal
+    hum_host
     hum_core
     hum_assets
-    juce::juce_gui_basics
-    juce::juce_gui_extra
-    juce::juce_audio_devices
-    juce::juce_audio_utils
-    juce::juce_video
-    juce::juce_cryptography
-    juce::juce_opengl
   )
   hum_link_video(hum_snapshot)
   if(HUM_DYN_PACKS)

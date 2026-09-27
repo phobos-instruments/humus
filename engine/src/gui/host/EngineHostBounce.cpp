@@ -93,7 +93,6 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
 
     beginTransaction();
     pushUndo();
-    const int nRows = (int) arrangeableNodes().size();
     const auto track = addOrganism(classWithRole(role::kAudioTrack), spotBelowPatch());
     if (!track.empty()) {
         const int outs = std::max(1, outletsOf(track));
@@ -104,17 +103,6 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
                          std::max(1, (int) std::llround((toBeat - fromBeat)
                                                         * Pattern::kTicksPerBeat)),
                          path);
-        bool noteTrack = false;
-        if (const auto* cm = model_.byName(node))
-            for (const auto& ch : cm->pattern.channels)
-                if (ch.type == "note-events") noteTrack = true;
-        bool hasMute = false;
-        if (const auto* cm = model_.byName(node))
-            for (const auto& d : schemaFor(cm->classRaw))
-                if (d.name == "Mute") hasMute = true;
-        if (noteTrack)    setTrackMuted(node, true);
-        else if (hasMute) setParam(node, "Mute", 1.0);
-        else              setBypass(node, true);
     }
     endTransaction();
     return track;
@@ -190,7 +178,7 @@ std::string EngineHost::printToTimeline(const std::string& node, std::string& er
         clips().rename(target, clip, node);
     }
     endTransaction();
-    if (onArrangementChanged) juce::MessageManager::callAsync([cb = onArrangementChanged] { cb(); });
+    if (onArrangementChanged) scheduler_.post([cb = onArrangementChanged] { cb(); });
     return clip >= 0 ? target : std::string();
 }
 

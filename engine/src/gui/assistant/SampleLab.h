@@ -1,64 +1,25 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <functional>
+#include <memory>
 #include <string>
-#include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "core/app/AppPaths.h"
-#include "core/assistant/RecipeSynth.h"
 #include "core/packs/Roles.h"
 #include "gui/assistant/AiClient.h"
-#include "gui/host/AssistantHost.h"
-#include "io/WavWriter.h"
+#include "gui/assistant/SampleLabCard.h"
 #include "gui/common/Localisation.h"
-
-#include "hum/dsp/DspMath.h"
+#include "gui/host/AssistantHost.h"
 
 namespace hum {
 
 namespace samplelab {
 
-inline juce::File sampleFolder() {
-    auto dir = userLibraryRoot().getChildFile("Library").getChildFile("Samples");
-    dir.createDirectory();
-    return dir;
-}
+using Present = std::function<void(std::unique_ptr<juce::Component> card)>;
 
-inline juce::String sanitize(const std::string& name) {
-    return juce::File::createLegalFileName(juce::String(name)).replaceCharacter(' ', '-');
-}
-
-inline juce::String applyRecipes(AssistantHost& host, const std::string& targetSampler,
-                                 const std::vector<Recipe>& recipes) {
-    if (recipes.empty()) return tr("sample-lab.the-reply-contained-no-usable", "The reply contained no usable sounds.");
-    const auto stamp = juce::Time::getCurrentTime().formatted("%H%M%S");
-    std::vector<juce::String> paths;
-    for (const auto& r : recipes) {
-        const auto mono = renderRecipe(r, kDefaultSampleRate);
-        const auto f = sampleFolder().getChildFile(sanitize(r.name) + "-" + stamp + ".wav");
-        if (writeWav(f.getFullPathName().toStdString(), {mono}, kDefaultSampleRate))
-            paths.push_back(f.getFullPathName());
-    }
-    if (paths.empty()) return tr("sample-lab.could-not-write-the-sample", "Could not write the sample files.");
-
-    host.pushUndo();
-    std::string sampler = targetSampler;
-    if (sampler.empty() || !host.model().byName(sampler))
-        sampler = host.addOrganism(classWithRole(role::kSampleKit), {160, 160});
-    host.setParam(sampler, "Mode", 1.0);
-    for (size_t i = 0; i < paths.size() && i < 8; ++i) {
-        const auto zone = std::to_string(i + 1);
-        host.setParamText(sampler, "File" + zone, paths[i].toStdString());
-        host.setParam(sampler, "Root" + zone, 60.0 + (double) i);
-    }
-    return juce::String((int) paths.size()) + " sounds on '" + juce::String(sampler)
-           + juce::String("' - keys C4.. play them (files in ")
-           + sampleFolder().getFullPathName() + ")";
-}
-
-inline void open(AssistantHost& host, std::function<void(juce::String status)> onStatus) {
+inline void open(AssistantHost& host, Present present, std::function<void()> onChanged) {
     juce::StringArray samplers;
     for (const auto& cm : host.model().organisms)
         if (classHasRole(cm.classRaw, role::kSampleKit)) samplers.add(juce::String(cm.name));
@@ -81,7 +42,7 @@ inline void open(AssistantHost& host, std::function<void(juce::String status)> o
 
     auto* hostPtr = &host;
     w->enterModalState(true, juce::ModalCallbackFunction::create(
-        [w, hostPtr, samplers, onStatus](int result) {
+        [w, hostPtr, samplers, present, onChanged](int result) {
             const juce::String prompt = w->getTextEditorContents("prompt").trim();
             const juce::String key = w->getTextEditorContents("key").trim();
             const int target = w->getComboBoxComponent("target")->getSelectedItemIndex();
@@ -93,22 +54,9 @@ inline void open(AssistantHost& host, std::function<void(juce::String status)> o
             const std::string targetName =
                 target >= 0 && target < samplers.size()
                     ? samplers[target].toStdString() : std::string();
-            if (onStatus) onStatus(tr("sample-lab.sample-lab-designing-sounds", "Sample Lab: designing sounds..."));
-
-            AiClient::Request req;
-            req.system = recipeSystemPrompt();
-            req.user = prompt;
-            req.maxTokens = 2000;
-            AiClient::complete(std::move(req),
-                [hostPtr, targetName, onStatus](juce::String text, juce::String error) {
-                    if (error.isNotEmpty()) {
-                        if (onStatus) onStatus("Sample Lab: " + error);
-                        return;
-                    }
-                    const auto status =
-                        applyRecipes(*hostPtr, targetName, parseRecipes(text));
-                    if (onStatus) onStatus("Sample Lab: " + status);
-                });
+            auto card = std::make_unique<SampleLabCard>(*hostPtr, targetName, prompt, onChanged);
+            card->start();
+            if (present) present(std::move(card));
         }), false);
 }
 

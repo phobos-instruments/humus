@@ -62,8 +62,26 @@ target_include_directories(mp3lame SYSTEM
 if(NOT MSVC)
   target_compile_options(mp3lame PRIVATE -w)
 else()
-  target_compile_options(mp3lame PRIVATE /w)
-  target_compile_definitions(mp3lame PRIVATE _CRT_SECURE_NO_WARNINGS=1)
+  target_compile_options(mp3lame PRIVATE /W0)
+endif()
+
+# The timecode half of xwax, GPL-3.0-only, combined under AGPLv3 section 13.
+# See third_party/xwax/README.md for why we do not decode control records
+# ourselves. Built with warnings off: it is upstream code kept unmodified so
+# it can be updated by copying files over.
+add_library(xwax_timecode STATIC
+  third_party/xwax/timecoder.c
+  third_party/xwax/lut.c)
+target_include_directories(xwax_timecode SYSTEM PUBLIC third_party/xwax)
+set_target_properties(xwax_timecode PROPERTIES C_STANDARD 11 POSITION_INDEPENDENT_CODE ON)
+if(MSVC)
+  target_compile_options(xwax_timecode PRIVATE /W0)
+  # timecoder.c includes <unistd.h> and uses nothing from it; MSVC has no such
+  # header, so an empty one beside the vendored source keeps that source
+  # unmodified. Only this build sees it.
+  target_include_directories(xwax_timecode SYSTEM PRIVATE third_party/xwax/msvc)
+else()
+  target_compile_options(xwax_timecode PRIVATE -w)
 endif()
 
 # The optional ed25519 file is the point: the hub licenses use that flavour.

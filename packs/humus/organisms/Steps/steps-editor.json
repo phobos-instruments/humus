@@ -21,14 +21,11 @@
       "h": 22
     },
     {
-      "type": "knob",
-      "param": "Swing",
-      "label": "Swing",
-      "x": 180,
-      "y": 96,
-      "w": 56,
-      "h": 78,
-      "dim-when": "SwingFollow"
+      "type": "swing",
+      "x": 38,
+      "y": 130,
+      "w": 180,
+      "h": 20
     },
     {
       "type": "knob",
@@ -47,15 +44,6 @@
       "y": 96,
       "w": 56,
       "h": 78
-    },
-    {
-      "type": "minitoggle",
-      "param": "SwingFollow",
-      "label": "Follow",
-      "x": 38,
-      "y": 130,
-      "w": 64,
-      "h": 20
     }
   ]
 }

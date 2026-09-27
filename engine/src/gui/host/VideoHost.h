@@ -16,6 +16,7 @@ public:
     virtual std::string videoSourceInto(const std::string& dst, int dstPort, int& srcOutlet) const = 0;
     virtual double sampleRate() const = 0;
     virtual int blockSize() const = 0;
+    virtual int outputLatencySamples() const { return 0; }
     virtual void stop() = 0;
     virtual void primeOffline(int blocks) = 0;
     virtual void advanceModulation(double dt) = 0;

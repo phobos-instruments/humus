@@ -5,12 +5,13 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/midi/MidiFormat.h"
 #include "gui/style/Colours.h"
 #include "gui/bricks/PolledBrick.h"
 #include "gui/host/BrickHost.h"
 #include "hum/Organism.h"
 #include "gui/style/LookAndFeel.h"
-#include "hum/caps/Audio.h"
+#include "gui/editor/readouts/ScopeReadings.h"
 #include "gui/common/Localisation.h"
 
 #include "hum/dsp/DspMath.h"
@@ -36,15 +37,17 @@ public:
         g.drawRoundedRectangle(r.toFloat().reduced(0.5f), 4.0f, 1.0f);
         r.reduce(8, 6);
 
+        if (reading_.chord().size() > 1) { paintChord(g, r); return; }
+
         auto noteBox = r.removeFromLeft(78);
-        const bool active = note_ >= 0;
+        const bool active = reading_.note() >= 0;
         g.setColour(active ? Palette::accent : Palette::textDim.withAlpha(alpha::dim));
         g.setFont(juce::FontOptions(30.0f).withStyle("Bold"));
-        g.drawText(active ? noteName(note_) : juce::String("-"),
+        g.drawText(active ? juce::String(noteName(reading_.note())) : juce::String("-"),
                    noteBox.removeFromTop(38), juce::Justification::centred);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.0f));
-        g.drawText(hz_ > 0.0f ? juce::String(hz_, 1) + tr("pitch-readout.hz", " Hz") : juce::String(tr("pitch-readout.no-pitch", "no pitch")),
+        g.drawText(reading_.hz() > 0.0f ? juce::String(reading_.hz(), 1) + tr("pitch-readout.hz", " Hz") : juce::String(tr("pitch-readout.no-pitch", "no pitch")),
                    noteBox, juce::Justification::centred);
 
         r.removeFromLeft(8);
@@ -55,15 +58,30 @@ public:
         auto bars = r;
         auto lvl = bars.removeFromTop(bars.getHeight() / 2).reduced(0, 1);
         auto clr = bars.reduced(0, 1);
-        drawBar(g, lvl, level_, "in", ink::state::ok);
-        drawBar(g, clr, clarity_, "lock", Palette::accent);
+        drawBar(g, lvl, reading_.level(), "in", ink::state::ok);
+        drawBar(g, clr, reading_.clarity(), "lock", Palette::accent);
     }
 
 private:
-    static juce::String noteName(int midi) {
-        static const char* n[12] = {"C", "C#", "D", "D#", "E", "F",
-                                    "F#", "G", "G#", "A", "A#", "B"};
-        return juce::String(n[(midi % 12 + 12) % 12]) + juce::String(midi / 12 - 1);
+    void paintChord(juce::Graphics& g, juce::Rectangle<int> r) {
+        auto names = r.removeFromTop(r.getHeight() - 22);
+        const auto& notes = reading_.chord();
+        const int each = names.getWidth() / (int) notes.size();
+        for (size_t i = 0; i < notes.size(); ++i) {
+            auto cell = names.removeFromLeft(each);
+            g.setColour(Palette::accent);
+            g.setFont(juce::FontOptions(i == 0 ? 26.0f : 22.0f).withStyle("Bold"));
+            g.drawText(juce::String(noteName(notes[i])), cell.removeFromTop(32),
+                       juce::Justification::centred);
+            g.setColour(Palette::textDim);
+            g.setFont(juce::FontOptions(9.0f));
+            g.drawText(i == 0 ? tr("pitch-readout.lowest", "lowest") : juce::String(),
+                       cell, juce::Justification::centred);
+        }
+        auto bars = r;
+        auto lvl = bars.removeFromTop(bars.getHeight() / 2).reduced(0, 1);
+        drawBar(g, lvl, reading_.level(), "in", ink::state::ok);
+        drawBar(g, bars.reduced(0, 1), reading_.clarity(), "tone", Palette::accent);
     }
 
     void drawNeedle(juce::Graphics& g, juce::Rectangle<int> r) {
@@ -74,15 +92,14 @@ private:
         g.setColour(Palette::textDim.withAlpha(alpha::mid));
         g.fillRect(juce::Rectangle<float>(cx - 0.5f, (float) r.getY() + 2.0f, 1.0f,
                                           (float) r.getHeight() - 4.0f));
-        if (hz_ <= 0.0f) return;
-        const double midi = hzToMidi((double) hz_);
-        const double cents = (midi - std::round(midi)) * 100.0;
+        if (reading_.hz() <= 0.0f) return;
+        const double cents = reading_.cents();
         const float x = cx + (float) (std::clamp(cents, -50.0, 50.0) / 50.0)
                                  * (r.getWidth() * 0.5f - 6.0f);
-        const double ac = std::abs(cents);
-        juce::Colour c = ac < 5.0 ? ink::state::ok
-                       : ac < 20.0 ? ink::state::caution
-                                   : ink::state::danger;
+        const auto tuning = reading_.tuning();
+        juce::Colour c = tuning == readout::Pitch::Tuning::InTune ? ink::state::ok
+                       : tuning == readout::Pitch::Tuning::Close  ? ink::state::caution
+                                                                   : ink::state::danger;
         g.setColour(c);
         g.fillRoundedRectangle(juce::Rectangle<float>(x - 2.0f, (float) r.getY() + 1.0f, 4.0f,
                                                       (float) r.getHeight() - 2.0f), 1.5f);
@@ -102,20 +119,10 @@ private:
     }
 
     void poll() override {
-        auto* src = dynamic_cast<PitchDetectSource*>(host_.liveOrganism(name_));
-        const float hz = src ? src->detectedHz() : 0.0f;
-        const float lv = src ? src->detectLevel() : 0.0f;
-        const float cl = src ? src->detectClarity() : 0.0f;
-        const int nt = src ? src->detectedNote() : -1;
-        if (std::abs(hz - hz_) > 0.2f || std::abs(lv - level_) > 0.01f
-            || std::abs(cl - clarity_) > 0.01f || nt != note_) {
-            hz_ = hz; level_ = lv; clarity_ = cl; note_ = nt;
-            repaint();
-        }
+        if (reading_.poll(host_, name_)) repaint();
     }
 
-    float hz_ = 0.0f, level_ = 0.0f, clarity_ = 0.0f;
-    int note_ = -1;
+    readout::Pitch reading_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PitchReadoutView)
 };

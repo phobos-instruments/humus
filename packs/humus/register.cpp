@@ -29,6 +29,7 @@
 #include "Graft/Graft.h"
 #include "Leafcutter/Leafcutter.h"
 #include "Cluster/Cluster.h"
+#include "MidiFilter/MidiFilter.h"
 #include "Gate/Gate.h"
 #include "Harmonizer/Harmonizer.h"
 #include "Math/Math.h"
@@ -64,6 +65,8 @@
 #include "Silt/Silt.h"
 #include "Bloom/Bloom.h"
 #include "Spectrum/Spectrum.h"
+#include "Scope/Scope.h"
+#include "Atom/Atom.h"
 #include "Cicada/Cicada.h"
 #include "Kick/Kick.h"
 #include "Microdot/Microdot.h"
@@ -77,6 +80,7 @@
 #include "Dynamics/Dynamics.h"
 #include "ParaEQ/ParaEQ.h"
 #include "Flanger/Flanger.h"
+#include "Comber/Comber.h"
 #include "Phaser/Phaser.h"
 #include "SChorus/SChorus.h"
 #include "FrequencyShifter/FrequencyShifter.h"
@@ -102,6 +106,8 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("DNA",       [] { return std::make_unique<DNA>(); });
     r.registerClass("PianoRoll", [] { return std::make_unique<PianoRoll>(); });
     r.registerClass("Sequence",  [] { return std::make_unique<Sequence>(); });
+    for (int n = 1; n <= Sequence::kRows; ++n)
+        r.registerClass("Sequence" + std::to_string(n), [n] { return std::make_unique<Sequence>(n); });
     r.registerClass("AudioTrack", [] { return std::make_unique<AudioTrack>(); });
     r.registerClass("Sampler", [] { return std::make_unique<Sampler>(); });
     r.registerClass("FilePlayer", [] { return std::make_unique<FilePlayer>(); });
@@ -154,6 +160,7 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("SGate", [] { return std::make_unique<Gate>(2); });
     r.registerClass("MGate", [] { return std::make_unique<Gate>(1); });
     r.registerClass("Cluster", [] { return std::make_unique<Cluster>(); });
+    r.registerClass("MidiFilter", [] { return std::make_unique<MidiFilter>(); });
     r.registerClass("Harmonizer", [] { return std::make_unique<Harmonizer>(); });
     r.registerClass("Paulstretch", [] { return std::make_unique<Paulstretch>(); });
     r.registerClass("PinkTrombone", [] { return std::make_unique<PinkTrombone>(); });
@@ -175,6 +182,8 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("Cicada",  [] { return std::make_unique<Cicada>(); });
     r.registerClass("Bloom",   [] { return std::make_unique<Bloom>(); });
     r.registerClass("Spectrum", [] { return std::make_unique<Spectrum>(); });
+    r.registerClass("Scope", [] { return std::make_unique<Scope>(); });
+    r.registerClass("Atom", [] { return std::make_unique<Atom>(); });
     r.registerClass("Acid",    [] { return std::make_unique<Acid>(); });
     r.registerClass("Silt", [] { return std::make_unique<Silt>(); });
     r.registerClass("Grit", [] { return std::make_unique<Grit>(); });
@@ -200,6 +209,8 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("Chorus",      [] { return std::make_unique<SChorus>(); });
     r.registerClass("SChorus",     [] { return std::make_unique<SChorus>(); });
     r.registerClass("Flanger",     [] { return std::make_unique<Flanger>(); });
+    r.registerClass("Comber",      [] { return std::make_unique<Comber>(2); });
+    r.registerClass("5Combs",      [] { return std::make_unique<Comber>(1); });
     r.registerClass("Phaser",      [] { return std::make_unique<Phaser>(); });
     r.registerClass("FrequencyShifter", [] { return std::make_unique<FrequencyShifter>(); });
     r.registerClass("TestGen",     [] { return std::make_unique<TestGen>(); });

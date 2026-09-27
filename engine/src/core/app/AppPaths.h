@@ -1,11 +1,18 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <string>
 #include <vector>
 
 #include <juce_core/juce_core.h>
 
 namespace hum {
+
+inline juce::File fileAt(const std::string& utf8Path) {
+    return utf8Path.empty() ? juce::File() : juce::File(juce::String(utf8Path));
+}
+
+inline std::string pathOf(const juce::File& file) { return file.getFullPathName().toStdString(); }
 
 inline juce::File appDataDir() {
     return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
@@ -21,6 +28,11 @@ inline juce::File userLibraryRoot() {
     if (const auto& t = userRootForTesting(); t != juce::File()) return t;
     return juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
         .getChildFile("Humus");
+}
+
+inline juce::File patchHistoryDir() {
+    if (const auto& t = userRootForTesting(); t != juce::File()) return t.getChildFile("history");
+    return appDataDir().getChildFile("history");
 }
 
 inline juce::File userPatchesDir() { return userLibraryRoot().getChildFile("Patches"); }
@@ -74,7 +86,7 @@ inline std::string& configuredContentRoot() {
 
 inline juce::File userContentRoot() {
     if (!configuredContentRoot().empty())
-        return juce::File(juce::String(juce::CharPointer_UTF8(configuredContentRoot().c_str())));
+        return juce::File(juce::String(configuredContentRoot()));
     return userLibraryRoot().getChildFile("Library");
 }
 

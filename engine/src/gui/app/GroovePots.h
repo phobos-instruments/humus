@@ -47,7 +47,7 @@ public:
         grid_.setRange(0.0, (double) (swing::kGridChoices - 1), 1.0);
         grid_.paramLabel = tr("main-transport.grid", "Grid");
         grid_.textFromValueFunction = [](double v) {
-            return juce::String(swing::gridUnitAt(std::lround(v)));
+            return juce::String(swing::gridLabelAt(std::lround(v)));
         };
         grid_.setPopupDisplayEnabled(true, false, nullptr);
         grid_.tooltipProvider = [this] {

@@ -69,6 +69,20 @@ inline const juce::Colour print{0xff2a2216};
 inline const juce::Colour printHot{0xffb23a28};
 }
 
+namespace ring {
+inline const juce::Colour ground{0xff120f0c};
+inline const juce::Colour track{0xff3a322a};
+inline const juce::Colour frame{0xff4a4036};
+inline const juce::Colour now{0xfffff4dc};
+inline const juce::Colour inks[4] = {juce::Colour{0xff7ec44a}, juce::Colour{0xffe0a03c},
+                                     juce::Colour{0xff5fb8c9}, juce::Colour{0xffc77fd0}};
+}
+
+namespace lit {
+inline const juce::Colour shadow{0xff0c0b09};
+inline const juce::Colour on{0xffb9ec5e};
+}
+
 namespace spectrum {
 inline const juce::Colour ground{0xff0a100c};
 inline const juce::Colour grid{0xff223129};

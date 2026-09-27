@@ -84,6 +84,7 @@ void SongView::paintField(juce::Graphics& g) {
     paintLinePreview(g);
     if (cutguide::active(ctx_, hover_)) cutguide::paint(g, cutguide::x(view_, ctx_, hover_.x), getBottom());
     paintPointSelection(g);
+    paintRowDrag(g);
 
     if (const double end = host().songEndBeat(); end > 0.0)
         timelinechrome::paintSongEnd(g, beatToX(end), (float) rulerTop(),
@@ -116,10 +117,10 @@ double SongView::takeStartBeat(const std::string& node) const {
     return host().record().videoTakeStartBeat(node);
 }
 
-bool SongView::rowRecording(int row, const std::vector<std::string>& live) const {
+bool SongView::rowRecording(int row) const {
     const auto& node = rows_[(size_t) row];
-    if (std::find(live.begin(), live.end(), node) != live.end()) return true;
-    if (host().midi().isRecordTarget(node) || takeStartBeat(node) >= 0.0) return true;
+    const bool waitsForCapture = host().midi().inletArmed(node) && !host().record().sessionActive();
+    if ((host().midi().isRecordTarget(node) && !waitsForCapture) || takeStartBeat(node) >= 0.0) return true;
     if (const auto* cm = host().model().byName(node); cm != nullptr && host().nodeRecordsMedia(node))
         for (const auto& p : cm->properties)
             if (p.name == "Record") return p.value >= 0.5;
@@ -128,9 +129,8 @@ bool SongView::rowRecording(int row, const std::vector<std::string>& live) const
 
 void SongView::repaintRecordingRows() {
     if (!isVisible()) return;
-    const auto live = liveTargets();
     for (int row = 0; row < (int) rows_.size(); ++row)
-        if (rowRecording(row, live)) repaintRow(row);
+        if (rowRecording(row)) repaintRow(row);
 }
 
 }

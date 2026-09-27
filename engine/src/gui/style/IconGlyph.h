@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <optional>
 #include <array>
 #include <cmath>
 #include <map>
@@ -18,27 +19,39 @@ namespace hum {
 enum class IconGlyph {
     New, Open, Save, Export,
     Undo, Redo, Cut, Copy, Paste,
-    EnableAudio, EnableMidi, GoToStart, PlayFromStart, Play, Stop, GoToEnd, Record, Keep, Loop,
+    EnableAudio, EnableMidi, GoToStart, ScanBack, PlayFromStart, Play, Stop, ScanForward,
+    GoToEnd, Record, Keep, Loop,
     Patcher, Properties, Automation,
     Metapad, ParameterControl, Notes, DocumentSwitcher, Help, Library,
     QwertyPiano, Dice, Evolve, Overflow, Gear,
     DockCentre, DockRight, DockBottom,
-    Pause, Power, KnobView, PluginView, RackView, FreeView, Warning, Reveal
+    Pause, Power, KnobView, PluginView, RackView, FreeView, Warning, Reveal, Panic,
+    Pointer, Pencil, Line, Scissors, Eraser, Trash,
+    ViewCards, ViewSmall, ViewList, Refresh
 };
 
-inline const std::array<const char*, 44> kIconGlyphNames = {
+inline const std::array<const char*, 57> kIconGlyphNames = {
     "New", "Open", "Save", "Export",
     "Undo", "Redo", "Cut", "Copy",
     "Paste", "EnableAudio", "EnableMidi", "GoToStart",
-    "PlayFromStart", "Play", "Stop", "GoToEnd",
+    "ScanBack", "PlayFromStart", "Play", "Stop",
+    "ScanForward", "GoToEnd",
     "Record", "Keep", "Loop", "Patcher",
     "Properties", "Automation", "Metapad", "ParameterControl",
     "Notes", "DocumentSwitcher", "Help", "Library",
     "QwertyPiano", "Dice", "Evolve", "Overflow",
     "Gear", "DockCentre", "DockRight", "DockBottom",
     "Pause", "Power", "KnobView", "PluginView",
-    "RackView", "FreeView", "Warning", "Reveal"
+    "RackView", "FreeView", "Warning", "Reveal", "Panic",
+    "Pointer", "Pencil", "Line", "Scissors", "Eraser",
+    "Trash", "ViewCards", "ViewSmall", "ViewList", "Refresh"
 };
+
+inline std::optional<IconGlyph> iconGlyphNamed(const std::string& name) {
+    for (size_t i = 0; i < kIconGlyphNames.size(); ++i)
+        if (name == kIconGlyphNames[i]) return (IconGlyph) i;
+    return std::nullopt;
+}
 
 struct IconArt {
     std::unique_ptr<juce::Drawable> art;
@@ -172,7 +185,6 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             break;
         }
         case IconGlyph::Export: {
-            const float cx = r.getCentreX();
             p.startNewSubPath(cx, r.getY());
             p.lineTo(cx, r.getY() + H * 0.55f);
             p.startNewSubPath(cx - W * 0.22f, r.getY() + H * 0.33f);
@@ -267,6 +279,15 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             g.fillPath(p.createPathWithRoundedCorners(1.2f * u));
             break;
         }
+        case IconGlyph::ScanBack: {
+            for (int i = 0; i < 2; ++i) {
+                juce::Path wing;
+                const float at = cx + (i == 0 ? 0.4f : 8.0f) * u;
+                wing.addTriangle(at, cy - 6.4f * u, at, cy + 6.4f * u, at - 7.6f * u, cy);
+                g.fillPath(wing.createPathWithRoundedCorners(1.2f * u));
+            }
+            break;
+        }
         case IconGlyph::PlayFromStart: {
             g.fillRoundedRectangle(cx - 7.9f * u, cy - 7.0f * u, 2.5f * u, 14.0f * u, 0.6f * u);
             p.addTriangle(cx - 2.4f * u, cy - 6.6f * u,
@@ -285,6 +306,15 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
         case IconGlyph::Stop:
             g.fillRoundedRectangle(cx - 5.5f * u, cy - 5.5f * u, 11.0f * u, 11.0f * u, 2.0f * u);
             break;
+        case IconGlyph::ScanForward: {
+            for (int i = 0; i < 2; ++i) {
+                juce::Path wing;
+                const float at = cx - (i == 0 ? 0.4f : 8.0f) * u;
+                wing.addTriangle(at, cy - 6.4f * u, at, cy + 6.4f * u, at + 7.6f * u, cy);
+                g.fillPath(wing.createPathWithRoundedCorners(1.2f * u));
+            }
+            break;
+        }
         case IconGlyph::GoToEnd: {
             g.fillRoundedRectangle(cx + 5.4f * u, cy - 7.0f * u, 2.5f * u, 14.0f * u, 0.6f * u);
             p.addTriangle(cx - 7.1f * u, cy - 6.6f * u,
@@ -420,15 +450,17 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             break;
         }
         case IconGlyph::Dice: {
-            g.drawRoundedRectangle(cx - 5.95f * u, cy - 5.95f * u,
-                                   11.9f * u, 11.9f * u, 3.2f * u, sw);
-            const float pip = 1.6f * u;
-            auto dot = [&](float dx, float dy) {
-                g.fillEllipse(cx + dx - pip, cy + dy - pip, pip * 2.0f, pip * 2.0f);
+            struct Spore { float x, y, r; };
+            static constexpr Spore roomy[] = {{-4.4f, -3.8f, 2.4f}, {1.4f, -5.2f, 1.4f}, {5.0f, -1.2f, 1.9f},
+                                              {-0.8f, 0.6f, 1.6f},  {-5.2f, 3.6f, 1.3f}, {0.8f, 5.0f, 2.2f},
+                                              {5.2f, 4.4f, 1.2f}};
+            static constexpr Spore tight[] = {{-2.4f, 2.0f, 3.3f}, {3.8f, -3.0f, 2.3f}, {-3.6f, -4.2f, 1.5f},
+                                              {4.4f, 3.8f, 1.4f}};
+            auto spore = [&](const Spore& d) {
+                g.fillEllipse(cx + (d.x - d.r) * u, cy + (d.y - d.r) * u, d.r * 2.0f * u, d.r * 2.0f * u);
             };
-            dot(-2.8f * u, -2.8f * u);
-            dot( 2.8f * u,  2.8f * u);
-            if (S >= 20.0f) dot(0.0f, 0.0f);
+            if (S >= 20.0f) for (const auto& d : roomy) spore(d);
+            else            for (const auto& d : tight) spore(d);
             break;
         }
         case IconGlyph::Evolve: {
@@ -471,6 +503,88 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             g.fillRoundedRectangle(cx - 6.0f * u, cy - 5.5f * u, 6.5f * u, 5.0f * u, 0.8f * u);
             g.fillRoundedRectangle(cx - 1.5f * u, cy + 1.0f * u, 6.5f * u, 5.0f * u, 0.8f * u);
             break;
+        case IconGlyph::Pointer: {
+            p.startNewSubPath(cx - 3.4f * u, cy - 6.4f * u);
+            p.lineTo(cx - 3.4f * u, cy + 5.0f * u);
+            p.lineTo(cx - 0.7f * u, cy + 2.4f * u);
+            p.lineTo(cx + 1.1f * u, cy + 6.4f * u);
+            p.lineTo(cx + 3.3f * u, cy + 5.4f * u);
+            p.lineTo(cx + 1.5f * u, cy + 1.5f * u);
+            p.lineTo(cx + 5.0f * u, cy + 1.2f * u);
+            p.closeSubPath();
+            g.fillPath(p);
+            break;
+        }
+        case IconGlyph::Pencil: {
+            juce::Path body;
+            body.addRoundedRectangle(cx - 2.1f * u, cy - 6.4f * u, 4.2f * u, 8.6f * u, 1.2f * u);
+            juce::Path tip;
+            tip.startNewSubPath(cx - 2.1f * u, cy + 2.2f * u);
+            tip.lineTo(cx + 2.1f * u, cy + 2.2f * u);
+            tip.lineTo(cx, cy + 6.6f * u);
+            tip.closeSubPath();
+            const auto lean = juce::AffineTransform::rotation(0.72f, cx, cy);
+            g.fillPath(body, lean);
+            g.fillPath(tip, lean);
+            break;
+        }
+        case IconGlyph::Line: {
+            p.startNewSubPath(cx - 3.0f * u, cy + 3.0f * u);
+            p.lineTo(cx + 3.0f * u, cy - 3.0f * u);
+            stroke(p);
+            g.fillEllipse(cx - 7.0f * u, cy + 2.2f * u, 4.8f * u, 4.8f * u);
+            g.fillEllipse(cx + 2.2f * u, cy - 7.0f * u, 4.8f * u, 4.8f * u);
+            break;
+        }
+        case IconGlyph::Scissors: {
+            p.startNewSubPath(cx - 4.2f * u, cy - 6.2f * u);
+            p.lineTo(cx + 2.4f * u, cy + 2.6f * u);
+            p.startNewSubPath(cx + 4.2f * u, cy - 6.2f * u);
+            p.lineTo(cx - 2.4f * u, cy + 2.6f * u);
+            stroke(p);
+            juce::Path rings;
+            rings.addEllipse(cx - 5.4f * u, cy + 2.4f * u, 4.2f * u, 4.2f * u);
+            rings.addEllipse(cx + 1.2f * u, cy + 2.4f * u, 4.2f * u, 4.2f * u);
+            stroke(rings);
+            break;
+        }
+        case IconGlyph::Eraser: {
+            juce::Path block;
+            block.addRoundedRectangle(cx - 6.2f * u, cy - 3.4f * u, 12.4f * u, 6.8f * u, 1.4f * u);
+            juce::Path edge;
+            edge.startNewSubPath(cx - 0.4f * u, cy - 3.4f * u);
+            edge.lineTo(cx - 0.4f * u, cy + 3.4f * u);
+            const auto lean = juce::AffineTransform::rotation(-0.62f, cx, cy);
+            block.applyTransform(lean);
+            edge.applyTransform(lean);
+            stroke(block);
+            stroke(edge);
+            break;
+        }
+        case IconGlyph::Trash: {
+            juce::Path body;
+            body.startNewSubPath(cx - 4.4f * u, cy - 3.2f * u);
+            body.lineTo(cx - 3.6f * u, cy + 5.8f * u);
+            body.lineTo(cx + 3.6f * u, cy + 5.8f * u);
+            body.lineTo(cx + 4.4f * u, cy - 3.2f * u);
+            stroke(body.createPathWithRoundedCorners(1.0f * u));
+            juce::Path lid;
+            lid.startNewSubPath(cx - 6.0f * u, cy - 3.2f * u);
+            lid.lineTo(cx + 6.0f * u, cy - 3.2f * u);
+            lid.startNewSubPath(cx - 2.2f * u, cy - 3.2f * u);
+            lid.lineTo(cx - 1.8f * u, cy - 5.4f * u);
+            lid.lineTo(cx + 1.8f * u, cy - 5.4f * u);
+            lid.lineTo(cx + 2.2f * u, cy - 3.2f * u);
+            stroke(lid);
+            juce::Path ribs;
+            ribs.startNewSubPath(cx - 1.4f * u, cy - 0.8f * u);
+            ribs.lineTo(cx - 1.1f * u, cy + 3.4f * u);
+            ribs.startNewSubPath(cx + 1.4f * u, cy - 0.8f * u);
+            ribs.lineTo(cx + 1.1f * u, cy + 3.4f * u);
+            stroke(ribs);
+            break;
+        }
+        case IconGlyph::Panic:
         case IconGlyph::Warning: {
             p.addTriangle(cx, cy - 6.2f * u, cx + 6.6f * u, cy + 5.4f * u, cx - 6.6f * u, cy + 5.4f * u);
             stroke(p.createPathWithRoundedCorners(1.6f * u));
@@ -511,6 +625,36 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             g.strokePath(teeth, juce::PathStrokeType(2.2f * u, juce::PathStrokeType::curved,
                                                      juce::PathStrokeType::rounded));
             g.drawEllipse(cx - 3.6f * u, cy - 3.6f * u, 7.2f * u, 7.2f * u, sw);
+            break;
+        }
+        case IconGlyph::ViewCards:
+            for (float dx : {-6.0f, 1.0f})
+                for (float dy : {-6.0f, 1.0f})
+                    g.fillRoundedRectangle(cx + dx * u, cy + dy * u, 5.0f * u, 5.0f * u, 1.0f * u);
+            break;
+        case IconGlyph::ViewSmall:
+            for (float dx : {-6.0f, -1.5f, 3.0f})
+                for (float dy : {-6.0f, -1.5f, 3.0f})
+                    g.fillRoundedRectangle(cx + dx * u, cy + dy * u, 3.0f * u, 3.0f * u, 0.6f * u);
+            break;
+        case IconGlyph::ViewList:
+            for (float dy : {-4.5f, 0.0f, 4.5f}) {
+                g.fillRoundedRectangle(cx - 6.5f * u, cy + (dy - 1.2f) * u, 2.4f * u, 2.4f * u, 0.5f * u);
+                g.fillRoundedRectangle(cx - 2.5f * u, cy + (dy - 0.9f) * u, 9.0f * u, 1.8f * u, 0.6f * u);
+            }
+            break;
+        case IconGlyph::Refresh: {
+            const float rad = 5.2f * u;
+            const float tip = juce::MathConstants<float>::twoPi - 0.55f;
+            p.addCentredArc(cx, cy, rad, rad, 0.0f, 0.9f, tip, true);
+            stroke(p);
+            const juce::Point<float> end(cx + rad * std::sin(tip), cy - rad * std::cos(tip));
+            const juce::Point<float> ahead(std::cos(tip), std::sin(tip));
+            const juce::Point<float> out(std::sin(tip), -std::cos(tip));
+            juce::Path head;
+            head.addTriangle(end + ahead * (4.0f * u), end + out * (3.2f * u) - ahead * (0.4f * u),
+                             end - out * (3.2f * u) - ahead * (0.4f * u));
+            g.fillPath(head);
             break;
         }
         case IconGlyph::Overflow: {

@@ -27,7 +27,7 @@ struct Sound {
     std::int64_t samples = 0, bytes = 0;
 };
 
-struct Movie {
+struct Vid {
     bool ok = false;
     std::string brand;
     double seconds = 0.0;
@@ -216,7 +216,7 @@ inline void parseTrak(juce::InputStream& in, const Box& trak, Track& t) {
     }
 }
 
-inline void finish(Track& t, Movie& m) {
+inline void finish(Track& t, Vid& m) {
     const double scale = t.timescale > 0 ? (double) t.timescale : 0.0;
     const double seconds = scale > 0.0 ? (double) (t.ticks > 0 ? t.ticks : t.duration) / scale : 0.0;
     if (t.handler == fourcc("vide")) {
@@ -240,9 +240,9 @@ inline void finish(Track& t, Movie& m) {
 
 }
 
-inline Movie probeMovie(const juce::File& file) {
+inline Vid probeVideo(const juce::File& file) {
     using namespace detail;
-    Movie m;
+    Vid m;
     juce::FileInputStream in(file);
     if (!in.openedOk()) return m;
     const auto end = in.getTotalLength();

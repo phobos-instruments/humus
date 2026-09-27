@@ -1,7 +1,10 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <array>
+#include <functional>
 #include <string>
+#include <utility>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -13,10 +16,26 @@
 
 namespace hum {
 
+inline constexpr std::array<std::pair<int, int>, 5> kWindowSizes{
+    {{640, 360}, {960, 540}, {1280, 720}, {1920, 1080}, {2560, 1440}}};
+
+inline int& lastWindowSize() {
+    static int chosen = 2;
+    return chosen;
+}
+
 class ScreenGlyphButton : public juce::Button {
 public:
     ScreenGlyphButton() : juce::Button(tr("screen-button.open-the-video-window-2", "Open the video window")) {
-        setTooltip(tr("screen-button.open-the-video-window", "Open the video window"));
+        setTooltip(tr("screen-button.open-the-video-window",
+                      "Open the video window, right-click to pick a size"));
+    }
+
+    std::function<void()> onPickSize;
+
+    void mouseDown(const juce::MouseEvent& e) override {
+        if (e.mods.isPopupMenu() && onPickSize) { onPickSize(); return; }
+        juce::Button::mouseDown(e);
     }
 
     void paintButton(juce::Graphics& g, bool over, bool down) override {
@@ -44,9 +63,23 @@ public:
     ScreenButton(BrickHost& host, std::string organism)
         : host_(host), name_(std::move(organism)) {
         addAndMakeVisible(button_);
-        button_.onClick = [this] {
-            host_.showVisuals(name_);
-        };
+        button_.onClick = [this] { open(lastWindowSize()); };
+        button_.onPickSize = [this] { pickSize(); };
+    }
+
+    void pickSize() {
+        juce::PopupMenu menu;
+        for (size_t i = 0; i < kWindowSizes.size(); ++i) {
+            const auto [w, h] = kWindowSizes[i];
+            menu.addItem((int) i + 1, juce::String(w) + " x " + juce::String(h), true,
+                         (int) i == lastWindowSize());
+        }
+        menu.showMenuAsync(juce::PopupMenu::Options().withTargetComponent(&button_),
+                           [this](int picked) {
+                               if (picked <= 0) return;
+                               lastWindowSize() = picked - 1;
+                               open(picked - 1);
+                           });
     }
 
     void reloadValues() override {}
@@ -56,6 +89,11 @@ public:
     void resized() override { button_.setBounds(getLocalBounds()); }
 
 private:
+    void open(int size) {
+        const auto [w, h] = kWindowSizes[(size_t) juce::jlimit(0, (int) kWindowSizes.size() - 1, size)];
+        host_.showVisuals(name_, w, h);
+    }
+
     BrickHost& host_;
     std::string name_;
     ScreenGlyphButton button_;

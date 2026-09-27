@@ -17,6 +17,7 @@ namespace hum {
 class AppearanceSettingsView : public juce::Component {
 public:
     static constexpr int kUserThemeBase = 200;
+    static constexpr int kCustomComboId = 100;
 
     explicit AppearanceSettingsView(std::function<void()> onAppearanceChanged);
 
@@ -28,6 +29,7 @@ private:
     void rebuildFromState();
     void rebuildThemeCombo();
     void promptSaveTheme();
+    void rollTheme();
     void updateThemeButtons();
     void exportTheme();
     void importTheme();
@@ -46,6 +48,7 @@ private:
 
     std::array<std::unique_ptr<ColourSwatch>, kNumRoles> swatches_;
     std::array<std::unique_ptr<juce::Label>, kNumRoles> swatchLabels_;
+    juce::TextButton rollThemeBtn_{tr("settings.roll-theme", "Random")};
     juce::TextButton saveCustomBtn_{tr("settings.save-theme", "Save Theme...")};
     juce::TextButton deleteThemeBtn_{tr("settings.delete-theme", "Delete Theme")};
     juce::TextButton exportThemeBtn_{"Export..."};

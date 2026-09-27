@@ -12,6 +12,10 @@ The video twin of SoundOut. Cord a Lumen composite, a VideoMix, a VideoFX or a b
 
 **Preview** Keeps the small preview in the organism's editor live while the output window is closed. Turn it off to spare the graphics work when you do not need it.
 
+An output set to a display opens itself again when the patch is loaded, on that display, filling it. One left on Window does not: there is nothing in the patch that says whether its window was open, only where it would go.
+
+**OnTop** Keeps the output window above the other windows, so clicking back into the patch does not bury the picture. On by default; an output filling a display stays on top whatever this says.
+
 ## Recipe
 
 **Projector plus preview** Cord the Lumen outlet into two VideoOut organisms. Set one to Display 2 for the projector and leave the other on Window on your own screen with Preview on. Map Fade on the projector output to a fader so you can take the room to black without touching the mix.

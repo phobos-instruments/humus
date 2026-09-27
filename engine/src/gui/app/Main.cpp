@@ -49,6 +49,7 @@ public:
     }
 
     void initialise(const juce::String&) override {
+        EngineHost::allowLink();
         appsignals::installCrashHandlers();
         {
             auto worker = std::make_unique<BridgeWorker>();
@@ -225,8 +226,10 @@ public:
         retire(start_);
         window_ = std::make_unique<MainWindow>();
         handIn(window_.get());
-        if (auto* mc = mainComponent())
+        if (auto* mc = mainComponent()) {
             mc->onCloseProject = [this] { closeToStartWindow(); };
+            mc->routeFilePicksToBrowser();
+        }
         if (offerHandler) offerDefaultPatchHandlerOnce();
     }
 

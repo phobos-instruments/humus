@@ -17,7 +17,7 @@ namespace missingmedia {
 inline juce::String describe(const media::Ref& r) {
     juce::String where(juce::CharPointer_UTF8(r.organism.c_str()));
     if (r.isClip()) where << " " << tr("missing-media.clip", "clip");
-    else where << " " << juce::String(juce::CharPointer_UTF8(r.param.c_str()));
+    else where << " " << juce::String(r.param);
     return where + ":  " + r.leaf();
 }
 
@@ -33,8 +33,8 @@ inline juce::String summary(const std::vector<media::Ref>& missing) {
 
 inline juce::String statusLine(int count) {
     return juce::String(count)
-           + (count == 1 ? tr("missing-media.one-missing", " media file is missing - File > Locate Missing Media")
-                         : tr("missing-media.many-missing", " media files are missing - File > Locate Missing Media"));
+           + (count == 1 ? tr("missing-media.one-missing", " media file is missing")
+                         : tr("missing-media.many-missing", " media files are missing"));
 }
 
 inline void show(EngineHost& host, std::function<void()> onChanged) {

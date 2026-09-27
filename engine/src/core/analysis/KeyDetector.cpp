@@ -9,6 +9,7 @@
 
 #include <juce_dsp/juce_dsp.h>
 
+#include "core/midi/MidiFormat.h"
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
@@ -16,7 +17,6 @@ namespace hum {
 namespace {
 const std::array<double, 12> kMajor = {6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88};
 const std::array<double, 12> kMinor = {6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17};
-const char* kNames[12] = {"C","C#","D","D#","E","F","F#","G","G#","A","A#","B"};
 const char* kCamMaj[12] = {"8B","3B","10B","5B","12B","7B","2B","9B","4B","11B","6B","1B"};
 const char* kCamMin[12] = {"5A","12A","7A","2A","9A","4A","11A","6A","1A","8A","3A","10A"};
 
@@ -76,7 +76,7 @@ KeyEstimate detectKey(const juce::AudioBuffer<float>& buf, double sampleRate) {
     }
     est.confidence = best;
     const int pc = est.pitchClass;
-    est.name = std::string(kNames[pc]) + (est.major ? " major" : " minor");
+    est.name = std::string(pitchClassName(pc)) + (est.major ? " major" : " minor");
     est.camelot = est.major ? kCamMaj[pc] : kCamMin[pc];
     return est;
 }

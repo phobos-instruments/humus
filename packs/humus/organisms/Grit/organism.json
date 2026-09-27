@@ -34,7 +34,7 @@
           "max": 15.0,
           "def": 0.0,
           "int": true,
-          "unit": "none"
+          "unit": "frames"
         },
         {
           "name": "Decay",
@@ -42,14 +42,15 @@
           "max": 15.0,
           "def": 4.0,
           "int": true,
-          "unit": "none"
+          "unit": "frames"
         },
         {
           "name": "Sustain",
           "min": 0.0,
           "max": 15.0,
           "def": 12.0,
-          "int": true
+          "int": true,
+          "unit": "of-max"
         },
         {
           "name": "Release",
@@ -57,7 +58,7 @@
           "max": 15.0,
           "def": 4.0,
           "int": true,
-          "unit": "none"
+          "unit": "frames"
         },
         {
           "name": "Triangle",

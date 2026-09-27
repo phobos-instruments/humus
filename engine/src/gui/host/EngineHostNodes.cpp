@@ -99,6 +99,20 @@ int EngineHost::nodeMeter(const std::string& name, float* levels, int maxCh) {
     return n;
 }
 
+int EngineHost::nodeInletMeter(const std::string& name, float* levels, int maxCh) {
+    auto* src = dynamic_cast<InletMeter*>(liveOrganism(name));
+    if (src == nullptr) return 0;
+    if (!audioAlive()) return 0;
+    return src->inletMeter(levels, maxCh);
+}
+
+unsigned EngineHost::nodePictureGeneration(const std::string& name) {
+    auto* live = liveOrganism(name);
+    if (auto* beat = dynamic_cast<PictureHeartbeat*>(live)) return beat->pictureGeneration();
+    if (auto* cam = dynamic_cast<CamPreviewSource*>(live)) return cam->camGeneration();
+    return 0;
+}
+
 std::string EngineHost::masterOutputName() {
     if (graph_)
         for (int i = 0; i < graph_->nodeCount(); ++i)
@@ -114,9 +128,23 @@ std::vector<std::string> EngineHost::arrangeableNodes() {
         auto* c = graph_->organism(i);
         if (c == nullptr) continue;
         if (nodeIsInternal(c->name())) continue;
-        if (dynamic_cast<ClipRecorder*>(c) != nullptr || nodeIsNoteTrack(c->name())
+        const bool holdsClips = dynamic_cast<ClipRecorder*>(c) != nullptr
+                                && dynamic_cast<ClipArrangement*>(c) != nullptr;
+        if (holdsClips || nodeIsNoteTrack(c->name())
             || dynamic_cast<VideoTimelineSource*>(c) != nullptr)
             out.push_back(c->name());
+    }
+    return out;
+}
+
+std::vector<std::string> EngineHost::recorderNodes() {
+    std::vector<std::string> out = arrangeableNodes();
+    if (graph_ == nullptr) return out;
+    for (int i = 0; i < graph_->nodeCount(); ++i) {
+        auto* c = graph_->organism(i);
+        if (c == nullptr || nodeIsInternal(c->name())) continue;
+        if (dynamic_cast<ClipRecorder*>(c) == nullptr) continue;
+        if (std::find(out.begin(), out.end(), c->name()) == out.end()) out.push_back(c->name());
     }
     return out;
 }
@@ -135,8 +163,9 @@ bool EngineHost::nodeRecordsVideo(const std::string& name) {
     if (!graph_) return false;
     auto* live = graph_->find(name);
     auto* vn = dynamic_cast<VideoNode*>(live);
-    return dynamic_cast<VideoTimelineSource*>(live) != nullptr && vn != nullptr
-           && vn->numVideoInputs() > 0;
+    if (vn == nullptr || vn->numVideoInputs() <= 0) return false;
+    return dynamic_cast<VideoTimelineSource*>(live) != nullptr
+           || dynamic_cast<PlaysOwnPicture*>(live) != nullptr;
 }
 
 }

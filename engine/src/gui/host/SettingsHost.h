@@ -6,6 +6,10 @@
 
 #include "gui/host/BrickHost.h"
 
+namespace juce {
+class AudioDeviceManager;
+}
+
 namespace hum {
 
 class GamepadHost;
@@ -15,6 +19,8 @@ public:
     enum MidiSync { kSyncOff = 0, kSyncGenerate = 1, kSyncChase = 2 };
 
     ~SettingsHost() override = default;
+
+    virtual juce::AudioDeviceManager& audioDevices() = 0;
 
     virtual GamepadHost& gamepads() = 0;
     virtual int  midiSyncMode() const = 0;

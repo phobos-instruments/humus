@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/tracks/TrackRollView.h"
+#include "gui/host/LiveMidi.h"
 
 #include <juce_audio_basics/juce_audio_basics.h>
 
@@ -246,9 +247,9 @@ void TrackRollView::soundRollKey(int pitch) {
     pitch = juce::jlimit(0, kMidiMax, pitch);
     if (pitch == keyNote_) return;
     if (keyNote_ >= 0)
-        host().injectLiveMidi(juce::MidiMessage::noteOff(1, keyNote_));
+        host().injectLiveMidi(noteOffEvent(1, keyNote_));
     keyNote_ = pitch;
-    host().injectLiveMidi(juce::MidiMessage::noteOn(1, pitch, (juce::uint8) 100));
+    host().injectLiveMidi(noteOnEvent(1, pitch, 100));
     repaintRollKeys();
 }
 
@@ -467,7 +468,7 @@ void TrackRollView::mouseDragRoll(const juce::MouseEvent& e) {
 void TrackRollView::mouseUpRoll() {
     const bool clipEdge = drag_ == Drag::ClipL || drag_ == Drag::ClipR;
     if (keyNote_ >= 0) {
-        host().injectLiveMidi(juce::MidiMessage::noteOff(1, keyNote_));
+        host().injectLiveMidi(noteOffEvent(1, keyNote_));
         keyNote_ = -1;
         repaintRollKeys();
     }

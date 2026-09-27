@@ -5,13 +5,10 @@
 #include <memory>
 #include <string>
 
-#include "core/packs/PackRegistry.h"
 #include "core/graph/PodModel.h"
-#include "hum/Registry.h"
 #include "gui/host/EditorHost.h"
 #include "gui/editor/LayoutEditor.h"
 #include "gui/editor/BankSlotSpec.h"
-#include "gui/editor/LayoutLoader.h"
 #include "gui/editor/ParameterPanel.h"
 #include "gui/common/Localisation.h"
 
@@ -80,21 +77,8 @@ std::unique_ptr<OrganismEditor> makeOrganismEditor(EditorHost& host,
             : pods::isVideoPortClass(cls) ? 4
             : pods::isMidiPortClass(cls) ? 3 : pods::portChannels(cls) == 2 ? 2 : 1);
 
-    if (const auto* m = PackRegistry::instance().classManifest(cls)) {
-        const auto& e = m->editor;
-        if (e.rfind("gen:", 0) == 0)
-            if (auto spec = makeGeneratedLayout(e.substr(4), cls); !spec.controls.empty())
-                return std::make_unique<LayoutEditor>(host, name, std::move(spec));
-        if (e.rfind("layout:", 0) == 0)
-            if (const auto* folder = PackRegistry::instance().folderOf(cls)) {
-                auto spec = loadLayoutSpecFromFile(folder->dir + "/" + e.substr(7));
-                if (!spec.controls.empty())
-                    return std::make_unique<LayoutEditor>(host, name, std::move(spec));
-            }
-    } else {
-        if (auto spec = makeGeneratedLayout("", cls); !spec.controls.empty())
-            return std::make_unique<LayoutEditor>(host, name, std::move(spec));
-    }
+    if (auto spec = layoutSpecFor(cls); !spec.controls.empty())
+        return std::make_unique<LayoutEditor>(host, name, std::move(spec));
 
     auto p = std::make_unique<ParameterPanel>(host);
     p->show(name);

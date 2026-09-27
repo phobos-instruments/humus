@@ -15,7 +15,7 @@
 #include "gui/host/EngineHost.h"
 #include "gui/common/Localisation.h"
 #include "gui/style/LookAndFeel.h"
-#include "gui/video/VideoFilm.h"
+#include "gui/video/VideoBounce.h"
 #include "io/MidiExport.h"
 #include "io/WavWriter.h"
 
@@ -35,11 +35,11 @@ public:
 
     ~BounceJob() override {
         stopThread(4000);
-        film_.reset();
+        footage_.reset();
     }
 
     juce::File soundFile() const { return wants_.soundFile(); }
-    juce::File movieFile() const { return wants_.movieFile(); }
+    juce::File videoFile() const { return wants_.videoFile(); }
     juce::File notesFile() const { return wants_.notesFile(); }
 
     void run(std::function<void(Told)> done) {
@@ -72,7 +72,7 @@ public:
     void stop() {
         stopped_ = true;
         signalThreadShouldExit();
-        if (film_ != nullptr) film_->stop();
+        if (footage_ != nullptr) footage_->stop();
         else if (!isThreadRunning()) finish({false, tr("bounce.stopped", "Stopped.")});
     }
 
@@ -225,27 +225,27 @@ private:
         const double base = wants_.audio ? 0.5 : 0.0;
         const double span = wants_.audio ? 0.5 : 1.0;
         stage(tr("bounce.rendering-video", "Rendering video..."), base, span);
-        VideoFilm::Options film;
-        film.node = wants_.videoNode;
-        film.fromBeat = wants_.fromBeat;
+        VideoBounce::Options footage;
+        footage.node = wants_.videoNode;
+        footage.fromBeat = wants_.fromBeat;
         const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
-        film.seconds = (wants_.toBeat - wants_.fromBeat) * kSecondsPerMinute / bpm;
-        film.fps = wants_.fps;
-        film.width = wants_.width;
-        film.height = wants_.height;
-        film.kind = wants_.kind;
-        film.quality = wants_.quality;
-        film_ = std::make_unique<VideoFilm>(host_, movieFile(), film);
+        footage.seconds = (wants_.toBeat - wants_.fromBeat) * kSecondsPerMinute / bpm;
+        footage.fps = wants_.fps;
+        footage.width = wants_.width;
+        footage.height = wants_.height;
+        footage.kind = wants_.kind;
+        footage.quality = wants_.quality;
+        footage_ = std::make_unique<VideoBounce>(host_, videoFile(), footage);
         if (!pcm_.empty() && !pcm_[0].empty()) {
-            film_->sound = [this](VideoFilm& f) {
+            footage_->sound = [this](VideoBounce& f) {
                 std::vector<const float*> ptrs(pcm_.size());
                 for (size_t c = 0; c < pcm_.size(); ++c) ptrs[c] = pcm_[c].data();
                 return f.writeSound(ptrs.data(), (int) pcm_.size(), (int) pcm_[0].size(),
                                     host_.sampleRate());
             };
         }
-        film_->onProgress = [this, base, span](double at) { progress_ = base + span * at; };
-        film_->run([this](VideoFilm::Result r) {
+        footage_->onProgress = [this, base, span](double at) { progress_ = base + span * at; };
+        footage_->run([this](VideoBounce::Result r) {
             finish({r.ok, r.ok ? said() : r.trouble});
         });
     }
@@ -270,7 +270,7 @@ private:
     BounceWants wants_;
     EngineHost::OfflineSound sound_;
     std::vector<std::vector<float>> pcm_;
-    std::unique_ptr<VideoFilm> film_;
+    std::unique_ptr<VideoBounce> footage_;
     std::unique_ptr<Progress> progressView_;
     std::unique_ptr<ProgressDialog> window_;
     juce::DialogWindow* keep_ = nullptr;

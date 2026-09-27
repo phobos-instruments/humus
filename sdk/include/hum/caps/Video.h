@@ -10,6 +10,12 @@
 
 namespace hum {
 
+class PictureHeartbeat {
+public:
+    virtual ~PictureHeartbeat() = default;
+    virtual unsigned pictureGeneration() const = 0;
+};
+
 class CamPreviewSource {
 public:
     struct Frame { int width = 0, height = 0; std::vector<std::uint8_t> rgba; };
@@ -77,6 +83,27 @@ public:
     virtual unsigned videoLaunchCount() const { return 0; }
 };
 
+class PlaysOwnPicture {
+public:
+    virtual ~PlaysOwnPicture() = default;
+    virtual bool watchingVideoInput() const = 0;
+};
+
+class LoadedPicture {
+public:
+    virtual ~LoadedPicture() = default;
+    virtual std::string loadedPicture() const = 0;
+};
+
+class VideoFlashSource {
+public:
+    virtual ~VideoFlashSource() = default;
+    virtual unsigned flashCount() const = 0;
+    virtual float flashSeconds() const = 0;
+    virtual float flashStrength() const = 0;
+    virtual void flashColour(float& r, float& g, float& b) const = 0;
+};
+
 class VideoFxNode {
 public:
     virtual ~VideoFxNode() = default;
@@ -121,6 +148,12 @@ public:
     virtual int clipCount() const = 0;
     virtual ClipState clipState() const = 0;
     virtual void noteClipLength(int, double) {}
+};
+
+class ClipPlayhead {
+public:
+    virtual ~ClipPlayhead() = default;
+    virtual double clipSeconds(int slot) const = 0;
 };
 
 struct PixelField;

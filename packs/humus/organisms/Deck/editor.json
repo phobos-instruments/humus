@@ -1,6 +1,6 @@
 {
   "width": 600,
-  "height": 466,
+  "height": 570,
   "bind": {
     "active": "Active",
     "bpm": "BPM",
@@ -8,7 +8,6 @@
     "file": "File",
     "grid-offset": "GridOffset",
     "hot-cue-prefix": "HotCue_",
-    "hq": "HQ",
     "key": "Key",
     "loop": "Loop",
     "loop-beats": "LoopBeats",
@@ -16,149 +15,229 @@
     "loop-out": "LoopOut",
     "quantize": "Quantize",
     "pitch": "PitchPercent",
-    "pitch-range": "PitchRange"
+    "pitch-range": "PitchRange",
+    "stop": "Stop",
+    "rewind": "Rewind",
+    "seek-back": "SeekBack",
+    "seek-forward": "SeekForward",
+    "nudge-step": "NudgeStep",
+    "bend-up": "BendUp",
+    "bend-down": "BendDown"
   },
   "controls": [
     {
       "type": "label",
       "label": "Track",
-      "x": 12,
-      "y": 8,
-      "w": 200,
-      "h": 16
+      "style": "section",
+      "x": 6,
+      "y": 6,
+      "w": 510,
+      "h": 262
     },
     {
-      "type": "soundfile",
+      "type": "label",
+      "label": "Cues and loops",
+      "style": "section",
+      "x": 6,
+      "y": 272,
+      "w": 510,
+      "h": 130
+    },
+    {
+      "type": "label",
+      "label": "Beatmatch",
+      "style": "section",
+      "x": 6,
+      "y": 408,
+      "w": 510,
+      "h": 48
+    },
+    {
+      "type": "label",
+      "label": "Timecode",
+      "style": "section",
+      "x": 6,
+      "y": 462,
+      "w": 510,
+      "h": 96
+    },
+    {
+      "type": "label",
+      "label": "Pitch",
+      "style": "section",
+      "x": 520,
+      "y": 6,
+      "w": 74,
+      "h": 552
+    },
+    {
+      "type": "soundfile", "kind": "Samples",
       "param": "File",
       "label": "",
       "x": 12,
-      "y": 28,
-      "w": 478,
-      "h": 26
+      "y": 30,
+      "w": 330,
+      "h": 26,
+      "videos": "1"
+    },
+    {
+      "type": "combo",
+      "param": "AudioTrack",
+      "label": "",
+      "x": 350,
+      "y": 30,
+      "w": 160,
+      "h": 26,
+      "source": "media-tracks",
+      "needs-choice": "2",
+      "tooltip": "Which sound track of the video to play. Videos with one track leave this alone."
     },
     {
       "type": "deck",
       "label": "",
       "x": 12,
-      "y": 60,
-      "w": 478,
-      "h": 150
+      "y": 62,
+      "w": 498,
+      "h": 150,
+      "record": "Record"
     },
     {
       "type": "file-transport",
       "label": "",
       "x": 12,
       "y": 216,
-      "w": 478,
-      "h": 24
+      "w": 498,
+      "h": 44,
+      "seek": "0",
+      "record": "Record"
     },
     {
       "type": "deck-controls",
       "label": "",
       "x": 12,
-      "y": 246,
-      "w": 478,
-      "h": 74
+      "y": 290,
+      "w": 498,
+      "h": 104
     },
     {
-      "type": "double-spinner",
-      "param": "BPM",
-      "label": "BPM",
-      "x": 12,
-      "y": 328,
-      "w": 130,
-      "h": 24,
-      "decimals": 1
-    },
-    {
-      "type": "toggle",
+      "type": "lit-button",
       "param": "Sync",
       "label": "Sync",
-      "x": 150,
-      "y": 328,
-      "w": 64,
-      "h": 24
+      "x": 16,
+      "y": 424,
+      "w": 66,
+      "h": 28,
+      "tooltip": "Ride the patch's tempo and stay locked to the grid.",
+      "icon": "none"
     },
     {
-      "type": "toggle",
-      "param": "Master",
-      "label": "Master",
-      "x": 218,
-      "y": 328,
-      "w": 76,
-      "h": 24
-    },
-    {
-      "type": "toggle",
+      "type": "lit-button",
       "param": "Keylock",
       "label": "Keylock",
-      "x": 298,
-      "y": 328,
-      "w": 86,
-      "h": 24
+      "x": 88,
+      "y": 424,
+      "w": 76,
+      "h": 28,
+      "tooltip": "Change the tempo without the key going with it.",
+      "icon": "none"
     },
     {
-      "type": "toggle",
+      "type": "lit-button",
       "param": "Quantize",
       "label": "Quantize",
-      "x": 12,
-      "y": 358,
-      "w": 96,
-      "h": 24
+      "x": 170,
+      "y": 424,
+      "w": 82,
+      "h": 28,
+      "tooltip": "Snap cues and loops to the nearest beat.",
+      "icon": "none"
     },
     {
-      "type": "toggle",
-      "param": "HQ",
-      "label": "HQ",
-      "x": 116,
-      "y": 358,
-      "w": 60,
-      "h": 24
+      "type": "lit-button",
+      "param": "Timestamp",
+      "label": "Timestamp",
+      "x": 258,
+      "y": 424,
+      "w": 94,
+      "h": 28,
+      "icon": "none"
     },
     {
-      "type": "toggle",
+      "type": "number-box",
+      "param": "PictureSync",
+      "label": "Audio delay",
+      "x": 360,
+      "y": 424,
+      "w": 130,
+      "h": 28,
+      "tooltip": "Hold the sound back so it lands with the picture, in milliseconds.",
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "lit-button",
       "param": "Timecode",
-      "label": "Vinyl",
-      "x": 184,
-      "y": 358,
+      "label": "Timecode",
+      "x": 16,
+      "y": 480,
+      "w": 92,
+      "h": 28,
+      "tooltip": "Let a control record on the inlets drive the platter.",
+      "icon": "none"
+    },
+    {
+      "type": "lit-button",
+      "param": "TimecodeFlip",
+      "label": "Flip",
+      "x": 116,
+      "y": 480,
       "w": 72,
-      "h": 24
+      "h": 28,
+      "tooltip": "Use this if the track runs backwards when the record runs forwards.",
+      "icon": "none"
     },
     {
-      "type": "double-spinner",
-      "param": "TimecodeHz",
-      "label": "Tone Hz",
-      "x": 12,
-      "y": 388,
-      "w": 150,
-      "h": 24,
-      "decimals": 0
+      "type": "timecode-readout",
+      "label": "",
+      "x": 16,
+      "y": 516,
+      "w": 372,
+      "h": 26
     },
     {
-      "type": "knob",
-      "param": "Volume",
-      "label": "Vol",
-      "x": 300,
-      "y": 356,
-      "w": 84,
-      "h": 64
-    },
-    {
-      "type": "label",
-      "label": "Pitch",
-      "x": 498,
-      "y": 8,
-      "w": 90,
-      "h": 16
+      "type": "field-scope",
+      "label": "",
+      "x": 400,
+      "y": 478,
+      "w": 66,
+      "h": 66
     },
     {
       "type": "deck-pitch",
       "label": "",
-      "x": 498,
-      "y": 28,
-      "w": 90,
-      "h": 426,
-      "dim-when": "Sync&!Master"
+      "x": 522,
+      "y": 26,
+      "w": 70,
+      "h": 470,
+      "dim-when": "Sync"
+    },
+    {
+      "type": "picture-lamp",
+      "param": "",
+      "label": "",
+      "x": 250,
+      "y": 480,
+      "w": 48,
+      "h": 28
+    },
+    {
+      "type": "inlet-lamp",
+      "param": "",
+      "label": "",
+      "x": 198,
+      "y": 480,
+      "w": 48,
+      "h": 28
     }
   ]
 }

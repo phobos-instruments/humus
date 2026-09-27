@@ -9,7 +9,7 @@ fully-commented organisms:
   tempo-syncs via rhythmic units, and shows feedback safety.
 
 Build it, install the resulting `sample.humpack` through
-**Edit ▸ Organism Manager ▸ Install pack…**, and both organisms appear in
+**Settings ▸ Packs ▸ Install pack...**, and both organisms appear in
 the palette under their own **Sample** root. Uninstall removes them again -
 patches that used them still load (the nodes become transparent pass-throughs).
 
@@ -69,8 +69,11 @@ Ground rules for `process()` (it runs on the audio thread):
 - Guard your inputs (`c < numIn && in[c]`) - inlets may be unconnected - and
   always fill every output channel.
 
-DSP building blocks in `hum/dsp/` (dependency-free - both built-in packs are
-made of them, and yours should reach here before writing DSP from scratch):
+DSP building blocks in `hum/dsp/` (both built-in packs are made of them, and
+yours should reach here before writing DSP from scratch). All of them are
+plain C++ except `SoundFileBuffer`, `LiveWavWriter` and the bank file readers,
+which still use JUCE and will move behind host services; write new code
+without JUCE:
 `DspMath` (dB↔linear, smoothing coefficients, T60 feedback, linked peak),
 `Lfo` (phase-accumulator LFO with sine/tri/square), `EnvelopeFollower`
 (attack/release follower), `DynamicsCore` (Compressor/Limiter/Gate gain

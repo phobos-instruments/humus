@@ -15,14 +15,14 @@
 #include "gui/style/LookAndFeel.h"
 #include "gui/editor/Mappable.h"
 #include "gui/editor/OrganismEditor.h"
-#include "hum/PatternMatrix.h"
+#include "gui/editor/inputs/PadInputs.h"
 
 namespace hum {
 
 class StepNudgeBrick : public OrganismEditor {
 public:
     StepNudgeBrick(BrickHost& host, std::string name, std::string param)
-        : host_(host), name_(std::move(name)), param_(std::move(param)) {
+        : host_(host), name_(name), nudge_(host, name, std::move(param)) {
         earlier_.setButtonText(juce::String::fromUTF8("\xe2\x97\x80"));
         later_.setButtonText(juce::String::fromUTF8("\xe2\x96\xb6"));
         earlier_.setTooltip(tr("step-nudge.earlier", "Nudge the pattern a step earlier"));
@@ -42,22 +42,20 @@ public:
 
     std::function<void()> onNudged;
 
-    int current() const { return (int) std::lround(host_.liveParamValue(name_, param_)); }
+    int current() const { return nudge_.current(); }
 
-    void nudge(int by) { set(wrappedNudge(current(), by, steps())); }
+    void nudge(int by) {
+        if (nudge_.nudge(by, steps())) nudged();
+    }
 
     void set(int to) {
-        if (to == current()) return;
-        host_.pushUndo();
-        host_.setParam(name_, param_, (double) to);
-        refreshAutomatedValues();
-        if (onNudged) onNudged();
+        if (nudge_.set(to)) nudged();
     }
 
     void reloadValues() override { refreshAutomatedValues(); }
     void refreshAutomatedValues() override {
         const int v = current();
-        const auto text = v > 0 ? "+" + juce::String(v) : juce::String(v);
+        const juce::String text(nudge_.text());
         if (value_.getText() != text) value_.setText(text, juce::dontSendNotification);
         const auto ink = v != 0 ? Palette::accent : Palette::textDim;
         if (value_.findColour(juce::Label::textColourId) != ink)
@@ -82,17 +80,22 @@ public:
     }
 
 private:
+    void nudged() {
+        refreshAutomatedValues();
+        if (onNudged) onNudged();
+    }
+
     int steps() const { return (int) host_.patterns().basslineSteps(name_).size(); }
 
     void showMenu(juce::Point<int> at) {
-        showAutomateMenu(host_, name_, param_, at, [safe = juce::Component::SafePointer<StepNudgeBrick>(this)] {
+        showAutomateMenu(host_, name_, nudge_.param(), at, [safe = juce::Component::SafePointer<StepNudgeBrick>(this)] {
             if (safe != nullptr) safe->refreshAutomatedValues();
         });
     }
 
     BrickHost& host_;
     std::string name_;
-    std::string param_;
+    input::StepNudge nudge_;
     Mappable<juce::TextButton> earlier_, later_;
     juce::Label value_;
 };

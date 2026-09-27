@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Pad Sweeps Cutoff",
+    "values": {
+      "In1": 1, "Low1": 36, "High1": 36, "Do1": 2, "Target1": 74,
+      "Others": 0
+    }
+  },
+  {
+    "name": "Only The Drums",
+    "values": {
+      "In1": 1, "Low1": 24, "High1": 47, "Do1": 1, "Target1": 24,
+      "Others": 1
+    }
+  },
+  {
+    "name": "Pedal Plays A Note",
+    "values": {
+      "In1": 2, "Low1": 64, "High1": 64, "Do1": 1, "Target1": 36,
+      "Others": 0
+    }
+  },
+  {
+    "name": "No Knobs",
+    "values": {
+      "In1": 2, "Low1": 0, "High1": 127, "Do1": 0, "Target1": 0,
+      "Others": 0
+    }
+  }
+]

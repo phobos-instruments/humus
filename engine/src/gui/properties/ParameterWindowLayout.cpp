@@ -82,6 +82,7 @@ void ParameterWindow::layoutBar(juce::Rectangle<int> row) {
     if (histFwd_.isVisible()) { place(histFwd_, 20, 0); place(histBack_, 20, 0); }
     if (pluginUi_.isVisible()) place(pluginUi_, 24, 0);
     if (viewSwitch_.isVisible()) place(viewSwitch_, 54, 0);
+    if (fitSize_.isVisible()) place(fitSize_, 34, 0);
 
     auto left = row.withRight(right.getRight());
     constexpr int kGap = 10;

@@ -2,108 +2,116 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/editor/LayoutLoader.h"
 
+#include <algorithm>
 #include <set>
 
-#include <juce_core/juce_core.h>
+#include "core/json/Json.h"
 
 namespace hum {
 
 namespace {
 
-LayoutSpec::ControlType typeFromString(const juce::String& s) {
-    LayoutSpec::ControlType t = LayoutSpec::ControlType::Knob;
-    controlTypeFromName(s.toStdString(), t);
-    return t;
+std::string getString(const json::Value& obj, const char* key, const std::string& fallback = {}) {
+    const auto& v = obj[key];
+    return v.isString() ? v.text() : fallback;
 }
 
-bool typeKnown(const juce::String& s) {
-    LayoutSpec::ControlType t;
-    return controlTypeFromName(s.toStdString(), t);
+int getInt(const json::Value& obj, const char* key, int fallback = 0) {
+    const auto& v = obj[key];
+    return v.isNumber() ? v.integer() : fallback;
 }
 
-std::string getString(const juce::var& obj, const char* key, const std::string& fallback = {}) {
-    if (!obj.isObject()) return fallback;
-    auto* d = obj.getDynamicObject();
-    if (!d) return fallback;
-    auto v = d->getProperty(key);
-    return v.isString() ? v.toString().toStdString() : fallback;
+bool getBool(const json::Value& obj, const char* key, bool fallback = false) {
+    const auto& v = obj[key];
+    return v.isNull() ? fallback : v.truthy();
 }
 
-int getInt(const juce::var& obj, const char* key, int fallback = 0) {
-    if (!obj.isObject()) return fallback;
-    auto* d = obj.getDynamicObject();
-    if (!d) return fallback;
-    auto v = d->getProperty(key);
-    return v.isInt() || v.isDouble() ? (int) v : fallback;
-}
+constexpr const char* kSwingType = "swing";
+constexpr int kSwingW = 180, kSwingH = 24, kSwingPadW = 58, kSwingGap = 6, kSwingRowMinW = 124;
 
-bool getBool(const juce::var& obj, const char* key, bool fallback = false) {
-    if (!obj.isObject()) return fallback;
-    auto* d = obj.getDynamicObject();
-    if (!d) return fallback;
-    const auto v = d->getProperty(key);
-    return v.isVoid() ? fallback : (bool) v;
+void addSwing(LayoutSpec& spec, const json::Value& cv) {
+    using CT = LayoutSpec::ControlType;
+    const auto follow = getString(cv, "follow", "SwingFollow");
+    const auto amount = getString(cv, "swing", "Swing");
+    const int x = getInt(cv, "x", 0), y = getInt(cv, "y", 0), h = getInt(cv, "h", kSwingH);
+    const int w = getInt(cv, "w", kSwingW);
+    const bool stacked = w < kSwingRowMinW;
+    LayoutSpec::Control pad;
+    pad.type = CT::LitButton;
+    pad.param = follow;
+    pad.label = "Follow";
+    pad.x = x;
+    pad.y = y;
+    pad.w = stacked ? w : kSwingPadW;
+    pad.h = h;
+    pad.extra = {{"icon", "none"}, {"tooltip", "Take the swing from the transport."}};
+    spec.controls.push_back(pad);
+    LayoutSpec::Control slider;
+    slider.type = CT::HSlider;
+    slider.param = amount;
+    slider.label = stacked ? "" : "Swing";
+    slider.x = stacked ? x : x + kSwingPadW + kSwingGap;
+    slider.y = stacked ? y + h + kSwingGap : y;
+    slider.w = stacked ? w : w - kSwingPadW - kSwingGap;
+    slider.h = h;
+    slider.extra = {{"dim-when", follow}, {"tooltip", "Swing"}};
+    if (!stacked) slider.extra["show-value"] = "1";
+    spec.controls.push_back(slider);
 }
 
 }
 
 LayoutSpec loadLayoutSpec(const std::string& jsonText) {
     LayoutSpec spec;
-    juce::var parsed = juce::JSON::parse(juce::String(jsonText));
-    if (!parsed.isObject()) return spec;
+    const auto root = json::parse(jsonText);
+    if (!root.isObject()) return spec;
 
-    auto* root = parsed.getDynamicObject();
-    if (!root) return spec;
+    spec.width = getInt(root, "width", 280);
+    spec.height = getInt(root, "height", 220);
+    spec.scrollFrom = getInt(root, "scroll-from", -1);
+    if (const auto& skin = root["skin"]; skin.isObject()) spec.skin = json::write(skin);
+    for (const auto& [name, value] : root["bind"].members()) spec.bind[name] = value.text();
+    if (getString(root, "resize") == "stretch") spec.resize = LayoutSpec::Resize::Stretch;
+    if (getString(root, "resize") == "grow") spec.resize = LayoutSpec::Resize::Grow;
 
-    spec.width = getInt(parsed, "width", 280);
-    spec.height = getInt(parsed, "height", 220);
-    if (const auto skin = root->getProperty("skin"); skin.isObject())
-        spec.skin = juce::JSON::toString(skin, true).toStdString();
-    if (auto* bind = root->getProperty("bind").getDynamicObject())
-        for (const auto& prop : bind->getProperties())
-            spec.bind[prop.name.toString().toStdString()] = prop.value.toString().toStdString();
-    if (getString(parsed, "resize") == "stretch") spec.resize = LayoutSpec::Resize::Stretch;
-    if (getString(parsed, "resize") == "grow") spec.resize = LayoutSpec::Resize::Grow;
-
-    auto controlsVar = root->getProperty("controls");
-    if (auto* arr = controlsVar.getArray()) {
-        for (auto& cv : *arr) {
-            LayoutSpec::Control c;
-            c.type = typeFromString(juce::String(getString(cv, "type", "knob")));
-            c.param = getString(cv, "param");
-            c.param2 = getString(cv, "param2");
-            c.label = getString(cv, "label", c.param);
-            c.x = getInt(cv, "x", 0);
-            c.y = getInt(cv, "y", 0);
-            c.w = getInt(cv, "w", 60);
-            c.h = getInt(cv, "h", 80);
-            c.decimalPlaces = getInt(cv, "decimals", 2);
-            c.logarithmic = getBool(cv, "log", getBool(cv, "logarithmic", false));
-            if (auto* co = cv.getDynamicObject()) {
-                if (auto* opts = co->getProperty("options").getArray())
-                    for (auto& o : *opts) c.options.push_back(o.toString().toStdString());
-                static const std::set<juce::String> known = {
-                    "type", "param", "param2", "label", "x", "y", "w", "h",
-                    "decimals", "log", "logarithmic", "options"};
-                for (auto& prop : co->getProperties())
-                    if (known.count(prop.name.toString()) == 0 && !prop.value.isArray())
-                        c.extra[prop.name.toString().toStdString()] =
-                            prop.value.toString().toStdString();
-            }
-            spec.controls.push_back(std::move(c));
+    static const std::set<std::string> known = {"type", "param", "param2", "label", "x", "y", "w", "h",
+                                                "decimals", "log", "logarithmic", "options"};
+    for (const auto& cv : root["controls"].items()) {
+        if (getString(cv, "type") == kSwingType) {
+            addSwing(spec, cv);
+            continue;
         }
+        LayoutSpec::Control c;
+        c.type = LayoutSpec::ControlType::Knob;
+        controlTypeFromName(getString(cv, "type", "knob"), c.type);
+        c.param = getString(cv, "param");
+        c.param2 = getString(cv, "param2");
+        c.label = getString(cv, "label", c.param);
+        c.x = getInt(cv, "x", 0);
+        c.y = getInt(cv, "y", 0);
+        c.w = getInt(cv, "w", 60);
+        c.h = getInt(cv, "h", 80);
+        c.decimalPlaces = getInt(cv, "decimals", 2);
+        c.logarithmic = getBool(cv, "log", getBool(cv, "logarithmic", false));
+        for (const auto& o : cv["options"].items()) c.options.push_back(o.text());
+        for (const auto& [name, value] : cv.members())
+            if (known.count(name) == 0 && !value.isArray()) c.extra[name] = value.text();
+        spec.controls.push_back(std::move(c));
     }
     return spec;
 }
 
 LayoutSpec loadLayoutSpecFromFile(const std::string& path) {
-    juce::File f { juce::String(path) };
-    if (!f.existsAsFile()) return {};
-    return loadLayoutSpec(f.loadFileAsString().toStdString());
+    std::string text;
+    if (!json::readTextFile(path, text)) return {};
+    auto spec = loadLayoutSpec(text);
+    if (const auto slash = path.find_last_of("/\\"); slash != std::string::npos) spec.dir = path.substr(0, slash);
+    return spec;
 }
 
 bool knownLayoutControlType(const std::string& type) {
-    return typeKnown(juce::String(type));
+    LayoutSpec::ControlType t;
+    return type == kSwingType || controlTypeFromName(type, t);
 }
 
 }

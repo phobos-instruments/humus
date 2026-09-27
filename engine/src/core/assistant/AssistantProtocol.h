@@ -22,6 +22,7 @@ bool looksLikePhantomEdits(const juce::String& text);
 juce::String toolNudge();
 bool claimsEdits(const juce::String& text);
 juce::String editClaimNudge();
+juce::String silenceNudge();
 
 juce::String extractText(const juce::var& response);
 std::vector<ToolCall> extractToolCalls(const juce::var& response);

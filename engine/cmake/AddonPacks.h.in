@@ -12,7 +12,7 @@ namespace hum {
 @HUM_ADDON_DECLS@
 inline void registerStaticAddonPacks() {
 @HUM_ADDON_CALLS@
-    const auto root = PackRegistry::packsRootDir();
+    const auto root = PackRegistry::instance().builtinRoot();
     if (root.empty()) return;
     for (const char* id : std::initializer_list<const char*>{@HUM_ADDON_IDS@})
         PackRegistry::instance().loadPackDir(root + "/" + id, /*builtin*/ true);

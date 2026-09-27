@@ -7,11 +7,12 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/style/Colours.h"
+#include "gui/style/Contrast.h"
 #include "gui/bricks/PolledBrick.h"
 #include "gui/host/BrickHost.h"
 #include "hum/Organism.h"
 #include "gui/style/LookAndFeel.h"
-#include "hum/caps/Audio.h"
+#include "gui/editor/readouts/ScopeReadings.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -28,11 +29,24 @@ public:
     int preferredContentWidth() const override { return 165; }
     int preferredContentHeight(int) const override { return 140; }
 
+    static juce::Colour ground() {
+        return contrast::isLight(Palette::panel) ? Palette::panel.darker(0.07f)
+                                                 : ink::field::ground;
+    }
+    static juce::Colour strand() {
+        return contrast::isLight(Palette::panel) ? Palette::panel.darker(0.14f)
+                                                 : ink::field::strip;
+    }
+    static juce::Colour edge() {
+        return contrast::isLight(Palette::panel) ? Palette::panel.darker(0.22f)
+                                                 : ink::field::edge;
+    }
+
     void paint(juce::Graphics& g) override {
         const auto r = getLocalBounds().toFloat();
-        g.setColour(ink::field::ground);
+        g.setColour(ground());
         g.fillRoundedRectangle(r, 4.0f);
-        g.setColour(ink::field::edge);
+        g.setColour(edge());
         g.drawRoundedRectangle(r.reduced(0.5f), 4.0f, 1.0f);
 
         const float cx = r.getCentreX();
@@ -46,12 +60,14 @@ public:
         g.drawText("L", (int) r.getX() + 5, (int) r.getY() + 4, 10, 10, juce::Justification::left);
         g.drawText("R", (int) r.getRight() - 15, (int) r.getY() + 4, 10, 10, juce::Justification::right);
 
+        const bool haveCloud_ = reading_.hasCloud();
+        const float cloudFade_ = reading_.fade(), corr_ = reading_.correlation();
+        const int pairs_ = reading_.pairs();
         if (haveCloud_) {
             const float span = r.getWidth() * 0.46f;
             for (int i = 0; i < pairs_; ++i) {
-                const float L = lr_[2 * i], R = lr_[2 * i + 1];
-                const float side = (L - R) * kSqrtHalfF;
-                const float mid = (L + R) * kSqrtHalfF;
+                const float side = reading_.side(i);
+                const float mid = reading_.mid(i);
                 const float px = cx + juce::jlimit(-1.2f, 1.2f, side) * span;
                 const float py = floorY - juce::jlimit(-0.1f, 1.3f, std::abs(mid)) * (floorY - r.getY() - 8.0f) * 0.8f;
                 const float t = (float) i / (float) juce::jmax(1, pairs_ - 1);
@@ -65,7 +81,7 @@ public:
 
         const juce::Rectangle<float> strip(r.getX() + 2.0f, r.getBottom() - 8.0f,
                                            r.getWidth() - 4.0f, 6.0f);
-        g.setColour(ink::field::strip);
+        g.setColour(strand());
         g.fillRect(strip);
         g.setColour(Palette::text.withAlpha(alpha::heavy));
         g.fillRect(cx - 0.5f, strip.getY(), 1.0f, strip.getHeight());
@@ -83,30 +99,10 @@ public:
 
 private:
     void poll() override {
-        auto* src = dynamic_cast<StereoFieldSource*>(host_.liveOrganism(name_));
-        if (src == nullptr) return;
-        const unsigned stamp = src->fieldStamp();
-        if (stamp != lastStamp_) {
-            lastStamp_ = stamp;
-            pairs_ = src->fieldRead(lr_, kMaxPairs);
-            corr_ = src->fieldCorrelation();
-            cloudFade_ = 1.0f;
-            haveCloud_ = pairs_ > 0;
-            repaint();
-        } else if (haveCloud_) {
-            cloudFade_ *= 0.82f;
-            if (cloudFade_ < 0.03f) { haveCloud_ = false; cloudFade_ = 0.0f; }
-            repaint();
-        }
+        if (reading_.poll(host_, name_)) repaint();
     }
 
-    static constexpr int kMaxPairs = StereoFieldSource::kFieldPairs;
-    float lr_[2 * kMaxPairs] = {};
-    int pairs_ = 0;
-    float corr_ = 0.0f;
-    float cloudFade_ = 0.0f;
-    bool haveCloud_ = false;
-    unsigned lastStamp_ = 0;
+    readout::StereoField reading_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FieldScopeView)
 };

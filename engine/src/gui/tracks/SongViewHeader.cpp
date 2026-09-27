@@ -125,6 +125,12 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
             repaintAll();
             return;
         }
+        if (const auto* cmIn = host().model().byName(node);
+            cmIn != nullptr && classHasRole(cmIn->classRaw, role::kMidiTrack) && inputBox(row).contains(p)
+            && !e.mods.isPopupMenu()) {
+            showInputMenu(node, e.getScreenPosition());
+            return;
+        }
         if (const auto* cmDest = host().model().byName(node);
             cmDest != nullptr && classHasRole(cmDest->classRaw, role::kMidiTrack)
             && destBox(row, node).contains(p) && !e.mods.isPopupMenu()) {
@@ -146,7 +152,10 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
             return;
         }
         if (p.x > 18 && p.x < kStripW - 84 && !e.mods.isPopupMenu()) {
-            selectTrack(row, e.mods.isShiftDown(), e.mods.isCommandDown());
+            const bool plain = !e.mods.isShiftDown() && !e.mods.isCommandDown();
+            const bool grabsGroup = plain && selTracks_.count(node) != 0 && selTracks_.size() > 1;
+            if (!grabsGroup) selectTrack(row, e.mods.isShiftDown(), e.mods.isCommandDown());
+            if (plain) armRowDrag(row, p);
             return;
         }
         if (foldBox(row).contains(p) && hasLanes(row) && !wantsBoxRow(row)) {
@@ -158,7 +167,7 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
         if (e.mods.isPopupMenu()) {
             const char* target = muteBox(row).contains(p) ? kTrackMuteParam
                                : soloBox(row).contains(p) ? kSoloParam
-                               : recBox(row).contains(p)  ? kArmParam : nullptr;
+                               : recBox(row).contains(p) && recordable(node) ? kArmParam : nullptr;
             if (target != nullptr) {
                 showAutomateMenu(host(), node, target, paneToScreen(p),
                                  [this] { repaintAll(); }, false);
@@ -173,7 +182,7 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
         if (muteBox(row).contains(p)) {
             setNodeMuted(node, !nodeMuted(node));
             repaintRow(row);
-        } else if (recBox(row).contains(p)) {
+        } else if (recBox(row).contains(p) && recordable(node)) {
             if (host().nodeRecordsMedia(node)) {
                 bool armed = false;
                 if (const auto* cm = host().model().byName(node))
@@ -183,12 +192,15 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
                 repaintRow(row);
                 return;
             }
-            const bool arm = !host().midi().isRecordTarget(node);
-            host().midi().setRecordTarget(node, arm, 0, MidiHost::kClipOnDemand, true);
-            ctx_.liveTargetsChanged();
+            host().midi().armInlet(node, !host().midi().inletArmed(node));
             repaintRow(row);
         }
         return;
+}
+
+bool SongView::recordable(const std::string& node) const {
+    const auto* cm = host().model().byName(node);
+    return host().nodeRecordsMedia(node) || (cm != nullptr && classHasRole(cm->classRaw, role::kMidiTrack));
 }
 
 bool SongView::ownsRow(const std::string& node) const {
@@ -198,7 +210,8 @@ bool SongView::ownsRow(const std::string& node) const {
 }
 
 void SongView::selectTrack(int row, bool range, bool toggle) {
-    const auto& node = rows_[(size_t) row];
+    if (row < 0 || row >= (int) rows_.size()) return;
+    const auto node = rows_[(size_t) row];
     if (range && selClipRow_ >= 0 && selClipRow_ < (int) rows_.size()) {
         const int a = std::min(selClipRow_, row);
         const int b = std::max(selClipRow_, row);
@@ -210,6 +223,7 @@ void SongView::selectTrack(int row, bool range, bool toggle) {
     }
     selectClip(row, -1);
     repaintAll();
+    ctx_.nodeSelected(node);
 }
 
 std::vector<std::string> SongView::selectedTracks() const {

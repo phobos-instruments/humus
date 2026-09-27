@@ -60,6 +60,7 @@ public:
 
     std::string getStateBase64() const override;
     void setStateBase64(const std::string& base64) override;
+    void loadFrom(const OrganismState& state) override;
 
 private:
     struct TransportPlayHead : juce::AudioPlayHead {
@@ -87,6 +88,7 @@ private:
     juce::MidiBuffer pendingMidi_;
     std::vector<MidiEvent> staged_;
     int stagedCount_ = 0;
+    void adoptInstanceValues();
     std::vector<float> lastSentParams_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HostedPlugin)

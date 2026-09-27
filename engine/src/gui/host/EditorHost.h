@@ -8,6 +8,10 @@
 
 #include "gui/host/BrickHost.h"
 
+namespace juce {
+class AudioDeviceManager;
+}
+
 namespace hum {
 
 class HostedPlugin;
@@ -16,14 +20,9 @@ class EditorHost : public virtual BrickHost {
 public:
     ~EditorHost() override = default;
 
-    virtual std::string replaceOrganism(const std::string& name, const std::string& newClass) = 0;
-    virtual bool isLiveTracked(const std::string& organism, const std::string& param) const = 0;
-    virtual bool isExternallyControlled(const std::string& organism,
-                                        const std::string& param) const = 0;
-    virtual void noteTopologyChanged() = 0;
+    virtual juce::AudioDeviceManager& audioDevices() = 0;
+
     virtual HostedPlugin* hostedPluginFor(const std::string& name) = 0;
-    virtual std::vector<std::pair<int, std::string>> choiceItems(const std::string& source,
-                                                         const std::string& organism = {}) = 0;
 };
 
 }

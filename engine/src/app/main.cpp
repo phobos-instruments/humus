@@ -9,6 +9,7 @@
 
 #include "core/app/AppPaths.h"
 #include "core/graph/AudioGraph.h"
+#include "io/FfmpegAudioFormat.h"
 #include "hum/Number.h"
 #include "hum/Registry.h"
 #include "io/PatchDocument.h"
@@ -218,6 +219,7 @@ void usage() {
 
 int main(int argc, char** argv) {
     juce::ScopedJuceInitialiser_GUI juceInit;
+    hum::installExtraSoundFormats();
 #ifdef HUM_STATIC_ADDON_PACKS
     registerBuiltinOrganisms();
     registerStaticAddonPacks();

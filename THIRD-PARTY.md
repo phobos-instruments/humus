@@ -31,12 +31,18 @@ Brad Smith, descending from Brezza's NSFPlug, distributed freely per its
 readme; the embedded emu2413 and emu2149 cores are by Mitsutaka Okazaki),
 vendored under `engine/third_party/nsfplay/` with its terms carried verbatim.
 
-VideoPlayer plays videos through each platform's own framework where it has
-one - AVFoundation on macOS, Media Foundation on Windows - and through
-[FFmpeg](https://ffmpeg.org) on Linux: the LGPL-2.1-or-later libraries only,
-linked as shared libraries so they stay replaceable. A Linux build links
-whatever FFmpeg development files the machine has, or plays HAP videos only
-without them.
+Video plays through each platform's own framework where it has one -
+AVFoundation on macOS, Media Foundation on Windows - with
+[FFmpeg](https://ffmpeg.org) behind it for what those will not open, and as
+the only decoder on Linux. FFmpeg also reads the sound inside a film, which
+no system audio reader does from a Matroska or an AVI.
+
+The macOS and Windows builds carry the LGPL-2.1-or-later libraries only,
+decode-only, with no encoder and nothing GPL; the Linux build adds x264, and
+that one is GPL-2.0-or-later, because a bounce there has no system encoder to
+use. Either way the libraries stay separable: the build is reproducible from
+packaging/linux/ffmpeg-lite.sh, which pins every download by digest, and a
+build with no FFmpeg at all plays HAP videos only and reads no film sound.
 
 The Paulstretch organism is an in-house implementation of
 [Paul's Extreme Sound Stretch](https://github.com/paulnasca/paulstretch_python)
@@ -45,6 +51,11 @@ PinkTrombone organism is a C++ port of
 [Pink Trombone](https://dood.al/pinktrombone/) by Neil Thapen (MIT,
 Copyright 2017 Neil Thapen; full notice in
 `packs/humus/organisms/PinkTrombone/LICENSE-pink-trombone.txt`).
+
+The Deck reads control records with the timecode decoder from
+[xwax](https://xwax.org) by Mark Hills (**GPL-3.0-only**, vendored unmodified in
+`engine/third_party/xwax`, whose README says why) - AGPLv3 §13 permits that combination,
+the same as for the SDK below.
 
 Windows builds also vendor the [Steinberg ASIO SDK](https://www.steinberg.net/asiosdk)
 (2.3.4) under the **GPLv3** arm of its dual licence - AGPLv3 §13 is what permits that

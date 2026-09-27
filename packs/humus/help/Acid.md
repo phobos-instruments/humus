@@ -2,7 +2,7 @@
 
 A mono line synth in the acid-box tradition, with accent and slide.
 
-A band-limited saw or square runs into a resonant diode ladder that an exponential envelope sweeps open on every note. Two things make its lines speak: a note at velocity 110 or above is an accent, which opens the filter further and hits louder, and two overlapping notes slide in pitch without restarting the envelope. The ladder and the output stages that shape its low end are our own version of the ones in Open303 by Robin Schmidt. Cord a Riff, a Steps or a PianoRoll into its MIDI inlet, and with its editor focused the computer keyboard plays it directly.
+A band-limited saw or square runs into a resonant diode ladder that an exponential envelope sweeps open on every note. Two things make its lines speak: a note at velocity 110 or above is an accent, which opens the filter further and hits louder, and two overlapping notes slide in pitch without restarting the envelope. The ladder and the output stages that shape its low end are our own version of the ones in [Open303](https://github.com/RobinSchmidt/Open303) by Robin Schmidt. Cord a Riff, a Steps or a PianoRoll into its MIDI inlet, and with its editor focused the computer keyboard plays it directly.
 
 ## Parameters
 

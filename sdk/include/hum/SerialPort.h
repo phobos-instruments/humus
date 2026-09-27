@@ -1,12 +1,15 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
+#include <condition_variable>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
-#include <juce_core/juce_core.h>
+#include "hum/SpinLock.h"
 
 #include "hum/SerialParse.h"
 
@@ -20,7 +23,7 @@ inline const std::vector<int>& standardBauds() {
 
 inline int baudFromIndex(int index) {
     const auto& r = standardBauds();
-    return r[(size_t) juce::jlimit(0, (int) r.size() - 1, index)];
+    return r[(size_t) std::clamp(index, 0, (int) r.size() - 1)];
 }
 
 enum Frame : int { kFrame8N1 = 0, kFrame8E1 = 1, kFrame8O1 = 2, kFrame8N2 = 3 };
@@ -97,8 +100,10 @@ private:
     std::uint8_t queue_[kQueue];
     int head_ = 0;
     int tail_ = 0;
-    juce::SpinLock queueLock_;
-    juce::WaitableEvent arrived_;
+    SpinLock queueLock_;
+    std::mutex arrivedLock_;
+    std::condition_variable arrived_;
+    bool signalled_ = false;
 };
 
 std::shared_ptr<Link> acquire(const std::string& path, const Settings& settings);

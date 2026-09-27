@@ -1,0 +1,478 @@
+{
+  "classes": [
+    {
+      "class": "Comber",
+      "category": "Filters",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Combs",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 4.0,
+          "enum": true
+        },
+        {
+          "name": "Frequency_1",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 110.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_2",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 220.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_3",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 440.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_4",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 880.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_5",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 1760.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_6",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 2640.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_7",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 3520.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_8",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 4400.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "DecayTime_1",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 1.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_2",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 2.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_3",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 3.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_4",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 4.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_5",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 5.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_6",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 6.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_7",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 7.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_8",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 8.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.125,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0625,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.03125,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.015625,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.007812,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        }
+      ],
+      "editor": "layout:comber-editor.json"
+    },
+    {
+      "class": "5Combs",
+      "category": "Filters",
+      "params": [
+        {
+          "name": "InputGain",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
+        },
+        {
+          "name": "Combs",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 4.0,
+          "enum": true
+        },
+        {
+          "name": "Frequency_1",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 110.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_2",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 220.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_3",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 440.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_4",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 880.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_5",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 1760.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_6",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 2640.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_7",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 3520.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "Frequency_8",
+          "min": 16.0,
+          "max": 12000.0,
+          "def": 4400.0,
+          "unit": "Hz",
+          "random": true
+        },
+        {
+          "name": "DecayTime_1",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 1.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_2",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 2.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_3",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 3.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_4",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 4.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_5",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 5.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_6",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 6.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_7",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 7.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "DecayTime_8",
+          "min": 0.02,
+          "max": 10.0,
+          "def": 8.0,
+          "unit": "s",
+          "random": true,
+          "random-min": 0.1,
+          "random-max": 3.0
+        },
+        {
+          "name": "Gain_1",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_2",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.5,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_3",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.25,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_4",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.125,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_5",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0625,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_6",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.03125,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_7",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.015625,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        },
+        {
+          "name": "Gain_8",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.007812,
+          "random": true,
+          "random-min": 0.2,
+          "random-max": 1.0
+        }
+      ],
+      "editor": "layout:comber-editor.json",
+      "hidden": true,
+      "help": "Comber"
+    }
+  ]
+}

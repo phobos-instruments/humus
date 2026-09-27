@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/EngineHost.h"
 #include "core/packs/Categories.h"
+#include "gui/common/Localisation.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -17,10 +18,16 @@
 #include "gui/app/AppSettings.h"
 #include "io/PatchLoader.h"
 #include "io/WavWriter.h"
+#include "gui/editor/Words.h"
+#include "hum/caps/Files.h"
 #include "hum/caps/Params.h"
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
+
+namespace {
+constexpr Words kOneTrack{"choices.sound-track", "Sound track"};
+}
 
 std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::string& source,
                                                                  const std::string& organism) {
@@ -35,11 +42,19 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         if (items.empty()) items.push_back({1, "1"});
         return items;
     }
+    if (source == "media-tracks") {
+        if (auto* tracks = dynamic_cast<MediaTracks*>(graph_ ? graph_->find(organism) : nullptr)) {
+            const auto names = tracks->mediaTracks();
+            for (size_t i = 0; i < names.size(); ++i) items.push_back({(int) i, names[i]});
+        }
+        if (items.empty()) items.push_back({0, translated(kOneTrack.key, kOneTrack.written)});
+        return items;
+    }
     if (source == "video-inputs") {
         const auto cams = CameraCapture::availableDevices();
         for (size_t i = 0; i < cams.size(); ++i)
             items.push_back({(int) i + 1, cams[i]});   // utf8-ok: data
-        if (items.empty()) items.push_back({1, "Default camera"});
+        if (items.empty()) items.push_back({1, tr("choices.default-camera", "Default Camera").toStdString()});
         return items;
     }
     if (source == "midi-targets") {
@@ -68,6 +83,7 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
     const bool midiIn = source == "midi-in-ports", midiOut = source == "midi-out-ports";
     if (midiIn || midiOut) {
         auto& s = AppSettings::instance();
+        if (midiIn) items.push_back({0, "All inputs"});
         for (int p = 1; p <= kMidiPorts; ++p) {
             const auto key = juce::String(midiIn ? "midi.in." : "midi.out.") + juce::String(p);
             auto name = s.getString(key + ".name");
@@ -80,7 +96,7 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
     }
     const bool inPairs = source == "audio-in-pairs";
     if (inPairs || source == "audio-out-pairs") {
-        auto* dev = devices_.getCurrentAudioDevice();
+        auto* dev = audio_->current();
         const auto names = dev ? (inPairs ? dev->getInputChannelNames()
                                           : dev->getOutputChannelNames())
                                : juce::StringArray();
@@ -97,7 +113,7 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
     }
     const bool audioIn = source == "audio-in-channels";
     if (audioIn || source == "audio-out-channels") {
-        auto* dev = devices_.getCurrentAudioDevice();
+        auto* dev = audio_->current();
         const auto names = dev ? (audioIn ? dev->getInputChannelNames()
                                           : dev->getOutputChannelNames())
                                : juce::StringArray();

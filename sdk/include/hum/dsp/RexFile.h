@@ -8,7 +8,8 @@
 #include <string>
 #include <vector>
 
-#include <juce_audio_basics/juce_audio_basics.h>
+#include "hum/FileBytes.h"
+#include "hum/dsp/SampleBuffer.h"
 
 #include "hum/dsp/DspMath.h"
 
@@ -22,13 +23,11 @@ struct RexData {
     double sampleRate = 0.0;
     int totalSamples = 0;
     std::vector<int> slices;
-    juce::AudioBuffer<float> audio;
+    SampleBuffer audio;
 };
 
-inline bool isRexPath(std::string uri) {
-    if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
-    const auto ext = juce::File(juce::String(juce::CharPointer_UTF8(uri.c_str())))
-                         .getFileExtension().toLowerCase();
+inline bool isRexPath(const std::string& uri) {
+    const auto ext = lowerExtension(uri);
     return ext == ".rx2" || ext == ".rex";
 }
 
@@ -102,7 +101,6 @@ inline RexData loadRex1(const std::uint8_t* d, std::size_t n) {
     const int loopLen = (int) std::lround(quarters * kSecondsPerMinute / bpm * rate);
     if (loopLen <= 0 || loopLen > 60 * 48000 * 8) return out;
     out.audio.setSize(channels, loopLen);
-    out.audio.clear();
     for (const auto& r : rows) {
         const int dst = (int) std::lround((double) r.tick / (double) (ppqBar * bars)
                                           * (double) loopLen);
@@ -118,7 +116,7 @@ inline RexData loadRex1(const std::uint8_t* d, std::size_t n) {
                 out.audio.addSample(c, dst + i, (float) (v / 32768.0));
             }
     }
-    juce::ignoreUnused(sndBytes);
+    (void) sndBytes;
     out.parsed = true;
     out.hasAudio = true;
     out.tempoBpm = bpm;
@@ -129,12 +127,12 @@ inline RexData loadRex1(const std::uint8_t* d, std::size_t n) {
     return out;
 }
 
-inline RexData loadRexFile(const juce::File& f) {
+inline RexData loadRexFile(const std::string& path) {
     RexData out;
-    juce::MemoryBlock mb;
-    if (!f.loadFileAsData(mb)) return out;
-    const auto* d = static_cast<const std::uint8_t*>(mb.getData());
-    const std::size_t n = mb.getSize();
+    std::vector<std::uint8_t> bytes;
+    if (!readFileBytes(path, bytes)) return out;
+    const auto* d = bytes.data();
+    const std::size_t n = bytes.size();
     if (n >= 12 && std::string((const char*) d, 4) == "FORM"
         && std::string((const char*) d + 8, 4) == "AIFF")
         return loadRex1(d, n);
@@ -184,17 +182,17 @@ inline RexData loadRexFile(const juce::File& f) {
     if (!out.parsed) return out;
 
     for (int ch = 1; ch <= 2 && !out.hasAudio; ++ch)
-        for (int bytes = 2; bytes <= 3 && !out.hasAudio; ++bytes) {
+        for (int width = 2; width <= 3 && !out.hasAudio; ++width) {
             if (sdatSize != (std::size_t) out.totalSamples * (std::size_t) ch
-                                * (std::size_t) bytes)
+                                * (std::size_t) width)
                 continue;
             out.audio.setSize(ch, out.totalSamples);
-            const double norm = bytes == 2 ? 1.0 / 32768.0 : 1.0 / 8388608.0;
+            const double norm = width == 2 ? 1.0 / 32768.0 : 1.0 / 8388608.0;
             for (int i = 0; i < out.totalSamples; ++i)
                 for (int c = 0; c < ch; ++c) {
                     const std::size_t o = sdatOff
-                        + (std::size_t) (i * ch + c) * (std::size_t) bytes;
-                    std::int32_t v = bytes == 2
+                        + (std::size_t) (i * ch + c) * (std::size_t) width;
+                    std::int32_t v = width == 2
                         ? (std::int32_t) (std::int16_t) ((d[o] << 8) | d[o + 1])
                         : ((std::int32_t) ((d[o] << 24) | (d[o + 1] << 16)
                                            | (d[o + 2] << 8)) >> 8);

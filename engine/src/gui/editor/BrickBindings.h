@@ -19,13 +19,13 @@ inline constexpr std::string_view kCue = "cue";
 inline constexpr std::string_view kFile = "file";
 inline constexpr std::string_view kGridOffset = "grid-offset";
 inline constexpr std::string_view kHotCuePrefix = "hot-cue-prefix";
-inline constexpr std::string_view kHq = "hq";
 inline constexpr std::string_view kKey = "key";
 inline constexpr std::string_view kLoop = "loop";
 inline constexpr std::string_view kLoopIn = "loop-in";
 inline constexpr std::string_view kLoopOut = "loop-out";
 inline constexpr std::string_view kLoopBeats = "loop-beats";
 inline constexpr std::string_view kQuantize = "quantize";
+inline constexpr std::string_view kRecord = "record";
 inline constexpr std::string_view kPitch = "pitch";
 inline constexpr std::string_view kPitchRange = "pitch-range";
 inline constexpr std::string_view kGestures = "gestures";
@@ -40,6 +40,8 @@ inline constexpr std::string_view kLaunchPrefix = "launch-prefix";
 inline constexpr std::string_view kEdits = "edits";
 inline constexpr std::string_view kMutePrefix = "mute-prefix";
 inline constexpr std::string_view kSoloPrefix = "solo-prefix";
+inline constexpr std::string_view kSlicePrefix = "slice-prefix";
+inline constexpr std::string_view kNudgePrefix = "nudge-prefix";
 inline constexpr std::string_view kRowPrefix = "row-prefix";
 inline constexpr std::string_view kChord = "chord";
 inline constexpr std::string_view kMute = "mute";
@@ -82,6 +84,16 @@ inline constexpr std::string_view kChannelsPrefix = "channels-prefix";
 inline constexpr std::string_view kPreview = "preview";
 inline constexpr std::string_view kMasterVolume = "master-volume";
 inline constexpr std::string_view kVolumePrefix = "volume-prefix";
+inline constexpr std::string_view kStop = "stop";
+inline constexpr std::string_view kRewind = "rewind";
+inline constexpr std::string_view kSeekBack = "seek-back";
+inline constexpr std::string_view kSeekForward = "seek-forward";
+inline constexpr std::string_view kNudgeStep = "nudge-step";
+inline constexpr std::string_view kBendUp = "bend-up";
+inline constexpr std::string_view kBendDown = "bend-down";
+inline constexpr std::string_view kFit = "fit";
+inline constexpr std::string_view kGrainSize = "grain-size";
+inline constexpr std::string_view kStereoSpread = "stereo-spread";
 }
 
 struct BrickBinding {
@@ -98,11 +110,14 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
     static const std::vector<BrickBinding> none;
     static const std::vector<BrickBinding> deck{
         {bind::kBpm}, {bind::kCue}, {bind::kFile}, {bind::kGridOffset}, {bind::kHotCuePrefix, family},
-        {bind::kHq}, {bind::kKey}, {bind::kLoop}, {bind::kLoopIn}, {bind::kLoopOut}, {bind::kQuantize}};
-    static const std::vector<BrickBinding> deckPitch{{bind::kPitch}, {bind::kPitchRange}};
+        {bind::kKey}, {bind::kLoop}, {bind::kLoopIn}, {bind::kLoopOut}, {bind::kQuantize},
+        {bind::kRecord}};
+    static const std::vector<BrickBinding> deckPitch{{bind::kPitch}, {bind::kPitchRange}, {bind::kBpm},
+                                                     {bind::kBendUp}, {bind::kBendDown}};
     static const std::vector<BrickBinding> deckControls{
         {bind::kBpm}, {bind::kCue}, {bind::kGridOffset}, {bind::kHotCuePrefix, family}, {bind::kLoop},
-        {bind::kLoopBeats}, {bind::kLoopIn}, {bind::kLoopOut}, {bind::kQuantize}};
+        {bind::kLoopBeats}, {bind::kLoopIn}, {bind::kLoopOut}, {bind::kQuantize},
+        {bind::kNudgeStep}};
     static const std::vector<BrickBinding> gestures{
         {bind::kGestures}, {bind::kTolerance}, {bind::kNotePrefix, family}, {bind::kThresholdPrefix, family}};
     static const std::vector<BrickBinding> clipGrid{
@@ -110,17 +125,25 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
         {bind::kLoopPrefix, family}, {bind::kLaunchPrefix, family}};
     static const std::vector<BrickBinding> sliceMap{{bind::kEdits}};
     static const std::vector<BrickBinding> strands{
-        {bind::kFilePrefix, family}, {bind::kMutePrefix, family}, {bind::kSoloPrefix, family}};
+        {bind::kFilePrefix, family}, {bind::kMutePrefix, family}, {bind::kSoloPrefix, family},
+        {bind::kSlicePrefix, family}, {bind::kNudgePrefix, family, true}};
     static const std::vector<BrickBinding> intervalRows{{bind::kRowPrefix, family}, {bind::kChord}};
     static const std::vector<BrickBinding> stepStrip{{bind::kMute}};
     static const std::vector<BrickBinding> sequenceGrid{
         {bind::kEnablePrefix, family}, {bind::kNotePrefix, family}, {bind::kVelocityPrefix, family}};
-    static const std::vector<BrickBinding> fileTransport{{bind::kActive}, {bind::kLoop}};
+    static const std::vector<BrickBinding> fileTransport{
+        {bind::kActive}, {bind::kLoop}, {bind::kRecord, param, true},
+        {bind::kStop, param, true}, {bind::kRewind, param, true},
+        {bind::kSeekBack, param, true}, {bind::kSeekForward, param, true}};
+    static const std::vector<BrickBinding> recordTransport{{bind::kRecord}};
+    static const std::vector<BrickBinding> fileBox{{bind::kActive, param, true},
+                                                   {bind::kLoop, param, true}};
     static const std::vector<BrickBinding> lfoScope{{bind::kWaveform}, {bind::kAmplitude}, {bind::kOffset}};
     static const std::vector<BrickBinding> stepGrid{{bind::kNudge, param, true}, {bind::kTranspose, param, true}};
     static const std::vector<BrickBinding> pianoRoll{
         {bind::kBars}, {bind::kSwing, param, true}, {bind::kSwingFollow, param, true},
-        {bind::kSwingUnit, param, true}};
+        {bind::kSwingUnit, param, true}, {bind::kRecord, param, true}, {bind::kLoop, param, true},
+        {bind::kQuantize, param, true}};
     static const std::vector<BrickBinding> pictureField{
         {bind::kBlur}, {bind::kGate}, {bind::kTilt}, {bind::kLevel}, {bind::kLowest}, {bind::kHighest},
         {bind::kX}, {bind::kY}, {bind::kWidth}, {bind::kHeight}};
@@ -133,10 +156,14 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
     static const std::vector<BrickBinding> patternGrid{
         {bind::kMasterVolume}, {bind::kMute}, {bind::kVolumePrefix, family}, {bind::kEnablePrefix, family},
         {bind::kFilePrefix, family}, {bind::kGate, param, true}};
-    static const std::vector<BrickBinding> soundMap{{bind::kSpray}, {bind::kFilePrefix, family}};
+    static const std::vector<BrickBinding> soundMap{{bind::kSpray}, {bind::kFilePrefix, family},
+                                                    {bind::kFit}, {bind::kGrainSize, param, true},
+                                                    {bind::kStereoSpread, param, true},
+                                                    {bind::kPitch, param, true}};
     static const std::vector<BrickBinding> videoTransport{{bind::kFile}};
     static const std::vector<BrickBinding> waveDraw{{bind::kPosition}, {bind::kWarp}, {bind::kWarpMode}};
     static const std::vector<BrickBinding> scaleFile{{bind::kSelect, BrickBinding::Kind::Assignment}};
+    static const std::vector<BrickBinding> bankFile{{bind::kSelect, BrickBinding::Kind::Assignment, true}};
     switch (type) {
         case CT::Deck: return deck;
         case CT::DeckPitch: return deckPitch;
@@ -149,6 +176,8 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
         case CT::StepStrip: return stepStrip;
         case CT::SequenceGrid: return sequenceGrid;
         case CT::FileTransport: return fileTransport;
+        case CT::FileBox: return fileBox;
+        case CT::RecordTransport: return recordTransport;
         case CT::LfoScope: return lfoScope;
         case CT::StepGrid: return stepGrid;
         case CT::PianoRoll: return pianoRoll;
@@ -157,6 +186,7 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
         case CT::VideoTransport: return videoTransport;
         case CT::WaveDraw: return waveDraw;
         case CT::ScaleFile: return scaleFile;
+        case CT::BankFile: return bankFile;
         case CT::Formula: return formula;
         case CT::MidiLog: return midiLog;
         case CT::OscLog: return oscLog;

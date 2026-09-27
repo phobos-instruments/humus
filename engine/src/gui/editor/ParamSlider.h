@@ -8,9 +8,12 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/editor/juce/PanelScroller.h"
+
 #include "core/params/ParamUnit.h"
 #include "core/params/ValueText.h"
 #include "gui/style/Colours.h"
+#include "gui/style/ParamMarks.h"
 #include "gui/app/Ember.h"
 #include "gui/editor/FineDrag.h"
 #include "gui/editor/FollowPick.h"
@@ -36,13 +39,13 @@ public:
             applyFineCrawl(*this);
         }
         setSliderSnapsToMousePosition(false);
-        textFromValueFunction = [](double v) { return smartValueText(v); };
+        textFromValueFunction = [](double v) { return juce::String(smartValueText(v)); };
     }
 
     void setUnit(Unit u) {
         unit_ = u;
         if (u == Unit::None) {
-            textFromValueFunction = [](double v) { return smartValueText(v); };
+            textFromValueFunction = [](double v) { return juce::String(smartValueText(v)); };
             valueFromTextFunction = nullptr;
         } else {
             const double lo = getMinimum(), hi = getMaximum();
@@ -77,6 +80,12 @@ public:
     }
 
     std::function<void(juce::Point<int>)> onPopup;
+    std::function<void()> onRestyle;
+
+    void lookAndFeelChanged() override {
+        juce::Slider::lookAndFeelChanged();
+        if (onRestyle) onRestyle();
+    }
 
     void valueChanged() override { ember::stamp(*this); }
 
@@ -107,21 +116,7 @@ public:
     }
 
     void paintOverChildren(juce::Graphics& g) override {
-        if (externallyControlled_) {
-            g.setColour(Palette::accent.withAlpha(alpha::mid));
-            g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.0f), 6.0f, 1.2f);
-        }
-        if (!rollLocked_) return;
-        const auto r = getLocalBounds().toFloat();
-        const float w = 7.0f, h = 5.0f;
-        const float x = r.getRight() - w - 3.0f, y = r.getY() + 5.5f;
-        g.setColour(Palette::textDim.withAlpha(alpha::nearOpaque));
-        juce::Path shackle;
-        shackle.addCentredArc(x + w * 0.5f, y, w * 0.28f, w * 0.28f, 0.0f,
-                              -juce::MathConstants<float>::halfPi,
-                              juce::MathConstants<float>::halfPi, true);
-        g.strokePath(shackle, juce::PathStrokeType(1.0f));
-        g.fillRoundedRectangle(x, y, w, h, 1.2f);
+        paintParamMarks(g, getLocalBounds().toFloat(), externallyControlled_, rollLocked_);
     }
 
     juce::String paramLabel;
@@ -217,6 +212,7 @@ public:
     void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& w) override {
         const bool adjust = e.mods.isCtrlDown() || e.mods.isCommandDown()
                          || e.mods.isAltDown() || e.mods.isShiftDown();
+        if (PanelScroller::takesWheel(*this, e, w)) return;
         if (!adjust)
             for (auto* p = getParentComponent(); p != nullptr; p = p->getParentComponent())
                 if (auto* vp = dynamic_cast<juce::Viewport*>(p))

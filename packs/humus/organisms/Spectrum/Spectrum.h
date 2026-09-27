@@ -13,7 +13,7 @@ namespace hum {
 class Spectrum : public Organism, public ScopeSource {
 public:
     int numAudioInputs() const override { return 2; }
-    int numAudioOutputs() const override { return 2; }
+    int numAudioOutputs() const override { return 0; }
 
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;

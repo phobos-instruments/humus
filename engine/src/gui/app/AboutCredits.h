@@ -98,6 +98,10 @@ inline const std::vector<Credit>& credits() {
         {"SoundTouch", "LGPL-2.1",
          "about.credit-soundtouch",
          "the time stretch on builds that are configured to use it instead"},
+        {"OpenNord", "AGPL-3.0 or later",
+         "about.credit-opennord",
+         "the reverse-engineering notes behind the Sampler's .nsmp3 and .nsmp4 library "
+         "reader, which is our own implementation; no OpenNord code is vendored"},
         {"Paulstretch, by Nasca Octavian Paul", "public domain",
          "about.credit-paulstretch",
          "the extreme stretch our Paulstretch organism implements"},

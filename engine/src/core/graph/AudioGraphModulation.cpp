@@ -3,15 +3,18 @@
 #include "core/graph/AudioGraph.h"
 #include <algorithm>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <cmath>
 #include <cstddef>
 #include <queue>
 #include <typeinfo>
 #include "core/graph/AdoptSlot.h"
+#include "core/graph/InletNames.h"
 #include "core/tuning/MtsTuning.h"
 #include "core/plugins/PluginNode.h"
 #include "core/graph/RtWord.h"
+#include "core/params/SpanMove.h"
 #include "hum/Swing.h"
 #include "hum/dsp/DspMath.h"
 
@@ -48,6 +51,7 @@ void AudioGraph::setModRoutes(std::vector<ModRoute> routes) {
         }
     }
     modRoutes_ = std::move(routes);
+    rebindNamedInlets();
     routesInto_.assign(nodes_.size(), {});
     for (int i = 0; i < (int) modRoutes_.size(); ++i) {
         const auto& r = modRoutes_[(size_t) i];
@@ -57,6 +61,49 @@ void AudioGraph::setModRoutes(std::vector<ModRoute> routes) {
     if (prepared_) {
         computeOrder();
         computeLatencyCompensation();
+    }
+}
+
+void AudioGraph::rebindNamedInlets() {
+    tapsInto_.assign(nodes_.size(), {});
+    for (int node = 0; node < (int) nodes_.size(); ++node) {
+        auto* sink = nodes_[(size_t) node].c ? dynamic_cast<NamedInlet*>(nodes_[(size_t) node].c.get()) : nullptr;
+        if (sink == nullptr) continue;
+        auto& params = nodes_[(size_t) node].c->params;
+        char names[NamedInlet::kMaxNames][NamedInlet::kNameChars] = {};
+        int count = 0;
+        for (const auto& r : modRoutes_) {
+            if (r.dstNode != node || r.dstParam != sink->namedInletParam()) continue;
+            if (r.srcNode < 0 || r.srcNode >= (int) nodes_.size() || !nodes_[(size_t) r.srcNode].c) continue;
+            const auto* tagged = dynamic_cast<const Tagged*>(nodes_[(size_t) r.srcNode].c.get());
+            const auto* src = dynamic_cast<const ControlSource*>(nodes_[(size_t) r.srcNode].c.get());
+            if (tagged == nullptr || src == nullptr) continue;
+            const auto tag = tagged->tag();
+            if (tag.empty()) continue;
+            const auto name = inletNameFor(tag);
+            if (const char* knob = sink->knobForName(name.c_str())) {
+                if (auto* p = params.slot(params.slotOf(knob))) tapsInto_[(size_t) node].push_back({src, sink, -1, p});
+                continue;
+            }
+            if (count >= NamedInlet::kMaxNames || !sink->readsName(name.c_str())) continue;
+            bool seen = false;
+            for (int k = 0; k < count && !seen; ++k) seen = name == names[k];
+            if (seen) continue;
+            std::snprintf(names[count], NamedInlet::kNameChars, "%s", name.c_str());
+            tapsInto_[(size_t) node].push_back({src, sink, count, nullptr});
+            ++count;
+        }
+        sink->setInletNames(names, count);
+    }
+}
+
+void AudioGraph::applyNamedTaps(int node) {
+    if (node < 0 || node >= (int) tapsInto_.size()) return;
+    for (const auto& tap : tapsInto_[(size_t) node]) {
+        ControlSource::ControlVal vals[4];
+        if (tap.src->controlValues(vals, 4) <= 0) continue;
+        if (tap.knob != nullptr) rtStoreWord(tap.knob->value, (double) vals[0].value);
+        else tap.sink->setInletValue(tap.slot, vals[0].value);
     }
 }
 
@@ -74,6 +121,22 @@ void AudioGraph::applyModRoutesInto(int node, int numSamples) {
     const double sr = transport_.sampleRate() > 0.0 ? transport_.sampleRate() : kDefaultSampleRate;
     const double dt = (double) numSamples / sr;
     for (int i : list) applyModRoute(modRoutes_[(size_t) i], dt);
+}
+
+namespace {
+
+void landOn(Parameter& p, RangeEnd end, double at, double floorAt, double ceilingAt) {
+    if (!rtLoadWord(p.isRange)) {
+        rtStoreWord(p.value, at);
+        return;
+    }
+    double lo = rtLoadWord(p.rangeMin), hi = rtLoadWord(p.rangeMax);
+    moveSpan(end, at, floorAt, ceilingAt, lo, hi);
+    rtStoreWord(p.value, lo);
+    rtStoreWord(p.rangeMin, lo);
+    rtStoreWord(p.rangeMax, hi);
+}
+
 }
 
 void AudioGraph::applyModRoute(ModRoute& r, double dt) {
@@ -103,12 +166,13 @@ void AudioGraph::applyModRoute(ModRoute& r, double dt) {
         auto* p = nodes_[(size_t) r.dstNode].c->params.slot(r.dstSlot);
         if (p == nullptr) return;
         if (r.carry) {
-            rtStoreWord(p->value, r.dstHi > r.dstLo ? std::clamp(raw, r.dstLo, r.dstHi) : raw);
+            landOn(*p, r.dstEnd, r.dstHi > r.dstLo ? std::clamp(raw, r.dstLo, r.dstHi) : raw,
+                   r.dstLo, r.dstHi);
             return;
         }
         const double shaped = advanceControlShape(r.shape, r.state, v, dt);
         if (shaped < 0.0) return;
-        rtStoreWord(p->value, shapedToRange(r.shape, r.min, r.max, shaped));
+        landOn(*p, r.dstEnd, shapedToRange(r.shape, r.min, r.max, shaped), r.min, r.max);
     }
 }
 
@@ -121,7 +185,7 @@ void AudioGraph::applyAutomation() {
         if (lane.node == AutoLane::kTempoNode) {
             if (!externalTempo_.load(std::memory_order_relaxed))
                 transport_.setTempo(std::clamp(evaluateEnvelope(lane.points, beat),
-                                               20.0, 999.0));
+                                               kMinTempoBpm, kMaxTempoBpm));
             continue;
         }
         if (lane.node == AutoLane::kGrooveNode || lane.node == AutoLane::kGrooveGridNode) {

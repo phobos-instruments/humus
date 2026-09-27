@@ -10,6 +10,7 @@
 namespace hum {
 
 bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& error,
-                const std::function<const Organism*(const OrganismModel&)>& reuseLookup = {});
+                const std::function<const Organism*(const OrganismModel&)>& reuseLookup = {},
+                bool deferMedia = false);
 
 }

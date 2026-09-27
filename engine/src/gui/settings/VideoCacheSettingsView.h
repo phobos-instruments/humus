@@ -64,7 +64,7 @@ public:
         addAndMakeVisible(takeCombo_);
         takeBlurb_.setText(tr("video-cache-settings.a-video-track-armed",
            "A video track armed to record writes whatever reaches its inlet as a compact "
-           "movie in the recordings folder, and the take lands on the timeline as a clip."),
+           "video in the recordings folder, and the take lands on the timeline as a clip."),
                            juce::dontSendNotification);
         takeBlurb_.setFont(juce::FontOptions(12.0f));
         takeBlurb_.setColour(juce::Label::textColourId, Palette::textDim);

@@ -11,7 +11,7 @@
 #include "gui/host/BrickHost.h"
 #include "hum/Organism.h"
 #include "gui/style/LookAndFeel.h"
-#include "hum/caps/Audio.h"
+#include "gui/editor/readouts/MeterReadings.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
@@ -104,7 +104,7 @@ private:
         g.setFont(juce::FontOptions(7.0f));
         g.drawText(letter, r.getX() + 7, r.getY() + 6, 12, 9, juce::Justification::left);
         {
-            const float th = juce::degreesToRadians(-47.0f + 94.0f * pos_[ch]);
+            const float th = juce::degreesToRadians(-47.0f + 94.0f * reading_.needle(ch));
             g.setColour(ink::vu::needleShadow.withAlpha(alpha::muted));
             g.drawLine({tip(th, R * 0.18f).translated(1, 1), tip(th, R * 0.92f).translated(1, 1)}, 1.4f);
             g.setColour(ink::vu::needle);
@@ -112,13 +112,13 @@ private:
         }
         {
             const float lx = rf.getRight() - 16.0f, ly = rf.getY() + 12.0f;
-            if (lampLit_[ch] > 0.01f) {
-                juce::ColourGradient bloom(ink::vu::peakLampLit.withAlpha(0.55f * lampLit_[ch]),
+            if (reading_.lamp(ch) > 0.01f) {
+                juce::ColourGradient bloom(ink::vu::peakLampLit.withAlpha(0.55f * reading_.lamp(ch)),
                                            lx, ly, ink::vu::peakLampLit.withAlpha(alpha::none),
                                            lx + 10.0f, ly, true);
                 g.setGradientFill(bloom);
                 g.fillRect(lx - 10.0f, ly - 10.0f, 20.0f, 20.0f);
-                g.setColour(ink::vu::peakLampLit.withAlpha(0.4f + 0.6f * lampLit_[ch]));
+                g.setColour(ink::vu::peakLampLit.withAlpha(0.4f + 0.6f * reading_.lamp(ch)));
             } else {
                 g.setColour(ink::vu::peakLampDark);
             }
@@ -139,42 +139,13 @@ private:
         g.strokePath(pane, juce::PathStrokeType(1.5f));
     }
 
-    static constexpr float kHoldS = 1.5f;
-    static constexpr float kLampTrip = 0.8913f;
-
     void poll() override {
-        auto* src = dynamic_cast<VuSource*>(host_.liveOrganism(name_));
-        const bool live = host_.audioAlive() && !host_.bypassed(name_);
-        const float dt = 1.0f / 30.0f;
-        bool moving = false;
-        for (int c = 0; c < 2; ++c) {
-            const float pk = src != nullptr && live ? src->vuPeak(c) : 0.0f;
-            const float db = 20.0f * std::log10(juce::jmax(pk, 1.0e-5f));
-            const float target = pk <= 0.0f ? 0.0f
-                               : juce::jlimit(0.0f, 1.04f, (db + 48.0f) / 48.0f);
-            const float w = juce::MathConstants<float>::twoPi * 2.1f;
-            const float z = 0.62f;
-            vel_[c] += (w * w * (target - pos_[c]) - 2.0f * z * w * vel_[c]) * dt;
-            pos_[c] += vel_[c] * dt;
-            if (pk >= kLampTrip) lampUntil_[c] = juce::Time::getMillisecondCounter() + (juce::uint32) (kHoldS * 1000.0f);
-            const bool lit = juce::Time::getMillisecondCounter() < lampUntil_[c];
-            const float lampTarget = lit ? 1.0f : 0.0f;
-            lampLit_[c] += (lampTarget - lampLit_[c]) * (lit ? 1.0f : 0.28f);
-            if (target <= 0.0f && std::abs(pos_[c]) < 0.004f && std::abs(vel_[c]) < 0.01f
-                && lampLit_[c] < 0.01f) {
-                pos_[c] = 0.0f; vel_[c] = 0.0f; lampLit_[c] = 0.0f;
-            }
-            if (std::abs(pos_[c] - shown_[c]) > 0.0025f || lampLit_[c] > 0.01f) moving = true;
-        }
-        if (moving) {
-            shown_[0] = pos_[0]; shown_[1] = pos_[1];
+        if (reading_.poll(host_, name_, host_.audioAlive() && !host_.bypassed(name_),
+                          juce::Time::getMillisecondCounter()))
             repaint();
-        }
     }
 
-    float pos_[2] = {0, 0}, vel_[2] = {0, 0}, shown_[2] = {0, 0};
-    float lampLit_[2] = {0, 0};
-    juce::uint32 lampUntil_[2] = {0, 0};
+    readout::VuNeedles reading_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(VuMeterView)
 };

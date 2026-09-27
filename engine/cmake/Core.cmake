@@ -3,19 +3,16 @@ add_library(hum_core STATIC
   src/core/graph/AudioGraphLatency.cpp
   src/core/graph/AudioGraphModulation.cpp
   src/core/graph/AudioGraphTuning.cpp
+  src/core/graph/AudioGraphBypass.cpp
   src/core/graph/AudioGraphMidi.cpp
   src/core/net/LicenseCheck.cpp
-  src/core/packs/Registry.cpp
+  src/core/packs/BuiltinOrganisms.cpp
   src/core/packs/BuiltinPacks.cpp
-  src/core/params/ParamSchema.cpp
   src/core/params/ParamUnit.cpp
-  src/core/packs/Categories.cpp
   src/core/midi/RiffImport.cpp
   src/core/midi/RiffImportMidi.cpp
   src/core/midi/MidiClipImport.cpp
-  src/core/packs/PackManifest.cpp
-  src/core/packs/PackRegistry.cpp
-  src/core/packs/Roles.cpp
+  src/core/packs/DesktopPacks.cpp
   src/core/packs/PackLoader.cpp
   src/core/packs/PackUpdates.cpp
   src/core/plugins/PluginHost.cpp
@@ -38,20 +35,26 @@ add_library(hum_core STATIC
   src/core/assistant/OllamaWire.cpp
   src/core/assistant/RecipeSynth.cpp
   src/io/MidiExport.cpp
+  src/io/PatchDocument.cpp
+  src/io/PatchFiles.cpp
+  src/io/PatchDocumentPattern.cpp
   src/io/PatchWriter.cpp
   src/io/PatchWriterElements.cpp
-  src/io/PatchDocument.cpp
-  src/io/PatchDocumentPattern.cpp
   src/io/PatchLoader.cpp
   src/io/SignalFile.cpp
+  src/io/FfmpegAudioFormat.cpp
   src/io/WavWriter.cpp
   src/io/Mp3Writer.cpp
   src/io/AutosaveStore.cpp
+  src/io/PatchHistory.cpp
+  src/io/PatchChanges.cpp
 )
 target_include_directories(hum_core PUBLIC src)
 target_compile_definitions(hum_core PUBLIC
   HUM_PACKS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../packs")
 target_link_libraries(hum_core PUBLIC
+  hum_ffmpeg
+  hum_models
   monocypher
   mp3lame
   ableton_link
@@ -59,14 +62,10 @@ target_link_libraries(hum_core PUBLIC
   hum_pack_core
   hum_pack_humus
   hum_pack_av
-  juce::juce_core
-  juce::juce_audio_basics
-  juce::juce_audio_formats
-  juce::juce_audio_processors
-  juce::juce_dsp
-  juce::juce_osc
 )
 if(APPLE)
-  target_link_libraries(hum_core PUBLIC "-framework CoreAudioKit")
-  target_link_libraries(hum_core PUBLIC "-framework GameController")
+  target_link_libraries(hum_core PUBLIC
+  hum_ffmpeg "-framework CoreAudioKit")
+  target_link_libraries(hum_core PUBLIC
+  hum_ffmpeg "-framework GameController")
 endif()

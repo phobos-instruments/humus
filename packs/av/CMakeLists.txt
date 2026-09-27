@@ -23,9 +23,6 @@ target_include_directories(hum_pack_av PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/../../engine/src)
 target_link_libraries(hum_pack_av PUBLIC
   hum_sdk
-  juce::juce_core
-  juce::juce_audio_basics
-  juce::juce_video      # CameraIn capture (AVFoundation-backed); brings juce_graphics
 )
 
 # Hands: the portable detector, compiled on every platform so the path Linux

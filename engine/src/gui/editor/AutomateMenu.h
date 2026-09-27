@@ -9,10 +9,12 @@
 
 #include "core/packs/Categories.h"
 #include "core/midi/MidiControl.h"
+#include "core/params/RangeEnd.h"
 #include "core/params/ParamSchema.h"
 #include "core/params/ParamUnit.h"
 #include "gui/host/BrickHost.h"
 #include "gui/editor/ControlDefaults.h"
+#include "gui/editor/ParamRanges.h"
 #include "gui/host/EngineHostAutomation.h"
 #include "gui/host/EngineHostMidiControl.h"
 #include "gui/editor/FollowPick.h"
@@ -28,31 +30,14 @@
 
 namespace hum {
 
-inline std::pair<double, double> paramRange(BrickHost& host, const std::string& organism,
-                                            const std::string& param) {
-    if (auto* cm = host.model().byName(organism)) {
-        if (isClockPseudo(cm->displayClass) && param == kTempoParam)
-            return {kTempoMin, kTempoMax};
-        if (isClockPseudo(cm->displayClass) && isMeterParam(param))
-            return {kMeterLaneMin, kMeterLaneMax};
-        if (isClockPseudo(cm->displayClass) && param == kGrooveParam) return {0.0, 1.0};
-        if (isClockPseudo(cm->displayClass) && param == kGrooveGridParam)
-            return {0.0, (double) (swing::kGridChoices - 1)};
-        if (isMetapadPseudo(cm->displayClass) && param == kMetaTemperatureParam)
-            return {0.0, kMetaTemperatureMax};
-        for (const auto& d : schemaFor(cm->classRaw))
-            if (d.name == param) return {d.min, d.max};
-    }
-    return {0.0, 1.0};
-}
-
 inline Unit paramUnit(BrickHost& host, const std::string& organism,
                       const std::string& param) {
     if (auto* cm = host.model().byName(organism)) {
         if (isClockPseudo(cm->displayClass) && param == kTempoParam) return Unit::Bpm;
         if (isClockPseudo(cm->displayClass) && param == kGrooveParam) return Unit::Percent;
+        const auto base = rangeBaseOf(param);
         for (const auto& d : schemaFor(cm->classRaw))
-            if (d.name == param) return unitResolve(d.name, d.unit, d.min, d.max);
+            if (d.name == base) return unitResolve(d.name, d.unit, d.min, d.max);
     }
     return Unit::None;
 }
@@ -70,7 +55,7 @@ inline std::vector<std::string> controlTargets(BrickHost& host, const std::strin
         out.push_back(kRandomAction);
         for (const char* a : {kPlayAction, kStopAction, kPlayFromStartAction,
                               kGoToStartAction, kGoToEndAction, kCaptureAction,
-                              kLoopToggleAction})
+                              kLoopToggleAction, kPanicAction})
             out.push_back(a);
         return out;
     }
@@ -84,7 +69,7 @@ inline std::vector<std::string> controlTargets(BrickHost& host, const std::strin
         return out;
     }
     for (const auto& d : schemaFor(cm->classRaw))
-        if (!d.isText) out.push_back(d.name);
+        if (!d.isText && !d.namedInlet) out.push_back(d.name);
     out.push_back(kBypassParam);
     if (nodeSupportsRandom(host, organism)) out.push_back(kRandomAction);
     if (!cm->presets.empty()) {
@@ -92,6 +77,60 @@ inline std::vector<std::string> controlTargets(BrickHost& host, const std::strin
         out.push_back(kPresetPrevAction);
     }
     return out;
+}
+
+inline void clearMidiFor(BrickHost& host, const std::string& organism, const std::string& param) {
+    for (const auto& name : controlNames(host, organism, param)) {
+        std::vector<MidiSource> ccs;
+        for (const auto& e : host.midi().map().entries())
+            if (e.organism == organism && e.param == name) ccs.push_back(e.source());
+        for (const auto& cc : ccs) host.midi().clearCC(cc, organism, name);
+    }
+}
+
+inline void clearOscFor(BrickHost& host, const std::string& organism, const std::string& param) {
+    for (const auto& name : controlNames(host, organism, param)) {
+        std::vector<std::string> addrs;
+        for (const auto& e : host.osc().map().entries())
+            if (e.organism == organism && e.param == name) addrs.push_back(e.address);
+        for (const auto& a : addrs) host.osc().clearAddress(a, organism, name);
+    }
+}
+
+inline void clearRoutesFor(BrickHost& host, const std::string& organism, const std::string& param,
+                           int which) {
+    for (const auto& name : controlNames(host, organism, param)) {
+        std::vector<std::pair<std::string, std::string>> routes;
+        for (const auto& e : host.mod().map().entries()) {
+            if (e.organism != organism || e.param != name) continue;
+            if (which >= 0 && isParamSource(e.value) != (which == 1)) continue;
+            routes.push_back({e.source, e.value});
+        }
+        for (const auto& sv : routes) host.mod().clearRoute(sv.first, sv.second, organism, name);
+    }
+}
+
+inline void clearAllControlFor(BrickHost& host, const std::string& organism,
+                               const std::string& param) {
+    clearRoutesFor(host, organism, param, -1);
+    clearMidiFor(host, organism, param);
+    clearOscFor(host, organism, param);
+    for (const auto& name : controlNames(host, organism, param))
+        if (host.automation().isAutomated(organism, name)) host.automation().remove(organism, name);
+}
+
+inline bool anyMidiFor(BrickHost& host, const std::string& organism, const std::string& param) {
+    for (const auto& name : controlNames(host, organism, param))
+        for (const auto& e : host.midi().map().entries())
+            if (e.organism == organism && e.param == name) return true;
+    return false;
+}
+
+inline bool anyOscFor(BrickHost& host, const std::string& organism, const std::string& param) {
+    for (const auto& name : controlNames(host, organism, param))
+        for (const auto& e : host.osc().map().entries())
+            if (e.organism == organism && e.param == name) return true;
+    return false;
 }
 
 inline juce::String targetOwnerLabel(BrickHost& host, const std::string& organism) {
@@ -159,29 +198,33 @@ private:
     std::unique_ptr<QuickMapWindow> window_;
 };
 
+void quickMapMidi(BrickHost& host, const std::string& organism, const std::string& param);
+
+inline constexpr int kAutomateMenuFirstOwnId = 1000;
+
 inline void showAutomateMenu(BrickHost& host, const std::string& organism,
                              const std::string& param, juce::Point<int> screen,
                              std::function<void()> onChanged,
                              bool allowAutomate = true,
-                             std::function<void(bool)> automateOverride = {}) {
+                             std::function<void(bool)> automateOverride = {},
+                             juce::PopupMenu head = {},
+                             std::function<void(int)> onHeadPick = {}) {
     const bool automated = allowAutomate && host.automation().isAutomated(organism, param);
     const auto range = paramRange(host, organism, param);
     const double lo = range.first, hi = range.second;
-    bool mapped = false;
-    for (const auto& e : host.midi().map().entries())
-        if (e.organism == organism && e.param == param) { mapped = true; break; }
-    bool oscMapped = false;
-    for (const auto& e : host.osc().map().entries())
-        if (e.organism == organism && e.param == param) { oscMapped = true; break; }
+    const bool mapped = anyMidiFor(host, organism, param);
+    const bool oscMapped = anyOscFor(host, organism, param);
     bool modMapped = false, followMapped = false;
-    for (const auto& e : host.mod().map().entries()) {
-        if (e.organism != organism || e.param != param) continue;
-        (isParamSource(e.value) ? followMapped : modMapped) = true;
-    }
+    for (const auto& name : controlNames(host, organism, param))
+        for (const auto& e : host.mod().map().entries()) {
+            if (e.organism != organism || e.param != name) continue;
+            (isParamSource(e.value) ? followMapped : modMapped) = true;
+        }
 
     const auto sources = host.mod().availableSources();
 
-    juce::PopupMenu m;
+    juce::PopupMenu m = std::move(head);
+    if (m.getNumItems() > 0) m.addSeparator();
     const bool rollable = paramSupportsRandom(host, organism, param);
     const bool lockable = rollTouchesParam(host, organism, param);
     const bool locked = lockable && host.rollLocked(organism, param);
@@ -212,7 +255,7 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
         auto flush = [](juce::PopupMenu& into, juce::PopupMenu& node, std::string& open,
                         bool& openRouted) {
             if (!open.empty())
-                into.addSubMenu(juce::String(open.c_str()), node, true, juce::Image(),
+                into.addSubMenu(juce::String(open), node, true, juce::Image(),
                                 openRouted, 0);
             node.clear();
             open.clear();
@@ -234,7 +277,7 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
                     && e.source == from && e.value == value)
                     routed = true;
             openRouted = openRouted || routed;
-            node.addItem(100 + (int) i, juce::String(shown.c_str()), true, routed);
+            node.addItem(100 + (int) i, juce::String(shown), true, routed);
         }
         flush(mod, modNode, modOpen, modOpenRouted);
         flush(follow, followNode, followOpen, followOpenRouted);
@@ -261,7 +304,11 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
     }
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screen.x, screen.y, 1, 1}),
                     [&host, organism, param, automated, locked, lo, hi, onChanged, sources,
-                     automateOverride, screen](int r) {
+                     automateOverride, screen, onHeadPick](int r) {
+        if (r >= kAutomateMenuFirstOwnId) {
+            if (onHeadPick) onHeadPick(r);
+            return;
+        }
         if (r == 1) {
             if (automateOverride)   automateOverride(!automated);
             else if (automated)     host.automation().remove(organism, param);
@@ -276,19 +323,13 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
             host.setRollLocked(organism, param, !locked);
             if (onChanged) onChanged();
         } else if (r == 3) {
-            MidiLearner::instance().arm(host, organism, param, lo, hi);
+            quickMapMidi(host, organism, param);
         } else if (r == 4) {
-            std::vector<MidiSource> ccs;
-            for (const auto& e : host.midi().map().entries())
-                if (e.organism == organism && e.param == param) ccs.push_back(e.source());
-            for (const auto& cc : ccs) host.midi().clearCC(cc, organism, param);
+            clearMidiFor(host, organism, param);
         } else if (r == 5) {
             OscLearner::instance().arm(host, organism, param, lo, hi);
         } else if (r == 6) {
-            std::vector<std::string> addrs;
-            for (const auto& e : host.osc().map().entries())
-                if (e.organism == organism && e.param == param) addrs.push_back(e.address);
-            for (const auto& a : addrs) host.osc().clearAddress(a, organism, param);
+            clearOscFor(host, organism, param);
         } else if (r == 13) {
             juce::MessageManager::callAsync([&host, organism, param, lo, hi, onChanged] {
                 FollowPicker::instance().arm(host, organism, param, lo, hi, onChanged);
@@ -296,25 +337,8 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
         } else if (r == 7) {
             host.showParameterControl(organism, param);
         } else if (r == 8 || r == 12 || r == 9) {
-            std::vector<std::pair<std::string, std::string>> routes;
-            for (const auto& e : host.mod().map().entries()) {
-                if (e.organism != organism || e.param != param) continue;
-                if (r != 9 && isParamSource(e.value) != (r == 8)) continue;
-                routes.push_back({e.source, e.value});
-            }
-            for (const auto& sv : routes)
-                host.mod().clearRoute(sv.first, sv.second, organism, param);
-            if (r == 9) {
-                if (automated) host.automation().remove(organism, param);
-                std::vector<MidiSource> ccs;
-                for (const auto& e : host.midi().map().entries())
-                    if (e.organism == organism && e.param == param) ccs.push_back(e.source());
-                for (const auto& cc : ccs) host.midi().clearCC(cc, organism, param);
-                std::vector<std::string> addrs;
-                for (const auto& e : host.osc().map().entries())
-                    if (e.organism == organism && e.param == param) addrs.push_back(e.address);
-                for (const auto& a : addrs) host.osc().clearAddress(a, organism, param);
-            }
+            if (r == 9) clearAllControlFor(host, organism, param);
+            else        clearRoutesFor(host, organism, param, r == 8 ? 1 : 0);
             if (onChanged) onChanged();
         } else if (r >= 100 && r < 100 + (int) sources.size()) {
             const auto& sv = sources[(size_t) (r - 100)];

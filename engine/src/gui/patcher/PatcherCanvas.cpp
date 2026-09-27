@@ -98,6 +98,7 @@ void PatcherCanvas::select(const std::string& n) {
     selection_.clear();
     if (!n.empty()) selection_.insert(n);
     primary_ = n;
+    repaint();
     if (n.empty()) return;
     if (auto* vp = findParentComponentOfClass<juce::Viewport>()) {
         const auto b = nodeBounds(n);

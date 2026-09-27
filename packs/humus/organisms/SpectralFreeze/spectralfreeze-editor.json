@@ -1,6 +1,6 @@
 {
   "width": 293,
-  "height": 156,
+  "height": 124,
   "controls": [
     {
       "type": "combo",
@@ -52,13 +52,16 @@
       "h": 84
     },
     {
-      "type": "toggle",
       "param": "Freeze",
       "label": "Freeze",
-      "x": 8,
-      "y": 124,
-      "w": 66,
-      "h": 24
+      "type": "lit-button",
+      "x": 146,
+      "y": 4,
+      "w": 139,
+      "h": 24,
+      "icon": "none",
+      "colour": "#7cc4ef",
+      "tooltip": "Hold the current spectrum and let it ring."
     }
   ]
 }

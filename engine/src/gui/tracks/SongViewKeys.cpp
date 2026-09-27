@@ -19,7 +19,8 @@ bool SongView::selectedClip(std::string& node, ClipEditor::ClipInfo& ci) const {
 }
 
 bool SongView::keyPressed(const juce::KeyPress& k) {
-    if (inBox() && selPts_.empty()
+    if (k.getKeyCode() == juce::KeyPress::escapeKey && cancelRowDrag()) return true;
+    if (inBox() && !hasPointSelection()
         && (k.getKeyCode() == juce::KeyPress::escapeKey
             || k.getKeyCode() == juce::KeyPress::returnKey)) {
         leaveBox();
@@ -33,16 +34,17 @@ bool SongView::keyPressed(const juce::KeyPress& k) {
         }
     }
 
-    if (!selPts_.empty()) {
+    if (hasPointSelection()) {
         if (k == juce::KeyPress::deleteKey || k == juce::KeyPress::backspaceKey)
             return deleteSelectedPoints();
         if (k == juce::KeyPress::escapeKey) { clearPointSelection(); return true; }
     }
 
     const auto cmd = juce::ModifierKeys::commandModifier;
-    if (!selPts_.empty()) {
+    if (hasPointSelection()) {
         if (k == juce::KeyPress('c', cmd, 0)) { copySelectedPoints(); return true; }
         if (k == juce::KeyPress('x', cmd, 0)) { copySelectedPoints(); return deleteSelectedPoints(); }
+        if (k == juce::KeyPress('d', cmd, 0)) return applyPointOp(PointOp::Duplicate);
     }
     if (k == juce::KeyPress('v', cmd, 0) && !pointClipboard_.empty()
         && pastePoints(snapBeats(host().positionBeats(), false)))

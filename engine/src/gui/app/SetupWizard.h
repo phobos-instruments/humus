@@ -29,6 +29,11 @@ public:
     void paint(juce::Graphics& g) override;
     bool keyPressed(const juce::KeyPress& k) override;
 
+    void showPageForTest(wizard::Page p) { setPage(p); }
+    void finishForTest() { finish(); }
+    juce::ToggleButton& updatesForTest() { return updatesToggle_; }
+    juce::ToggleButton& telemetryForTest() { return telemetryToggle_; }
+
 private:
     class ThemeGallery;
 
@@ -41,6 +46,7 @@ private:
     Callbacks cbs_;
     const bool firstBoot_;
     wizard::Page page_ = wizard::kAudio;
+    bool sawPrivacyPage_ = false;
 
     std::unique_ptr<AudioSettingsPanel> audio_;
     std::unique_ptr<MidiSettingsView> midi_;

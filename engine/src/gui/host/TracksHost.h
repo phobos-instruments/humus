@@ -39,7 +39,7 @@ public:
     virtual bool nodeRecordsAudio(const std::string& name) = 0;
     virtual bool nodeRecordsMedia(const std::string& name) = 0;
     virtual std::vector<std::pair<int, std::string>> choiceItems(const std::string& source,
-                                                                 const std::string& organism = {}) = 0;
+                                                                 const std::string& organism = {}) override = 0;
     virtual std::string bounceSourceOf(const std::string& node) = 0;
     virtual PatchDocumentModel& model() = 0;
     const PatchDocumentModel& model() const override = 0;

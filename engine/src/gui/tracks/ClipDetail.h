@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "core/app/AppPaths.h"
 #include <juce_audio_formats/juce_audio_formats.h>
 
 namespace hum::clipdetail {
@@ -49,7 +50,7 @@ private:
         juce::AudioFormatManager fm;
         fm.registerBasicFormats();
         reader_.reset(fm.createReaderFor(
-            juce::File(juce::String(juce::CharPointer_UTF8(uri.c_str())))));
+            fileAt(uri)));
         if (reader_) length_ = reader_->lengthInSamples;
     }
 

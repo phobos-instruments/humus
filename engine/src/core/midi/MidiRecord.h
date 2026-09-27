@@ -12,6 +12,8 @@ namespace hum {
 struct TimedMidi {
     double beat = 0.0;
     unsigned char status = 0, d1 = 0, d2 = 0;
+    int port = -1;
+    int node = -1;
 };
 
 inline std::vector<NoteEvent> assembleRecordedNotes(
@@ -22,7 +24,7 @@ inline std::vector<NoteEvent> assembleRecordedNotes(
     std::vector<NoteEvent> out;
     if (durationTicks <= 0) return out;
 
-    struct Pending { double beat; int pitch; int vel; };
+    struct Pending { double beat; int pitch; int vel; unsigned char status; int port; int node; };
     std::vector<Pending> open;
 
     auto startTick = [&](double beat) {
@@ -42,7 +44,7 @@ inline std::vector<NoteEvent> assembleRecordedNotes(
         const bool on = (e.status & 0xF0) == 0x90 && e.d2 > 0;
         const bool off = (e.status & 0xF0) == 0x80 || ((e.status & 0xF0) == 0x90 && e.d2 == 0);
         if (on) {
-            open.push_back({e.beat, (int) e.d1, (int) e.d2});
+            open.push_back({e.beat, (int) e.d1, (int) e.d2, e.status, e.port, e.node});
         } else if (off) {
             for (int i = (int) open.size() - 1; i >= 0; --i) {
                 if (open[(size_t) i].pitch != (int) e.d1) continue;
@@ -82,9 +84,11 @@ inline std::vector<NoteEvent> assembleRecordedNotes(
         } else {
             TimedMidi t;
             t.beat = p.beat;
-            t.status = 0x90;
+            t.status = p.status;
             t.d1 = (unsigned char) p.pitch;
             t.d2 = (unsigned char) p.vel;
+            t.port = p.port;
+            t.node = p.node;
             remaining.push_back(t);
         }
     }
