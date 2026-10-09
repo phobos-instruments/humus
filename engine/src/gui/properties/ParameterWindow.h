@@ -139,8 +139,8 @@ private:
     juce::TextButton help_{"?"};
     IconButton histBack_{IconGlyph::Undo, {}};
     IconButton histFwd_{IconGlyph::Redo, {}};
-    BarButton bypass_{IconGlyph::Power, "BYPASS", {}};
-    BarButton dice_{IconGlyph::Dice, "RANDOM", {}};
+    BarButton bypass_{IconGlyph::Power, tr("organism-bar.bypass", "BYPASS"), {}};
+    BarButton dice_{IconGlyph::Dice, tr("organism-bar.random", "RANDOM"), {}};
     PresetRail rail_{host_, name_};
     std::tuple<int, bool, size_t> presetSig_{-1, false, 0};
     ViewSwitch viewSwitch_;

@@ -109,9 +109,10 @@ public:
     float level() const { return level_; }
     float speed() const { return speed_; }
     float restCarrierHz() const { return carrier_; }
+    bool onTheNeedle() const { return needle_; }
 
 private:
-    bool on_ = false, present_ = false;
+    bool on_ = false, present_ = false, needle_ = false;
     float level_ = 0.0f, speed_ = 0.0f, carrier_ = 0.0f;
 };
 

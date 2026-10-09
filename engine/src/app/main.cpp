@@ -9,6 +9,7 @@
 
 #include "core/app/AppPaths.h"
 #include "core/graph/AudioGraph.h"
+#include "core/graph/GraphIo.h"
 #include "io/FfmpegAudioFormat.h"
 #include "hum/Number.h"
 #include "hum/Registry.h"
@@ -87,9 +88,7 @@ void restoreKnownPlugins() {
 }
 
 MasterTap* findSoundOut(AudioGraph& g) {
-    for (int i = 0; i < g.nodeCount(); ++i)
-        if (auto* so = dynamic_cast<MasterTap*>(g.organism(i))) return so;
-    return nullptr;
+    return findMasterTap(g);
 }
 
 int cmdInfo(const std::string& path) {
@@ -176,7 +175,7 @@ int cmdPlay(const std::string& path, const Opts& o) {
             sr = d->getCurrentSampleRate(); block = d->getCurrentBufferSizeSamples();
             g->prepare(sr, block, g->transport().tempo());
             so = nullptr;
-            for (int i = 0; i < g->nodeCount(); ++i) if (auto* s = dynamic_cast<MasterTap*>(g->organism(i))) so = s;
+            so = findMasterTap(*g);
         }
         void audioDeviceIOCallbackWithContext(const float* const*, int, float* const* out,
                                               int numOut, int numSamples,

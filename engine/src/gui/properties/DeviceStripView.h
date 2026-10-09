@@ -9,6 +9,7 @@
 #include "gui/style/Colours.h"
 #include "gui/host/PropertiesHost.h"
 #include "gui/style/LookAndFeel.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -92,10 +93,10 @@ public:
         g.setFont(juce::FontOptions(9.0f));
         g.setColour(Palette::textDim.withAlpha(alpha::strong));
         if (ins > 0 || mIns > 0)
-            g.drawText("in", (int) r.getX() + 9, (int) labelY, 30, 11,
+            g.drawText(tr("device-strip.in", "in"), (int) r.getX() + 9, (int) labelY, 30, 11,
                        juce::Justification::centredLeft, false);
         if (outs > 0 || mOuts > 0)
-            g.drawText("out", (int) r.getRight() - 39, (int) labelY, 30, 11,
+            g.drawText(tr("device-strip.out", "out"), (int) r.getRight() - 39, (int) labelY, 30, 11,
                        juce::Justification::centredRight, false);
 
         g.setColour(noteColour.isTransparent() ? Palette::textDim : noteColour);

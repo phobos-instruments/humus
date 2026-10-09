@@ -11,9 +11,12 @@
 #import <AVFoundation/AVFoundation.h>
 #import <CoreVideo/CoreVideo.h>
 #import <Foundation/Foundation.h>
+#include <mach/mach_time.h>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
+#include <memory>
 
 namespace hum {
 namespace {
@@ -246,7 +249,9 @@ public:
                           completionHandler:^(BOOL) { player.rate = r; }];
                     }] retain];
         applyLoopRange();
-        if (!paused_) player_.rate = rate_;
+        appliedRate_ = kRateUnknown;
+        audioSilenced_ = false;
+        if (!paused_) applyRate(rate_);
     }
 
     void setLoopRange(const LoopRange& r) override {
@@ -264,22 +269,26 @@ public:
 
     void setRate(float rate) override {
         rate_ = rate;
-        if (item_ != nil && !paused_) player_.rate = rate;
+        if (item_ != nil && !paused_) applyRate(rate);
     }
 
     void setPaused(bool paused) override {
         if (paused == paused_) return;
         paused_ = paused;
         if (item_ == nil) return;
-        if (paused) [player_ pause];
-        else player_.rate = rate_;
+        if (paused) {
+            [player_ pause];
+            appliedRate_ = 0.0f;
+        } else {
+            applyRate(rate_);
+        }
     }
 
     bool isPaused() const override { return paused_; }
 
     double positionSeconds() override {
         if (item_ == nil) return 0.0;
-        const auto t = [item_ currentTime];
+        const auto t = playingTime();
         return CMTIME_IS_NUMERIC(t) ? CMTimeGetSeconds(t) : 0.0;
     }
 
@@ -299,12 +308,15 @@ public:
 
     void chase(double seconds, double rate) override {
         if (item_ == nil) return;
-        if (std::abs(positionSeconds() - seconds) > kChaseSlack)
+        if (!seeking_->load() && std::abs(positionSeconds() - seconds) > kChaseSlack) {
+            seeking_->store(true);
+            auto seeking = seeking_;
             [item_ seekToTime:CMTimeMakeWithSeconds(seconds, 600)
                 toleranceBefore:CMTimeMakeWithSeconds(kChaseSlack * 0.5, 600)
                  toleranceAfter:CMTimeMakeWithSeconds(kChaseSlack * 0.5, 600)
-              completionHandler:nil];
-        player_.rate = (float) rate;
+              completionHandler:^(BOOL) { seeking->store(false); }];
+        }
+        applyRate((float) rate);
     }
 
     void restart() override {
@@ -313,12 +325,13 @@ public:
             toleranceBefore:kCMTimeZero
              toleranceAfter:kCMTimeZero
           completionHandler:nil];
-        player_.rate = rate_ > 0.0f ? rate_ : 1.0f;
+        applyRate(rate_ > 0.0f ? rate_ : 1.0f);
     }
 
     std::shared_ptr<const Frame> latestFrame() override {
         if (item_ == nil) return current_;
-        const CMTime t = [item_ currentTime];
+        silenceAudio();
+        const CMTime t = playingTime();
         if (![output_ hasNewPixelBufferForItemTime:t]) return current_;
         CMTime shown = kCMTimeInvalid;
         CVPixelBufferRef px = [output_ copyPixelBufferForItemTime:t
@@ -330,6 +343,23 @@ public:
     }
 
 private:
+    CMTime playingTime() const {
+        return [output_ itemTimeForMachAbsoluteTime:(int64_t) mach_absolute_time()];
+    }
+
+    void applyRate(float rate) {
+        if (std::abs(rate - appliedRate_) < kRateStep) return;
+        appliedRate_ = rate;
+        player_.rate = rate;
+    }
+
+    void silenceAudio() {
+        if (audioSilenced_ || item_.status != AVPlayerItemStatusReadyToPlay) return;
+        for (AVPlayerItemTrack* track in item_.tracks)
+            if ([track.assetTrack.mediaType isEqualToString:AVMediaTypeAudio]) track.enabled = NO;
+        audioSilenced_ = true;
+    }
+
     void unload() {
         current_.reset();
         if (endToken_ != nil) {
@@ -351,7 +381,12 @@ private:
     AVPlayerItem* item_ = nil;
     id endToken_ = nil;
     static constexpr double kChaseSlack = 0.04;
+    static constexpr float kRateStep = 1.0e-3f;
+    static constexpr float kRateUnknown = -1000.0f;
     float rate_ = 1.0f;
+    float appliedRate_ = kRateUnknown;
+    bool audioSilenced_ = false;
+    std::shared_ptr<std::atomic<bool>> seeking_ = std::make_shared<std::atomic<bool>>(false);
     bool paused_ = false;
     double loopIn_ = 0.0;
     double loopOut_ = 0.0;

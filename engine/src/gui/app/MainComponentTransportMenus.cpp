@@ -25,7 +25,7 @@ void MainComponent::rollScope(const std::string& pod) {
     const auto targets = rollTogether(host_, pod);
     if (targets.empty()) { notify(tr("main-transport.nothing-to-randomise", "nothing here to randomise")); return; }
     for (const auto& n : targets) propsPane_->reloadValuesFor(n);
-    notify(tr("main-transport.rolled", "rolled ") + juce::String((int) targets.size()) + tr("main-transport.organisms", " organisms"));
+    notify(trn("main-transport.rolled", "rolled {n} organism", "rolled {n} organisms", (int) targets.size()));
 }
 
 void MainComponent::showMetroMenu() {
@@ -35,7 +35,7 @@ void MainComponent::showMetroMenu() {
     juce::PopupMenu m;
     m.addSectionHeader(tr("main-transport.metronome", "Metronome"));
     for (int v : {25, 50, 75, 100})
-        m.addItem(v, tr("main-transport.volume", "Volume ") + juce::String(v) + "%", true, vol == v);
+        m.addItem(v, tr("main-transport.volume", "Volume {percent}%", {{"percent", juce::String(v)}}), true, vol == v);
     m.addSeparator();
     m.addItem(200, tr("main-transport.count-in-before-recording", "Count-in before recording (right-click the record button for bars and pre-roll)"), true, ci);
     const auto anchor = metroBtn_.getScreenBounds();
@@ -50,10 +50,9 @@ void MainComponent::showMetroMenu() {
             host_.setBeforeRecord(on ? EngineHost::BeforeRecord::CountIn : EngineHost::BeforeRecord::None,
                                   host_.beforeRecordBars());
             st.set("record.before", (int) host_.beforeRecord());
-            notify(on ? tr("main-transport.count-in-on", "count-in on: recording clicks ")
-                               + juce::String(host_.beforeRecordBars())
-                               + tr("main-transport.count-in-bars-first", " bar(s) first")
-                         : tr("main-transport.count-in-off", "count-in off"));
+            notify(on ? trn("main-transport.count-in-on", "count-in on: recording clicks {n} bar first",
+                            "count-in on: recording clicks {n} bars first", host_.beforeRecordBars())
+                      : tr("main-transport.count-in-off", "count-in off"));
         }
     });
 }
@@ -66,7 +65,7 @@ void MainComponent::showOverflowMenu() {
     };
     if (!dspLabel_.isVisible()) {
         const auto t = dspLabel_.getText();
-        m.addSectionHeader(t.isEmpty() ? juce::String(tr("main-transport.audio-health-idle", "Audio health: idle")) : tr("main-transport.audio-health-prefix", "Audio health: ") + t);
+        m.addSectionHeader(t.isEmpty() ? juce::String(tr("main-transport.audio-health-idle", "Audio health: idle")) : tr("main-transport.audio-health-prefix", "Audio health: {status}", {{"status", t}}));
     }
     add(1, goStartBtn_, tr("main-transport.go-to-start", "Go to Start"));
     add(2, goEndBtn_, tr("main-transport.go-to-end", "Go to End"));
@@ -74,7 +73,7 @@ void MainComponent::showOverflowMenu() {
     m.addSeparator();
     add(4, tapBtn_, tr("main-transport.tap-tempo-2", "Tap Tempo"));
     add(5, beat1Btn_, tr("main-transport.mark-beat-1", "Mark Beat 1"));
-    add(6, metroBtn_, "Click", metroBtn_.getToggleState());
+    add(6, metroBtn_, tr("main-transport.click", "Click"), metroBtn_.getToggleState());
     add(7, linkBtn_, "Link", linkBtn_.getToggleState());
     m.addSeparator();
     add(8, qwertyBtn_, tr("main-transport.computer-keyboard-notes", "Computer Keyboard Notes"), QwertyPiano::instance().enabled());
@@ -114,10 +113,10 @@ void MainComponent::showLinkMenu() {
         if (r != 1) return;
         const bool on = !host_.linkStartStopSync();
         host_.setLinkStartStopSync(on);
-        notify(on ? juce::String::fromUTF8(
-                           "start/stop shared - enable it in the other app too"
-                           " (Live: Preferences \xe2\x80\xa3 Link \xe2\x80\xa3 Start Stop Sync)")
-                     : "start/stop stays local");
+        notify(on ? tr("main-transport.start-stop-shared",
+                       "start/stop shared - enable it in the other app too"
+                       " (Live: Preferences > Link > Start Stop Sync)")
+                  : tr("main-transport.start-stop-stays-local", "start/stop stays local"));
     });
 }
 

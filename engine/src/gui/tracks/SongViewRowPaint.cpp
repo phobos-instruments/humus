@@ -21,6 +21,7 @@
 #include "gui/tracks/TimelineChips.h"
 #include "gui/tracks/TimelineGrid.h"
 #include "gui/tracks/WaveformCache.h"
+#include "hum/Warp.h"
 #include "gui/common/Localisation.h"
 #include "hum/dsp/DspMath.h"
 
@@ -75,7 +76,7 @@ void SongView::paintRow(juce::Graphics& g, int row) {
             g.setColour(Palette::text);
             g.setFont(juce::FontOptions(10.0f));
             const auto label = ci.name.empty()
-                ? juce::String("clip ") + juce::String(ci.index + 1) : juce::String(ci.name);
+                ? tr("tracks-pane-paint.clip-n", "clip {n}", {{"n", juce::String(ci.index + 1)}}) : juce::String(ci.name);
             const bool marks = unclampedLeft == b.getX() && b.getWidth() > 3 * kFadeGrip;
             if (b.getWidth() > 30)
                 g.drawText(label, b.reduced(4, 2).withTrimmedLeft(marks ? kFadeGrip : 0),
@@ -300,7 +301,7 @@ void SongView::paintPodHeader(juce::Graphics& g, const trackslayout::Slot& slot)
     g.setFont(juce::FontOptions(9.5f));
     const int n = trackslayout::podRowCount((int) rows_.size(),
                                             [this](int t) { return podOfRow(t); }, slot.param);
-    g.drawText(juce::String(n) + (n == 1 ? tr("tracks-pane-paint.lane", " lane") : tr("tracks-pane-paint.lanes", " lanes")),
+    g.drawText(trn("tracks-pane-paint.lanes", "{n} lane", "{n} lanes", n),
                kStripW - 60, y, 54, h, juce::Justification::centredRight);
 
     if (folded) {
@@ -330,13 +331,15 @@ void SongView::paintWaveform(juce::Graphics& g, juce::Rectangle<int> b, int clip
         g.setColour(Palette::recordRed().withAlpha(alpha::heavy));
         g.setFont(juce::FontOptions(11.0f));
         g.drawText(peaks->trouble == WaveformCache::Trouble::Missing
-                       ? "file missing" : "cannot read this file",
+                       ? tr("tracks-pane-paint.file-missing", "file missing")
+                       : tr("tracks-pane-paint.cannot-read-this-file", "cannot read this file"),
                    b.reduced(4, 0), juce::Justification::centredLeft, true);
         return;
     }
     if (!peaks || !peaks->ready || peaks->binSamples <= 0 || peaks->sourceSamples <= 0) return;
 
-    const double spb = (host().tempo() > 0.0 ? kSecondsPerMinute / host().tempo() : 0.5) * host().sampleRate();
+    const double spb = (host().tempo() > 0.0 ? kSecondsPerMinute / host().tempo() : 0.5) * host().sampleRate()
+                       * warpRate(ci.warpMode, ci.sourceBpm, host().tempo());
     const double clipSrcLen = (double) ci.lengthTicks / Pattern::kTicksPerBeat * spb;
     const int fullW = b.getRight() - clipLeft;
     if (fullW <= 0 || clipSrcLen <= 0.0) return;

@@ -24,6 +24,8 @@ struct PadRange {
     bool looped = false;
 };
 
+inline constexpr Words kLoadAClip{"clip-grid.load-a-clip", "Load a clip"};
+
 class ClipPadsModel {
 public:
     static constexpr int kPads = VideoPadSource::kMaxClips;

@@ -39,6 +39,7 @@ public:
 
     bool hotCueLit(int index) const { return host_.liveParamValue(organism_, p_.hotCue(index)) >= 0.0; }
     bool looping() const { return host_.liveParamValue(organism_, p_.loop) >= 0.5; }
+    float loudestSample() const { return decks_.loudestSample(organism_); }
 
     void setCue() { decks_.setCue(organism_, p_); }
     void jumpCue() { decks_.jumpCue(organism_, p_); }
@@ -86,6 +87,13 @@ private:
     std::string organism_, pitch_, range_, bpm_;
 };
 
+inline std::string peakText(float peak) {
+    if (!(peak > 0.0f)) return {};
+    const double shown = std::round(20.0 * std::log10((double) peak) * 10.0) / 10.0;
+    if (shown == 0.0) return "0.0 dB";
+    return (shown > 0.0 ? "+" : "") + decimalText(shown, 1) + " dB";
+}
+
 inline float peakOfWave(const std::vector<float>& peaks, double sample, std::int64_t length) {
     if (peaks.empty() || length <= 0 || sample < 0.0 || sample >= (double) length) return 0.0f;
     const auto at = (std::size_t) (sample / (double) length * (double) peaks.size());
@@ -125,6 +133,8 @@ public:
     Window window() const;
 
     std::vector<float> peaks() const { return decks_.waveform(organism_); }
+
+    std::vector<std::int64_t> loudSpots() const { return decks_.loudSpots(organism_); }
 
     std::vector<float> peaksIn(double from, double to, int buckets) const {
         return decks_.waveBetween(organism_, (std::int64_t) from, (std::int64_t) to, buckets);

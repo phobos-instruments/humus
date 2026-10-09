@@ -7,7 +7,7 @@ if(HUM_GUI)
     "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon-1024.png")
   juce_add_gui_app(hum_gui PRODUCT_NAME "Humus"
     COMPANY_NAME "Phobos Instruments"
-    COMPANY_WEBSITE "https://humus.phobos-instruments.com"
+    COMPANY_WEBSITE "https://humus.art"
     BUNDLE_ID "com.phobos-instruments.humus"
     ICON_BIG "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon-1024.png"
     # No library validation: every .humpack and hosted plugin would be refused.

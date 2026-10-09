@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include "core/app/Catalogue.h"
+
 namespace hum {
 
 class Organism;
@@ -59,6 +61,11 @@ public:
     virtual void noteTopologyChanged() = 0;
 
     virtual std::string translated(const std::string& key, const std::string& written) const = 0;
+    virtual std::string translatedCount(const std::string& key, const std::string& one,
+                                        const std::string& other, long long n) const {
+        (void) key;
+        return fillPlaceholders(n == 1 ? one : other, {{"n", std::to_string(n)}});
+    }
 };
 
 }

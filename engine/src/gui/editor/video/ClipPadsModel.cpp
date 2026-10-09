@@ -69,7 +69,7 @@ void ClipPadsModel::take(int i, const PadRange& r) {
 
 files::FilePick ClipPadsModel::request(int i, const std::string& videosDir) const {
     files::FilePick pick;
-    pick.title = "Load a clip";
+    pick.title = say(host_, kLoadAClip);
     const auto cur = file(i);
     pick.startDir = !cur.empty() ? files::parentOf(cur) : videosDir;
     pick.patterns = "*.mov;*.mp4;*.m4v;*.avi";

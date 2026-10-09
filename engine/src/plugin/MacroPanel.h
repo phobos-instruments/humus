@@ -33,11 +33,11 @@ public:
             };
             addAndMakeVisible(slider_[i]);
 
-            organismBox_[i].setTextWhenNothingSelected("(none)");
+            organismBox_[i].setTextWhenNothingSelected(tr("macro.none", "(none)"));
             organismBox_[i].onChange = [this, i] { onOrganismPicked(i); };
             addAndMakeVisible(organismBox_[i]);
 
-            paramBox_[i].setTextWhenNothingSelected("(param)");
+            paramBox_[i].setTextWhenNothingSelected(tr("macro.param", "(param)"));
             paramBox_[i].onChange = [this, i] { onParamPicked(i); };
             addAndMakeVisible(paramBox_[i]);
         }

@@ -12,6 +12,7 @@
 #include "gui/editor/ControlModel.h"
 #include "gui/editor/LayoutCondition.h"
 #include "gui/editor/ParamRanges.h"
+#include "gui/editor/Words.h"
 #include "gui/host/ModelHost.h"
 #include "gui/tracks/StripSources.h"
 #include "hum/LayoutSpec.h"
@@ -112,10 +113,12 @@ inline bool holds(ModelHost& host, const std::string& organism, const LayoutCond
     return control::holds(host, organism, condition);
 }
 
+inline constexpr Words kNothingConnected{"strip-hover.nothing-connected", "Nothing connected"};
+
 inline std::string tooltipOf(ModelHost& host, const Setup& setup) {
     if (stripChannelInlets(setup.param).empty()) return {};
     const auto names = stripSourceNames(setup.param, host.model().connections, setup.organism);
-    if (names.empty()) return host.translated("strip-hover.nothing-connected", "Nothing connected");
+    if (names.empty()) return say(host, kNothingConnected);
     return joinedSources(names);
 }
 

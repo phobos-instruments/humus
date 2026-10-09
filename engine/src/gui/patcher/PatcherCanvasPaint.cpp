@@ -11,6 +11,7 @@
 #include "core/plugins/PluginNode.h"
 #include "core/graph/PodModel.h"
 #include "gui/style/LookAndFeel.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -94,6 +95,7 @@ void PatcherCanvas::paint(juce::Graphics& g) {
         portCounts(dn, ins, tmp);
         if (outs == 0 || ins == 0) continue;
         Edge id{conn.src, conn.srcOutlet, conn.dst, conn.dstInlet, false};
+        if (isCarried(id)) continue;
         drawCord(outletPos(sn, sp, outs).toFloat(),
                  inletPos(dn, dp, ins).toFloat(), false, false,
                  cordSelected_ && id == selectedCord_, cordHovered_ && id == hoverCord_, Palette::cord);
@@ -109,6 +111,7 @@ void PatcherCanvas::paint(juce::Graphics& g) {
         midiPortCounts(dn, ins, tmp);
         if (outs == 0 || ins == 0) continue;
         Edge id{conn.src, conn.srcOutlet, conn.dst, conn.dstInlet, true};
+        if (isCarried(id)) continue;
         drawCord(midiOutletPos(sn, sp).toFloat(),
                  midiInletPos(dn, dp).toFloat(), true, false,
                  cordSelected_ && id == selectedCord_, cordHovered_ && id == hoverCord_, Palette::cord);
@@ -125,11 +128,13 @@ void PatcherCanvas::paint(juce::Graphics& g) {
         videoPortCounts(dn, ins, tmp);
         if (outs == 0 || ins == 0) continue;
         Edge id{conn.src, conn.srcOutlet, conn.dst, conn.dstInlet, false, true};
+        if (isCarried(id)) continue;
         drawCord(videoOutletPos(sn, sp).toFloat(), videoInletPos(dn, dp).toFloat(), false, true,
                  cordSelected_ && id == selectedCord_, cordHovered_ && id == hoverCord_, Palette::cord);
     }
     for (const auto& c : host_.controlCordsInScope(scope_)) {
         Edge id{c.src, c.srcOutlet, c.dst, c.dstInlet, false, false, true};
+        if (isCarried(id)) continue;
         drawCord(controlOutletPos(c.src, c.srcOutlet).toFloat(),
                  controlInletPos(c.dst, c.dstInlet).toFloat(), false, false,
                  cordSelected_ && id == selectedCord_, cordHovered_ && id == hoverCord_,
@@ -145,6 +150,9 @@ void PatcherCanvas::paint(juce::Graphics& g) {
         g.setColour(Palette::accent);
         g.drawLine({a, cordEnd_.toFloat()}, 1.5f);
     }
+    for (const auto& line : carriedLines())
+        drawCord(line.a, line.b, line.cord.midi, line.cord.video, false, true,
+                 line.cord.control ? Palette::controlCord() : Palette::cord);
 
     if (!primary_.empty() && (!spliceBundle_.empty() || !proxConnections_.empty())) {
         auto nb = nodeBounds(primary_);
@@ -290,42 +298,50 @@ void PatcherCanvas::paint(juce::Graphics& g) {
             g.setColour(juce::Colours::white.withAlpha(alpha::scrim));
             g.fillEllipse((float) p.x - r * 0.45f, (float) p.y - r * 0.65f, r * 0.55f, r * 0.55f);
         };
+        const bool fading = cordInHand();
+        auto seed = [&](juce::Point<int> p, juce::Colour c, PortRef at) {
+            portSeed(p, fading && refusesDuringDrag(at) ? c.withMultipliedAlpha(alpha::scrim) : c);
+        };
         const auto portCol = sel ? Palette::background : Palette::textDim;
         const int strayIn = d.pod ? pods::strayCount(host_.model(), name, true) : 0;
         const int strayOut = d.pod ? pods::strayCount(host_.model(), name, false) : 0;
         for (int i = 0; i < ins; ++i)
-            portSeed(inletPos(name, i, ins),
-                     i >= ins - strayIn ? Palette::warnAmber() : portCol);
+            seed(inletPos(name, i, ins), i >= ins - strayIn ? Palette::warnAmber() : portCol,
+                 {fading ? name : std::string(), i, false});
         for (int o = 0; o < outs; ++o)
-            portSeed(outletPos(name, o, outs),
-                     o >= outs - strayOut ? Palette::warnAmber() : portCol);
+            seed(outletPos(name, o, outs), o >= outs - strayOut ? Palette::warnAmber() : portCol,
+                 {fading ? name : std::string(), o, true});
         int cIns, cOuts;
         controlPortCounts(name, cIns, cOuts);
         const auto controlCol = sel ? Palette::background : Palette::controlCord();
-        for (int i = 0; i < cIns; ++i) portSeed(controlInletPos(name, i), controlCol);
-        for (int o = 0; o < cOuts; ++o) portSeed(controlOutletPos(name, o), controlCol);
+        for (int i = 0; i < cIns; ++i)
+            seed(controlInletPos(name, i), controlCol, {fading ? name : std::string(), i, false, false, false, true});
+        for (int o = 0; o < cOuts; ++o)
+            seed(controlOutletPos(name, o), controlCol, {fading ? name : std::string(), o, true, false, false, true});
 
         int mIns, mOuts;
         midiPortCounts(name, mIns, mOuts);
         const auto midiCol = sel ? Palette::background
                            : midiFlash ? Palette::midiCord().brighter(0.9f)
                                        : Palette::midiCord();
-        auto midiSeed = [&](juce::Point<int> p) {
+        auto midiSeed = [&](juce::Point<int> p, int port, bool outlet) {
             if (midiFlash) {
                 g.setColour(Palette::midiCord().withAlpha(alpha::muted));
                 const float hr = kPort * 1.1f;
                 g.fillEllipse((float) p.x - hr, (float) p.y - hr, hr * 2.0f, hr * 2.0f);
             }
-            portSeed(p, midiCol);
+            seed(p, midiCol, {fading ? name : std::string(), port, outlet, true});
         };
-        for (int i = 0; i < mIns; ++i) midiSeed(midiInletPos(name, i));
-        for (int o = 0; o < mOuts; ++o) midiSeed(midiOutletPos(name, o));
+        for (int i = 0; i < mIns; ++i) midiSeed(midiInletPos(name, i), i, false);
+        for (int o = 0; o < mOuts; ++o) midiSeed(midiOutletPos(name, o), o, true);
 
         int vIns, vOuts;
         videoPortCounts(name, vIns, vOuts);
         const auto videoCol = sel ? Palette::background : Palette::videoCord();
-        for (int i = 0; i < vIns; ++i) portSeed(videoInletPos(name, i), videoCol);
-        for (int o = 0; o < vOuts; ++o) portSeed(videoOutletPos(name, o), videoCol);
+        for (int i = 0; i < vIns; ++i)
+            seed(videoInletPos(name, i), videoCol, {fading ? name : std::string(), i, false, false, true});
+        for (int o = 0; o < vOuts; ++o)
+            seed(videoOutletPos(name, o), videoCol, {fading ? name : std::string(), o, true, false, true});
     }
 
     auto ring = [&](juce::Point<int> pt, juce::Colour col, float thick) {
@@ -360,6 +376,8 @@ void PatcherCanvas::paint(juce::Graphics& g) {
                              : inletPos(cordTargetNode_, cordTargetPort_, tIns);
         ring(pp, Palette::accent, 2.5f);
     }
+    if (drag_ == Drag::Grab && cordTarget_) ring(portPos(grabTarget_), Palette::accent, 2.5f);
+    if (refused_) ring(portPos(refusedAt_), ink::state::danger, 2.5f);
 
     if (drag_ == Drag::Select) {
         g.setColour(Palette::accent.withAlpha(alpha::mist));
@@ -404,7 +422,7 @@ void PatcherCanvas::CrumbBar::paint(juce::Graphics& g) {
         parts.push_back(scope.substr(i, j - i));
         if (j == scope.size()) break;
     }
-    segment(juce::String::fromUTF8("\xe2\x8c\x82 patch"), "", false);
+    segment(tr("patcher-canvas-paint.home-patch", "{home} patch", {{"home", juce::String::fromUTF8("\xe2\x8c\x82")}}), "", false);
     for (size_t i = 0; i < parts.size(); ++i) {
         acc = acc.empty() ? parts[i] : acc + "/" + parts[i];
         segment(parts[i], acc, i + 1 == parts.size());

@@ -1,6 +1,6 @@
 {
   "width": 600,
-  "height": 570,
+  "height": 604,
   "bind": {
     "active": "Active",
     "bpm": "BPM",
@@ -59,7 +59,7 @@
       "x": 6,
       "y": 462,
       "w": 510,
-      "h": 96
+      "h": 130
     },
     {
       "type": "label",
@@ -68,7 +68,7 @@
       "x": 520,
       "y": 6,
       "w": 74,
-      "h": 552
+      "h": 586
     },
     {
       "type": "soundfile", "kind": "Samples",
@@ -197,10 +197,67 @@
       "icon": "none"
     },
     {
-      "type": "timecode-readout",
+      "type": "momentary",
+      "param": "TimecodeCalibrate",
+      "label": "Calibrate",
+      "x": 306,
+      "y": 480,
+      "w": 84,
+      "h": 28,
+      "tooltip": "Play the record at its normal speed and press: that becomes the deck's normal speed. With the needle up, the deck goes back to learning it by itself."
+    },
+    {
+      "type": "combo",
+      "param": "TimecodeRecord",
       "label": "",
       "x": 16,
       "y": 516,
+      "w": 200,
+      "h": 28,
+      "options": [
+        "Learn from the record",
+        "Traktor MK2 side A",
+        "Traktor MK2 side B",
+        "Traktor MK2 CD",
+        "Traktor MK1 side A",
+        "Traktor MK1 side B",
+        "Serato side A",
+        "Serato side B",
+        "Serato CD",
+        "Mixvibes V2",
+        "Mixvibes 7-inch",
+        "Pioneer side A",
+        "Pioneer side B"
+      ],
+      "tooltip": "Which control record is on the platter. Naming it gives the exact normal speed and, in Absolute, the needle's place."
+    },
+    {
+      "type": "lit-button",
+      "param": "TimecodeAbsolute",
+      "label": "Absolute",
+      "x": 224,
+      "y": 516,
+      "w": 92,
+      "h": 28,
+      "tooltip": "The track follows where the needle is on the record, so a needle drop lands in the track and scratching cannot drift. Needs a named record.",
+      "icon": "none"
+    },
+    {
+      "type": "lit-button",
+      "param": "Timecode45",
+      "label": "45 rpm",
+      "x": 322,
+      "y": 516,
+      "w": 68,
+      "h": 28,
+      "tooltip": "The record plays at 45 rather than 33.",
+      "icon": "none"
+    },
+    {
+      "type": "timecode-readout",
+      "label": "",
+      "x": 16,
+      "y": 552,
       "w": 372,
       "h": 26
     },

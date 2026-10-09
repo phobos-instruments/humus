@@ -157,13 +157,13 @@ public:
                            ? juce::MouseCursor::CrosshairCursor
                            : juce::MouseCursor::NormalCursor);
         const juce::String tip = toolRect(0).contains(e.getPosition())
-                                     ? "Earlier: slide the shape back by 1/32 of the cycle (Shift: 1/8)"
+                                     ? tr("gain-shape.earlier-tip", "Earlier: slide the shape back by 1/32 of the cycle (Shift: 1/8)")
                                  : toolRect(1).contains(e.getPosition())
-                                     ? "Later: slide the shape on by 1/32 of the cycle (Shift: 1/8)"
+                                     ? tr("gain-shape.later-tip", "Later: slide the shape on by 1/32 of the cycle (Shift: 1/8)")
                                  : toolRect(2).contains(e.getPosition())
-                                     ? "Reverse: play the shape backwards in time"
+                                     ? tr("gain-shape.reverse-tip", "Reverse: play the shape backwards in time")
                                  : toolRect(3).contains(e.getPosition())
-                                     ? "Invert: flip the gain, so dips become peaks"
+                                     ? tr("gain-shape.invert-tip", "Invert: flip the gain, so dips become peaks")
                                      : juce::String();
         if (tip != getTooltip()) setTooltip(tip);
     }

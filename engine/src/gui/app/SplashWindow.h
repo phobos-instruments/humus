@@ -16,6 +16,7 @@
 #include "gui/app/StartWindow.h"
 #include "gui/app/Telemetry.h"
 #include "gui/app/TelemetryEvents.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -48,8 +49,8 @@ public:
 
         if (total_ == 0) finishScan();
         else {
-            status_ = "Found " + juce::String(total_) + " new plugin file"
-                      + (total_ == 1 ? "" : "s") + juce::String::fromUTF8("\xe2\x80\xa6");
+            status_ = trn("splash.found-new-plugin-files", "Found {n} new plugin file...",
+                          "Found {n} new plugin files...", total_);
             scanner_->beginAsync(juce::jlimit(
                 2, 6, (int) std::thread::hardware_concurrency() / 2));
         }
@@ -88,7 +89,7 @@ public:
                                                  * scanner_->progress())), 2.0f);
             g.setColour(line.withAlpha(alpha::dim));
             g.setFont(juce::Font(juce::FontOptions(11.0f)));
-            g.drawText("skip", skipBounds(), juce::Justification::centred);
+            g.drawText(tr("splash.skip", "skip"), skipBounds(), juce::Justification::centred);
         }
     }
 
@@ -128,8 +129,8 @@ private:
         const int now = PluginHost::instance().knownPlugins().getNumTypes();
         const int added = now - baseCount_;
         status_ = added > 0
-            ? juce::String(added) + " new plugin" + (added == 1 ? "" : "s") + " added"
-            : juce::String(now) + " plugins ready";
+            ? trn("splash.new-plugins-added", "{n} new plugin added", "{n} new plugins added", added)
+            : trn("splash.plugins-ready", "{n} plugin ready", "{n} plugins ready", now);
         repaint();
     }
 
@@ -152,8 +153,8 @@ private:
             if (name.containsChar('.')) name = name.upToLastOccurrenceOf(".", false, false);
             const int shownDone = juce::jlimit(
                 0, total_, (int) std::lround(scanner_->progress() * (float) total_));
-            status_ = "Scanning "  + name + "  (" + juce::String(shownDone)
-                    + "/" + juce::String(total_) + ")";
+            status_ = tr("splash.scanning", "Scanning {name}  ({done}/{total})",
+                         {{"name", name}, {"done", juce::String(shownDone)}, {"total", juce::String(total_)}});
             const int now = PluginHost::instance().knownPlugins().getNumTypes();
             if (now - lastSavedCount_ >= 12) persistProgress();
             repaint();
@@ -173,7 +174,7 @@ private:
     std::function<void()> onDone_;
     std::unique_ptr<PluginScanner> scanner_;
     int lastSavedCount_ = 0;
-    juce::String status_{juce::CharPointer_UTF8("Checking for new plugins\xe2\x80\xa6")};
+    juce::String status_ = tr("splash.checking-for-new-plugins", "Checking for new plugins...");
     int baseCount_ = 0, total_ = 0, done_ = 0;
     juce::uint32 shownAt_ = 0;
 

@@ -101,7 +101,7 @@ private:
     EngineHost& host_;
     IconButton fromStart_{IconButton::Glyph::PlayFromStart, tr("transport-strip.play-from-start", "Play From Start")};
     IconButton play_{IconButton::Glyph::Play, tr("transport-strip.play-space", "Play (Space)")};
-    IconButton stop_{IconButton::Glyph::Stop, "Stop"};
+    IconButton stop_{IconButton::Glyph::Stop, tr("transport-strip.stop", "Stop")};
     IconButton record_{IconButton::Glyph::Record, tr("transport-strip.record-the-performance", "Record the performance")};
     IconButton loop_{IconButton::Glyph::Loop, tr("transport-strip.enable-automation-loop", "Enable Automation Loop")};
     TempoSlider tempo_;

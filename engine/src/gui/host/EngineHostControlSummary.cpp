@@ -6,6 +6,7 @@
 
 #include "core/graph/AudioGraph.h"
 #include "core/graph/InletNames.h"
+#include "gui/common/Localisation.h"
 #include "gui/properties/ControlModeText.h"
 #include "hum/caps/Graph.h"
 
@@ -32,17 +33,23 @@ std::string EngineHost::controlSummary(const std::string& organism, const std::s
     auto line = [&out](const std::string& text) { out += (out.empty() ? "" : "\n") + text; };
     for (const auto& e : midiState_.map.entries())
         if (e.organism == organism && e.param == param)
-            line("MIDI: " + midiSourceLabel(e.source()) + " - " + behaviourText(e.shape).toStdString());
+            line(tr("control-summary.midi-line", "MIDI: {source} - {behaviour}",
+                    {{"source", juce::String(midiSourceLabel(e.source()))}, {"behaviour", behaviourText(e.shape)}})
+                     .toStdString());
     for (const auto& e : osc().map().entries())
         if (e.organism == organism && e.param == param)
-            line("OSC: " + e.address + " - " + behaviourText(e.shape).toStdString());
+            line(tr("control-summary.osc-line", "OSC: {address} - {behaviour}",
+                    {{"address", juce::String(e.address)}, {"behaviour", behaviourText(e.shape)}})
+                     .toStdString());
     for (const auto& e : mod().map().entries())
         if (e.organism == organism && e.param == param)
-            line(translated("control-summary.follows", "Follows") + ": " + e.source + " / " + e.value);
+            line(tr("control-summary.follows-source", "Follows: {source} / {value}",
+                    {{"source", juce::String(e.source)}, {"value", juce::String(e.value)}})
+                     .toStdString());
     if (const auto var = varDrivingKnob(organism, param); !var.empty())
-        line(translated("control-summary.driven-by", "Driven by") + ": " + var);
+        line(tr("control-summary.driven-by-name", "Driven by: {name}", {{"name", juce::String(var)}}).toStdString());
     if (automation().isAutomated(organism, param))
-        line(translated("control-summary.automated", "Automated"));
+        line(tr("control-summary.automated", "Automated").toStdString());
     return out;
 }
 

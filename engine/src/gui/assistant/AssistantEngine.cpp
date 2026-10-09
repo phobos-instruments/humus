@@ -77,10 +77,12 @@ void AssistantEngine::continueLoop() {
             if (!nudged_ && (phantomProse || looksLikePhantomEdits(text))) {
                 nudged_ = true;
                 line("error", phantomProse
-                    ? "That reply claims edits, but no editing tool ran - "
-                      "nothing changed. Asking the model to do it for real."
-                    : "That reply only pretended to edit (code instead of "
-                      "tool calls) - asking the model to do it for real.");
+                    ? tr("assistant-engine.reply-claims-edits",
+                         "That reply claims edits, but no editing tool ran - nothing changed. "
+                         "Asking the model to do it for real.")
+                    : tr("assistant-engine.reply-pretended-to-edit",
+                         "That reply only pretended to edit (code instead of tool calls) - "
+                         "asking the model to do it for real."));
                 messages_.append(userMessage(phantomProse ? editClaimNudge()
                                                           : toolNudge()));
                 continueLoop();
@@ -92,7 +94,7 @@ void AssistantEngine::continueLoop() {
             return;
         }
         if (++rounds_ > kMaxRounds) {
-            line("error", "Stopped: too many tool rounds for one request.");
+            line("error", tr("assistant-engine.too-many-tool-rounds", "Stopped: too many tool rounds for one request."));
             finishTurn();
             return;
         }

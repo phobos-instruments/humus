@@ -136,10 +136,14 @@ public:
     explicit DockPane(juce::String title) : title_(std::move(title)) {
         addAndMakeVisible(detachBtn_);
         addAndMakeVisible(closeBtn_);
-        detachBtn_.setTooltip(tr("dock.detach-into-a-floating-window", "Detach into a floating window"));
-        closeBtn_.setTooltip(tr("dock.hide-this-pane", "Hide this pane"));
         detachBtn_.onClick = [this] { if (onDetach) onDetach(); };
         closeBtn_.onClick = [this] { if (onClose) onClose(); };
+        applyTexts();
+    }
+
+    void applyTexts() {
+        detachBtn_.setTooltip(tr("dock.detach-into-a-floating-window", "Detach into a floating window"));
+        closeBtn_.setTooltip(tr("dock.hide-this-pane", "Hide this pane"));
     }
 
     void setContent(juce::Component* c) {

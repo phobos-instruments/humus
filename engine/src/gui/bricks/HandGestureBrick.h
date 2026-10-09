@@ -88,7 +88,7 @@ public:
             } else {
                 g.setColour(Palette::textDim);
                 g.setFont(juce::FontOptions(10.0f));
-                g.drawText("empty", bar.toNearestInt(), juce::Justification::centred);
+                g.drawText(tr("hand-gesture.empty", "empty"), bar.toNearestInt(), juce::Justification::centred);
             }
             g.setColour(Palette::border);
             g.drawRoundedRectangle(bar, 3.0f, 1.0f);

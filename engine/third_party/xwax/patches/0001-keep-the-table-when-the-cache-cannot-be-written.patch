@@ -1,0 +1,15 @@
+--- a/timecoder.c
++++ b/timecoder.c
+@@ -354,11 +354,8 @@
+                 if (build_lookup_mk2(def) == -1)
+                     return NULL;  /* error */
+ 
+-                if (lut_store_mk2(def, lut_dir_path)) {
+-                    timecoder_free_lookup();
++                if (lut_store_mk2(def, lut_dir_path))
+                     fprintf(stderr, "Couldn't store LUT on disk\n");
+-                    return NULL;
+-                }
+             } else {
+                 if (build_lookup(def) == -1)
+                     return NULL;  /* error */

@@ -4,30 +4,42 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <vector>
 
 namespace hum {
 
+inline bool isNameSeparator(char c) { return std::isspace((unsigned char) c) || c == '-' || c == '_'; }
+
 inline int fuzzyScore(const std::string& query, const std::string& text) {
-    if (query.empty()) return 0;
-    std::string q, t;
+    std::string q;
     q.reserve(query.size());
+    for (const char c : query)
+        if (!isNameSeparator(c)) q += (char) std::tolower((unsigned char) c);
+    if (q.empty()) return 0;
+    std::string t;
+    std::vector<bool> wordStart;
     t.reserve(text.size());
-    for (const char c : query) q += (char) std::tolower((unsigned char) c);
-    for (const char c : text) t += (char) std::tolower((unsigned char) c);
+    char prev = ' ';
+    for (const char c : text) {
+        if (isNameSeparator(c)) {
+            prev = ' ';
+            continue;
+        }
+        const auto u = (unsigned char) c;
+        const auto p = (unsigned char) prev;
+        wordStart.push_back(prev == ' ' || (std::isupper(u) && !std::isupper(p))
+                            || (std::isdigit(u) && !std::isdigit(p)));
+        t += (char) std::tolower(u);
+        prev = c;
+    }
     const int lenPenalty = (int) text.size();
 
     if (t.rfind(q, 0) == 0) return 1000 - lenPenalty;
 
     {
         size_t qi = 0;
-        for (size_t i = 0; i < text.size() && qi < q.size(); ++i) {
-            const bool hump = i == 0
-                || (std::isupper((unsigned char) text[i])
-                    && !std::isupper((unsigned char) text[i - 1]))
-                || (std::isdigit((unsigned char) text[i])
-                    && !std::isdigit((unsigned char) text[i - 1]));
-            if (hump && t[i] == q[qi]) ++qi;
-        }
+        for (size_t i = 0; i < t.size() && qi < q.size(); ++i)
+            if (wordStart[i] && t[i] == q[qi]) ++qi;
         if (qi == q.size()) return 850 - lenPenalty;
     }
 

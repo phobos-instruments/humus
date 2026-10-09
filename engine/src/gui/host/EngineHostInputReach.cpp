@@ -170,7 +170,7 @@ void EngineHost::refreshArmedInputs() {
         }
     }
     if (graph_ == nullptr) return;
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     for (const auto& node : tapped) graph_->setMidiInletTap(graph_->indexOf(node), true);
 }
 

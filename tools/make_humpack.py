@@ -60,10 +60,17 @@ def main() -> int:
                     full = os.path.join(root, name)
                     entries.append((full, f"organisms/{folder}/{os.path.relpath(full, fdir)}"))
 
-    hdir = os.path.join(src, "help")
-    if os.path.isdir(hdir):
-        for name in sorted(os.listdir(hdir)):
-            entries.append((os.path.join(hdir, name), f"help/{name}"))
+    # help/ holds the English pages; translations/<code>/ their translations and
+    # the pack's own strings (organisms.po), which the app reads as it loads the
+    # pack. The template (organisms.pot) is for translators and stays behind.
+    for top in ("help", "translations"):
+        tdir = os.path.join(src, top)
+        for root, dirs, files in os.walk(tdir):
+            dirs.sort()
+            for name in sorted(files):
+                if name.endswith(".md") or name.endswith(".po"):
+                    full = os.path.join(root, name)
+                    entries.append((full, f"{top}/{os.path.relpath(full, tdir)}"))
 
     bins = 0
     bdir = os.path.join(dyn, "bin")

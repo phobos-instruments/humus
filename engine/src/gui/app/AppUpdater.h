@@ -78,7 +78,8 @@ private:
         partial.deleteFile();
         std::unique_ptr<juce::FileOutputStream> out(partial.createOutputStream());
         if (out == nullptr || out->failedToOpen()) {
-            finish(false, "Cannot write to " + downloadsDir().getFileName(), {});
+            finish(false, tr("app-updater.cannot-write-to", "Cannot write to {folder}",
+                              {{"folder", downloadsDir().getFileName()}}), {});
             return;
         }
 
@@ -124,11 +125,15 @@ private:
 
         target.deleteFile();
         if (!partial.moveFileTo(target)) {
-            finish(false, "Could not put the file in " + downloadsDir().getFileName(),
+            finish(false, tr("app-updater.could-not-put-the-file-in", "Could not put the file in {folder}",
+                             {{"folder", downloadsDir().getFileName()}}),
                    partial);
             return;
         }
-        finish(true, sha_.isEmpty() ? tr("app-updater.downloaded-unchecked", "Downloaded (unchecked)") : "Downloaded", target);
+        const TrArgs where{{"folder", target.getParentDirectory().getFileName()}};
+        finish(true, sha_.isEmpty() ? tr("app-updater.downloaded-to-unchecked", "Downloaded to {folder} (unchecked)", where)
+                                    : tr("app-updater.downloaded-to", "Downloaded to {folder}", where),
+               target);
     }
 
     juce::String url_, sha_, version_, instance_;

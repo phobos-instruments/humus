@@ -14,7 +14,8 @@ void TracksPane::paintBackCrumb(juce::Graphics& g) {
     g.setColour(Palette::panelLight);
     g.fillRoundedRectangle(back.toFloat(), 3.0f);
     g.setColour(Palette::textDim);
-    g.drawText(juce::String::fromUTF8("\xe2\x86\x90 Back to Timeline"), back,
+    g.drawText(tr("tracks-pane.back-to-timeline", "{arrow} Back to Timeline",
+                  {{"arrow", juce::String::fromUTF8("\xe2\x86\x90")}}), back,
                juce::Justification::centred, false);
 }
 
@@ -41,7 +42,9 @@ void TracksPane::paintCrumb(juce::Graphics& g) {
         }
         case Mode::Box:
             paintNamedCrumb(g, song_.boxNode(),
-                            juce::String(song_.boxNode()) + juce::String::fromUTF8(" \xe2\x80\xba Automation"),
+                            tr("tracks-pane.crumb-automation", "{node} {sep} Automation",
+                               {{"node", juce::String(song_.boxNode())},
+                                {"sep", juce::String::fromUTF8("\xe2\x80\xba")}}),
                             timelinechrome::kCrumbFont);
             break;
         case Mode::Clip: {
@@ -86,7 +89,7 @@ bool TracksPane::crumbDown(const juce::MouseEvent& e, juce::Point<int> p) {
 juce::String TracksPane::crumbTooltip(juce::Point<int> p) {
     if (mode_ != Mode::Track || p.y >= kTopH) return {};
     if (crumbBackBox().contains(p)) return tr("tracks-pane-roll.back-to-the-timeline-esc", "Back to the timeline (Esc)");
-    if (crumbNameBox().contains(p)) return "Choose a track (Alt+Up / Alt+Down)";
+    if (crumbNameBox().contains(p)) return tr("tracks-pane-roll.choose-a-track", "Choose a track (Alt+Up / Alt+Down)");
     return {};
 }
 

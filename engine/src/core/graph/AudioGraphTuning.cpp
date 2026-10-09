@@ -66,6 +66,14 @@ void AudioGraph::pumpPluginTunings() {
     }
 }
 
+bool AudioGraph::pluginsMayNeedRetuning() const {
+    for (const auto& nd : nodes_)
+        if (nd.plugin != nullptr
+            && (nd.tuning != nullptr || defaultTuning_ != nullptr || !nd.sentTuning.isStandard()))
+            return true;
+    return false;
+}
+
 std::vector<std::string> AudioGraph::pluginsNeedingVerdict() const {
     std::vector<std::string> out;
     const Tuning* def = defaultTuning_ != nullptr ? &defaultTuning_->tuning() : nullptr;

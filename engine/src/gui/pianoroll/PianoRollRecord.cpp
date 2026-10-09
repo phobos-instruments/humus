@@ -90,18 +90,19 @@ void PianoRollEditor::syncRecordButtons() {
 
 void PianoRollEditor::updateLoopButton() {
     const auto st = loopState();
-    const char* text = "Loop";
+    juce::String t = tr("piano-roll-editor.loop", "Loop");
     juce::Colour on = Palette::accentDim;
     bool lit = true;
     switch (st) {
-        case LooperState::Empty: text = "Loop"; lit = false; break;
-        case LooperState::Rec:   text = "Rec";  on = ink::state::armed; break;
-        case LooperState::Play:  text = "Play"; on = Palette::accentDim; break;
-        case LooperState::Dub:   text = "Dub";  on = ink::state::overdubbing; break;
+        case LooperState::Empty: lit = false; break;
+        case LooperState::Rec:
+            t = tr("piano-roll-editor.rec-bars", "Rec {n}",
+                   {{"n", juce::String(juce::jmax(1, (int) std::lround(host_.positionBeats() / 4.0)))}});
+            on = ink::state::armed;
+            break;
+        case LooperState::Play:  t = tr("piano-roll-editor.play", "Play"); on = Palette::accentDim; break;
+        case LooperState::Dub:   t = tr("piano-roll-editor.dub", "Dub");  on = ink::state::overdubbing; break;
     }
-    juce::String t(text);
-    if (st == LooperState::Rec)
-        t << " " << juce::jmax(1, (int) std::lround(host_.positionBeats() / 4.0));
     loop_.setButtonText(t);
     loop_.setColour(juce::TextButton::buttonOnColourId, on);
     loop_.setToggleState(lit, juce::dontSendNotification);

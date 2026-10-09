@@ -29,6 +29,12 @@ public:
 
     void showText(const std::string& text) override {
         setText(viewText(text), juce::dontSendNotification);
+        fitBorder();
+    }
+
+    void resized() override {
+        fitBorder();
+        juce::Label::resized();
     }
     int textWidth() const override {
         return (int) std::ceil(juce::TextLayout::getStringWidth(getFont(), getText()));
@@ -60,6 +66,11 @@ public:
     }
 
 private:
+    void fitBorder() {
+        const int side = juce::jlimit(0, kSideBorder, (getWidth() - textWidth()) / 2);
+        if (getBorderSize().getLeft() != side) setBorderSize({1, side, 1, side});
+    }
+
     void paintSection(juce::Graphics& g) {
         const float inset = kSectionTitleHeight * 0.5f;
         const auto frame = getLocalBounds().toFloat().reduced(0.5f).withTrimmedTop(inset);
@@ -76,6 +87,7 @@ private:
     }
 
     static constexpr float kSectionTitleHeight = 14.0f;
+    static constexpr int kSideBorder = 5;
     LabelKind kind_;
 };
 

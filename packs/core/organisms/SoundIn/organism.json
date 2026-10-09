@@ -9,7 +9,7 @@
         {
           "name": "Channel",
           "min": 1,
-          "max": 32,
+          "max": 256,
           "def": 1,
           "int": true
         },

@@ -17,10 +17,11 @@ struct BankRef {
     std::string name;
 };
 
-inline constexpr Words kBankMissing{"bank-slot.missing", "missing: "};
+inline constexpr Words kBankMissing{"bank-slot.missing", "missing: {name}"};
 inline constexpr Words kBankMissingTip{"bank-slot.missing-tip",
-                                       "Not found - pick it again with Browse: "};
+                                       "Not found - pick it again with Browse: {path}"};
 inline constexpr Words kNoBank{"bank-slot.no-bank", "(no bank)"};
+inline constexpr Words kOpenABank{"bank-slot.open-a-bank", "Open a bank"};
 inline constexpr Words kNoScale{"scale-browser.no-scale", "(no scale)"};
 
 class BankShelf {
@@ -79,8 +80,8 @@ public:
         out.clearable = !current.empty();
         out.missing = out.clearable && !shelf_.available(current, className());
         if (!out.missing) return out;
-        out.text = say(host_, kBankMissing) + out.text;
-        out.tooltip = say(host_, kBankMissingTip) + current;
+        out.text = say(host_, kBankMissing, {{"name", out.text}});
+        out.tooltip = say(host_, kBankMissingTip, {{"path", current}});
         return out;
     }
 
@@ -100,7 +101,7 @@ public:
 
     FilePick request() const {
         FilePick pick;
-        pick.title = "Open a bank";
+        pick.title = say(host_, kOpenABank);
         pick.patterns = shelf_.patterns();
         return pick;
     }

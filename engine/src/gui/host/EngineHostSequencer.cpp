@@ -26,7 +26,7 @@ void AutomationHost::setLoop(double startBeat, double endBeat, bool enabled) {
     doc_.document().clock.loopEnd = endBeat;
     doc_.document().clock.loopEnabled = enabled;
     doc_.flagDirty();
-    const juce::ScopedLock sl(audio_.graphLock());
+    const AudioLock::Scope sl(audio_.graphLock());
     if (audio_.graph()) audio_.graph()->transport().setLoop(startBeat, endBeat, enabled);
 }
 

@@ -10,7 +10,7 @@ namespace hum {
 void EngineHost::setLinkEnabled(bool on) {
     if (on && !linkAllowed_) return;
     if (on && link_ == nullptr) {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         link_.reset(new LinkSync());
     }
     linkEnabled_.store(on, std::memory_order_relaxed);
@@ -23,7 +23,7 @@ void EngineHost::setLinkEnabled(bool on) {
         linkLastSessionPlaying_ = link_->sessionPlaying();
     }
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_) graph_->setExternalTempoMaster(on);
     }
     if (on) {

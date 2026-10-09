@@ -32,12 +32,12 @@ void MainComponent::buildTransportRow() {
     addAndMakeVisible(recordBtn_);        recordBtn_.onClick = [this] {
         host_.record().captureToggle();
         if (host_.record().preRolling())
-            notifyOn("record", tr("main-transport.pre-roll-status", "pre-roll: ") + juce::String(host_.beforeRecordBars())
-                      + tr("main-transport.pre-roll-status-tail", " bar(s) of the song, recording from bar ")
-                      + juce::String(host_.automation().meterMap().barAt(host_.punchInBeat())));
+            notifyOn("record", trn("main-transport.pre-roll-status", "pre-roll: {n} bar of the song, recording from bar {bar}",
+                                   "pre-roll: {n} bars of the song, recording from bar {bar}", host_.beforeRecordBars(),
+                                   {{"bar", juce::String(host_.automation().meterMap().barAt(host_.punchInBeat()))}}));
         else if (host_.countInRunning())
-            notifyOn("record", tr("main-transport.count-in-status", "count-in: ") + juce::String(host_.beforeRecordBars())
-                      + tr("main-transport.count-in-status-tail", " bar(s) of click, then recording"));
+            notifyOn("record", trn("main-transport.count-in-status", "count-in: {n} bar of click, then recording",
+                                   "count-in: {n} bars of click, then recording", host_.beforeRecordBars()));
     };
     const auto mapAction = [this](auto& btn, const char* action) {
         btn.onRightClick = [this, action](juce::Point<int> at) {
@@ -59,7 +59,7 @@ void MainComponent::buildTransportRow() {
     recordBtn_.onRightClick = [this](juce::Point<int> at) {
         const auto mode = host_.beforeRecord();
         const int bars = host_.beforeRecordBars();
-        auto barsText = [](int n) { return juce::String(n) + (n == 1 ? tr("main-transport.bar", " bar") : tr("main-transport.bars", " bars")); };
+        auto barsText = [](int n) { return trn("main-transport.bars", "{n} bar", "{n} bars", n); };
         const int first = kAutomateMenuFirstOwnId;
         juce::PopupMenu countIn, preRoll;
         for (int n : {1, 2, 4}) {
@@ -129,7 +129,6 @@ void MainComponent::buildTransportRow() {
     tempo_.setRange(kTempoMin, kTempoMax, 0.1);
     tempo_.setValue(host_.tempo(), juce::dontSendNotification);
     tempo_.setTextBoxStyle(juce::Slider::TextBoxLeft, false, TempoSlider::kNumberW, 22);
-    tempo_.setTooltip(juce::String::fromUTF8("Tempo - drag to change"));
     tempo_.onValueChange = [this] { host_.performTempo(tempo_.getValue()); };
     tempo_.onPopup = [this](juce::Point<int> screen) { showTempoMenu(screen); };
 
@@ -146,7 +145,6 @@ void MainComponent::buildTransportRow() {
     };
 
     addAndMakeVisible(tapBtn_);
-    tapBtn_.setTooltip(juce::String::fromUTF8("Tap tempo"));
     tapBtn_.onClick = [this] {
         const double now = juce::Time::getMillisecondCounterHiRes();
         if (!tapTimesMs_.empty() && now - tapTimesMs_.back() > 2000.0) tapTimesMs_.clear();
@@ -158,11 +156,10 @@ void MainComponent::buildTransportRow() {
         const double bpm = juce::jlimit(kTempoMin, kTempoMax, 60000.0 / ms);
         host_.performTempo(bpm);
         tempo_.setValue(bpm, juce::dontSendNotification);
-        notifyOn("tap", tr("main-transport.tap-tempo", "tap tempo: ") + juce::String(bpm, 1) + tr("main-transport.bpm", " BPM (")
-                  + juce::String((int) tapTimesMs_.size()) + " taps)");
+        notifyOn("tap", trn("main-transport.tap-tempo", "tap tempo: {bpm} BPM ({n} tap)", "tap tempo: {bpm} BPM ({n} taps)",
+                            (int) tapTimesMs_.size(), {{"bpm", juce::String(bpm, 1)}}));
     };
     addAndMakeVisible(beat1Btn_);
-    beat1Btn_.setTooltip(juce::String::fromUTF8("Mark now as beat 1"));
     beat1Btn_.onClick = [this] {
         const double pos = host_.positionBeats();
         host_.setPositionBeats(std::max(0.0, host_.automation().meterMap().nearestBarStart(pos)));
@@ -170,7 +167,6 @@ void MainComponent::buildTransportRow() {
     };
     addAndMakeVisible(metroBtn_);
     metroBtn_.setClickingTogglesState(true);
-    metroBtn_.setTooltip(juce::String::fromUTF8("Metronome"));
     metroBtn_.setColour(juce::TextButton::buttonOnColourId, Palette::accent.withAlpha(alpha::mid));
     metroBtn_.onClick = [this] { host_.setMetronome(metroBtn_.getToggleState()); };
     metroBtn_.addMouseListener(&metroMenu_, false);
@@ -184,7 +180,6 @@ void MainComponent::buildTransportRow() {
 
     addAndMakeVisible(linkBtn_);
     linkBtn_.setClickingTogglesState(true);
-    linkBtn_.setTooltip(juce::String::fromUTF8("Ableton Link - the number is connected peers"));
     linkBtn_.setColour(juce::TextButton::buttonOnColourId, Palette::accent.withAlpha(alpha::mid));
     linkBtn_.onClick = [this] {
         host_.setLinkEnabled(linkBtn_.getToggleState());
@@ -201,21 +196,17 @@ void MainComponent::buildTransportRow() {
 
     addAndMakeVisible(clock_);
     addAndMakeVisible(masterCaption_);
-    masterCaption_.setText(tr("main-transport.out", "Out"), juce::dontSendNotification);
     masterCaption_.setColour(juce::Label::textColourId, Palette::textDim);
     masterCaption_.setFont(juce::FontOptions(11.0f));
     masterCaption_.setJustificationType(juce::Justification::centredRight);
     addAndMakeVisible(masterLevel_);
     masterLevel_.setRange(0.0, 1.0, 0.0);
     masterLevel_.setValue(host_.outputGain(), juce::dontSendNotification);
-    masterLevel_.setTooltip(tr("main-transport.master-output-level", "Master output level"));
-    masterLevel_.paramLabel = tr("main-transport.master-out", "Master out");
     masterLevel_.setDoubleClickReturnValue(true, 1.0);
     masterLevel_.onValueChange = [this] { host_.setOutputGain((float) masterLevel_.getValue()); };
     addAndMakeVisible(limiterBtn_);
     limiterBtn_.setClickingTogglesState(true);
     limiterBtn_.setToggleState(host_.limiterEnabled(), juce::dontSendNotification);
-    limiterBtn_.setTooltip(juce::String::fromUTF8("Master limiter - amber while it is working"));
     limiterBtn_.onClick = [this] { host_.setLimiter(limiterBtn_.getToggleState()); };
     addAndMakeVisible(groove_);
     groove_.onMenu = [this](const std::string& param, juce::Point<int> at) {
@@ -228,7 +219,6 @@ void MainComponent::buildTransportRow() {
     dspLabel_.setColour(juce::Label::textColourId, Palette::textDim);
     dspLabel_.setFont(juce::FontOptions(11.0f));
     dspLabel_.setJustificationType(juce::Justification::centredRight);
-    dspLabel_.setTooltip(tr("main-transport.audio-load", "Audio load, and dropouts after the !"));
 }
 
 void MainComponent::toggleAudio() {
@@ -238,13 +228,13 @@ void MainComponent::toggleAudio() {
         AppSettings::instance().set("audio.enabled", 0);
         return;
     }
-    notifyOn("audio", juce::String::fromUTF8("starting audio\xe2\x80\xa6"));
+    notifyOn("audio", tr("main-transport.starting-audio", "starting audio..."));
     host_.startAudioAsync([safe = juce::Component::SafePointer<MainComponent>(this)]
                           (bool ok, std::string err) {
         if (safe == nullptr) return;
         if (ok) safe->notifyOn("audio", tr("main-transport.audio-enabled", "audio enabled"));
         else if (err == "cancelled") safe->notifyOn("audio", tr("main-transport.audio-disabled", "audio disabled"));
-        else safe->notifyErrorOn("audio", tr("main-transport.no-audio-device", "no audio device (") + juce::String(err) + ")");
+        else safe->notifyErrorOn("audio", tr("main-transport.no-audio-device-reason", "no audio device ({reason})", {{"reason", juce::String(err)}}));
         AppSettings::instance().set("audio.enabled", safe->host_.audioRunning() ? 1 : 0);
     });
 }
@@ -267,13 +257,13 @@ void MainComponent::toggleMidi() {
 
 void MainComponent::ensureAudio() {
     if (host_.audioRunning() || host_.audioStarting()) return;
-    notifyOn("audio", juce::String::fromUTF8("starting audio\xe2\x80\xa6"));
+    notifyOn("audio", tr("main-transport.starting-audio", "starting audio..."));
     host_.startAudioAsync([safe = juce::Component::SafePointer<MainComponent>(this)]
                           (bool ok, std::string err) {
         if (safe == nullptr) return;
         if (ok) safe->notifyOn("audio", tr("main-transport.audio-enabled", "audio enabled"));
         else if (err != "cancelled")
-            safe->notifyErrorOn("audio", tr("main-transport.no-audio-device", "no audio device (") + juce::String(err) + ")");
+            safe->notifyErrorOn("audio", tr("main-transport.no-audio-device-reason", "no audio device ({reason})", {{"reason", juce::String(err)}}));
     });
 }
 

@@ -13,6 +13,7 @@
 #include "gui/settings/ThemeStore.h"
 #include "gui/settings/VideoCacheSettingsView.h"
 #include "gui/style/LookAndFeel.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -51,6 +52,7 @@ SettingsComponent::SettingsComponent(std::function<void()> onAppearanceChanged,
     categories_.setRowHeight(24);
 
     appearanceView_ = std::make_unique<AppearanceSettingsView>(std::move(onAppearanceChanged));
+    appearanceView_->onLanguageChanged = [this] { if (onLanguageChanged) onLanguageChanged(); };
     addChildComponent(*appearanceView_);
     aiView_ = std::make_unique<AiSettingsView>();
     addChildComponent(*aiView_);
@@ -104,13 +106,16 @@ void SettingsComponent::showCategory(int index) {
 }
 
 void SettingsComponent::paintListBoxItem(int row, juce::Graphics& g, int w, int h, bool selected) {
-    static const char* names[] = {"AI", "Audio", "Graphics & UI", "License & Privacy",
-                                  "MIDI & OSC", "Packs", "Plugins", "Video"};
+    static const char* const names[][2] = {
+        {"settings-category.ai", "AI"}, {"settings-category.audio", "Audio"},
+        {"settings-category.graphics", "Graphics & UI"}, {"settings-category.license", "License & Privacy"},
+        {"settings-category.midi", "MIDI & OSC"}, {"settings-category.packs", "Packs"},
+        {"settings-category.plugins", "Plugins"}, {"settings-category.video", "Video"}};
     if (row < 0 || row >= kNumCategories) return;
     g.fillAll(selected ? Palette::accentDim : Palette::panel);
     g.setColour(selected ? juce::Colours::white : Palette::text);
     g.setFont(13.0f);
-    g.drawText(names[row], 10, 0, w - 12, h, juce::Justification::centredLeft, true);
+    g.drawText(tr(names[row][0], names[row][1]), 10, 0, w - 12, h, juce::Justification::centredLeft, true);
 }
 
 void SettingsComponent::paint(juce::Graphics& g) {

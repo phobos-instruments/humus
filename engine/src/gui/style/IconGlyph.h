@@ -675,14 +675,14 @@ inline const std::array<const char*, 8> kWaveGlyphNames = {
 
 inline juce::String waveGlyphDescription(WaveGlyph g) {
     switch (g) {
-        case WaveGlyph::Square:  return "Square";
+        case WaveGlyph::Square:  return tr("icon-glyph.square", "Square");
         case WaveGlyph::Pulse:   return tr("icon-glyph.thin-pulse", "Thin pulse");
-        case WaveGlyph::Tri:     return "Triangle";
-        case WaveGlyph::Sine:    return "Sine";
+        case WaveGlyph::Tri:     return tr("icon-glyph.triangle", "Triangle");
+        case WaveGlyph::Sine:    return tr("icon-glyph.sine", "Sine");
         case WaveGlyph::SawDown: return tr("icon-glyph.saw-down", "Saw down");
-        case WaveGlyph::Rand:    return "Sample & hold";
+        case WaveGlyph::Rand:    return tr("icon-glyph.sample-and-hold", "Sample & hold");
         case WaveGlyph::Fat:     return tr("icon-glyph.fat-saw-pair-detuned", "Fat saw pair (detuned)");
-        default:                 return "Sawtooth";
+        default:                 return tr("icon-glyph.sawtooth", "Sawtooth");
     }
 }
 

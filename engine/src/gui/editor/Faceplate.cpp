@@ -67,8 +67,11 @@ void Faceplate::build() {
                                        labelctl::setupFor(s).text);
             buildControl(s, c, family);
         }
-        if (const auto tip = s.extraOr("tooltip"); !tip.empty())
-            for (auto* v : viewsOf(c)) v->setViewTooltip(tip);
+        if (const auto tip = s.extraOr("tooltip"); !tip.empty()) {
+            const auto key = s.extraOr("tooltip-key");
+            const auto shown = key.empty() ? tip : host_.translated(key, tip);
+            for (auto* v : viewsOf(c)) v->setViewTooltip(shown);
+        }
         controls_.push_back(std::move(c));
     }
     applyDims();

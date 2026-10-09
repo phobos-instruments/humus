@@ -21,8 +21,8 @@ void MainComponent::openPluginUI(const std::string& name) {
     if (quarantine::contains(pn->classRaw())) {
         auto* aw = new juce::AlertWindow(
             tr("main-plugin-ui.quarantined", "Quarantined plugin UI"),
-            juce::String(pn->classRaw()).upToFirstOccurrenceOf("?", false, false)
-                + " froze Humus before. Open its UI anyway?",
+            tr("main-plugin-ui.froze-humus-before", "{plugin} froze Humus before. Open its UI anyway?",
+               {{"plugin", juce::String(pn->classRaw()).upToFirstOccurrenceOf("?", false, false)}}),
             juce::MessageBoxIconType::WarningIcon);
         aw->addButton(tr("main-plugin-ui.open-anyway", "Open anyway"), 1);
         aw->addButton(tr("main-plugin-ui.un-quarantine", "Un-quarantine"), 2);

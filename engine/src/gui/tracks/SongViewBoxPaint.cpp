@@ -69,7 +69,7 @@ void SongView::paintBoxes(juce::Graphics& g, int row) {
             int nLanes = 0;
             for (const auto& l : cm->automation) if (!l.points.empty()) ++nLanes;
             if (b.getWidth() > 40)
-                g.drawText(juce::String(nLanes) + (nLanes == 1 ? tr("tracks-pane-paint.param", " param") : tr("tracks-pane-paint.params", " params")),
+                g.drawText(trn("tracks-pane-paint.params", "{n} param", "{n} params", nLanes),
                            b.reduced(4, 1), juce::Justification::topLeft, false);
         }
     }

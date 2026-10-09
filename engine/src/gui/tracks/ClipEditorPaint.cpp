@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
+#include "gui/common/Localisation.h"
 #include "gui/pianoroll/NoteEdit.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/tracks/ClipChrome.h"
@@ -84,7 +85,7 @@ void ClipEditorView::paintClipWave(juce::Graphics& g, juce::Rectangle<int> f,
                                const ClipEditor::ClipInfo& ci, juce::Colour accent) {
     const auto* peaks = WaveformCache::instance().get(ci.audioFile, [this] { repaint(); });
     if (!peaks || !peaks->ready || peaks->sourceSamples <= 0) return;
-    const double spb = samplesPerBeat();
+    const double spb = sourceSamplesPerBeat(ci);
     const double fileRate = peaks->fileSampleRate > 0.0 ? peaks->fileSampleRate : host().sampleRate();
     const double toFile = fileRate / host().sampleRate();
     const double startBeat = ci.startTick / (double) Pattern::kTicksPerBeat;
@@ -182,17 +183,25 @@ void ClipEditorView::paintClipRibbon(juce::Graphics& g, const ClipEditor::ClipIn
     g.drawHorizontalLine(r.getY(), (float) r.getX(), (float) r.getRight());
     const double sr = host().sampleRate() > 0.0 ? host().sampleRate() : 48000.0;
     const double lenBeats = ci.lengthTicks / (double) Pattern::kTicksPerBeat;
-    juce::String s = juce::File(ci.audioFile).getFileName()
-                     + "   start " + juce::String((double) ci.audioOffset / sr, 3) + " s"
-                     + "   length " + juce::String(lenBeats, 2) + " beats"
-                     + "   gain " + clipdetail::gainDb(ci.audioGain)
-                     + (ci.audioReverse ? "   reversed" : "")
-                     + (ci.audioPitch != 0.0 ? "   pitch " + juce::String(ci.audioPitch, 0) + " st" : "")
-                     + (ci.warpMode == (int) PatternChannel::Warp::Beats ? "   beats warp" : "");
+    juce::StringArray parts;
+    parts.add(juce::File(ci.audioFile).getFileName());
+    parts.add(tr("clip-editor.ribbon-start", "start {seconds} s",
+                 {{"seconds", juce::String((double) ci.audioOffset / sr, 3)}}));
+    parts.add(tr("clip-editor.ribbon-length", "length {beats} beats", {{"beats", juce::String(lenBeats, 2)}}));
+    parts.add(tr("clip-editor.ribbon-gain", "gain {gain}", {{"gain", clipdetail::gainDb(ci.audioGain)}}));
+    if (ci.audioReverse) parts.add(tr("clip-editor.ribbon-reversed", "reversed"));
+    if (ci.audioPitch != 0.0)
+        parts.add(tr("clip-editor.ribbon-pitch", "pitch {semitones} st",
+                     {{"semitones", juce::String(ci.audioPitch, 0)}}));
+    if (ci.warpMode == (int) PatternChannel::Warp::Beats) parts.add(tr("clip-editor.ribbon-beats-warp", "beats warp"));
     int from = 0, to = 0;
     if (clipSelectionTicks(from, to))
-        s += "   selection " + juce::String((to - from) / (double) Pattern::kTicksPerBeat, 3) + " beats";
-    s += "   |   drag: select   edges: trim   cmd-edge: stretch   alt-drag: slip   S: split   Tab: next hit   Z: zoom   L: loop";
+        parts.add(tr("clip-editor.ribbon-selection", "selection {beats} beats",
+                     {{"beats", juce::String((to - from) / (double) Pattern::kTicksPerBeat, 3)}}));
+    parts.add("|");
+    parts.add(tr("clip-editor.ribbon-keys",
+                 "drag: select   edges: trim   cmd-edge: stretch   alt-drag: slip   S: split   Tab: next hit   Z: zoom   L: loop"));
+    const juce::String s = parts.joinIntoString("   ");
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(10.0f));
     g.drawText(s, r.reduced(6, 0), juce::Justification::centredLeft, true);

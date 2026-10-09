@@ -8,6 +8,7 @@
 #include "gui/properties/PropertiesPane.h"
 #include "gui/tracks/TracksPane.h"
 #include "gui/app/AboutWindow.h"
+#include "gui/app/WhatsNew.h"
 #include "gui/app/StartWindow.h"
 
 #include "core/library/ExamplesTree.h"
@@ -148,6 +149,7 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
     } else if (index == 3) {
         m.addItem(55, tr("menu.humus-help", "Humus Help"));
         m.addItem(52, tr("menu.meet-humus", "Meet Humus..."));
+        m.addItem(62, tr("menu.whats-new", "What's New..."));
         m.addItem(51, tr("menu.setup-wizard", "Setup Wizard..."));
         m.addSeparator();
         m.addItem(56, tr("menu.start-window", "Start Window..."));
@@ -189,6 +191,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 16: openSettings(); break;
         case 51: openSetupWizard(false); break;
         case 52: openGuide(false); break;
+        case 62: showWhatsNew(); break;
         case 53: checkForUpdatesManually(); break;
         case 54: openSettings(SettingsComponent::kLicense); break;
         case 55: openHelpBrowser(); break;
@@ -300,6 +303,10 @@ void MainComponent::showAbout() {
     aboutWin_->setCentrePosition(getScreenBounds().getCentre());
     aboutWin_->setVisible(true);
     aboutWin_->toFront(true);
+}
+
+void MainComponent::showWhatsNew() {
+    showWhatsNewForThisVersion(whatsNewWin_, getScreenBounds().getCentre());
 }
 
 void MainComponent::showStartWindow() {

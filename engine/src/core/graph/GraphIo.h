@@ -10,10 +10,19 @@
 
 namespace hum {
 
-inline MasterTap* findMasterTap(AudioGraph& g) {
+inline int masterTapIndex(AudioGraph& g) {
+    int first = -1;
     for (int i = 0; i < g.nodeCount(); ++i)
-        if (auto* tap = dynamic_cast<MasterTap*>(g.organism(i))) return tap;
-    return nullptr;
+        if (auto* tap = dynamic_cast<MasterTap*>(g.organism(i))) {
+            if (tap->firstChannel() == 0) return i;
+            if (first < 0) first = i;
+        }
+    return first;
+}
+
+inline MasterTap* findMasterTap(AudioGraph& g) {
+    const int i = masterTapIndex(g);
+    return i < 0 ? nullptr : dynamic_cast<MasterTap*>(g.organism(i));
 }
 
 inline std::vector<MasterTap*> findMasterTaps(AudioGraph& g) {

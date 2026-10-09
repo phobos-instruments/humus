@@ -169,7 +169,10 @@ public:
         std::map<std::string, std::string> details;
         for (const auto& folder : folders)
             for (const auto& info : scanScaleDirs({folder}))
-                details[pathOf(fileAt(info.path))] = files::scaleDetail(info.degrees, info.description);
+                details[pathOf(fileAt(info.path))] = files::scaleDetail(
+                    info.degrees > 0 ? trn("bank-browser.scale-notes", "{n} note", "{n} notes", info.degrees).toStdString()
+                                     : std::string(),
+                    info.description);
         for (auto& row : rows)
             if (const auto hit = details.find(pathOf(fileAt(banks::resolve(row.ref, className))));
                 hit != details.end())
@@ -203,7 +206,7 @@ public:
         clearBtn_.onClick = [this] { pickRef({}); };
         addChildComponent(clearBtn_);
         clearBtn_.setVisible(clearable);
-        openBtn_.setButtonText(juce::String::fromUTF8("Open a file\xe2\x80\xa6"));
+        openBtn_.setButtonText(tr("bank-browser.open-a-file", "Open a file..."));
         openBtn_.onClick = [this] {
             auto open = onOpenFile_;
             if (box_ != nullptr) box_->dismiss();
@@ -424,10 +427,10 @@ private:
                                                : juce::String::fromUTF8(e.detail.c_str()) + " - ")
                              + juce::String::fromUTF8(e.ref.c_str());
             if (e.missing)
-                return tr("bank-browser.gone", "Not found - click the cross to forget it: ") + ref;
+                return tr("bank-browser.gone", "Not found - click the cross to forget it: {ref}", {{"ref", ref}});
             if (files::bankRowForgettable(e))
                 return tr("bank-browser.unlink",
-                          "Brought in from outside your library - the cross unlinks it: ") + ref;
+                          "Brought in from outside your library - the cross unlinks it: {ref}", {{"ref", ref}});
             return ref;
         }
         BankBrowser& owner;

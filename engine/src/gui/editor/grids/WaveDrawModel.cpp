@@ -9,9 +9,18 @@
 #include <utility>
 #include <vector>
 
+#include "gui/editor/Words.h"
 #include "hum/dsp/WaveTableFile.h"
 
 namespace hum::grids {
+
+namespace {
+
+constexpr Words kFrameOf{"wave-draw.frame-of", "frame {frame} / {count}"};
+constexpr Words kOneFrame{"wave-draw.one-frame-seed-a-file", "1 frame  -  Seed a file for a wavetable"};
+constexpr Words kWavetable{"wave-draw.wavetable", "wavetable"};
+
+}
 
 WaveDrawModel::WaveDrawModel(ModelHost& host, std::string organism, Params params)
     : host_(host), organism_(std::move(organism)), p_(std::move(params)) {
@@ -43,8 +52,9 @@ void WaveDrawModel::blended(float* out) const {
 
 std::string WaveDrawModel::sourceText() const {
     std::string frames = frameCount_ > 1
-                             ? "frame " + std::to_string(currentFrame() + 1) + " / " + std::to_string(frameCount_)
-                             : std::string("1 frame  -  Seed a file for a wavetable");
+                             ? say(host_, kFrameOf, {{"frame", std::to_string(currentFrame() + 1)},
+                                                     {"count", std::to_string(frameCount_)}})
+                             : say(host_, kOneFrame);
     if (seededKind_.empty()) return frames;
     std::string from = seededKind_;
     if (!seededLabel_.empty()) from += ": " + seededLabel_;
@@ -174,8 +184,9 @@ void WaveDrawModel::seedTable(const std::vector<float>& mono, int frameLen) {
         seedAudio(mono, kDefaultSampleRate);
         return;
     }
-    seededKind_ = "wavetable";
-    seededLabel_ = std::to_string((int) mono.size() / frameLen) + " frames in the file";
+    seededKind_ = say(host_, kWavetable);
+    seededLabel_ = trn("wave-draw.frames-in-the-file", "{n} frame in the file", "{n} frames in the file",
+                       (long long) mono.size() / frameLen, host_);
     seeded();
 }
 

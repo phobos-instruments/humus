@@ -9,6 +9,8 @@ namespace hum {
 
 inline constexpr double kBendPercent = 4.0;
 
+inline constexpr double kPeakLoopBeats = 8.0;
+
 inline constexpr int kNudgeSteps = 5;
 
 inline double nudgeStepSeconds(int step) {
@@ -41,6 +43,8 @@ public:
     virtual std::vector<float> waveform(const std::string& name) = 0;
     virtual std::vector<float> waveBetween(const std::string& name, std::int64_t from,
                                            std::int64_t to, int buckets) = 0;
+    virtual std::vector<std::int64_t> loudSpots(const std::string&) { return {}; }
+    virtual float loudestSample(const std::string&) { return 0.0f; }
 
     virtual void setCue(const std::string& name, const DeckParams& p) = 0;
     virtual void jumpCue(const std::string& name, const DeckParams& p) = 0;

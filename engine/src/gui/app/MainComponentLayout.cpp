@@ -124,7 +124,8 @@ void MainComponent::resized() {
     };
 
     using namespace toolbar;
-    const int shed = shedFor(area.getWidth() - kInsets);
+    const int outCaptionW = toolbarCaptionWidth(masterCaption_, kOutCaptionW);
+    const int shed = shedFor(area.getWidth() - kInsets, outCaptionW + groove_.captionsWidth());
 
     const bool showLocate = shed < ShedLocate, showTaps = shed < ShedSetup;
     const bool showClick = shed < ShedClick, showLink = shed < ShedLink;
@@ -175,7 +176,7 @@ void MainComponent::resized() {
         row2.removeFromRight(4);
     }
     masterLevel_.setBounds(row2.removeFromRight(kOutW));
-    if (showCaptions) masterCaption_.setBounds(row2.removeFromRight(kOutCaptionW));
+    if (showCaptions) masterCaption_.setBounds(row2.removeFromRight(outCaptionW));
     row2.removeFromRight(4);
     groove_.setBounds(row2.removeFromRight(groove_.preferredWidth()));
     row2.removeFromRight(8);

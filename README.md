@@ -1,7 +1,7 @@
 # Humus
 
 [![License: AGPL-3.0](https://img.shields.io/github/license/phobos-instruments/humus?color=9fbf5a)](LICENSE)
-[![Support Humus](https://img.shields.io/badge/%E2%99%A5%20Support%20Humus-d6553f)](https://humus.phobos-instruments.com/donate)
+[![Support Humus](https://img.shields.io/badge/%E2%99%A5%20Support%20Humus-d6553f)](https://humus.art/donate)
 
 **Humus** is an interactive, patchable music environment - a live modular instrument
 inspired by nature. You wire _organisms_ (instruments, effects, utilities) into a
@@ -11,11 +11,11 @@ the performance.
 ⭐ If Humus is useful to you, starring the repository helps other people find it.
 
 - ⬇️ **Download** builds for macOS, Windows and Linux:
-  [humus.phobos-instruments.com/downloads](https://humus.phobos-instruments.com/downloads)
+  [humus.art/downloads](https://humus.art/downloads)
 - ⚙️ **Build** it from this source:
-  [humus.phobos-instruments.com/docs/build](https://humus.phobos-instruments.com/docs/build)
+  [humus.art/docs/build](https://humus.art/docs/build)
 - 📚 **Learn** it, and write your own organisms:
-  [humus.phobos-instruments.com/docs](https://humus.phobos-instruments.com/docs/)
+  [humus.art/docs](https://humus.art/docs/)
 
 ## What is in here
 

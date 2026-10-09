@@ -13,9 +13,9 @@ public:
 
 private:
     juce::String headerText() const override {
-        return juce::String((int) lineCount()) + " events";
+        return trn("midi-log.events", "{n} event", "{n} events", (long long) lineCount());
     }
-    juce::String emptyText() const override { return "waiting for MIDI..."; }
+    juce::String emptyText() const override { return tr("midi-log.waiting-for-midi", "waiting for MIDI..."); }
 
     bool drain(readout::EventLog& log) override { return reading_.drain(host_, name_, paused(), log); }
 

@@ -8,6 +8,8 @@
 
 #include <juce_graphics/juce_graphics.h>
 
+#include "gui/host/AudioLock.h"
+
 namespace juce {
 class MidiInputCallback;
 class MidiOutput;
@@ -54,7 +56,7 @@ protected:
 class HostGraph {
 public:
     virtual AudioGraph* graph() = 0;
-    virtual juce::CriticalSection& graphLock() = 0;
+    virtual AudioLock& graphLock() = 0;
     virtual double sampleRate() const = 0;
     virtual void setSyncOutput(juce::MidiOutput* out) = 0;
     virtual juce::MidiInputCallback& midiInputSink() = 0;

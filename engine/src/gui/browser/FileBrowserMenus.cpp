@@ -192,8 +192,8 @@ void FileBrowserView::confirmRemove(const std::vector<std::string>& paths) {
     const auto root = model_.roots().library;
     const int n = (int) std::count_if(paths.begin(), paths.end(), [&](const std::string& p) { return isUnder(p, root); });
     if (n == 0) return;
-    const auto question = n == 1 ? tr("browser.remove-one", "Move this file from the Library to the Trash?")
-                                 : tr("browser.remove-many", "Move these files from the Library to the Trash?") + " (" + juce::String(n) + ")";
+    const auto question = trn("browser.remove", "Move this file from the Library to the Trash?",
+                              "Move these {n} files from the Library to the Trash?", n);
     juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::QuestionIcon, tr("browser.remove-from-library-title", "Remove from Library"),
                                        question, tr("browser.move-to-trash", "Move to Trash"), tr("browser.cancel", "Cancel"), this,
                                        juce::ModalCallbackFunction::create([safe = juce::Component::SafePointer<FileBrowserView>(this), paths](int ok) {

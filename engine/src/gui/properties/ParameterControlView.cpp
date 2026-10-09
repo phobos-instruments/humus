@@ -215,9 +215,9 @@ void ParameterControlView::rebuildSources() {
     const auto p = selectedParam();
     const juce::String sfx = p.empty() ? juce::String() : juce::String(unitSuffix(rowUnit()));
     sourcesTitle_.setText(p.empty() ? tr("parameter-control.sources", "Sources")
-                                    : "Sources " + juce::String("- ")
-                                          + targetOwnerLabel(host_, c) + " / " + juce::String(p)
-                                          + (sfx.isEmpty() ? "" : "  (" + sfx + ")"),
+                                    : tr("parameter-control.sources-for", "Sources - {target}",
+                                         {{"target", targetOwnerLabel(host_, c) + " / " + juce::String(p)
+                                                         + (sfx.isEmpty() ? "" : "  (" + sfx + ")")}}),
                           juce::dontSendNotification);
     const bool enable = !p.empty();
     const bool ranged = selectedIsRange();
@@ -241,10 +241,9 @@ void ParameterControlView::rebuildSources() {
     if (selectedIsRange())
         mode_.setSelectedId(idOfMode(host_.rangeMode(c, p)), juce::dontSendNotification);
     const auto [lo, hi] = rowSpan();
-    totalRange_.setText(enable ? tr("parameter-control.total-range", "Total range: ")
-                                     + unitPlain(rowUnit(), lo, lo, hi) + " to "
-                                     + unitPlain(rowUnit(), hi, lo, hi) + " "
-                                     + juce::String(unitSuffix(rowUnit()))
+    totalRange_.setText(enable ? tr("parameter-control.total-range", "Total range: {low} to {high} {unit}",
+                                    {{"low", unitPlain(rowUnit(), lo, lo, hi)}, {"high", unitPlain(rowUnit(), hi, lo, hi)},
+                                     {"unit", juce::String(unitSuffix(rowUnit()))}})
                                : juce::String(),
                         juce::dontSendNotification);
     shownParam_ = c + "\t" + p;

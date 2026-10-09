@@ -159,7 +159,7 @@ private:
     std::function<void(Point)> onApply_;
     juce::Label title_, positionLabel_, valueLabel_, suffix_;
     juce::TextEditor position_, value_, valueMax_;
-    juce::TextButton ok_{"OK"};
+    juce::TextButton ok_{tr("auto-point-popup.ok", "OK")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AutoPointPopup)
 };

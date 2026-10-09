@@ -19,7 +19,7 @@ public:
     BasslineImportBrick(BrickHost& host, std::string name, const juce::String& label)
         : host_(host), name_(std::move(name)) {
         button_.setButtonText(label.isNotEmpty() ? label
-                                                 : juce::String::fromUTF8("Load riffs\xe2\x80\xa6"));
+                                                 : tr("bassline-import.load-riffs", "Load riffs..."));
         button_.setTooltip(tr("bassline-import.tooltip", "Pattern dumps, .seq or MIDI files"));
         button_.onClick = [this] { browse(); };
         addAndMakeVisible(button_);

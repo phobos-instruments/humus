@@ -3,6 +3,7 @@
 #include "core/app/AppPaths.h"
 #include "gui/host/EngineHost.h"
 
+#include "gui/common/Localisation.h"
 #include "gui/editor/files/FilePick.h"
 #include "gui/video/VideoProbe.h"
 #include "hum/caps/Video.h"
@@ -52,7 +53,7 @@ bool EngineHost::saveIntoProject(const std::string& chosen, std::string& landed,
     const auto into = fileAt(target);
     const auto folder = into.getParentDirectory().getFullPathName().toStdString();
     if (!pick.existsAsFile() && !project::mark(folder)) {
-        error = "could not create " + folder;
+        error = tr("engine-host.could-not-create", "could not create {path}", {{"path", juce::String(folder)}}).toStdString();
         return false;
     }
     if (!saveFile(target, error)) return false;
@@ -254,7 +255,7 @@ void EngineHost::forgetCompanionSound(const std::string& organism, Organism* liv
     if (auto* cm = model_.byName(organism))
         for (auto& p : cm->properties)
             if (p.name == kCompanionSound) p.text.clear();
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     if (live != nullptr)
         if (auto* p = live->params.byName(kCompanionSound)) p->text.clear();
 }
@@ -270,7 +271,7 @@ void EngineHost::onFileNodeChanged(const std::string& organism, const std::strin
             if (p.name == fileParam) wanted = p.text;
     const auto path = cm != nullptr ? banks::resolve(wanted, cm->displayClass) : wanted;
     if (!path.empty() && !fileAt(path).existsAsFile() && !fileAt(path).isDirectory())
-        noteLoadFault(organism, path, "the file is missing");
+        noteLoadFault(organism, path, tr("engine-host.the-file-is-missing", "the file is missing").toStdString());
     bool queued = false;
     if (auto* fl = dynamic_cast<FileLoader*>(c)) {
         queued = loadInBackground(organism, path);

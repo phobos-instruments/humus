@@ -164,7 +164,7 @@ void TimelineRuler::paintTools(juce::Graphics& g) {
     g.fillRect(ac.getCentreX() - 0.75f, ac.getY(), 1.5f, ac.getHeight());
 
     timelinechrome::paintSnapChip(g, tracksgeo::snapBox(), ctx_.gridBeats(), view_.snapChoice != 0.0,
-                                  view_.snapChoice < 0.0 ? "Free" : nullptr);
+                                  view_.snapChoice < 0.0 ? tr("tracks-pane.snap-free", "Free") : juce::String());
 }
 
 bool TimelineRuler::pressToolbar(juce::Point<int> p) {
@@ -339,26 +339,29 @@ void TimelineRuler::mouseDoubleClick(const juce::MouseEvent& e) {
 juce::String TimelineRuler::getTooltip() {
     const auto p = hover_;
     if (p.x < tracksgeo::kStripW) {
-        static const char* names[] = {
-            "Pointer (1) - select, move, resize; drag a lane to select points",
-            "Pencil (2) - draw notes, clips and freehand automation",
-            "Line (3) - rule a straight automation segment",
-            "Scissors (4) - split at the click",
-            "Eraser (5) - sweep to delete",
+        struct Tip { const char* key; const char* text; };
+        static const Tip names[] = {
+            {"tracks-pane-roll.tool-pointer", "Pointer (1) - select, move, resize; drag a lane to select points"},
+            {"tracks-pane-roll.tool-pencil", "Pencil (2) - draw notes, clips and freehand automation"},
+            {"tracks-pane-roll.tool-line", "Line (3) - rule a straight automation segment"},
+            {"tracks-pane-roll.tool-scissors", "Scissors (4) - split at the click"},
+            {"tracks-pane-roll.tool-eraser", "Eraser (5) - sweep to delete"},
         };
         for (int i = 0; i < tracksgeo::kToolCount; ++i)
-            if (tracksgeo::toolBox(i).contains(p)) return names[i];
+            if (tracksgeo::toolBox(i).contains(p)) return tr(names[i].key, names[i].text);
         if (tracksgeo::addTrackBox().contains(p)) return tr("tracks-pane-roll.add-a-track-wired", "Add a track, wired");
         if (tracksgeo::snapBox().contains(p))
-            return view_.snapChoice < 0.0 ? "Snap: free - click to choose a grid"
-                 : view_.snapChoice > 0.0 ? "Snap: chosen - click to change or follow the zoom"
-                                     : "Snap follows the zoom - click to choose one";
+            return view_.snapChoice < 0.0 ? tr("tracks-pane-roll.snap-free-tip", "Snap: free - click to choose a grid")
+                 : view_.snapChoice > 0.0 ? tr("tracks-pane-roll.snap-chosen-tip",
+                                               "Snap: chosen - click to change or follow the zoom")
+                                     : tr("tracks-pane-roll.snap-follows-tip", "Snap follows the zoom - click to choose one");
         if (tracksgeo::followBox().contains(p)) return tr("tracks-pane-roll.follow-the-playhead-while-it", "Follow the playhead while it plays");
     }
     if (overLoopLane(p))
         return ctx_.timelineHost().automation().loopEnabled()
-            ? "Loop - drag the ends to trim, the body to move; click outside or double-click to remove"
-            : "Drag to set a loop - right-click to loop the selection";
+            ? tr("tracks-pane-roll.loop-tip",
+                 "Loop - drag the ends to trim, the body to move; click outside or double-click to remove")
+            : tr("tracks-pane-roll.drag-to-set-a-loop", "Drag to set a loop - right-click to loop the selection");
     return ctx_.crumbTooltip(p);
 }
 

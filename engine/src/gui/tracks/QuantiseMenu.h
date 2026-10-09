@@ -7,6 +7,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/Localisation.h"
 #include "gui/tracks/TracksLayout.h"
 #include "hum/Pattern.h"
 
@@ -25,10 +26,15 @@ constexpr Choice kChoices[] = {
 };
 constexpr int kCount = (int) (sizeof(kChoices) / sizeof(kChoices[0]));
 
+inline juce::String gridName(double gridBeats) {
+    const auto label = trackslayout::gridLabel(gridBeats);
+    return label == "Bar" ? tr("tracks-pane.snap-bar", "Bar") : juce::String(label);
+}
+
 inline juce::PopupMenu menu(double gridBeats) {
     juce::PopupMenu m;
     const int snap = std::max(1, (int) std::llround(gridBeats * Pattern::kTicksPerBeat));
-    m.addItem(kMenuBase + kCount, "Snap grid (" + juce::String(trackslayout::gridLabel(gridBeats)) + ")");
+    m.addItem(kMenuBase + kCount, tr("tracks-pane.snap-grid", "Snap grid ({grid})", {{"grid", gridName(gridBeats)}}));
     m.addSeparator();
     for (int i = 0; i < kCount; ++i)
         m.addItem(kMenuBase + i, kChoices[i].name, true, kChoices[i].ticks == snap);

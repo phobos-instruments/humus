@@ -53,8 +53,10 @@ Copyright 2017 Neil Thapen; full notice in
 `packs/humus/organisms/PinkTrombone/LICENSE-pink-trombone.txt`).
 
 The Deck reads control records with the timecode decoder from
-[xwax](https://xwax.org) by Mark Hills (**GPL-3.0-only**, vendored unmodified in
-`engine/third_party/xwax`, whose README says why) - AGPLv3 §13 permits that combination,
+[xwax](https://xwax.org) by Mark Hills (**GPL-3.0-only**), as maintained in the
+[Mixxx](https://mixxx.org) tree, whose support for a newer control-record format was
+added by Mixxx contributors (**GPL-2.0-or-later**). Vendored in `engine/third_party/xwax` with one
+recorded local change; its README says why and what. AGPLv3 §13 permits that combination,
 the same as for the SDK below.
 
 Windows builds also vendor the [Steinberg ASIO SDK](https://www.steinberg.net/asiosdk)

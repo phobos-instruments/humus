@@ -9,6 +9,7 @@
 
 #include "core/params/PatternRolls.h"
 #include "gui/host/BrickHost.h"
+#include "gui/editor/Words.h"
 #include "gui/host/PatternEdits.h"
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
@@ -16,6 +17,8 @@
 #include "io/PatchDocument.h"
 
 namespace hum::grids {
+
+inline constexpr Words kUnwiredRow{"sequence-grid.unwired-row", "(row {n})"};
 
 class SequenceGridModel {
 public:
@@ -111,7 +114,7 @@ public:
                 if (name.empty()) name = c.dst;
                 else name += " +";
             }
-        return name.empty() ? "(row " + std::to_string(row + 1) + ")" : name;
+        return name.empty() ? say(host_, kUnwiredRow, {{"n", std::to_string(row + 1)}}) : name;
     }
 
     int playStep() const { return playStep_; }

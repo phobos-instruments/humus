@@ -17,9 +17,11 @@
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_core/juce_core.h>
 
+#include "core/audio/AudioGlitches.h"
 #include "core/audio/PreviewVoice.h"
 #include "core/xml/Xml.h"
 #include "core/graph/AudioGraph.h"
+#include "core/graph/DeviceChannels.h"
 #include "core/graph/PodModel.h"
 #include "core/midi/MidiControl.h"
 #include "core/midi/MidiRecord.h"
@@ -298,6 +300,11 @@ public:
     void panic();
     void flushMidiRecording(bool finalize = false) override;
     unsigned fadedRebuildsForChecks() const { return fadedRebuilds_; }
+    unsigned reloadedBoxesForChecks() const { return reloadedBoxes_; }
+    std::size_t hardwareMidiListenersForChecks() const {
+        const juce::ScopedLock ml(midiState_.targetsLock);
+        return liveMidiIns_.size();
+    }
     static constexpr int kClipOnDemand = MidiHost::kClipOnDemand;
     void finishOnDemandClips();
     void syncPluginStateToModel();
@@ -353,6 +360,8 @@ public:
     std::string controlSummary(const std::string& organism, const std::string& param) const override;
     std::string varDrivingKnob(const std::string& organism, const std::string& param) const;
     std::string translated(const std::string& key, const std::string& written) const override;
+    std::string translatedCount(const std::string& key, const std::string& one, const std::string& other,
+                                long long n) const override;
 
     PatternHost& patterns() override { return patterns_; }
 
@@ -499,6 +508,8 @@ public:
     static int reconcilePropertyTypes(PatchDocumentModel& doc);
 
     void startAudioAsync(std::function<void(bool ok, std::string error)> done = {});
+    void finishAudioStart(DeviceAnswer answer, const std::string& device, const juce::XmlElement* saved,
+                          const std::function<void(bool, std::string)>& done);
     bool ensureAudio() override;
     void stopAudio();
     bool audioRunning() const { return audioRunning_; }
@@ -508,7 +519,7 @@ public:
     void resetMaxTrackHeldForTest() { if (graph_) graph_->resetMaxTrackHeld(); }
     void startDeviceForTest(juce::AudioIODevice& d) { audioDeviceAboutToStart(&d); }
     void renderOrganismForTest(const std::string& name, float* const* out, int numOut, int n) {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (auto* c = graph_ ? graph_->find(name) : nullptr)
             c->process(nullptr, 0, out, numOut, n, graph_->transport());
     }
@@ -518,6 +529,8 @@ public:
         audioDeviceIOCallbackWithContext(nullptr, 0, out, numOut, numSamples, {});
     }
     void persistAudioState() override;
+    int previewOutput() const override { return previewFirst_.load(std::memory_order_relaxed); }
+    void setPreviewOutput(int firstChannel) override;
 
     std::vector<std::pair<int, std::string>> choiceItems(const std::string& source,
                                                          const std::string& organism = {}) override;
@@ -610,6 +623,9 @@ public:
     float outputLevel(int channel) const;
 
     unsigned dropoutCount() const { return dropouts_.load(std::memory_order_relaxed); }
+    unsigned glitchCount() const;
+    AudioGlitchWindow takeAudioGlitches();
+    AudioLock& audioLock() { return lock_; }
     float audioLoad() const { return audioLoad_.load(std::memory_order_relaxed); }
     unsigned deviceRestartCount() const { return deviceRestarts_.load(std::memory_order_relaxed); }
 
@@ -711,6 +727,8 @@ private:
     void applyMidiTrackTarget(const std::string& name, int value);
     void syncMidiTrackTargets();
     void discardLiveGraph();
+    void fadeOutRemovedCords(const AudioGraph& next);
+    void reloadChangedBoxes();
     void publishClock() override;
     void applyLoadedLayout();
     void syncViewsFromPositions();
@@ -729,7 +747,7 @@ private:
     void bumpLiveControl() override { ++liveControlGen_; }
     void bumpLaneStamp() override { ++laneStamp_; }
     AudioGraph* graph() override { return graph_.get(); }
-    juce::CriticalSection& graphLock() override { return lock_; }
+    AudioLock& graphLock() override { return lock_; }
     bool capturing() const override { return capturing_; }
     void setCapturing(bool on) override { capturing_ = on; }
     Touches& touches() override { return touched_; }
@@ -808,7 +826,8 @@ private:
     std::map<std::string, juce::Point<int>> positions_;
     std::unique_ptr<xml::Element> original_;
 
-    bool modelSwapped_ = false;
+    std::vector<std::string> reloadAfterRebuild_;
+    unsigned reloadedBoxes_ = 0;
     std::unique_ptr<AudioGraph> graph_;
     MasterTap* soundOut_ = nullptr;
     std::vector<std::pair<MasterTap*, int>> masterTaps_;
@@ -836,9 +855,13 @@ private:
     std::atomic<double> tempoReq_{0.0};
     std::atomic<double> seekBeatsReq_{-1.0};
     std::atomic<unsigned> dropouts_{0};
+    std::atomic<unsigned> lateBlocks_{0};
     std::atomic<float> audioLoad_{0.0f};
+    std::atomic<float> loadPeak_{0.0f};
+    unsigned seenSilent_ = 0, seenLate_ = 0, deviceGlitches_ = 0;
+    int seenDeviceDropouts_ = -1;
     std::atomic<unsigned> deviceRestarts_{0};
-    juce::CriticalSection lock_;
+    AudioLock lock_;
     static constexpr int kLoaderThreads = 4;
     juce::ThreadPool loaders_{kLoaderThreads};
     juce::CriticalSection loadingLock_;
@@ -912,7 +935,6 @@ private:
     bool audioRunning_ = false;
     bool audioStarting_ = false;
     bool cancelStart_ = false;
-    static constexpr int kMaxDeviceChannels = 32;
     int inMap_[kMaxDeviceChannels];
     int outMap_[kMaxDeviceChannels];
     const float* physIn_[kMaxDeviceChannels] = {};
@@ -1005,6 +1027,7 @@ private:
     std::set<std::string> patternPending_;
     std::map<std::string, std::vector<float>> oscOutLast_;
     PreviewVoice preview_;
+    std::atomic<int> previewFirst_ {-1};
     std::atomic<bool> metronome_ {false};
     std::atomic<float> metroGain_ {1.0f};
     double metroNextBeat_ = -1.0;

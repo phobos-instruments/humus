@@ -60,10 +60,13 @@ void PatcherCanvas::mouseDown(const juce::MouseEvent& e) {
     }
 
     std::string node; int port; bool isOutlet, isMidi, isVideo, isControl;
-    if (hitPort(p, node, port, isOutlet, isMidi, isVideo, isControl) && isOutlet) {
-        drag_ = Drag::Cord; dragNode_ = node; cordOutlet_ = port;
-        cordMidi_ = isMidi; cordVideo_ = isVideo; cordControl_ = isControl; cordEnd_ = p;
-        return;
+    if (hitPort(p, node, port, isOutlet, isMidi, isVideo, isControl)) {
+        if (beginGrab({node, port, isOutlet, isMidi, isVideo, isControl}, p, e.mods)) return;
+        if (isOutlet) {
+            drag_ = Drag::Cord; dragNode_ = node; cordOutlet_ = port;
+            cordMidi_ = isMidi; cordVideo_ = isVideo; cordControl_ = isControl; cordEnd_ = p;
+            return;
+        }
     }
 
     Edge ce;
@@ -149,12 +152,13 @@ void PatcherCanvas::mouseDrag(const juce::MouseEvent& e) {
         refresh();
     } else if (drag_ == Drag::Cord) {
         cordEnd_ = modelPos(e);
-        std::string node; int port; bool isOutlet, isMidi, isVideo, isControl;
-        cordTarget_ = hitPort(cordEnd_, node, port, isOutlet, isMidi, isVideo, isControl)
-                      && !isOutlet && node != dragNode_
-                      && isMidi == cordMidi_ && isVideo == cordVideo_ && isControl == cordControl_;
-        if (cordTarget_) { cordTargetNode_ = node; cordTargetPort_ = port; }
+        PortRef t;
+        cordTarget_ = hitPort(cordEnd_, t.node, t.port, t.outlet, t.midi, t.video, t.control) && fitsDrag(t);
+        if (cordTarget_) { cordTargetNode_ = t.node; cordTargetPort_ = t.port; }
+        noteRefusal(cordEnd_);
         refresh();
+    } else if (drag_ == Drag::Grab) {
+        dragGrab(modelPos(e));
     } else if (drag_ == Drag::Select) {
         selectRect_ = juce::Rectangle<int>(dragStart_, modelPos(e));
         selection_.clear();
@@ -168,8 +172,7 @@ void PatcherCanvas::mouseUp(const juce::MouseEvent& e) {
     if (drag_ == Drag::Cord) {
         std::string node; int port; bool isOutlet, isMidi, isVideo, isControl;
         if (hitPort(modelPos(e), node, port, isOutlet, isMidi, isVideo, isControl)
-            && !isOutlet && node != dragNode_
-            && isMidi == cordMidi_ && isVideo == cordVideo_ && isControl == cordControl_) {
+            && fitsDrag({node, port, isOutlet, isMidi, isVideo, isControl})) {
             if (cordControl_) {
                 host_.connectControl(dragNode_, cordOutlet_, node, port);
             } else if (cordVideo_) {
@@ -185,34 +188,7 @@ void PatcherCanvas::mouseUp(const juce::MouseEvent& e) {
                 realPort(node, port, false, true, rd, rdp);
                 host_.connectMidi(rs, rsp, rd, rdp);
             } else {
-                std::string rs, rd;
-                int rsp, rdp;
-                realPort(dragNode_, cordOutlet_, true, false, rs, rsp);
-                realPort(node, port, false, false, rd, rdp);
-                bool stereo = !e.mods.isAltDown()
-                           && (cordOutlet_ % 2) == 0 && (port % 2) == 0;
-                std::string rs2, rd2;
-                int rsp2 = -1, rdp2 = -1;
-                if (stereo) {
-                    int sIns = 0, sOuts = 0, dIns = 0, dOuts = 0;
-                    portCounts(dragNode_, sIns, sOuts);
-                    portCounts(node, dIns, dOuts);
-                    stereo = cordOutlet_ + 1 < sOuts && port + 1 < dIns;
-                }
-                if (stereo) {
-                    realPort(dragNode_, cordOutlet_ + 1, true, false, rs2, rsp2);
-                    realPort(node, port + 1, false, false, rd2, rdp2);
-                    for (auto& c : host_.model().connections)
-                        if (c.dst == rd2 && c.dstInlet == rdp2) { stereo = false; break; }
-                }
-                if (stereo) {
-                    host_.beginTransaction();
-                    host_.connect(rs, rsp, rd, rdp);
-                    host_.connect(rs2, rsp2, rd2, rdp2);
-                    host_.endTransaction();
-                } else {
-                    host_.connect(rs, rsp, rd, rdp);
-                }
+                dropAudioCords(node, port, e.mods);
             }
         }
     } else if (drag_ == Drag::Select) {
@@ -220,9 +196,13 @@ void PatcherCanvas::mouseUp(const juce::MouseEvent& e) {
         notifySelection();
     } else if (drag_ == Drag::Move) {
         commitDragHints();
+    } else if (drag_ == Drag::Grab) {
+        dropGrab(modelPos(e), e.mods);
     }
-    if (drag_ == Drag::Pan) setMouseCursor(juce::MouseCursor::NormalCursor);
+    if (drag_ == Drag::Pan || drag_ == Drag::Grab || drag_ == Drag::Cord)
+        setMouseCursor(juce::MouseCursor::NormalCursor);
     drag_ = Drag::None;
+    refused_ = false;
     dragNode_.clear();
     cordTarget_ = false;
     alignGuideX_ = alignGuideY_ = -1;
@@ -256,7 +236,9 @@ void PatcherCanvas::mouseMove(const juce::MouseEvent& e) {
         changed = true;
     }
 
-    setMouseCursor((ph || h) ? juce::MouseCursor::PointingHandCursor
+    const bool grab = ph && grabbable({node, port, isOutlet, isMidi, isVideo, isControl}, e.mods);
+    setMouseCursor(grab ? juce::MouseCursor::DraggingHandCursor
+                   : (ph || h) ? juce::MouseCursor::PointingHandCursor
                    : (e.mods.isAltDown() && hitNode(p).empty())
                        ? juce::MouseCursor::DraggingHandCursor
                        : juce::MouseCursor::NormalCursor);
@@ -268,8 +250,34 @@ juce::String arrowTo()   { return juce::String::fromUTF8("\xe2\x86\x92 "); }
 juce::String arrowFrom() { return juce::String::fromUTF8("\xe2\x86\x90 "); }
 juce::String dash()      { return " - "; }
 juce::String chanSuffix(int channel) {
-    return channel >= 1 ? juce::String::fromUTF8("  \xc2\xb7  ch ") + juce::String(channel)
+    return channel >= 1 ? juce::String::fromUTF8("  \xc2\xb7  ")
+                              + tr("patcher-canvas-mouse.ch-n", "ch {n}", {{"n", juce::String(channel)}})
                         : juce::String();
+}
+juce::String portWord(PortKind kind, bool out, int index) {
+    const TrArgs n{{"n", juce::String(index)}};
+    switch (kind) {
+        case PortKind::Midi:
+            return out ? tr("patcher-canvas-mouse.midi-out-n", "MIDI out {n}", n)
+                       : tr("patcher-canvas-mouse.midi-in-n", "MIDI in {n}", n);
+        case PortKind::Video:
+            return out ? tr("patcher-canvas-mouse.video-out-n", "video out {n}", n)
+                       : tr("patcher-canvas-mouse.video-in-n", "video in {n}", n);
+        case PortKind::Control:
+            return out ? tr("patcher-canvas-mouse.control-out-n", "control out {n}", n)
+                       : tr("patcher-canvas-mouse.control-in-n", "control in {n}", n);
+        case PortKind::Audio: break;
+    }
+    return out ? tr("patcher-canvas-mouse.audio-out-n", "audio out {n}", n)
+               : tr("patcher-canvas-mouse.audio-in-n", "audio in {n}", n);
+}
+juce::String nodeIn(const std::string& node, int inlet) {
+    return tr("patcher-canvas-mouse.node-in-n", "{node}  in {n}",
+              {{"node", juce::String(node)}, {"n", juce::String(inlet + 1)}});
+}
+juce::String nodeOut(const std::string& node, int outlet) {
+    return tr("patcher-canvas-mouse.node-out-n", "{node}  out {n}",
+              {{"node", juce::String(node)}, {"n", juce::String(outlet + 1)}});
 }
 }
 
@@ -279,21 +287,20 @@ juce::String PatcherCanvas::getTooltip() {
         const auto label = hoverPortOut_ ? host_.controlOutletValue(hoverPortNode_, hoverPort_)
                                          : host_.controlInletParam(hoverPortNode_, hoverPort_);
         juce::String t = juce::String(hoverPortNode_) + dash()
-                       + (hoverPortOut_ ? "control out " : "control in ")
-                       + juce::String(hoverPort_ + 1) + "  " + juce::String(label);
+                       + portWord(PortKind::Control, hoverPortOut_, hoverPort_ + 1)
+                       + "  " + juce::String(label);
         if (hoverPortOut_)
             if (const auto now = host_.controlOutletReading(hoverPortNode_, hoverPort_); !now.empty())
                 t += "  =  " + juce::String(now);
         return t;
     }
     if (portHover_) {
-        juce::String t = juce::String(hoverPortNode_) + dash()
-                       + (hoverPortMidi_ ? "MIDI " : hoverPortVideo_ ? "video " : "audio ")
-                       + (hoverPortOut_ ? "out " : "in ") + juce::String(hoverPort_ + 1);
+        const auto kind = hoverPortMidi_ ? PortKind::Midi : hoverPortVideo_ ? PortKind::Video : PortKind::Audio;
+        juce::String t = juce::String(hoverPortNode_) + dash() + portWord(kind, hoverPortOut_, hoverPort_ + 1);
         if (!hoverPortMidi_ && !hoverPortVideo_)
             if (const auto label = portName(hoverPortNode_, hoverPort_, hoverPortOut_); !label.empty())
                 t = juce::String(hoverPortNode_) + dash() + juce::String(label) + "  ("
-                    + (hoverPortOut_ ? "audio out " : "audio in ") + juce::String(hoverPort_ + 1) + ")";
+                    + portWord(PortKind::Audio, hoverPortOut_, hoverPort_ + 1) + ")";
         std::string node = hoverPortNode_;
         int port = hoverPort_;
         realPort(hoverPortNode_, hoverPort_, hoverPortOut_, hoverPortMidi_, node, port);
@@ -302,24 +309,25 @@ juce::String PatcherCanvas::getTooltip() {
                           : hoverPortVideo_ ? model.videoConnections : model.connections;
         for (const auto& c : cords) {
             if (hoverPortOut_ && c.src == node && c.srcOutlet == port)
-                wires.add(arrowTo() + juce::String(c.dst) + "  in " + juce::String(c.dstInlet + 1)
+                wires.add(arrowTo() + nodeIn(c.dst, c.dstInlet)
                           + (hoverPortMidi_ ? chanSuffix(c.midiChannel) : juce::String()));
             if (!hoverPortOut_ && c.dst == node && c.dstInlet == port)
-                wires.add(arrowFrom() + juce::String(c.src) + "  out " + juce::String(c.srcOutlet + 1)
+                wires.add(arrowFrom() + nodeOut(c.src, c.srcOutlet)
                           + (hoverPortMidi_ ? chanSuffix(c.midiChannel) : juce::String()));
         }
-        return t + "\n" + (wires.isEmpty() ? juce::String("not connected")
+        return t + "\n" + (wires.isEmpty() ? tr("patcher-canvas-mouse.not-connected", "not connected")
                                            : wires.joinIntoString("\n"));
     }
     if (cordHovered_) {
         const auto& c = hoverCord_;
-        juce::String t = juce::String(c.midi ? tr("patcher-canvas-mouse.midi-cord", "MIDI cord") : c.video ? "video cord" : "audio cord") + "\n"
-                       + juce::String(c.src) + "  out " + juce::String(c.srcOutlet + 1)
-                       + "  " + arrowTo()
-                       + juce::String(c.dst) + "  in " + juce::String(c.dstInlet + 1);
+        juce::String t = (c.midi ? tr("patcher-canvas-mouse.midi-cord", "MIDI cord")
+                          : c.video ? tr("patcher-canvas-mouse.video-cord", "video cord")
+                                    : tr("patcher-canvas-mouse.audio-cord", "audio cord")) + "\n"
+                       + nodeOut(c.src, c.srcOutlet) + "  " + arrowTo() + nodeIn(c.dst, c.dstInlet);
         if (c.midi) {
             const int ch = host_.midiCordChannel(c.src, c.srcOutlet, c.dst, c.dstInlet);
-            t += ch >= 1 ? "\nchannel " + juce::String(ch) : juce::String("\nall channels (omni)");
+            t += "\n" + (ch >= 1 ? tr("patcher-canvas-mouse.channel-n", "channel {n}", {{"n", juce::String(ch)}})
+                                 : tr("patcher-canvas-mouse.all-channels-omni", "all channels (omni)"));
         }
         return t;
     }

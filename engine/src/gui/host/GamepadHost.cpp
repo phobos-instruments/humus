@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/GamepadHost.h"
 #include "gui/host/OscHost.h"
+#include "gui/common/Localisation.h"
 
 #include <cmath>
 
@@ -21,8 +22,8 @@ void GamepadHost::setEnabled(bool on) {
 }
 
 std::string GamepadHost::statusText() const {
-    if (!enabled_) return "off";
-    if (names_.empty()) return "none connected";
+    if (!enabled_) return tr("midi-settings.gamepads-off", "off").toStdString();
+    if (names_.empty()) return tr("midi-settings.none-connected", "none connected").toStdString();
     std::string s;
     for (const auto& n : names_) s += (s.empty() ? "" : ", ") + n;
     return s;

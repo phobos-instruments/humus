@@ -1,0 +1,125 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Humus\n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-SHA256: 1a0201b852e420d9efc2bb6c23cc3f30190a6aea0a43dc7bcf23b7101c7ec412\n"
+
+msgctxt "category.Control"
+msgid "Control"
+msgstr ""
+
+msgctxt "category.Dynamics"
+msgid "Dynamics"
+msgstr ""
+
+msgctxt "category.Effects"
+msgid "Effects"
+msgstr ""
+
+msgctxt "category.Filters"
+msgid "Filters"
+msgstr ""
+
+msgctxt "category.Input/Output"
+msgid "Input/Output"
+msgstr ""
+
+msgctxt "category.Instruments"
+msgid "Instruments"
+msgstr ""
+
+msgctxt "category.Meters"
+msgid "Meters"
+msgstr ""
+
+msgctxt "category.Mixers"
+msgid "Mixers"
+msgstr ""
+
+msgctxt "category.Players"
+msgid "Players"
+msgstr ""
+
+msgctxt "category.Primitives"
+msgid "Primitives"
+msgstr ""
+
+msgctxt "category.Sequencers"
+msgid "Sequencers"
+msgstr ""
+
+msgctxt "category.Signal Generators"
+msgid "Signal Generators"
+msgstr ""
+
+msgctxt "category.Spectral"
+msgid "Spectral"
+msgstr ""
+
+#: packs/humus/organisms/Atom/organism.json
+msgctxt "organism.Atom.blurb"
+msgid "Four rings of evenly spread hits that arpeggiate the notes you hold, or walk a scale when you hold none."
+msgstr ""
+
+#: packs/humus/organisms/AudioTrack/organism.json
+msgctxt "organism.AudioTrack.blurb"
+msgid "A timeline row that plays its audio clips and records takes of what reaches it."
+msgstr ""
+
+#: packs/humus/organisms/Board/organism.json
+msgctxt "organism.Board.blurb"
+msgid "A microcontroller on a serial cable: its inputs arrive as control, its pins follow yours."
+msgstr ""
+
+#: packs/humus/organisms/Deck/organism.json
+msgctxt "organism.Deck.blurb"
+msgid "A player for audio and video alike: pitch fader, beatgrid, cues and timecode."
+msgstr ""
+
+#: packs/humus/organisms/Decomposer/organism.json
+msgctxt "organism.Decomposer.blurb"
+msgid "Audio in, MIDI notes out: a pitch tracker that hears a line or a chord as you play."
+msgstr ""
+
+#: packs/humus/organisms/Halogen/organism.json
+msgctxt "organism.Halogen.blurb"
+msgid "Plays a picture: across is time, up is pitch, brightness is loudness."
+msgstr ""
+
+#: packs/humus/organisms/Leafcutter/organism.json
+msgctxt "organism.Leafcutter.blurb"
+msgid "A loop chopper that cuts a sound at its transients and plays the slices in time."
+msgstr ""
+
+#: packs/humus/organisms/MidiFilter/organism.json
+msgctxt "organism.MidiFilter.blurb"
+msgid "Lets chosen notes and controllers through, holds others back, or turns one into another."
+msgstr ""
+
+#: packs/humus/organisms/MidiPlayer/organism.json
+msgctxt "organism.MidiPlayer.blurb"
+msgid "Plays a MIDI file: sixteen channels from its own outlets, or on down a cord."
+msgstr ""
+
+#: packs/humus/organisms/Notes/organism.json
+msgctxt "organism.Notes.blurb"
+msgid "A sticky note laid on the canvas, for whoever reads the patch next."
+msgstr ""
+
+#: packs/humus/organisms/Scope/organism.json
+msgctxt "organism.Scope.blurb"
+msgid "An oscilloscope with a glowing trace: the wave standing still, or left drawn against right."
+msgstr ""
+
+#: packs/humus/organisms/Spark/organism.json
+msgctxt "organism.Spark.blurb"
+msgid "A riser that never arrives: twelve comb filters sweeping the same octaves forever."
+msgstr ""
+
+#: packs/humus/organisms/Ph/organism.json
+msgctxt "organism.pH.blurb"
+msgid "An FM synthesizer with four engines, from six-operator banks to three chip voices."
+msgstr ""

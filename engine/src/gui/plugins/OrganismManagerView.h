@@ -16,6 +16,7 @@
 #include "gui/app/Telemetry.h"
 #include "gui/app/TelemetryEvents.h"
 #include "hum/PackEntry.h"
+#include "gui/common/Languages.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
@@ -63,10 +64,14 @@ public:
             };
             addAndMakeVisible(row->enable);
 
-            row->name.setText(juce::String(pack.manifest.name) + "   v"
-                                  + juce::String(pack.manifest.version) + juce::String("   -   ")
-                                  + juce::String(classes) + " organisms"
-                                  + (pack.builtin ? "" : "   (installed)"),
+            const auto count = trn("organism-manager.organism-count", "{n} organism", "{n} organisms", classes);
+            const TrArgs rowArgs{{"pack", juce::String(pack.manifest.name)},
+                                 {"version", juce::String(pack.manifest.version)},
+                                 {"count", count}};
+            row->name.setText(pack.builtin
+                                  ? tr("organism-manager.pack-row", "{pack}   v{version}   -   {count}", rowArgs)
+                                  : tr("organism-manager.pack-row-installed",
+                                       "{pack}   v{version}   -   {count}   (installed)", rowArgs),
                               juce::dontSendNotification);
             row->name.setColour(juce::Label::textColourId, Palette::text);
             row->name.setFont(juce::FontOptions(13.0f).withStyle("Bold"));
@@ -78,14 +83,14 @@ public:
             addAndMakeVisible(row->desc);
 
             if (!pack.builtin) {
-                row->uninstall = std::make_unique<juce::TextButton>("Uninstall");
+                row->uninstall = std::make_unique<juce::TextButton>(tr("organism-manager.uninstall", "Uninstall"));
                 row->uninstall->onClick = [this, r = row.get()] { uninstall(r->id.toStdString()); };
                 addAndMakeVisible(*row->uninstall);
             }
             for (const auto& u : updates_)
                 if (u.id == pack.manifest.id) {
-                    row->update = std::make_unique<juce::TextButton>(tr("organism-manager.update-to-v", "Update to v")
-                                                                    + juce::String(u.version));
+                    row->update = std::make_unique<juce::TextButton>(
+                        tr("organism-manager.update-to-version", "Update to v{version}", {{"version", juce::String(u.version)}}));
                     row->update->setColour(juce::TextButton::buttonColourId, Palette::accent);
                     row->update->onClick = [this, u] { applyUpdate(u); };
                     addAndMakeVisible(*row->update);
@@ -128,6 +133,7 @@ public:
 
 private:
     void changed() {
+        i18n::refresh();
         if (onPacksChanged) onPacksChanged();
     }
 
@@ -141,12 +147,12 @@ private:
                                   if (f == juce::File{}) return;
                                   std::string err;
                                   if (PackLoader::instance().installHumpack(f, err)) {
-                                      status_.setText(tr("organism-manager.installed", "Installed ") + f.getFileNameWithoutExtension(),
+                                      status_.setText(tr("organism-manager.installed", "Installed {pack}", {{"pack", f.getFileNameWithoutExtension()}}),
                                                       juce::dontSendNotification);
                                       rebuildRows();
                                       changed();
                                   } else {
-                                      status_.setText(tr("organism-manager.install-failed", "Install failed: ") + juce::String(err),
+                                      status_.setText(tr("organism-manager.install-failed", "Install failed: {reason}", {{"reason", juce::String(err)}}),
                                                       juce::dontSendNotification);
                                   }
                               });
@@ -182,32 +188,32 @@ private:
         checkBtn_.setEnabled(true);
         updates_ = std::move(ups);
         if (!reached)
-            status_.setText(tr("organism-manager.could-not-reach", "Could not reach ") + juce::URL(kPackManifestUrl).getDomain(),
+            status_.setText(tr("organism-manager.could-not-reach", "Could not reach {host}", {{"host", juce::URL(kPackManifestUrl).getDomain()}}),
                             juce::dontSendNotification);
         else if (updates_.empty())
             status_.setText(tr("organism-manager.everything-is-up-to-date", "Everything is up to date"), juce::dontSendNotification);
         else
-            status_.setText(juce::String((int) updates_.size()) + tr("organism-manager.update", " update")
-                                + (updates_.size() == 1 ? "" : "s") + " available",
+            status_.setText(trn("organism-manager.updates-available", "{n} update available", "{n} updates available",
+                                (int) updates_.size()),
                             juce::dontSendNotification);
         rebuildRows();
     }
 
     void applyUpdate(PackUpdate u) {
         if (!juce::String(u.url).startsWithIgnoreCase("https://")) {
-            status_.setText(tr("organism-manager.refused-plain-url", "Refused: the update for ")
-                                + juce::String(u.id) + tr("organism-manager.not-https", " is not offered over https"),
+            status_.setText(tr("organism-manager.refused-plain-url", "Refused: the update for {pack} is not offered over https",
+                               {{"pack", juce::String(u.id)}}),
                             juce::dontSendNotification);
             return;
         }
         if (u.sha256.size() != 64) {
-            status_.setText(tr("organism-manager.refused-no-checksum", "Refused: the update for ")
-                                + juce::String(u.id) + tr("organism-manager.no-checksum", " carries no checksum"),
+            status_.setText(tr("organism-manager.refused-no-checksum", "Refused: the update for {pack} carries no checksum",
+                               {{"pack", juce::String(u.id)}}),
                             juce::dontSendNotification);
             return;
         }
-        status_.setText(tr("organism-manager.downloading", "Downloading ") + juce::String(u.id) + " v" + juce::String(u.version)
-                            + "...", juce::dontSendNotification);
+        status_.setText(tr("organism-manager.downloading", "Downloading {pack} v{version}...",
+                           {{"pack", juce::String(u.id)}, {"version", juce::String(u.version)}}), juce::dontSendNotification);
         juce::Component::SafePointer<OrganismManagerView> safe(this);
         juce::Thread::launch([safe, u] {
             auto tmp = juce::File::createTempFile(".humpack");
@@ -229,7 +235,7 @@ private:
 
     void finishUpdate(const PackUpdate& u, juce::File tmp, bool downloaded) {
         if (!downloaded) {
-            status_.setText(tr("organism-manager.download-failed-for", "Download failed for ") + juce::String(u.id),
+            status_.setText(tr("organism-manager.download-failed-for", "Download failed for {pack}", {{"pack", juce::String(u.id)}}),
                             juce::dontSendNotification);
             tmp.deleteFile();
             return;
@@ -241,13 +247,13 @@ private:
             const auto have = in.openedOk() ? juce::SHA256(in).toHexString().toLowerCase()
                                             : juce::String();
             if (have != juce::String(u.sha256))
-                err = "the download's checksum does not match the manifest";
+                err = tr("organism-manager.checksum-mismatch", "the download's checksum does not match the manifest").toStdString();
             else
                 ok = PackLoader::instance().installHumpack(tmp, err);
         }
         tmp.deleteFile();
         if (ok) {
-            status_.setText(tr("organism-manager.updated", "Updated ") + juce::String(u.id) + tr("organism-manager.to-v", " to v") + juce::String(u.version),
+            status_.setText(tr("organism-manager.updated", "Updated {pack} to v{version}", {{"pack", juce::String(u.id)}, {"version", juce::String(u.version)}}),
                             juce::dontSendNotification);
             updates_.erase(std::remove_if(updates_.begin(), updates_.end(),
                                           [&](const PackUpdate& x) { return x.id == u.id; }),
@@ -255,24 +261,24 @@ private:
             rebuildRows();
             changed();
         } else {
-            status_.setText(tr("organism-manager.update-failed", "Update failed: ") + juce::String(err), juce::dontSendNotification);
+            status_.setText(tr("organism-manager.update-failed", "Update failed: {reason}", {{"reason", juce::String(err)}}), juce::dontSendNotification);
         }
     }
 
     void uninstall(const std::string& id) {
         std::string err;
         if (PackLoader::instance().uninstallPack(id, err)) {
-            status_.setText(tr("organism-manager.uninstalled", "Uninstalled ") + juce::String(id), juce::dontSendNotification);
+            status_.setText(tr("organism-manager.uninstalled", "Uninstalled {pack}", {{"pack", juce::String(id)}}), juce::dontSendNotification);
             rebuildRows();
             changed();
         } else {
-            status_.setText(tr("organism-manager.uninstall-failed", "Uninstall failed: ") + juce::String(err), juce::dontSendNotification);
+            status_.setText(tr("organism-manager.uninstall-failed", "Uninstall failed: {reason}", {{"reason", juce::String(err)}}), juce::dontSendNotification);
         }
     }
 
     static constexpr int kRowH = 72;
     static constexpr const char* kPackManifestUrl =
-        "https://humus.phobos-instruments.com/downloads/packs/versions.json";
+        "https://humus.art/downloads/packs/versions.json";
     struct Row {
         juce::String id;
         juce::ToggleButton enable;

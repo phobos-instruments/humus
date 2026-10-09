@@ -21,6 +21,8 @@ public:
 
     explicit AppearanceSettingsView(std::function<void()> onAppearanceChanged);
 
+    std::function<void()> onLanguageChanged;
+
     void resized() override;
 
 private:
@@ -51,8 +53,8 @@ private:
     juce::TextButton rollThemeBtn_{tr("settings.roll-theme", "Random")};
     juce::TextButton saveCustomBtn_{tr("settings.save-theme", "Save Theme...")};
     juce::TextButton deleteThemeBtn_{tr("settings.delete-theme", "Delete Theme")};
-    juce::TextButton exportThemeBtn_{"Export..."};
-    juce::TextButton importThemeBtn_{"Import..."};
+    juce::TextButton exportThemeBtn_{tr("settings.export-theme", "Export...")};
+    juce::TextButton importThemeBtn_{tr("settings.import-theme", "Import...")};
     std::unique_ptr<juce::FileChooser> chooser_;
 
     juce::Label brightnessLabel_, contrastLabel_;

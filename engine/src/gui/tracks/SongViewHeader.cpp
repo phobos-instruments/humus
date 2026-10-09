@@ -30,10 +30,10 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
                                    && !host().bounceSourceOf(node).empty();
             m.addSeparator();
             m.addItem(3, canBounce
-                             ? "Consolidate to Audio (bars " + juce::String((int) (from / bpb) + 1)
-                                   + juce::String::fromUTF8("\xe2\x80\x93")
-                                   + juce::String((int) std::ceil(to / bpb)) + ")"
-                             : juce::String("Consolidate to Audio"),
+                             ? tr("tracks-pane-input.consolidate-to-audio-bars", "Consolidate to Audio (bars {from}-{to})",
+                                  {{"from", juce::String((int) (from / bpb) + 1)},
+                                   {"to", juce::String((int) std::ceil(to / bpb))}})
+                             : tr("tracks-pane-input.consolidate-to-audio", "Consolidate to Audio"),
                       canBounce);
             std::vector<std::string> targets;
             if (host().midiOutletsOf(node) == 1) {
@@ -59,8 +59,8 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
             m.addSeparator();
             m.addItem(5, tr("tracks-pane-input.rename-track", "Rename Track..."));
             m.addItem(4, group.size() > 1
-                             ? juce::String("Delete ") + juce::String((int) group.size())
-                                   + " Tracks"
+                             ? trn("tracks-pane-input.delete-tracks", "Delete {n} Track", "Delete {n} Tracks",
+                                   (long long) group.size())
                              : (ownsTheRow ? tr("tracks-pane-input.delete-track", "Delete Track")
                                            : tr("tracks-pane-input.remove-track", "Remove Track")));
             const auto sp = e.getScreenPosition();

@@ -6,6 +6,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/help/HelpMarkup.h"
+#include "gui/common/CategoryText.h"
 
 namespace hum {
 namespace help_detail {
@@ -35,6 +36,15 @@ inline std::vector<Block> parseMarkdown(const juce::String& raw) {
             continue;
         }
         if (t.isEmpty()) { flush(); continue; }
+
+        const bool indented = lines[i].startsWithChar(' ') || lines[i].startsWithChar('\t');
+        if (indented && para.isEmpty() && !blocks.empty() && blocks.back().bullet
+            && !t.startsWith("- ") && !t.startsWith("* ")) {
+            auto& last = blocks.back();
+            auto& text = last.kind == Block::Def ? last.b : last.a;
+            text = tidy(text + " " + t);
+            continue;
+        }
 
         if (t.startsWithChar('#')) {
             flush();
@@ -104,7 +114,7 @@ parseHelpDoc(const HelpDoc& page, const juce::String& cls) {
     if (!blocks.empty() && blocks.front().kind == Block::Header && blocks.front().level == 1
         && blocks.front().a == juce::String(page.docClass))
         blocks.erase(blocks.begin());
-    return {juce::String(helpSubtitle(page, cls.toStdString())), blocks};
+    return {categoryText(helpSubtitle(page, cls.toStdString())), blocks};
 }
 
 struct TextLink {
@@ -142,31 +152,58 @@ inline juce::String withoutLinks(const juce::String& text) {
     return out + rest;
 }
 
+inline bool opensEmphasis(const juce::String& s, int at) {
+    return s[at] == '*' && (at == 0 || s[at - 1] != '*') && at + 1 < s.length() && s[at + 1] != '*'
+           && !juce::CharacterFunctions::isWhitespace(s[at + 1]);
+}
+
+inline int closingEmphasis(const juce::String& s, int from) {
+    for (int i = from; i < s.length(); ++i)
+        if (s[i] == '*' && (i + 1 >= s.length() || s[i + 1] != '*') && s[i - 1] != '*'
+            && !juce::CharacterFunctions::isWhitespace(s[i - 1]))
+            return i;
+    return -1;
+}
+
+inline int nextEmphasis(const juce::String& s) {
+    for (int i = 0; i < s.length(); ++i)
+        if (opensEmphasis(s, i) && closingEmphasis(s, i + 2) >= 0) return i;
+    return -1;
+}
+
 inline void appendStyled(juce::AttributedString& out, const juce::String& text, bool rich,
                          const juce::Font& normal, const juce::Font& bold, juce::Colour colour,
                          const juce::Font& mono, juce::Colour codeColour) {
-    if (!rich || (!text.contains("**") && !text.containsChar('`'))) {
+    if (!rich || (!text.containsChar('*') && !text.containsChar('`'))) {
         out.append(text, normal, colour);
         return;
     }
+    auto styled = [&](bool strong, bool em) {
+        const auto& base = strong ? bold : normal;
+        return em ? base.withStyle(base.getStyleFlags() | juce::Font::italic) : base;
+    };
     juce::String rest = text;
-    bool strong = false;
+    bool strong = false, em = false;
     while (rest.isNotEmpty()) {
-        const auto upToBold = rest.indexOf("**");
-        const auto upToCode = rest.indexOfChar('`');
-        const bool codeFirst = upToCode >= 0 && (upToBold < 0 || upToCode < upToBold);
-        const auto marker = codeFirst ? upToCode : upToBold;
-        if (marker < 0) { out.append(rest, strong ? bold : normal, colour); break; }
-        if (marker > 0) out.append(rest.substring(0, marker), strong ? bold : normal, colour);
-        if (codeFirst) {
+        const int toBold = rest.indexOf("**");
+        const int toCode = rest.indexOfChar('`');
+        const int toEm = em ? closingEmphasis(rest, 1) : nextEmphasis(rest);
+        int marker = -1;
+        for (const int at : {toBold, toCode, toEm})
+            if (at >= 0 && (marker < 0 || at < marker)) marker = at;
+        if (marker < 0) { out.append(rest, styled(strong, em), colour); break; }
+        if (marker > 0) out.append(rest.substring(0, marker), styled(strong, em), colour);
+        if (marker == toCode) {
             const auto after = rest.substring(marker + 1);
-            const auto span = after.upToFirstOccurrenceOf("`", false, false);
-            out.append(span, mono, codeColour);
+            out.append(after.upToFirstOccurrenceOf("`", false, false), mono, codeColour);
             rest = after.fromFirstOccurrenceOf("`", false, false);
-            continue;
+        } else if (marker == toBold) {
+            rest = rest.substring(marker + 2);
+            strong = !strong;
+        } else {
+            rest = rest.substring(marker + 1);
+            em = !em;
         }
-        rest = rest.substring(marker + 2);
-        strong = !strong;
     }
 }
 

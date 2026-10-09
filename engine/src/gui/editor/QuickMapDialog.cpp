@@ -66,8 +66,9 @@ QuickMapDialog::QuickMapDialog(BrickHost& host, std::string organism, std::strin
     const auto unit = paramUnit(host_, organism_, param_);
     rangeLine_.setFont(juce::FontOptions(11.5f));
     rangeLine_.setColour(juce::Label::textColourId, Palette::textDim);
-    rangeLine_.setText(tr("quick-map.total-range", "Total range: ") + unitPlain(unit, lo, lo, hi)
-                           + " to " + unitPlain(unit, hi, lo, hi) + " " + unitSuffix(unit),
+    rangeLine_.setText(tr("quick-map.total-range", "Total range: {low} to {high} {unit}",
+                          {{"low", unitPlain(unit, lo, lo, hi)}, {"high", unitPlain(unit, hi, lo, hi)},
+                           {"unit", juce::String(unitSuffix(unit))}}),
                        juce::dontSendNotification);
     addAndMakeVisible(rangeLine_);
 
@@ -150,13 +151,13 @@ std::pair<double, double> QuickMapDialog::bounds() const {
 void QuickMapDialog::buildSlot(Slot& s, RangeEnd end) {
     s.end = end;
     s.param = rangeEndParam(param_, end);
-    const auto which = end == RangeEnd::Low      ? tr("quick-map.minimum", " (Minimum)")
-                       : end == RangeEnd::High   ? tr("quick-map.maximum", " (Maximum)")
-                       : end == RangeEnd::Spread ? tr("quick-map.spread", " (Spread)")
-                       : ranged_ && mode() != RangeMode::Single
-                                                 ? tr("quick-map.value", " (Value)")
-                                                 : juce::String();
-    s.head.setText(tr("quick-map.midi-control-source", "MIDI control source") + which,
+    const auto head = end == RangeEnd::Low      ? tr("quick-map.minimum", "MIDI control source (Minimum)")
+                      : end == RangeEnd::High   ? tr("quick-map.maximum", "MIDI control source (Maximum)")
+                      : end == RangeEnd::Spread ? tr("quick-map.spread", "MIDI control source (Spread)")
+                      : ranged_ && mode() != RangeMode::Single
+                                                ? tr("quick-map.value", "MIDI control source (Value)")
+                                                : tr("quick-map.midi-control-source", "MIDI control source");
+    s.head.setText(head,
                    juce::dontSendNotification);
     s.head.setFont(juce::FontOptions(11.5f).withStyle("Bold"));
     s.head.setColour(juce::Label::textColourId, Palette::textDim);
@@ -273,8 +274,8 @@ void QuickMapDialog::refresh() {
                              && MidiLearner::instance().armedParam() == s->param;
         s->sourceLabel.setColour(juce::Label::textColourId,
                                  waiting ? Palette::accent : Palette::text);
-        s->sourceLabel.setText(waiting ? tr("quick-map.move-a-control", "move a control...")
-                                             + " (" + juce::String(MidiLearner::instance().secondsLeft()) + "s)"
+        s->sourceLabel.setText(waiting ? tr("quick-map.move-a-control-waiting", "move a control... ({n}s)",
+                                            {{"n", juce::String(MidiLearner::instance().secondsLeft())}})
                                : e == nullptr ? tr("quick-map.none", "(none)")
                                               : juce::String(midiSourceLabel(e->source())),
                                juce::dontSendNotification);

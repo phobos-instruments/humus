@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/EngineHost.h"
+#include "core/graph/GraphIo.h"
 #include "core/library/BankLibrary.h"
 #include "core/library/UserLibrary.h"
 #include <algorithm>
@@ -67,19 +68,19 @@ void EngineHost::nodeActivity(const std::string& name, float& audioPeak, float& 
 }
 
 bool EngineHost::armNodeCapture(int samples) {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     if (!graph_) return false;
     graph_->armCapture(samples);
     return true;
 }
 
 void EngineHost::disarmNodeCapture() {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     if (graph_) graph_->disarmCapture();
 }
 
 int EngineHost::copyNodeCapture(const std::string& name, std::vector<float>& out) {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     out.clear();
     if (!graph_) return 0;
     const int node = graph_->indexOf(name);
@@ -114,11 +115,10 @@ unsigned EngineHost::nodePictureGeneration(const std::string& name) {
 }
 
 std::string EngineHost::masterOutputName() {
-    if (graph_)
-        for (int i = 0; i < graph_->nodeCount(); ++i)
-            if (auto* c = graph_->organism(i))
-                if (dynamic_cast<MasterTap*>(c)) return c->name();
-    return {};
+    if (!graph_) return {};
+    const int i = masterTapIndex(*graph_);
+    auto* c = i < 0 ? nullptr : graph_->organism(i);
+    return c ? c->name() : std::string();
 }
 
 std::vector<std::string> EngineHost::arrangeableNodes() {

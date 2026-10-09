@@ -21,6 +21,7 @@
 
 #include "hum/dsp/DspMath.h"
 #include "hum/dsp/LiveWavWriter.h"
+#include "hum/dsp/LoudSpots.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
 namespace hum {
@@ -28,8 +29,8 @@ namespace hum {
 class Deck : public Organism, public DeckControl, public LoadsOffThread, public LoadFault,
              public AbortsLoad, public DefersLoading, public MediaTracks, public ReloadOnParam,
              public ClipRecorder, public PlaysOwnPicture, public LoadedPicture,
-             public MediaDuration, public InletMeter,
-             public TimecodeStatus,
+             public MediaDuration, public InletMeter, public LoudSpotSource,
+             public TimecodeStatus, public TimecodeTone, public TimecodeNeedle,
              public StereoFieldSource, public ControlSource, public VideoNode,
              public RollListener,
              public PinKinds {
@@ -83,6 +84,8 @@ public:
     float timecodeCarrierHz() const override { return tcCarrier_.load(); }
     float timecodeLevel() const override { return tcLevel_.load(); }
     float timecodeSpeed() const override { return tcSpeed_.load(); }
+    float timecodeToneHz() const override { return tcTone_.load(); }
+    bool needleFound() const override { return tcLocated_.load(); }
 
     int fieldRead(float* lr, int maxPairs) const override {
         const unsigned w = fieldAt_.load(std::memory_order_relaxed);
@@ -112,6 +115,7 @@ public:
     void    endLoopRoll() override { rollEndReq_.store(true); }
 
     void    loadFromFile(const std::string& uri) override;
+    bool    retireReplaced(bool awaitSwap);
     void    warmFromFile(const std::string& uri);
     std::string audioPathFor(const std::string& uri) const;
 
@@ -123,6 +127,9 @@ public:
     }
 
     std::vector<float> wavePeaksBetween(int64_t from, int64_t to, int buckets) const override;
+
+    float loudestSample() const override;
+    int loudSpots(std::int64_t* starts, int maxSpots) const override;
 
     float loadProgress() const override { return loadProgress_.load(); }
 
@@ -181,6 +188,20 @@ private:
     void applyPending();
     void captureTake(const float* const* in, int numIn, int numSamples, const Transport& t);
     void publishPosition(int numSamples, double hostSr);
+    void movePlatter(double step, double len, bool followsRecord);
+
+    struct TimecodeDrive {
+        bool active = false;
+        double target = 0.0;
+    };
+    TimecodeDrive readTimecode(const float* const* in, int numIn, int numSamples, double hostSr,
+                               double baseRate, double fileSr, int64_t len);
+    void captureField(int numSamples);
+    void chooseTimecodeRecord();
+    double followNeedle(const ControlVinyl::Reading& reading, double fileSr, int64_t len, double hostSr,
+                        double blockSeconds);
+    bool trustNeedle(const ControlVinyl::Reading& reading);
+    void forgetNeedle();
     void notePicture();
     void adoptStream(const SharedSound& sound, const SoundFill& filled, bool sameSound,
                      double wasSr);
@@ -201,7 +222,9 @@ private:
     std::atomic<double> positionScale_{1.0};
     bool defer_ = false;
     std::vector<float> peaks_;
+    LoudnessScan loud_;
     double readPos_ = 0.0;
+    double beyond_ = 0.0;
     double rate_ = 1.0;
     double velocity_ = 0.0;
     bool prevSync_ = false;
@@ -233,6 +256,15 @@ private:
     std::atomic<float>   tcSpeed_ {0.0f};
     std::atomic<int>     tcFormat_ {-1};
     std::atomic<float>   tcCarrier_ {0.0f};
+    std::atomic<float>   tcTone_ {0.0f};
+    double               tcRestApplied_ = 0.0;
+    std::atomic<bool>    tcLocated_ {false};
+    int                  tcRecord_ = -1;
+    bool                 tc45_ = false;
+    double               needleSince_ = 0.0;
+    double               needleLast_ = -1.0e9;
+    double               needleSeenAt_ = 0.0;
+    double               needleClock_ = 0.0;
     float                field_[2 * StereoFieldSource::kFieldPairs] = {};
     std::atomic<unsigned> fieldAt_ {0};
     std::atomic<unsigned> fieldStamp_ {0};
@@ -256,7 +288,7 @@ private:
 
     std::atomic<unsigned> videoLaunch_ {0};
     std::atomic<double>   playSpeed_ {0.0};
-    double                blockStartPos_ = 0.0;
+    double                travel_ = 0.0;
 
     ControlVinyl vinyl_;
     std::vector<float> tcL_, tcR_;

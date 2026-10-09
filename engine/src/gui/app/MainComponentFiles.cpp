@@ -81,7 +81,7 @@ void MainComponent::openPatchImpl() {
 }
 
 void MainComponent::openPatchNative() {
-    chooser_ = std::make_unique<juce::FileChooser>("Open patch", lastDir(false), kPatchOpenFilter);
+    chooser_ = std::make_unique<juce::FileChooser>(tr("main-files.open-patch", "Open patch"), lastDir(false), kPatchOpenFilter);
     chooser_->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                           [this](const juce::FileChooser& fc) {
         const auto f = fc.getResult();
@@ -94,7 +94,7 @@ bool MainComponent::openFileAt(const juce::File& f) {
     UiWatchdog::Suspend noStall(UiWatchdog::active());
     std::string err;
     if (!host_.loadFile(f.getFullPathName().toStdString(), err)) {
-        notifyError(tr("main-files.open-failed", "open failed: ") + juce::String(err));
+        notifyError(tr("main-files.open-failed", "open failed: {reason}", {{"reason", juce::String(err)}}));
         return false;
     }
     currentFile_ = f.getFullPathName();
@@ -112,7 +112,8 @@ bool MainComponent::openFileAt(const juce::File& f) {
         const auto& notes = host_.model().migrationNotes;
         for (const auto& n : notes) juce::Logger::writeToLog("migrated: " + juce::String(n));
         auto headline = tr("main-files.migrated", "Updated from an older version.") + " " + juce::String(notes.front());
-        if (notes.size() > 1) headline += " (+" + juce::String((int) notes.size() - 1) + " " + tr("main-files.more", "more") + ")";
+        if (notes.size() > 1)
+            headline += " " + trn("main-files.more-changes", "(+{n} more)", "(+{n} more)", (long long) notes.size() - 1);
         headline += ". " + tr("main-files.save-to-keep", "Save to keep the update.");
         juce::StringArray all;
         for (const auto& n : notes) all.add(juce::String(n));
@@ -161,8 +162,8 @@ void MainComponent::locateMissingMedia() {
 juce::String MainComponent::strayWarning() const {
     const int n = pods::strayTotal(const_cast<EngineHost&>(host_).model());
     if (n == 0) return {};
-    return juce::String("  -  ") + juce::String(n) + (n == 1 ? " cord" : " cords")
-           + " reach past a pod boundary (amber pins)";
+    return "  -  " + trn("main-files.stray-cords", "{n} cord reaches past a pod boundary (amber pins)",
+                         "{n} cords reach past a pod boundary (amber pins)", n);
 }
 
 void MainComponent::savePatch(std::function<void()> onSaved) {
@@ -172,11 +173,11 @@ void MainComponent::savePatch(std::function<void()> onSaved) {
     if (host_.saveFile(currentFile_.toStdString(), err)) {
         clearAutosave();
         history_.saved(currentFile_, currentFile_, nowMs());
-        notify(tr("main-files.saved", "saved ") + juce::File(currentFile_).getFileName());
+        notify(tr("main-files.saved", "saved {name}", {{"name", juce::File(currentFile_).getFileName()}}));
         telemetryCount(telemetry::kPatchSaved);
         if (onSaved) onSaved();
     } else {
-        notifyError(tr("main-files.save-failed", "save failed: ") + juce::String(err));
+        notifyError(tr("main-files.save-failed", "save failed: {reason}", {{"reason", juce::String(err)}}));
     }
 }
 
@@ -197,8 +198,8 @@ void MainComponent::savePatchAs(std::function<void()> onSaved) {
         juce::AlertWindow::showOkCancelBox(
             juce::MessageBoxIconType::QuestionIcon,
             tr("main-files.replace-title", "Replace the patch?"),
-            tr("main-files.replace-in-project", "There is already a patch with this name in ")
-                + landing.getParentDirectory().getFileName() + ".",
+            tr("main-files.replace-in-project", "There is already a patch with this name in {project}.",
+               {{"project", landing.getParentDirectory().getFileName()}}),
             tr("main-files.replace", "Replace"), tr("main-files.cancel", "Cancel"), this,
             juce::ModalCallbackFunction::create([this, f, onSaved](int yes) {
                 if (yes == 1) savePatchInto(f, onSaved);
@@ -210,7 +211,7 @@ void MainComponent::savePatchInto(const juce::File& chosen, std::function<void()
     UiWatchdog::Suspend noStall(UiWatchdog::active());
     std::string err, landed;
     if (!host_.saveIntoProject(chosen.getFullPathName().toStdString(), landed, err)) {
-        notifyError(tr("main-files.save-failed", "save failed: ") + juce::String(err));
+        notifyError(tr("main-files.save-failed", "save failed: {reason}", {{"reason", juce::String(err)}}));
         return;
     }
     const auto f = fileAt(landed);
@@ -221,17 +222,18 @@ void MainComponent::savePatchInto(const juce::File& chosen, std::function<void()
     rememberDir(f, true);
     noteOpened(f);
     menuItemsChanged();
-    notify(tr("main-files.saved", "saved ") + f.getFileName());
+    notify(tr("main-files.saved", "saved {name}", {{"name", f.getFileName()}}));
     if (onSaved) onSaved();
 }
 
 void MainComponent::confirmDiscardThenRun(std::function<void()> action) {
     if (!host_.isDirty()) { action(); return; }
     history_.snapshot(currentFile_, "before closing", nowMs());
-    const juce::String name = currentFile_.isEmpty() ? juce::String("this patch")
-                                                       : juce::File(currentFile_).getFileName();
-    auto* aw = new juce::AlertWindow("Unsaved Changes",
-                                     "Save changes to " + name + " before continuing?",
+    const juce::String question = currentFile_.isEmpty()
+        ? tr("main-files.save-changes-to-this-patch", "Save changes to this patch before continuing?")
+        : tr("main-files.save-changes-before-continuing", "Save changes to {name} before continuing?",
+             {{"name", juce::File(currentFile_).getFileName()}});
+    auto* aw = new juce::AlertWindow(tr("main-files.unsaved-changes", "Unsaved Changes"), question,
                                      juce::MessageBoxIconType::QuestionIcon);
     aw->addButton(tr("main-files.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
     aw->addButton(tr("main-files.don-t-save", "Don't Save"), 2);
@@ -265,9 +267,9 @@ void MainComponent::toggleMixRecording() {
         ensureAudio();
         std::string err;
         if (host_.startMixRecording(f.getFullPathName().toStdString(), err))
-            notify(tr("main-files.recording-master-mix", "recording master mix -> ") + f.getFileName());
+            notify(tr("main-files.recording-master-mix", "recording master mix -> {name}", {{"name", f.getFileName()}}));
         else
-            notifyError(tr("main-files.mix-record-failed", "mix record failed: ") + juce::String(err));
+            notifyError(tr("main-files.mix-record-failed", "mix record failed: {reason}", {{"reason", juce::String(err)}}));
     });
 }
 
@@ -281,9 +283,9 @@ void MainComponent::revertPatch() {
         history_.begin(currentFile_, false, nowMs());
         refreshAfterLoad();
         if (sounding) ensureAudio();
-        notify(tr("main-files.reverted", "reverted ") + juce::File(currentFile_).getFileName() + strayWarning());
+        notify(tr("main-files.reverted", "reverted {name}", {{"name", juce::File(currentFile_).getFileName()}}) + strayWarning());
     } else {
-        notifyError(tr("main-files.revert-failed", "revert failed: ") + juce::String(err));
+        notifyError(tr("main-files.revert-failed", "revert failed: {reason}", {{"reason", juce::String(err)}}));
     }
 }
 
@@ -336,7 +338,7 @@ void MainComponent::startBounce(const BounceWants& wants) {
                             [written = wants.written()] { written.revealToUser(); });
             presentCard(std::move(card));
             noteBounce(std::max(0.0, wants.toBeat - wants.fromBeat) * kSecondsPerMinute / std::max(1.0, host_.tempo()));
-        } else notifyError(tr("main-files.bounce-failed", "bounce failed: ") + told.said);
+        } else notifyError(tr("main-files.bounce-failed", "bounce failed: {reason}", {{"reason", told.said}}));
         juce::MessageManager::callAsync([this] { bounce_.reset(); });
     });
 }

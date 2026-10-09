@@ -37,8 +37,9 @@ inline void addOpenSeconds(double seconds) {
 }
 
 inline juce::String summary(const usage::Tally& t) {
-    return tr("usage.open-for", "Open for") + " " + juce::String(usage::spanText(t.openSeconds)) + "  -  "
-         + juce::String(usage::spanText(t.bouncedSeconds)) + " " + tr("usage.bounced", "bounced");
+    return tr("usage.open-for-bounced", "Open for {open}  -  {bounced} bounced",
+              {{"open", juce::String(usage::spanText(t.openSeconds))},
+               {"bounced", juce::String(usage::spanText(t.bouncedSeconds))}});
 }
 
 inline void openDonatePage() { juce::URL(juce::String(about::kSite) + "/donate").launchInDefaultBrowser(); }

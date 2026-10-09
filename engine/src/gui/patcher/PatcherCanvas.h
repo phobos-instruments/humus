@@ -68,6 +68,9 @@ public:
     juce::Point<int> videoInletPosForTest(const std::string& n, int port) { return videoInletPos(n, port); }
     juce::Point<int> videoOutletPosForTest(const std::string& n, int port) { return videoOutletPos(n, port); }
     juce::Point<int> midiOutletPosForTest(const std::string& n, int port) { return midiOutletPos(n, port); }
+    juce::Point<int> portPosForTest(const std::string& n, int port, bool outlet, bool midi = false) {
+        return portPos({n, port, outlet, midi});
+    }
     void controlPortCountsForTest(const std::string& n, int& ins, int& outs) const { controlPortCounts(n, ins, outs); }
     void enterScopeForTest(const std::string& scope) { scope_ = scope; refresh(); }
     int dragHintsForTest(const std::string& node, bool control) {
@@ -119,6 +122,7 @@ public:
     void mouseDrag(const juce::MouseEvent&) override;
     void mouseUp(const juce::MouseEvent&) override;
     void mouseMove(const juce::MouseEvent&) override;
+    void modifierKeysChanged(const juce::ModifierKeys&) override;
     bool keyPressed(const juce::KeyPress&) override;
 
     juce::Rectangle<int> nodeBounds(const std::string& name);
@@ -148,6 +152,46 @@ private:
                 && control == o.control;
         }
     };
+
+    struct PortRef {
+        std::string node;
+        int port = 0;
+        bool outlet = false, midi = false, video = false, control = false;
+    };
+    struct ShownCord {
+        Edge real;
+        std::string srcNode;
+        int srcPort = 0;
+        std::string dstNode;
+        int dstPort = 0;
+        int channel = 0;
+    };
+    struct Carried { ShownCord cord; int shift = 0; };
+    struct CarriedLine { juce::Point<float> a, b; Edge cord; };
+
+    std::vector<ShownCord> shownCords(bool midi, bool video, bool control) const;
+    std::vector<ShownCord> cordsAt(const PortRef& at) const;
+    bool grabbable(const PortRef& at, const juce::ModifierKeys& mods) const;
+    bool beginGrab(const PortRef& at, juce::Point<int> p, const juce::ModifierKeys& mods);
+    void dragGrab(juce::Point<int> p);
+    void dropGrab(juce::Point<int> p, const juce::ModifierKeys& mods);
+    void cancelGrab();
+    bool landingAt(juce::Point<int> p, PortRef& out);
+    bool fitsDrag(const PortRef& t) const;
+    bool isDragAnchor(const PortRef& t) const;
+    bool cordInHand() const { return drag_ == Drag::Cord || (drag_ == Drag::Grab && grabLifted_); }
+    bool refusesDuringDrag(const PortRef& t) const { return cordInHand() && !fitsDrag(t) && !isDragAnchor(t); }
+    void noteRefusal(juce::Point<int> p);
+    bool pairFits(const PortRef& at) const;
+    std::vector<std::pair<int, int>> cordsForDrop(const std::string& node, int port,
+                                                  const juce::ModifierKeys& mods) const;
+    void dropAudioCords(const std::string& node, int port, const juce::ModifierKeys& mods);
+    void moveCarried(const PortRef& to, const juce::ModifierKeys& mods);
+    void reconnect(const ShownCord& c, const PortRef& to, int port);
+    void removeCord(const Edge& e);
+    bool isCarried(const Edge& e) const;
+    std::vector<CarriedLine> carriedLines();
+    juce::Point<int> portPos(const PortRef& at);
 
     struct DisplayNode { std::string name; bool pod = false; };
     std::vector<DisplayNode> displayNodes() const;
@@ -232,7 +276,7 @@ private:
     std::set<std::string> selection_;
     std::string primary_;
 
-    enum class Drag { None, Move, Cord, Select, Pan } drag_ = Drag::None;
+    enum class Drag { None, Move, Cord, Select, Pan, Grab } drag_ = Drag::None;
     bool beginPan(const juce::MouseEvent& e);
     juce::Point<int> panMouseAnchor_, panViewAnchor_;
     std::string dragNode_;
@@ -305,6 +349,13 @@ private:
     bool hoverPortVideo_ = false;
     bool cordTarget_ = false;
     std::string cordTargetNode_; int cordTargetPort_ = 0;
+
+    std::vector<Carried> carried_;
+    PortRef grabFrom_, grabTarget_;
+    juce::Point<int> grabStart_;
+    bool grabLifted_ = false;
+    bool refused_ = false;
+    PortRef refusedAt_;
 
     struct Flow {
         int level = 0;

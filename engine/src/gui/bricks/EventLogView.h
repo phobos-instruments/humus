@@ -5,6 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/Localisation.h"
 #include "gui/host/BrickHost.h"
 #include "gui/editor/readouts/LogReadings.h"
 #include "gui/style/LookAndFeel.h"
@@ -81,7 +82,7 @@ private:
     }
 
     readout::EventLog log_;
-    juce::TextButton pause_{"Pause"}, clear_{"Clear"};
+    juce::TextButton pause_{tr("event-log.pause", "Pause")}, clear_{tr("event-log.clear", "Clear")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EventLogView)
 };

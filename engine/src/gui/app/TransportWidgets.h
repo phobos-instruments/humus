@@ -80,10 +80,12 @@ private:
 
 class TimeSigChip : public juce::Component, public juce::SettableTooltipClient {
 public:
-    TimeSigChip() {
-        setTooltip(juce::String::fromUTF8(
-            "Time signature - click for the common meters, Custom for any other "
-            "(13/16, 4/1), or automate it to change meter along the song"));
+    TimeSigChip() { applyTexts(); }
+
+    void applyTexts() {
+        setTooltip(tr("transport-widgets.time-signature-tip",
+                      "Time signature - click for the common meters, Custom for any other "
+                      "(13/16, 4/1), or automate it to change meter along the song"));
     }
     std::function<Meter()> get;
     std::function<void(Meter)> set;

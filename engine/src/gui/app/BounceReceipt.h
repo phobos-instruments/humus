@@ -84,21 +84,25 @@ inline juce::String sizeText(double bytes) {
 
 inline juce::String clockText(double span) {
     const int whole = (int) std::lround(span);
-    if (whole < 60) return juce::String(std::max(1, whole)) + " "
-                           + tr("receipt.seconds", "seconds");
+    if (whole < 60) return trn("receipt.seconds", "{n} second", "{n} seconds", std::max(1, whole));
     const int minutes = whole / 60, rest = whole % 60;
-    juce::String out = juce::String(minutes) + " "
-                       + (minutes == 1 ? tr("receipt.minute", "minute")
-                                       : tr("receipt.minutes", "minutes"));
-    if (rest > 0) out += " " + juce::String(rest) + " " + tr("receipt.seconds", "seconds");
-    return out;
+    const auto out = trn("receipt.minutes", "{n} minute", "{n} minutes", minutes);
+    if (rest == 0) return out;
+    return tr("receipt.minutes-and-seconds", "{minutes} {seconds}",
+              {{"minutes", out}, {"seconds", trn("receipt.seconds", "{n} second", "{n} seconds", rest)}});
 }
 
-inline juce::String barsText(const BounceWants& w) {
+inline int wholeBars(const BounceWants& w) {
     const double bars = (w.toBeat - w.fromBeat) / 4.0;
-    if (bars < 0.5 || std::abs(bars - std::lround(bars)) > 0.01) return {};
-    return " (" + juce::String((int) std::lround(bars)) + " "
-           + tr("receipt.bars", "bars") + ")";
+    if (bars < 0.5 || std::abs(bars - std::lround(bars)) > 0.01) return 0;
+    return (int) std::lround(bars);
+}
+
+inline juce::String durationText(const BounceWants& w, double span) {
+    const auto clock = clockText(span);
+    const int bars = wholeBars(w);
+    if (bars == 0) return clock;
+    return trn("receipt.duration-with-bars", "{time} ({n} bar)", "{time} ({n} bars)", bars, {{"time", clock}});
 }
 
 inline juce::String sizeName(const BounceWants& w) {
@@ -137,7 +141,7 @@ inline Summary summarise(const BounceWants& w, double tempo) {
     }
 
     if (out.files.empty()) return out;
-    out.duration = clockText(span) + barsText(w);
+    out.duration = durationText(w, span);
     const double takes = span * (w.video ? (double) w.width * w.height / (1280.0 * 720.0) / 3.0
                                          : 0.05);
     out.size = sizeText(bytes);

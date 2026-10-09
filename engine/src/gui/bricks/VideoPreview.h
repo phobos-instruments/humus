@@ -5,6 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/Localisation.h"
 #include "gui/editor/BrickBindings.h"
 #include "gui/host/BrickHost.h"
 #include "hum/Organism.h"
@@ -52,9 +53,8 @@ public:
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
             const bool on = preview_.waitingForPicture();
-            g.drawFittedText(on ? juce::String::fromUTF8("no picture yet\xe2\x80\xa6")
-                                : juce::String::fromUTF8(
-                                      "preview is off - tick Preview below"),
+            g.drawFittedText(on ? tr("video-preview.no-picture-yet", "no picture yet...")
+                                : tr("video-preview.preview-is-off", "preview is off - tick Preview below"),
                              r.reduced(14), juce::Justification::centred, 3);
         }
         meter_.paintButton(g, r);

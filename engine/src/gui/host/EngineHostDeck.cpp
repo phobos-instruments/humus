@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/EngineHost.h"
 
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <vector>
 
+#include "hum/caps/Audio.h"
 #include "hum/caps/Files.h"
 #include "hum/dsp/SoundFileBuffer.h"
 #include "core/library/BankLibrary.h"
@@ -79,6 +83,23 @@ std::vector<float> DeckHost::waveBetween(const std::string& name, std::int64_t f
     return {};
 }
 
+std::vector<std::int64_t> DeckHost::loudSpots(const std::string& name) {
+    std::vector<std::int64_t> starts((std::size_t) LoudSpotSource::kMaxLoudSpots, 0);
+    if (audio_.graph())
+        if (auto* d = dynamic_cast<LoudSpotSource*>(audio_.graph()->find(name))) {
+            starts.resize((std::size_t) d->loudSpots(starts.data(), (int) starts.size()));
+            return starts;
+        }
+    return {};
+}
+
+float DeckHost::loudestSample(const std::string& name) {
+    if (audio_.graph())
+        if (auto* d = dynamic_cast<LoudSpotSource*>(audio_.graph()->find(name)))
+            return d->loudestSample();
+    return 0.0f;
+}
+
 std::int64_t DeckHost::quantizeToGrid(const std::string& name, const DeckParams& p, std::int64_t sample) {
     if (host_.liveParamValue(name, p.quantize) < 0.5) return sample;
     BeatGrid g{std::max(1.0, host_.liveParamValue(name, p.bpm)),
@@ -139,6 +160,37 @@ void DeckHost::scaleBeatLoop(const std::string& name, const DeckParams& p, doubl
     const double spb = kSecondsPerMinute / std::max(1.0, host_.liveParamValue(name, p.bpm)) * sampleRate(name);
     host_.setParam(name, p.loopBeats, beats);
     host_.setParam(name, p.loopOut, in + beats * spb);
+}
+void DeckHost::peakSearch(const std::string& name, const DeckParams& p) {
+    const auto spots = loudSpots(name);
+    if (spots.empty()) return;
+    const double sr = sampleRate(name);
+    const BeatGrid g{std::max(1.0, host_.liveParamValue(name, p.bpm)),
+                     (std::int64_t) host_.liveParamValue(name, p.gridOffset)};
+    const bool snap = host_.liveParamValue(name, p.quantize) >= 0.5;
+    auto loopStart = [&](std::int64_t at) {
+        if (!snap) return at;
+        const double beat = std::floor(g.sampleToBeat((double) at, sr));
+        return (std::int64_t) std::max(0.0, g.beatToSample(beat, sr));
+    };
+    const bool looping = host_.liveParamValue(name, p.loop) >= 0.5;
+    const auto in = (std::int64_t) host_.liveParamValue(name, p.loopIn);
+    std::size_t next = 0;
+    for (std::size_t i = 0; i < spots.size(); ++i)
+        if (looping && loopStart(spots[i]) == in) next = (i + 1) % spots.size();
+    const auto start = loopStart(spots[next]);
+    host_.setParam(name, p.loopBeats, kPeakLoopBeats);
+    host_.setParam(name, p.loopIn, (double) start);
+    host_.setParam(name, p.loopOut, (double) start + kPeakLoopBeats * g.samplesPerBeat(sr));
+    host_.setParam(name, p.loop, 1.0);
+    seek(name, start);
+    startPlaying(name);
+}
+void DeckHost::calibrateTimecode(const std::string& name) {
+    float tone = 0.0f;
+    if (audio_.graph())
+        if (auto* t = dynamic_cast<TimecodeTone*>(audio_.graph()->find(name))) tone = t->timecodeToneHz();
+    host_.setParam(name, "TimecodeRest", tone > 0.0f ? (double) tone : 0.0);
 }
 void DeckHost::toggleLoop(const std::string& name, const DeckParams& p) {
     host_.setParam(name, p.loop, host_.liveParamValue(name, p.loop) >= 0.5 ? 0.0 : 1.0);
@@ -206,7 +258,8 @@ bool DeckHost::fireTrigger(const std::string& name, const std::string& param, do
                          || param == "CueNudgeBack" || param == "CueNudgeForward"
                          || param == "CueSet" || param == "CueJump"
                          || param == "LoopHalve" || param == "LoopDouble"
-                         || param == "BeatLoop_1" || param == "BeatLoop_4" || param == "BeatLoop_8";
+                         || param == "BeatLoop_1" || param == "BeatLoop_4" || param == "BeatLoop_8"
+                         || param == "Peak" || param == "TimecodeCalibrate";
 
     const auto p = schemaParams();
     if (param.rfind("Pad_", 0) == 0) {
@@ -235,6 +288,8 @@ bool DeckHost::fireTrigger(const std::string& name, const std::string& param, do
     if (param == "CueJump")    { jumpCue(name, p); return true; }
     if (param == "LoopHalve")  { scaleBeatLoop(name, p, 0.5); return true; }
     if (param == "LoopDouble") { scaleBeatLoop(name, p, 2.0); return true; }
+    if (param == "Peak")       { peakSearch(name, p); return true; }
+    if (param == "TimecodeCalibrate") { calibrateTimecode(name); return true; }
     for (const auto& b : kBeatLoops)
         if (param == b.param) { setBeatLoop(name, p, b.beats); return true; }
     return false;

@@ -61,8 +61,7 @@ public:
                 .withConnectionTimeoutMs(5000)
                 .withStatusCode(&status));
         if (stream == nullptr) {
-            error = "Could not reach " + base
-                    + (status > 0 ? " (HTTP " + juce::String(status) + ")" : juce::String());
+            error = unreachable(base, status);
             return {};
         }
         return modelNamesFromTags(juce::JSON::parse(stream->readEntireStreamAsString()));
@@ -133,7 +132,7 @@ public:
         if (req.model.isEmpty()) req.model = model();
         const bool useClaude = provider() == "claude";
         if (useClaude && apiKey().isEmpty()) {
-            if (onDone) onDone({}, "No Claude API key set (Settings > AI)");
+            if (onDone) onDone({}, tr("ai-client.no-claude-api-key", "No Claude API key set (Settings > AI)"));
             return;
         }
         juce::Thread::launch([req = std::move(req), useClaude,
@@ -167,7 +166,7 @@ private:
         if (error.isNotEmpty()) return;
         response = juce::JSON::parse(raw);
         if (auto errVar = response["error"]; errVar.isObject())
-            error = "API error: " + errVar["message"].toString();
+            error = tr("ai-client.api-error", "API error: {message}", {{"message", errVar["message"].toString()}});
         else if (!response["content"].isArray())
             error = tr("ai-client.malformed-reply-from-the-api", "Malformed reply from the API");
     }
@@ -183,14 +182,17 @@ private:
         const auto raw = post(base + "/api/chat",
                               juce::JSON::toString(juce::var(body), true), {}, 180000, error,
                               ticket);
-        if (error.isNotEmpty()) { error << " (Ollama at " << base << ")"; return; }
+        if (error.isNotEmpty()) {
+            error = tr("ai-client.error-at-ollama", "{error} (Ollama at {address})", {{"error", error}, {"address", base}});
+            return;
+        }
         const auto r = juce::JSON::parse(raw);
         if (r["error"].isString()) {
-            error = "Ollama: " + r["error"].toString();
+            error = tr("ai-client.ollama-error", "Ollama: {message}", {{"message", r["error"].toString()}});
             return;
         }
         if (!r["message"].isObject()) {
-            error = "Malformed reply from Ollama at " + base;
+            error = tr("ai-client.malformed-reply-from-ollama", "Malformed reply from Ollama at {address}", {{"address", base}});
             return;
         }
         response = anthropicResponseFromOllama(r);
@@ -209,10 +211,16 @@ private:
         if (ticket != nullptr) ticket->attach(nullptr);
         if (!connected) {
             const int status = stream.getStatusCode();
-            error = "Could not reach " + juce::URL(url).getDomain()
-                    + (status > 0 ? " (HTTP " + juce::String(status) + ")" : juce::String());
+            error = unreachable(juce::URL(url).getDomain(), status);
         }
         return body;
+    }
+
+    static juce::String unreachable(const juce::String& address, int status) {
+        if (status > 0)
+            return tr("ai-client.could-not-reach-http", "Could not reach {address} (HTTP {status})",
+                      {{"address", address}, {"status", juce::String(status)}});
+        return tr("ai-client.could-not-reach", "Could not reach {address}", {{"address", address}});
     }
 };
 

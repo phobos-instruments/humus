@@ -4,6 +4,13 @@
 # compile; hum_core links it for the app, hum_face_probe for the purity probe
 # (docs/dev/headless-host-and-bricks.md, Part E).
 add_library(hum_models STATIC
+  src/core/app/Catalogue.cpp
+  src/core/app/LanguageCatalogue.cpp
+  src/core/app/PageLanguage.cpp
+  src/core/app/PluralRule.cpp
+  src/core/app/PoFile.cpp
+  src/core/app/ReleaseNotes.cpp
+  src/core/audio/AudioGlitches.cpp
   src/core/browser/BrowserIndex.cpp
   src/core/browser/BrowserModel.cpp
   src/core/browser/BrowserPlaces.cpp

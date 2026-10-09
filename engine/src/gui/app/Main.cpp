@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include <cstdio>
+#include <utility>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
@@ -15,6 +16,7 @@
 #include "io/AutosaveStore.h"
 #include "gui/assistant/AiClient.h"
 #include "gui/app/AppSettings.h"
+#include "gui/plugins/PluginGraveyard.h"
 #include "gui/plugins/PluginQuarantine.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/app/AppCommandLine.h"
@@ -24,9 +26,11 @@
 #include "gui/app/DefaultPatchHandler.h"
 #include "io/PatchFormat.h"
 #include "gui/app/SplashWindow.h"
+#include "gui/common/Languages.h"
 #include "gui/common/Localisation.h"
 #include "gui/app/NativeMac.h"
 #include "gui/app/StartWindow.h"
+#include "gui/app/WhatsNew.h"
 #include "gui/settings/ThemeStore.h"
 
 namespace hum {
@@ -84,6 +88,10 @@ public:
         }
 
         appsignals::installQuitHandlers(AutosaveStore().autosaveFile());
+        PluginHost::instance().setRetirer(
+            [this](std::unique_ptr<juce::AudioPluginInstance> instance, const std::string& classRaw) {
+                graveyard_.bury(std::move(instance), classRaw);
+            });
 
         disableAutomaticWindowTabbing();
         juce::LookAndFeel::setDefaultLookAndFeel(&laf_);
@@ -114,9 +122,10 @@ public:
         }
         splash_ = std::make_unique<SplashWindow>([this] {
             bootRouted_ = true;
-            if (openPending()) return;
-            if (isFirstBoot()) showMainWindowWithGuide();
-            else openStartWindow();
+            if (!openPending()) {
+                if (isFirstBoot()) showMainWindowWithGuide();
+                else openStartWindow();
+            }
         });
         raiseOnDesktop(*splash_);
         splash_->setCentrePosition(juce::Desktop::getInstance().getDisplays()
@@ -165,7 +174,8 @@ public:
             if (!dir.isDirectory()) dir = juce::File(s.getString("lastDir", ""));
             if (!dir.isDirectory())
                 dir = juce::File::getSpecialLocation(juce::File::userHomeDirectory);
-            startChooser_ = std::make_unique<juce::FileChooser>("Open patch", dir, kPatchOpenFilter);
+            startChooser_ = std::make_unique<juce::FileChooser>(tr("main.open-patch", "Open patch"), dir,
+                                                                kPatchOpenFilter);
             startChooser_->launchAsync(
                 juce::FileBrowserComponent::openMode
                     | juce::FileBrowserComponent::canSelectFiles,
@@ -205,9 +215,11 @@ public:
         const juce::String display =
             rep->pluginClassRaw.upToFirstOccurrenceOf("?", false, false);
         auto* aw = new juce::AlertWindow(
-            "Humus hung last time",
-            display + "'s interface was active when Humus stopped responding.\n"
-            "Quarantine its UI? (You can still open it explicitly.)",
+            tr("main.humus-hung-last-time", "Humus hung last time"),
+            tr("main.interface-active-when-hung",
+               "{plugin}'s interface was active when Humus stopped responding.\n"
+               "Quarantine its UI? (You can still open it explicitly.)",
+               {{"plugin", display}}),
             juce::MessageBoxIconType::WarningIcon);
         aw->addButton(tr("main.quarantine", "Quarantine"), 1, juce::KeyPress(juce::KeyPress::returnKey));
         aw->addButton(tr("main.ignore", "Ignore"), 0, juce::KeyPress(juce::KeyPress::escapeKey));
@@ -231,12 +243,22 @@ public:
             mc->routeFilePicksToBrowser();
         }
         if (offerHandler) offerDefaultPatchHandlerOnce();
+        offerWhatsNewOnce();
     }
 
     bool isFirstBoot() const {
         return forceFirstBoot_
             || wantsOnboarding(AppSettings::instance().getInt("guide.seen", 0) != 0,
                                AppSettings::instance().getInt("setup.completed", 0) != 0);
+    }
+
+    void offerWhatsNewOnce() {
+        if (std::exchange(whatsNewOffered_, true)) return;
+        juce::MessageManager::callAsync([this] {
+            const auto centre = window_ ? window_->getScreenBounds().getCentre()
+                                        : juce::Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.getCentre();
+            offerWhatsNewAtLaunch(whatsNew_, isFirstBoot(), centre);
+        });
     }
 
     void showMainWindowWithGuide() {
@@ -269,6 +291,9 @@ public:
         window_ = nullptr;
         start_ = nullptr;
         splash_ = nullptr;
+        whatsNew_ = nullptr;
+        PluginHost::instance().setRetirer({});
+        graveyard_.flush();
         AutosaveStore().clear();
         UiWatchdog::defaultBreadcrumb().deleteFile();
         juce::LookAndFeel::setDefaultLookAndFeel(nullptr);
@@ -333,13 +358,16 @@ private:
     HumLookAndFeel laf_;
     bool forceFirstBoot_ = false;
     bool bootRouted_ = false;
+    bool whatsNewOffered_ = false;
     juce::File pendingOpen_;
     std::unique_ptr<juce::FileLogger> logger_;
     juce::ComponentAnimator bootFade_;
+    PluginGraveyard graveyard_;
     std::unique_ptr<SplashWindow> splash_;
     std::unique_ptr<StartWindow> start_;
     std::unique_ptr<juce::FileChooser> startChooser_;
     std::unique_ptr<MainWindow> window_;
+    std::unique_ptr<WhatsNewWindow> whatsNew_;
     std::unique_ptr<BridgeWorker> bridgeWorker_;
     std::unique_ptr<BridgeWorkerEditor> bridgeWorkerEditor_;
 };

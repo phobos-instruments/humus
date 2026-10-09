@@ -1,0 +1,88 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Humus\n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-SHA256: fc14d034f93a8012ffb3ece1c5a4f9de2384587d7ddada91be1113d033b6c2a0\n"
+
+msgctxt "category.Buses"
+msgid "Buses"
+msgstr ""
+
+msgctxt "category.Input/Output"
+msgid "Input/Output"
+msgstr ""
+
+msgctxt "category.MIDI Inputs"
+msgid "MIDI Inputs"
+msgstr ""
+
+msgctxt "category.MIDI Outputs"
+msgid "MIDI Outputs"
+msgstr ""
+
+msgctxt "category.Mixers"
+msgid "Mixers"
+msgstr ""
+
+#: packs/core/organisms/Bus/organism.json
+msgctxt "organism.Bus.blurb"
+msgid "A named point many cords can meet at, to fan sound in or out."
+msgstr ""
+
+#: packs/core/organisms/Crossfader/organism.json
+msgctxt "organism.Crossfader.blurb"
+msgid "Slides between two sounds, one hand on the fade."
+msgstr ""
+
+#: packs/core/organisms/FileRecorder/organism.json
+msgctxt "organism.FileRecorder.blurb"
+msgid "Writes what reaches it to a sound file while the patch plays."
+msgstr ""
+
+#: packs/core/organisms/Gain/organism.json
+msgctxt "organism.Gain.blurb"
+msgid "A volume knob with a mute, the plainest box on the canvas."
+msgstr ""
+
+#: packs/core/organisms/Invert/organism.json
+msgctxt "organism.Invert.blurb"
+msgid "Flips a signal upside down, for phase tricks and subtraction."
+msgstr ""
+
+#: packs/core/organisms/MidiBus/organism.json
+msgctxt "organism.MidiBus.blurb"
+msgid "A named meeting point for MIDI cords."
+msgstr ""
+
+#: packs/core/organisms/MidiIO/organism.json
+msgctxt "organism.MidiIn.blurb"
+msgid "Notes and controllers arriving from a MIDI port, or from every port at once."
+msgstr ""
+
+#: packs/core/organisms/MidiIO/organism.json
+msgctxt "organism.MidiOut.blurb"
+msgid "Sends notes and controllers out to a MIDI port."
+msgstr ""
+
+#: packs/core/organisms/Mixer/organism.json
+msgctxt "organism.Mixer.blurb"
+msgid "Several sounds into one, each with its own level and pan."
+msgstr ""
+
+#: packs/core/organisms/Send/organism.json
+msgctxt "organism.Send.blurb"
+msgid "A tap that mails a copy of a sound to a bus, wet next to dry."
+msgstr ""
+
+#: packs/core/organisms/SoundIn/organism.json
+msgctxt "organism.SoundIn.blurb"
+msgid "The sound coming into the interface, one channel per box."
+msgstr ""
+
+#: packs/core/organisms/SoundOut/organism.json
+msgctxt "organism.SoundOut.blurb"
+msgid "The interface output, where the patch is finally heard."
+msgstr ""

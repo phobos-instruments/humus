@@ -12,6 +12,7 @@
 #include "io/WavWriter.h"
 #include "core/midi/MidiRecord.h"
 #include "core/packs/Roles.h"
+#include "gui/common/Localisation.h"
 #include "hum/NoteSchedule.h"
 
 namespace hum {
@@ -48,9 +49,13 @@ void EngineHost::primeNoteTracks(AudioGraph& g) const {
 
 std::string EngineHost::consolidate(const std::string& node, double fromBeat,
                                     double toBeat, std::string& error) {
-    if (toBeat <= fromBeat) { error = "nothing selected to consolidate"; return {}; }
+    if (toBeat <= fromBeat) { error = tr("engine-host.nothing-selected-to-consolidate", "nothing selected to consolidate").toStdString(); return {}; }
     const auto source = bounceSourceOf(node);
-    if (source.empty()) { error = node + " does not reach anything that makes sound"; return {}; }
+    if (source.empty()) {
+        error = tr("engine-host.does-not-reach-sound", "{name} does not reach anything that makes sound",
+                   {{"name", juce::String(node)}}).toStdString();
+        return {};
+    }
 
     AudioGraph g;
     if (!buildGraph(model_, g, error)) return {};
@@ -59,7 +64,11 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
     primeNoteTracks(g);
     const int idx = g.indexOf(source);
     const int chans = g.outputChannels(idx);
-    if (idx < 0 || chans <= 0) { error = source + " has no audio output"; return {}; }
+    if (idx < 0 || chans <= 0) {
+        error = tr("engine-host.has-no-audio-output", "{name} has no audio output", {{"name", juce::String(source)}})
+                    .toStdString();
+        return {};
+    }
 
     std::vector<std::vector<float>> pcm((size_t) chans);
     const double guard = songEndBeat() + (toBeat - fromBeat) + 64.0;
@@ -76,7 +85,7 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
                 pcm[(size_t) c].push_back(g.outputData(idx, c)[n]);
         }
     }
-    if (pcm[0].empty()) { error = "that range rendered nothing"; return {}; }
+    if (pcm[0].empty()) { error = tr("engine-host.range-rendered-nothing", "that range rendered nothing").toStdString(); return {}; }
 
     const auto dir = record_.recordingsDir();
     dir.createDirectory();
@@ -85,7 +94,10 @@ std::string EngineHost::consolidate(const std::string& node, double fromBeat,
         existing.push_back(f.getFileName().toStdString());
     const auto path = dir.getChildFile(juce::String(rec::nextTakeName(existing, node + "-consolidated")))
                           .getFullPathName().toStdString();
-    if (!writeWav(path, pcm, sampleRate_)) { error = "could not write " + path; return {}; }
+    if (!writeWav(path, pcm, sampleRate_)) {
+        error = tr("engine-host.could-not-write", "could not write {path}", {{"path", juce::String(path)}}).toStdString();
+        return {};
+    }
 
     std::vector<ConnectionModel> downstream;
     for (const auto& c : model_.connections)
@@ -124,9 +136,16 @@ std::vector<std::string> EngineHost::noteTargets(const std::string& node) {
 std::string EngineHost::printToTimeline(const std::string& node, std::string& error, int atTick,
                                         const std::string& preferredTarget) {
     const auto* cm = model_.byName(node);
-    if (cm == nullptr || midiOutletsOf(node) <= 0) { error = node + " emits no notes"; return {}; }
+    if (cm == nullptr || midiOutletsOf(node) <= 0) {
+        error = tr("engine-host.emits-no-notes", "{name} emits no notes", {{"name", juce::String(node)}}).toStdString();
+        return {};
+    }
     const auto targets = noteTargets(node);
-    if (targets.empty()) { error = "cord " + node + " to an instrument first"; return {}; }
+    if (targets.empty()) {
+        error = tr("engine-host.cord-to-an-instrument-first", "cord {name} to an instrument first",
+                   {{"name", juce::String(node)}}).toStdString();
+        return {};
+    }
     std::string target = preferredTarget;
     if (std::find(targets.begin(), targets.end(), target) == targets.end()) target = targets.front();
     std::vector<int> ports;
@@ -142,7 +161,11 @@ std::string EngineHost::printToTimeline(const std::string& node, std::string& er
     g.prepare(sampleRate_, block_, model_.clock.tempo);
     g.transport().setLoop(0.0, 0.0, false);
     const int idx = g.indexOf(node);
-    if (idx < 0) { error = node + " is not in the graph"; return {}; }
+    if (idx < 0) {
+        error = tr("engine-host.is-not-in-the-graph", "{name} is not in the graph", {{"name", juce::String(node)}})
+                    .toStdString();
+        return {};
+    }
 
     std::vector<TimedMidi> events;
     while (g.transport().beats() < lengthBeats + 1.0) {
@@ -165,7 +188,11 @@ std::string EngineHost::printToTimeline(const std::string& node, std::string& er
     std::vector<TimedMidi> remaining;
     const auto notes = assembleRecordedNotes(events, lengthTicks, 0, true,
                                              Pattern::kTicksPerBeat / 4, remaining, 0.0, false);
-    if (notes.empty()) { error = node + " played nothing in that span"; return {}; }
+    if (notes.empty()) {
+        error = tr("engine-host.played-nothing-in-that-span", "{name} played nothing in that span",
+                   {{"name", juce::String(node)}}).toStdString();
+        return {};
+    }
     std::sort(events.begin(), events.end(), [](const TimedMidi& a, const TimedMidi& b) { return a.beat < b.beat; });
 
     const int bar = 4 * Pattern::kTicksPerBeat;

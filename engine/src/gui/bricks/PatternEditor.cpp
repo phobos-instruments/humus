@@ -54,7 +54,7 @@ void PatternEditor::bindKnob(ParamSlider& k, const std::string& param) {
 }
 
 void PatternEditor::build() {
-    auto mkToggle = [&](const std::string& caption, const std::string& param) {
+    auto mkToggle = [&](const juce::String& caption, const std::string& param) {
         auto t = std::make_unique<juce::ToggleButton>(caption);
         t->setColour(juce::ToggleButton::textColourId, Palette::text);
         t->setToggleState(host_.liveParamValue(name_, param) >= 0.5, juce::dontSendNotification);
@@ -69,8 +69,8 @@ void PatternEditor::build() {
     bindKnob(*masterKnob_, spec_.masterVolumeParam);
     addAndMakeVisible(*masterKnob_);
 
-    if (!spec_.muteParam.empty()) { muteToggle_ = mkToggle("Mute", spec_.muteParam); addAndMakeVisible(*muteToggle_); }
-    if (!spec_.gateParam.empty()) { gateToggle_ = mkToggle("Gate 1 & 2", spec_.gateParam); addAndMakeVisible(*gateToggle_); }
+    if (!spec_.muteParam.empty()) { muteToggle_ = mkToggle(tr("pattern-editor.mute", "Mute"), spec_.muteParam); addAndMakeVisible(*muteToggle_); }
+    if (!spec_.gateParam.empty()) { gateToggle_ = mkToggle(tr("pattern-editor.gate-1-and-2", "Gate 1 & 2"), spec_.gateParam); addAndMakeVisible(*gateToggle_); }
 
     for (int i = 0; i < spec_.laneCount; ++i) {
         if (!spec_.volumeParamPrefix.empty()) {
@@ -79,7 +79,7 @@ void PatternEditor::build() {
             addAndMakeVisible(*k); volKnobs_.push_back(std::move(k));
         }
         if (!spec_.enableParamPrefix.empty()) {
-            auto t = mkToggle("", spec_.enableParamPrefix + std::to_string(i + 1));
+            auto t = mkToggle({}, spec_.enableParamPrefix + std::to_string(i + 1));
             addAndMakeVisible(*t); enableToggles_.push_back(std::move(t));
         }
         if (!spec_.fileParamPrefix.empty()) {

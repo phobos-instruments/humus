@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <string>
+#include <thread>
 #include <vector>
 #include "hum/CameraCapture.h"
 #include "hum/SerialPort.h"
@@ -15,6 +17,7 @@
 #include "core/net/LinkChase.h"
 #include "core/packs/Roles.h"
 #include "gui/app/AppSettings.h"
+#include "gui/common/Localisation.h"
 #include "io/PatchLoader.h"
 #include "io/WavWriter.h"
 #include "hum/caps/Audio.h"
@@ -24,6 +27,7 @@ namespace hum {
 
 namespace {
 constexpr const char* kAudioStateKey = "audio.state";
+constexpr const char* kPreviewOutputKey = "audio.preview-output";
 }
 
 void EngineHost::requestFadeIn() {
@@ -36,7 +40,15 @@ void EngineHost::persistAudioState() {
         AppSettings::instance().set(kAudioStateKey, state->toString());
 }
 
+void EngineHost::setPreviewOutput(int firstChannel) {
+    const int first = firstChannel >= 0 && firstChannel + 1 < kMaxDeviceChannels ? firstChannel : -1;
+    previewFirst_.store(first, std::memory_order_relaxed);
+    AppSettings::instance().set(kPreviewOutputKey, first);
+    scheduleAuxChannelCheck();
+}
+
 void EngineHost::seedDeviceFormatFromSettings() {
+    previewFirst_.store(AppSettings::instance().getInt(kPreviewOutputKey, -1), std::memory_order_relaxed);
     if (ignoreSavedFormat_) return;
     if (auto saved = juce::parseXML(AppSettings::instance().getString(kAudioStateKey))) {
         const double r = saved->getDoubleAttribute("audioDeviceRate", 0.0);
@@ -55,25 +67,48 @@ void EngineHost::startAudioAsync(std::function<void(bool, std::string)> done) {
     auto saved = std::shared_ptr<juce::XmlElement>(
         juce::parseXML(AppSettings::instance().getString(kAudioStateKey)).release());
     if (saved) saved->removeAttribute("audioDeviceRate");
+    const auto device = saved != nullptr
+        ? saved->getStringAttribute("audioOutputDeviceName").toStdString() : std::string();
 
-    scheduler_.post([this, alive = hostAlive_, saved, done = std::move(done)] {
-        if (!*alive) return;
-        juce::String e = audio_->open(2, 2, saved.get());
-        if (e.isNotEmpty()) e = audio_->open(0, 2, saved.get());
-        if (e.isNotEmpty()) e = audio_->open(0, 2, nullptr);
-        audioStarting_ = false;
-        if (cancelStart_) {
-            cancelStart_ = false;
-            audio_->close();
-            if (done) done(false, "cancelled");
-            return;
-        }
-        if (e.isNotEmpty()) { if (done) done(false, e.toStdString()); return; }
-        audio_->attach(*this);
-        audioRunning_ = true;
-        requestFadeIn();
-        if (done) done(true, {});
-    });
+    auto finish = [this, alive = hostAlive_, saved, device, done = std::move(done)](DeviceAnswer answer) {
+        if (*alive) finishAudioStart(answer, device, saved.get(), done);
+    };
+    auto probe = audio_->prober();
+    if (!probe || device.empty()) {
+        scheduler_.post([finish] { finish(DeviceAnswer::Unknown); });
+        return;
+    }
+    auto& scheduler = scheduler_;
+    std::thread([probe, device, &scheduler, finish] {
+        const auto answer = probe(device);
+        scheduler.post([finish, answer] { finish(answer); });
+    }).detach();
+}
+
+void EngineHost::finishAudioStart(DeviceAnswer answer, const std::string& device,
+                                  const juce::XmlElement* saved,
+                                  const std::function<void(bool, std::string)>& done) {
+    audioStarting_ = false;
+    if (cancelStart_) {
+        cancelStart_ = false;
+        if (done) done(false, "cancelled");
+        return;
+    }
+    if (answer == DeviceAnswer::Silent) {
+        if (done)
+            done(false, tr("engine-host.device-did-not-respond",
+                           "{name} did not respond: check its cable, or pick another in Audio settings",
+                           {{"name", juce::String(device).trim()}}).toStdString());
+        return;
+    }
+    juce::String e = audio_->open(2, 2, saved);
+    if (e.isNotEmpty()) e = audio_->open(0, 2, saved);
+    if (e.isNotEmpty()) e = audio_->open(0, 2, nullptr);
+    if (e.isNotEmpty()) { if (done) done(false, e.toStdString()); return; }
+    audio_->attach(*this);
+    audioRunning_ = true;
+    requestFadeIn();
+    if (done) done(true, {});
 }
 
 bool EngineHost::ensureAudio() {
@@ -131,6 +166,10 @@ void EngineHost::ensureAuxChannels() {
                 if (first + k >= 2 && first + k < kMaxDeviceChannels) needOut.setBit(first + k);
         }
     }
+    if (const int cue = previewFirst_.load(std::memory_order_relaxed); cue >= 2 && cue + 1 < kMaxDeviceChannels) {
+        needOut.setBit(cue);
+        needOut.setBit(cue + 1);
+    }
     if (needIn.isZero() && needOut.isZero()) return;
 
     const juce::BigInteger curIn = dev->getActiveInputChannels();
@@ -172,7 +211,7 @@ void EngineHost::audioDeviceAboutToStart(juce::AudioIODevice* d) {
     const int ringLen = (int) (kRingSeconds * rate);
     const int nIn = d->getActiveInputChannels().countNumberOfSetBits();
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         sampleRate_ = rate;
         block_ = d->getCurrentBufferSizeSamples();
         outputLatency_ = d->getOutputLatencyInSamples();

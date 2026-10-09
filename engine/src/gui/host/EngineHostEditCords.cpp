@@ -9,6 +9,7 @@
 #include "core/packs/ClassString.h"
 #include "core/packs/PackRegistry.h"
 #include "core/packs/Roles.h"
+#include "gui/common/Localisation.h"
 #include "hum/Registry.h"
 
 namespace hum {
@@ -168,7 +169,8 @@ std::string EngineHost::missingClassNote(const std::string& name) const {
     if (isClockPseudo(cm->displayClass) || isMetapadPseudo(cm->displayClass)) return {};
     auto& pr = PackRegistry::instance();
     if (const auto* p = pr.packOf(cm->classRaw); p != nullptr && !p->enabled)
-        return "The " + p->manifest.name + " pack is disabled";
+        return tr("engine-host.pack-is-disabled", "The {pack} pack is disabled", {{"pack", juce::String(p->manifest.name)}})
+            .toStdString();
     if (!Registry::instance().isKnown(cm->classRaw))
         return "No installed pack provides this organism";
     return {};

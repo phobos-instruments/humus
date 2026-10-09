@@ -4,6 +4,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/Localisation.h"
 #include "gui/style/LookAndFeel.h"
 
 namespace hum {
@@ -27,7 +28,7 @@ private:
     juce::Label title_, providerLabel_, endpointLabel_, modelLabel_, keyLabel_, hint_;
     juce::ComboBox providerCombo_, modelCombo_;
     juce::TextEditor endpointEdit_, keyEdit_;
-    juce::TextButton testBtn_{"Test"};
+    juce::TextButton testBtn_{tr("settings-ai.test", "Test")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(AiSettingsView)
 };

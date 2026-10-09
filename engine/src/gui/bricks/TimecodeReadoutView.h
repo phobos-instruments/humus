@@ -50,11 +50,16 @@ public:
         g.setColour(reading_.present() ? Palette::text : Palette::textDim.withAlpha(alpha::dim));
         g.drawText(readingText(), r, juce::Justification::centredLeft, false);
 
-        if (reading_.on() && reading_.restCarrierHz() > 1.0f) {
+        if (reading_.on() && reading_.onTheNeedle()) {
+            g.setFont(juce::FontOptions(10.0f));
+            g.setColour(ink::state::ok);
+            g.drawText(tr("timecode-readout.on-the-needle", "on the needle"), r,
+                       juce::Justification::centredRight, false);
+        } else if (reading_.on() && reading_.restCarrierHz() > 1.0f) {
             g.setFont(juce::FontOptions(10.0f));
             g.setColour(Palette::textDim);
-            g.drawText(juce::String(juce::roundToInt(reading_.restCarrierHz()))
-                           + juce::String(tr("timecode-readout.hz-at-1x", " Hz = 1x")),
+            g.drawText(tr("timecode-readout.hz-at-1x", "{hz} Hz = 1x",
+                          {{"hz", juce::String(juce::roundToInt(reading_.restCarrierHz()))}}),
                        r, juce::Justification::centredRight, false);
         }
     }
@@ -84,9 +89,9 @@ private:
         const float s = reading_.speed();
         const auto times = juce::String(std::abs(s), 2)
                            + juce::String(tr("timecode-readout.times", "x"));
-        if (std::abs(s) < 0.02f) return times + juce::String(tr("timecode-readout.held", "  held"));
-        return times + (s > 0.0f ? juce::String(tr("timecode-readout.forward", "  forward"))
-                                 : juce::String(tr("timecode-readout.backwards", "  backwards")));
+        if (std::abs(s) < 0.02f) return tr("timecode-readout.held", "{speed}  held", {{"speed", times}});
+        return s > 0.0f ? tr("timecode-readout.forward", "{speed}  forward", {{"speed", times}})
+                        : tr("timecode-readout.backwards", "{speed}  backwards", {{"speed", times}});
     }
 
     readout::Timecode reading_;

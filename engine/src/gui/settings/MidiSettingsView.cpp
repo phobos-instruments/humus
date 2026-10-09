@@ -229,8 +229,10 @@ void MidiSettingsView::rebuildDeviceLists() {
         }
         if (want.isNotEmpty() && selected == 1) {
             auto saved = AppSettings::instance().getString(key + ".name");
-            row.combo.addItem((saved.isNotEmpty() ? saved + " " : juce::String())
-                                  + "(not connected)", 2);
+            row.combo.addItem(saved.isNotEmpty()
+                                  ? tr("midi-settings.device-not-connected", "{name} (not connected)", {{"name", saved}})
+                                  : tr("midi-settings.not-connected", "(not connected)"),
+                              2);
             selected = 2;
         }
         row.combo.setSelectedId(selected, juce::dontSendNotification);
@@ -256,9 +258,9 @@ void MidiSettingsView::timerCallback() {
     if (count != lastMapCount_) rebuildMappings();
     padStatus_.setText(
         host_->gamepads().enabled()
-            ? juce::String::fromUTF8(host_->gamepads().statusText().c_str())
-                  + juce::String(" - OSC Learn + move an axis to map")
-            : juce::String("off"),
+            ? tr("midi-settings.gamepad-status", "{status} - OSC Learn + move an axis to map",
+                 {{"status", juce::String::fromUTF8(host_->gamepads().statusText().c_str())}})
+            : tr("midi-settings.gamepads-off", "off"),
         juce::dontSendNotification);
 }
 
@@ -276,7 +278,7 @@ void MidiSettingsView::rebuildMappings() {
         row.text->setText(text, juce::dontSendNotification);
         row.text->setFont(juce::FontOptions(12.0f));
         mapRows_.addAndMakeVisible(*row.text);
-        row.remove = std::make_unique<juce::TextButton>("Remove");
+        row.remove = std::make_unique<juce::TextButton>(tr("midi-settings.remove", "Remove"));
         row.remove->onClick = [this, remove = std::move(remove)] {
             remove();
             rebuildMappings();
@@ -316,11 +318,11 @@ void MidiSettingsView::rebuildMappings() {
 void MidiSettingsView::addModifierRow(const MidiModifier& m) {
     MapRow row;
     row.text = std::make_unique<juce::Label>();
-    row.text->setText(juce::String(midiSourceLabel(m.source)) + tr("midi-settings.combo-key", "   combo key"),
+    row.text->setText(tr("midi-settings.combo-key", "{source}   combo key", {{"source", juce::String(midiSourceLabel(m.source))}}),
                       juce::dontSendNotification);
     row.text->setFont(juce::FontOptions(12.0f));
     mapRows_.addAndMakeVisible(*row.text);
-    row.latching = std::make_unique<juce::ToggleButton>("Latching");
+    row.latching = std::make_unique<juce::ToggleButton>(tr("midi-settings.latching", "Latching"));
     row.latching->setToggleState(m.latching, juce::dontSendNotification);
     row.latching->setTooltip(tr("midi-settings.tap-once-to-switch-the", "Tap once to switch the bank on, tap again to switch it off"));
     row.ownAction = std::make_unique<juce::ToggleButton>(tr("midi-settings.own-action", "Own action"));

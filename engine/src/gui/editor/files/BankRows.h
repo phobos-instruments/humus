@@ -117,10 +117,15 @@ inline std::string bankBadge(const std::string& kind) {
     return initials.size() > 1 ? initials : kind.substr(0, kBadgeStem) + ".";
 }
 
-inline std::string scaleDetail(int degrees, const std::string& description) {
-    std::string out = degrees > 0 ? std::to_string(degrees) + (degrees == 1 ? " note" : " notes") : std::string();
+inline std::string scaleDetail(const std::string& noteCount, const std::string& description) {
+    std::string out = noteCount;
     if (!description.empty()) out += (out.empty() ? "" : " - ") + description;
     return out;
+}
+
+inline std::string scaleDetail(int degrees, const std::string& description) {
+    return scaleDetail(degrees > 0 ? std::to_string(degrees) + (degrees == 1 ? " note" : " notes") : std::string(),
+                       description);
 }
 
 inline std::vector<BankRow> filterBankRows(const std::vector<BankRow>& rows, BankBucket bucket,

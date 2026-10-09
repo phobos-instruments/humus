@@ -89,6 +89,15 @@ private:
         return {};
     }
 
+    static juce::String labelOf(const SidebarItem& item) {
+        switch (item.place.type) {
+            case Place::Type::Recent: return tr("browser.place-recent", "Recent");
+            case Place::Type::Favourites: return tr("browser.place-favourites", "Favourites");
+            case Place::Type::Projects: return tr("browser.place-projects", "Projects");
+            default: return juce::String::fromUTF8(item.label.c_str());
+        }
+    }
+
     std::vector<Row> layout() const {
         std::vector<Row> rows;
         int y = 6;
@@ -174,7 +183,7 @@ private:
         }
         g.setColour(item.dimmed ? Palette::textDim.withAlpha(alpha::muted) : current ? Palette::text : Palette::text.withAlpha(alpha::heavy));
         g.setFont(juce::FontOptions(12.5f));
-        g.drawText(juce::String::fromUTF8(item.label.c_str()), r.withTrimmedLeft(kPad), juce::Justification::centredLeft, true);
+        g.drawText(labelOf(item), r.withTrimmedLeft(kPad), juce::Justification::centredLeft, true);
         if (!scanning_.empty() && !item.place.path.empty() && scanning_ == item.place.path) {
             g.setColour(Palette::accent.withAlpha(alpha::mid));
             g.fillRect(r.getX() + kPad, r.getBottom() - 2, r.getWidth() / 3, 1);

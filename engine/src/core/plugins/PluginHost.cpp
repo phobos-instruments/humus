@@ -87,6 +87,7 @@ std::unique_ptr<juce::AudioPluginInstance> PluginHost::createInstance(
     juce::String err;
     auto inst = formats_.createPluginInstance(desc, sampleRate, blockSize, err);
     if (!inst) error = err.toStdString();
+    else ++instancesMade_;
     return inst;
 }
 
@@ -140,13 +141,20 @@ const std::vector<ParamDesc>& PluginHost::schemaFor(const std::string& classRaw)
     std::string err;
     auto probe = createInstance(*desc, kDefaultSampleRate, 512, err);
     if (!probe) return empty;
+    const auto& schema = learnFrom(classRaw, *probe);
+    retire(std::move(probe), classRaw);
+    return schema;
+}
 
-    ioCache_[classRaw] = {std::max(0, probe->getTotalNumInputChannels()),
-                          std::max(1, probe->getTotalNumOutputChannels()),
-                          probe->acceptsMidi(), probe->producesMidi(), probe->hasEditor()};
+const std::vector<ParamDesc>& PluginHost::learnFrom(const std::string& classRaw,
+                                                    juce::AudioPluginInstance& instance) {
+    if (auto it = schemaCache_.find(classRaw); it != schemaCache_.end()) return it->second;
+    ioCache_[classRaw] = {std::max(0, instance.getTotalNumInputChannels()),
+                          std::max(1, instance.getTotalNumOutputChannels()),
+                          instance.acceptsMidi(), instance.producesMidi(), instance.hasEditor()};
 
     std::vector<ParamDesc> schema;
-    const auto& params = probe->getParameters();
+    const auto& params = instance.getParameters();
     const int n = std::min((int) params.size(), kMaxParams);
     std::unordered_map<std::string, int> seen;
     for (int i = 0; i < n; ++i) {

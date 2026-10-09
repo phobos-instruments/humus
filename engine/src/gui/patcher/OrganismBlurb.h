@@ -3,11 +3,13 @@
 #pragma once
 #include <map>
 #include <string>
+#include <utility>
 
 #include <juce_core/juce_core.h>
 
 #include "core/packs/ClassString.h"
 #include "core/packs/PackRegistry.h"
+#include "core/app/PageLanguage.h"
 #include "core/app/PickerModel.h"
 #include "gui/help/HelpDocs.h"
 #include "gui/help/HelpMarkdown.h"
@@ -17,12 +19,13 @@ namespace hum {
 inline constexpr int kBlurbMaxChars = 140;
 
 inline juce::String organismBlurb(const std::string& cls) {
-    static std::map<std::string, juce::String> cache;
-    if (const auto it = cache.find(cls); it != cache.end()) return it->second;
+    static std::map<std::pair<std::string, std::string>, juce::String> cache;
+    const auto key = std::make_pair(cls, pageLanguage());
+    if (const auto it = cache.find(key); it != cache.end()) return it->second;
     juce::String out;
     const auto display = parseClassString(cls).display;
     if (const auto* m = PackRegistry::instance().classManifest(display); m && !m->blurb.empty())
-        out = juce::String::fromUTF8(m->blurb.c_str());
+        out = trKey("organism." + display + ".blurb", juce::String::fromUTF8(m->blurb.c_str()));
     if (out.isEmpty()) {
         const auto doc = loadOrganismDoc(display);
         if (doc.text.isNotEmpty()) {
@@ -37,7 +40,7 @@ inline juce::String organismBlurb(const std::string& cls) {
     if (out.length() > kBlurbMaxChars)
         out = out.substring(0, kBlurbMaxChars).upToLastOccurrenceOf(" ", false, false)
             + juce::String::fromUTF8("\xe2\x80\xa6");
-    cache[cls] = out;
+    cache[key] = out;
     return out;
 }
 

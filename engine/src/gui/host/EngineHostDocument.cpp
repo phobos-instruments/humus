@@ -214,7 +214,7 @@ void EngineHost::storeSessionAudioTo(const std::string& path) {
             slot->userEdited = true;
             const auto forDsp = textForDsp(cm.name, text);
             {
-                const juce::ScopedLock sl(lock_);
+                const AudioLock::Scope sl(lock_);
                 if (graph_)
                     if (auto* o = graph_->find(cm.name)) {
                         if (auto* pp = o->params.byName(param)) pp->text = forDsp;

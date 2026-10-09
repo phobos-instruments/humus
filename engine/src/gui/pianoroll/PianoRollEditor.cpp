@@ -59,11 +59,11 @@ void PianoRollEditor::buildToolbar() {
 
     buildRecordButtons();
 
-    struct { ToolButton* b; Tool t; const char* tip; } tools[] = {
-        {&toolP_, Tool::Pointer, "Pointer: select, marquee, move (1)"},
-        {&toolD_, Tool::Draw, "Draw: drag to create notes (2)"},
-        {&toolS_, Tool::Scissors, "Scissors: click a note to split it (3)"},
-        {&toolE_, Tool::Eraser, "Eraser: sweep to delete notes (4)"},
+    struct { ToolButton* b; Tool t; juce::String tip; } tools[] = {
+        {&toolP_, Tool::Pointer, tr("piano-roll-editor.pointer-tip", "Pointer: select, marquee, move (1)")},
+        {&toolD_, Tool::Draw, tr("piano-roll-editor.draw-tip", "Draw: drag to create notes (2)")},
+        {&toolS_, Tool::Scissors, tr("piano-roll-editor.scissors-tip", "Scissors: click a note to split it (3)")},
+        {&toolE_, Tool::Eraser, tr("piano-roll-editor.eraser-tip", "Eraser: sweep to delete notes (4)")},
     };
     for (auto& t : tools) {
         t.b->setClickingTogglesState(false);

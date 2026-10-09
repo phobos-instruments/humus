@@ -8,6 +8,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/params/ParamUnit.h"
+#include "gui/common/Localisation.h"
 #include "gui/style/LookAndFeel.h"
 
 namespace hum {
@@ -38,8 +39,8 @@ public:
         };
         field(min_, lo);
         field(max_, hi);
-        fromLabel_.setText("from", juce::dontSendNotification);
-        toLabel_.setText("to", juce::dontSendNotification);
+        fromLabel_.setText(tr("range-prompt.from", "from"), juce::dontSendNotification);
+        toLabel_.setText(tr("range-prompt.to", "to"), juce::dontSendNotification);
         const juce::String sfx = unitSuffix(unit);
         minUnit_.setText(sfx, juce::dontSendNotification);
         maxUnit_.setText(sfx, juce::dontSendNotification);
@@ -88,7 +89,7 @@ private:
 
     juce::Label title_, fromLabel_, toLabel_, minUnit_, maxUnit_;
     juce::TextEditor min_, max_;
-    juce::TextButton okBtn_{"OK"};
+    juce::TextButton okBtn_{tr("range-prompt.ok", "OK")};
     Unit unit_;
     double lo_, hi_;
     std::function<void(double, double)> onPick_;

@@ -13,6 +13,37 @@
 namespace hum {
 namespace {
 
+inline LayoutSpec filePlayerLayout(const std::string& cls) {
+    using CT = LayoutSpec::ControlType;
+    LayoutSpec spec;
+    const std::string suf = "FilePlayer";
+    if (cls.size() <= suf.size() || cls.compare(cls.size() - suf.size(), suf.size(), suf) != 0)
+        return spec;
+    const int n = parseBoundedInt(cls.substr(0, cls.size() - suf.size()));
+    if (n < 4 || n > 32) return spec;
+
+    spec.width = kRackHalfW;
+    spec.controls.push_back({CT::Combo, "", "", "Outputs", 8, 4, 108, 20, 2, false,
+                             {"2", "4", "6", "8", "16", "24", "32"}, {{"reclass", "inputs"}}});
+    const int rowH = 22, pitch = 26, w = kRackHalfW - 16;
+    int y = 30;
+    for (int row = 1; row <= n; ++row) {
+        spec.controls.push_back({CT::SoundFile, "File_" + std::to_string(row), "", std::to_string(row),
+                                 8, y, w, rowH, 0, false, {}, {{"kind", "Samples"}}});
+        y += pitch;
+    }
+    y += 4;
+    spec.controls.push_back({CT::FileTransport, "", "", "", 8, y, w, 52, 0, false, {},
+                             {{"stop", "Stop"}, {"rewind", "Rewind"}, {"seek-back", "SeekBack"},
+                              {"seek-forward", "SeekForward"}, {"active", "Active"}, {"loop", "Loop"}}});
+    y += 60;
+    spec.controls.push_back({CT::Toggle, "Loop", "", "Loop", 8, y, 72, 24, 0, false});
+    spec.controls.push_back({CT::Toggle, "AutoRewind", "", "Rewind", 84, y, 72, 24, 0, false});
+    spec.controls.push_back({CT::DoubleSpinner, "LoopDelay", "", "Delay", 160, y, 125, 24, 2, false});
+    spec.height = y + 24 + 14;
+    return spec;
+}
+
 inline LayoutSpec consoleLayout(const std::string& cls) {
     using CT = LayoutSpec::ControlType;
     LayoutSpec spec;
@@ -173,6 +204,8 @@ void hum_register_layouts_humus(Registry& r) {
             if (auto s = dynamicsLayout(cls); !s.controls.empty()) return toJson(s);
         if (genId.empty() || genId == "paraeq")
             if (auto s = paraEqLayout(cls); !s.controls.empty()) return toJson(s);
+        if (genId.empty() || genId == "fileplayer")
+            if (auto s = filePlayerLayout(cls); !s.controls.empty()) return toJson(s);
         return {};
     });
 }

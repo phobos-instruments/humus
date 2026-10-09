@@ -16,6 +16,7 @@ if(HUM_GUI)
     target_sources(hum_tests PRIVATE
       tests/host/HostRenderTests.cpp
       tests/host/CaptureTests.cpp
+      tests/host/GuardedDeviceTypeTests.cpp
       tests/host/RollRecordTests.cpp
       tests/host/LaneEditTests.cpp
       tests/host/LatchTests.cpp
@@ -31,6 +32,10 @@ if(HUM_GUI)
       tests/host/SaveTests.cpp
       tests/host/DeckPortTests.cpp
       tests/host/DeckTriggerTests.cpp
+      tests/host/DeckPeakTests.cpp
+      tests/host/DeckCalibrateTests.cpp
+      tests/host/DeviceStartTests.cpp
+      tests/host/AudioGlitchTests.cpp
       tests/host/MarkerTests.cpp
       tests/host/VideoPadAudioTests.cpp
       tests/host/HostTeardownTests.cpp
@@ -38,10 +43,12 @@ if(HUM_GUI)
       tests/host/ClockTests.cpp
       tests/host/LevelMeterTests.cpp
       tests/host/DevicePathTests.cpp
+      tests/host/WideDeviceTests.cpp
       tests/host/ParamEditTests.cpp
       tests/host/MapTests.cpp
       tests/host/RangeEndTests.cpp
       tests/host/MidiInputTests.cpp
+      tests/host/WarpedClipTests.cpp
       tests/host/PresetLayerTests.cpp
       tests/host/DeclaredRollTests.cpp
       tests/host/AssistantLevelTests.cpp

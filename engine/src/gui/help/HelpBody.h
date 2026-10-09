@@ -9,11 +9,12 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/help/HelpMarkdown.h"
+#include "gui/help/SelectableText.h"
 #include "gui/style/LookAndFeel.h"
 
 namespace hum {
 
-class HelpBody : public juce::Component {
+class HelpBody : public SelectableText {
 public:
     HelpBody(const HelpDoc& doc, const std::string& cls,
              std::function<void(const std::string&)> onOrganism = {})
@@ -114,6 +115,7 @@ public:
     }
 
     void paint(juce::Graphics& g) override {
+        paintSelection(g);
         const auto r = getLocalBounds().toFloat().reduced((float) kPad);
         for (auto& c : chunks_) {
             if (c.def) {
@@ -156,7 +158,7 @@ public:
         const int tok = tokenAt(e.position, ch);
         const bool overUrl = urlAt(e.position).isNotEmpty();
         setMouseCursor(tok >= 0 || overUrl ? juce::MouseCursor::PointingHandCursor
-                                           : juce::MouseCursor::NormalCursor);
+                                           : juce::MouseCursor::IBeamCursor);
         if (tok != hotToken_ || ch != hotChunk_) {
             hotToken_ = tok;
             hotChunk_ = ch;
@@ -175,6 +177,7 @@ public:
     }
 
     void mouseUp(const juce::MouseEvent& e) override {
+        if (draggedToSelect() || e.mods.isPopupMenu()) return;
         if (const auto url = urlAt(e.position); url.isNotEmpty()) {
             juce::URL(url).launchInDefaultBrowser();
             return;
@@ -183,6 +186,31 @@ public:
         const int tok = tokenAt(e.position, ch);
         if (tok >= 0 && onOrganism_)
             onOrganism_(ch->tokens[(size_t) tok].text.toStdString());
+    }
+
+protected:
+    std::vector<TextSpan> textSpans() const override {
+        const auto r = getLocalBounds().toFloat().reduced((float) kPad);
+        std::vector<TextSpan> out;
+        for (const auto& c : chunks_) {
+            if (c.def) {
+                const float top = r.getY() + c.y;
+                out.push_back({&c.layout, {r.getX() + c.labelW, top + kRowPad}, c.attr.getText(), c.label,
+                               {r.getX(), top, r.getWidth(), c.rowH}});
+            } else if (!c.tokens.empty()) {
+                juce::String text;
+                juce::Rectangle<float> area;
+                for (size_t k = 0; k < c.tokens.size(); ++k) {
+                    text += c.tokens[k].text;
+                    area = k == 0 ? c.rects[k] : area.getUnion(c.rects[k]);
+                }
+                out.push_back({nullptr, area.getPosition(), text, {}, area});
+            } else {
+                const juce::Point<float> at(r.getX(), r.getY() + c.y);
+                out.push_back({&c.layout, at, c.attr.getText(), {}, {at.x, at.y, r.getWidth(), c.layout.getHeight()}});
+            }
+        }
+        return out;
     }
 
 private:

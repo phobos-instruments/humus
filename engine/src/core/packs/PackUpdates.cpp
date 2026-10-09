@@ -6,25 +6,6 @@
 
 namespace hum {
 
-namespace {
-int component(const juce::String& s) {
-    return s.containsOnly("0123456789") && s.isNotEmpty() ? s.getIntValue() : 0;
-}
-}
-
-int compareVersions(const std::string& a, const std::string& b) {
-    juce::StringArray pa, pb;
-    pa.addTokens(juce::String(a), ".", "");
-    pb.addTokens(juce::String(b), ".", "");
-    const int n = juce::jmax(pa.size(), pb.size());
-    for (int i = 0; i < n; ++i) {
-        const int x = i < pa.size() ? component(pa[i]) : 0;
-        const int y = i < pb.size() ? component(pb[i]) : 0;
-        if (x != y) return x < y ? -1 : 1;
-    }
-    return 0;
-}
-
 std::vector<PackUpdate> availableUpdates(const std::string& manifestJson,
                                          const std::vector<InstalledPack>& installed,
                                          int hostAbi,

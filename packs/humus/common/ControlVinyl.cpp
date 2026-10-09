@@ -6,12 +6,14 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <chrono>
+#include <iterator>
 
+#include "common/TimecodeTables.h"
+#include "hum/dsp/Biquad.h"
 #include "hum/dsp/DspMath.h"
 
-extern "C" {
-#include "timecoder.h"
-}
+#include "xwax/timecoder.h"
 
 namespace hum {
 
@@ -27,6 +29,14 @@ constexpr double kChallengerMinSeconds = 2.0;
 constexpr double kFirstAcquireSeconds = 0.5;
 constexpr double kSilenceIsARecordChange = 1.0;
 constexpr double kHoldAfterSilence = 2.0;
+constexpr double kToneSmoothingSeconds = 0.1;
+constexpr double kToneSettleSeconds = 0.4;
+constexpr double kCutoffUnderTone = 0.2;
+constexpr double kLowestCutoffHz = 40.0;
+constexpr double kCutoffRetuneHz = 2.0;
+constexpr double kButterworthQ[2] = {0.5412, 1.3066};
+constexpr auto kTableWait = std::chrono::seconds(10);
+constexpr double kPositionsPerSecond = 1000.0;
 
 const char* const kKnownFormats[] = {
     "serato_2a", "serato_2b", "serato_cd", "traktor_a", "traktor_b",
@@ -48,7 +58,9 @@ struct ControlVinyl::Impl {
     };
 
     std::vector<Candidate> candidates;
-    std::vector<signed short> interleaved;
+    std::vector<signed short> interleaved, raw;
+    Biquad highpass[2][2];
+    double highpassHz = 0.0;
     double sampleRate = kDefaultSampleRate;
     int chosen = -1;
     int provisional = -1;
@@ -72,16 +84,30 @@ struct ControlVinyl::Impl {
         return timecoder_get_pitch(&tc) * timecoder_get_resolution(&tc);
     }
 
+    void tuneHighpass(double hz) {
+        highpassHz = hz;
+        for (auto& channel : highpass)
+            for (int stage = 0; stage < 2; ++stage) channel[stage].setHighpass(sampleRate, hz, kButterworthQ[stage]);
+    }
+
+    float filtered(int channel, float v) {
+        return highpass[channel][1].process(highpass[channel][0].process(v));
+    }
+
     void start(double sr, const std::string& format) {
         clear();
         sampleRate = sr > 0.0 ? sr : kDefaultSampleRate;
+        for (auto& channel : highpass)
+            for (auto& stage : channel) stage.reset();
+        tuneHighpass(kLowestCutoffHz);
+        candidates.reserve(std::size(kKnownFormats));
         for (const char* name : kKnownFormats) {
             if (!format.empty() && format != name) continue;
-            auto* def = timecoder_find_definition(name);
+            auto* def = TimecodeTables::instance().waitFor(name, kTableWait);
             if (def == nullptr) continue;
             candidates.push_back({name});
             auto& c = candidates.back();
-            timecoder_init(&c.tc, def, 1.0, (unsigned int) sampleRate, false);
+            timecoder_init(&c.tc, def, 1.0, (unsigned int) sampleRate, false, false);
             c.live = true;
         }
         if (candidates.size() == 1) chosen = 0;
@@ -91,16 +117,20 @@ struct ControlVinyl::Impl {
 ControlVinyl::ControlVinyl() : impl_(std::make_unique<Impl>()) {}
 ControlVinyl::~ControlVinyl() = default;
 
-std::vector<std::string> ControlVinyl::formats() {
-    std::vector<std::string> out;
-    for (const char* name : kKnownFormats)
-        if (timecoder_find_definition(name) != nullptr) out.emplace_back(name);
-    return out;
+const std::vector<std::string>& ControlVinyl::formats() {
+    static const std::vector<std::string> names(std::begin(kKnownFormats), std::end(kKnownFormats));
+    return names;
 }
 
 void ControlVinyl::prepare(double sampleRate, const std::string& format) {
     impl_->start(sampleRate, format);
     settled_ = impl_->chosen >= 0 ? impl_->candidates[(size_t) impl_->chosen].name : std::string();
+    chooseRecord(record_.format(), recordRpm45_);
+}
+
+void ControlVinyl::chooseRecord(const std::string& format, bool rpm45) {
+    recordRpm45_ = rpm45;
+    record_.choose(format, rpm45 ? RecordDecoder::kRpm45 : 1.0, impl_->sampleRate);
 }
 
 void ControlVinyl::reset() {
@@ -110,30 +140,66 @@ void ControlVinyl::reset() {
 }
 
 void ControlVinyl::push(const float* left, const float* right, int numSamples) {
-    if (impl_->candidates.empty() || numSamples <= 0) return;
+    if (numSamples <= 0) return;
+    const bool recordChosen = !record_.format().empty();
     for (int at = 0; at < numSamples; at += kChunk) {
         const int n = std::min(kChunk, numSamples - at);
+        const double cutoff = std::max(kLowestCutoffHz, toneHz_ * kCutoffUnderTone);
+        if (std::abs(cutoff - impl_->highpassHz) > kCutoffRetuneHz) impl_->tuneHighpass(cutoff);
         impl_->interleaved.resize((std::size_t) n * 2);
+        impl_->raw.resize((std::size_t) n * 2);
         for (int i = 0; i < n; ++i) {
-            impl_->interleaved[(std::size_t) i * 2] = toPcm(left[at + i]);
-            impl_->interleaved[(std::size_t) i * 2 + 1] = toPcm(right[at + i]);
+            impl_->raw[(std::size_t) i * 2] = toPcm(left[at + i]);
+            impl_->raw[(std::size_t) i * 2 + 1] = toPcm(right[at + i]);
+            impl_->interleaved[(std::size_t) i * 2] = toPcm(impl_->filtered(0, left[at + i]));
+            impl_->interleaved[(std::size_t) i * 2 + 1] = toPcm(impl_->filtered(1, right[at + i]));
         }
-        for (std::size_t c = 0; c < impl_->candidates.size(); ++c) {
-            if (impl_->chosen >= 0 && (int) c != impl_->chosen) continue;
-            timecoder_submit(&impl_->candidates[c].tc, impl_->interleaved.data(), (size_t) n);
-            if (impl_->chosen < 0 && timecoder_get_position(&impl_->candidates[c].tc, nullptr) != -1) {
-                impl_->chosen = (int) c;
-                settled_ = impl_->candidates[c].name;
-            }
-        }
+        if (recordChosen) record_.submit(impl_->raw.data(), n);
+        const auto known = record_.read();
+        if (!known.live) submitDetecting(n);
         impl_->pushed += n;
-        learnRestTone(impl_->measuredHz(), (double) n / impl_->sampleRate);
+        const double seconds = (double) n / impl_->sampleRate;
+        followTone(known.live ? known.carrierHz : impl_->measuredHz(), seconds);
+        if (known.live) continue;
+        learnRestTone(toneSeconds_ > kToneSettleSeconds || toneHz_ <= 0.0 ? toneHz_ : -1.0, seconds);
         if (impl_->chosen < 0 && impl_->provisional < 0) latchProvisional();
     }
 }
 
-void ControlVinyl::learnRestTone(double hz, double seconds) {
+void ControlVinyl::submitDetecting(int frames) {
+    for (std::size_t c = 0; c < impl_->candidates.size(); ++c) {
+        if (impl_->chosen >= 0 && (int) c != impl_->chosen) continue;
+        timecoder_submit(&impl_->candidates[c].tc, impl_->interleaved.data(), (size_t) frames);
+        if (impl_->chosen < 0 && timecoder_get_position(&impl_->candidates[c].tc, nullptr) != -1) {
+            impl_->chosen = (int) c;
+            settled_ = impl_->candidates[c].name;
+        }
+    }
+}
+
+void ControlVinyl::followTone(double hz, double seconds) {
     const double f = std::abs(hz);
+    if (f < kToneFloorHz) {
+        toneHz_ = 0.0;
+        toneSeconds_ = 0.0;
+        return;
+    }
+    toneSeconds_ += seconds;
+    toneHz_ = toneHz_ <= 0.0 ? f
+                             : toneHz_ + (f - toneHz_) * std::min(1.0, seconds / kToneSmoothingSeconds);
+}
+
+void ControlVinyl::pinRest(double hz) {
+    rest_ = RestTone{};
+    if (hz < kToneFloorHz) return;
+    rest_.hz = hz;
+    rest_.heldSeconds = kHoldCeilingSeconds;
+    rest_.pinned = true;
+}
+
+void ControlVinyl::learnRestTone(double hz, double seconds) {
+    if (rest_.pinned || hz < 0.0) return;
+    const double f = hz;
     if (f < kToneFloorHz) {
         rest_.quietSeconds += seconds;
         if (rest_.quietSeconds > kSilenceIsARecordChange) {
@@ -183,6 +249,15 @@ void ControlVinyl::latchProvisional() {
 
 ControlVinyl::Reading ControlVinyl::read() const {
     Reading out;
+    if (const auto known = record_.read(); known.live) {
+        out.carrierHz = known.carrierHz;
+        out.restHz = rest_.pinned ? rest_.hz : known.nominalHz;
+        out.speed = out.restHz > 0.0 ? out.carrierHz / out.restHz : known.speed;
+        out.toneArriving = std::abs(out.carrierHz) > 1.0;
+        out.located = known.located;
+        out.needleSeconds = known.seconds;
+        return out;
+    }
     if (impl_->candidates.empty()) return out;
     const int settled = impl_->chosen >= 0 ? impl_->chosen : impl_->provisional;
     const auto& c = impl_->candidates[(std::size_t) std::max(0, settled)];
@@ -197,8 +272,7 @@ ControlVinyl::Reading ControlVinyl::read() const {
         const signed int pos = timecoder_get_position(&tc, nullptr);
         if (pos != -1) {
             out.located = true;
-            out.positionSamples = (std::int64_t) ((double) pos / timecoder_get_resolution(&tc)
-                                                  * impl_->sampleRate);
+            out.needleSeconds = (double) pos / kPositionsPerSecond;
         }
     }
     return out;

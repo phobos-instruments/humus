@@ -6,13 +6,14 @@
 #include <utility>
 #include <memory>
 
+#include "hum/Registry.h"
 #include "hum/dsp/SoundFileBuffer.h"
 
 namespace hum {
 
 void FilePlayer::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
-    loadFromFile(params.getText("File"));
+    loadFromFile({});
     if (hasPending_.load()) applyPending();
     reset();
 }
@@ -23,30 +24,55 @@ void FilePlayer::reset() {
     prevActive_ = false;
 }
 
-void FilePlayer::loadFromFile(const std::string& uri) {
-    if (uri == loadedUri_) return;
-    loadedUri_ = uri;
-    juce::AudioBuffer<float> buf;
-    double fileSr = sampleRate_;
-    const bool ok = loadSoundFile(uri, buf, fileSr);
-    const int64_t len = ok ? buf.getNumSamples() : 0;
-    {
+void FilePlayer::loadFromFile(const std::string&) {
+    for (int t = 0; t < rows_; ++t) {
+        const std::string uri = resolvePath(params.getText(fileParam(t)), "FilePlayer");
+        if (uri == loadedUri_[(size_t) t]) continue;
+        loadedUri_[(size_t) t] = uri;
+        juce::AudioBuffer<float> buf;
+        double fileSr = sampleRate_;
+        const bool ok = !uri.empty() && loadSoundFile(uri, buf, fileSr);
+        if (!ok) buf.setSize(0, 0);
+        loadedLen_[(size_t) t] = buf.getNumSamples();
         const juce::ScopedLock sl(loadLock_);
-        pending_ = std::move(buf);
+        pending_[(size_t) t] = std::move(buf);
+        pendingSet_[(size_t) t] = 1;
+        hasPending_.store(true);
     }
     fileSr_.store(sampleRate_);
-    fileLen_.store(len);
-    hasPending_.store(true);
+    fileLen_.store(*std::max_element(loadedLen_.begin(), loadedLen_.end()));
 }
 
 void FilePlayer::applyPending() {
     const juce::ScopedTryLock sl(loadLock_);
     if (!sl.isLocked()) return;
-    std::swap(file_, pending_);
-    fileLen_.store(file_.getNumSamples());
+    for (int t = 0; t < rows_; ++t) {
+        if (!pendingSet_[(size_t) t]) continue;
+        std::swap(files_[(size_t) t], pending_[(size_t) t]);
+        pendingSet_[(size_t) t] = 0;
+    }
+    length_ = 0;
+    for (const auto& f : files_) length_ = std::max(length_, (int64_t) f.getNumSamples());
+    fileLen_.store(length_);
     readPos_ = 0;
     delayRemaining_ = 0;
     hasPending_.store(false);
+}
+
+void FilePlayer::renderFrame(int n, float* const* out, int numOut) {
+    for (int c = 0; c < numOut; ++c) out[c][n] = 0.0f;
+    int covered = 0;
+    for (int t = 0; t < rows_; ++t) {
+        const int first = t;
+        if (first < covered) continue;
+        const auto& f = files_[(size_t) t];
+        const int fileCh = f.getNumChannels();
+        const int width = multi_ ? std::max(1, fileCh) : std::max(kStereo, fileCh);
+        covered = first + width;
+        if (fileCh == 0 || readPos_ >= f.getNumSamples()) continue;
+        for (int c = 0; c < width && first + c < numOut; ++c)
+            out[first + c][n] = f.getSample(std::min(c, fileCh - 1), (int) readPos_);
+    }
 }
 
 void FilePlayer::process(const float* const*, int,
@@ -66,12 +92,9 @@ void FilePlayer::process(const float* const*, int,
     if (active && !prevActive_ && autoRewind) { readPos_ = 0; delayRemaining_ = 0; }
     prevActive_ = active;
 
-    const int fileCh = file_.getNumChannels();
-    const int64_t len = file_.getNumSamples();
-
     auto silence = [&](int n) { for (int c = 0; c < numOut; ++c) out[c][n] = 0.0f; };
 
-    if (!active || fileCh == 0 || len == 0) {
+    if (!active || length_ == 0) {
         for (int n = 0; n < numSamples; ++n) silence(n);
         playPos_.store(readPos_);
         return;
@@ -80,16 +103,13 @@ void FilePlayer::process(const float* const*, int,
     for (int n = 0; n < numSamples; ++n) {
         if (delayRemaining_ > 0) { silence(n); --delayRemaining_; continue; }
 
-        if (readPos_ >= len) {
+        if (readPos_ >= length_) {
             if (!loop) { silence(n); continue; }
             readPos_ = 0;
             if (delaySamples > 0) { delayRemaining_ = delaySamples - 1; silence(n); continue; }
         }
 
-        for (int c = 0; c < numOut; ++c) {
-            int src = std::min(c, fileCh - 1);
-            out[c][n] = file_.getSample(src, (int) readPos_);
-        }
+        renderFrame(n, out, numOut);
         ++readPos_;
     }
     playPos_.store(readPos_);

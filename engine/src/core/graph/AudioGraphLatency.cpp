@@ -81,6 +81,9 @@ void AudioGraph::adoptMatchingNodes(AudioGraph& old) {
         Node& on = old.nodes_[(size_t) oi];
         auto* om = dynamic_cast<MidiNode*>(on.c.get());
         std::swap(n.c, on.c);
+        for (size_t ch = 0; ch < n.outBuf.size() && ch < on.outBuf.size(); ++ch)
+            if (n.outBuf[ch].size() == on.outBuf[ch].size())
+                std::copy(on.outBuf[ch].begin(), on.outBuf[ch].end(), n.outBuf[ch].begin());
         n.trackHeld = on.trackHeld;
         n.trackWasPlaying = on.trackWasPlaying;
         n.trackSwapped = true;

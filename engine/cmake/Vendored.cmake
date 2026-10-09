@@ -65,14 +65,25 @@ else()
   target_compile_options(mp3lame PRIVATE /W0)
 endif()
 
-# The timecode half of xwax, GPL-3.0-only, combined under AGPLv3 section 13.
-# See third_party/xwax/README.md for why we do not decode control records
-# ourselves. Built with warnings off: it is upstream code kept unmodified so
-# it can be updated by copying files over.
+# The timecode half of xwax as Mixxx maintains it (xwax is GPL-3.0-only, the
+# Traktor MK2 files Mixxx added are GPL-2.0-or-later), combined under AGPLv3
+# section 13. See third_party/xwax/README.md for why we do not decode control
+# records ourselves. Built with warnings off: it is upstream code kept
+# unmodified so it can be updated by copying files over.
+#
+# Only the folder above it is public, so a consumer writes "xwax/timecoder.h"
+# and the fork's own complex.h, types.h and debug.h never shadow anything else.
 add_library(xwax_timecode STATIC
   third_party/xwax/timecoder.c
-  third_party/xwax/lut.c)
-target_include_directories(xwax_timecode SYSTEM PUBLIC third_party/xwax)
+  third_party/xwax/timecoder_mk2.c
+  third_party/xwax/lut.c
+  third_party/xwax/lut_mk2.c
+  third_party/xwax/filters.c
+  third_party/xwax/pitch_kalman.c
+  third_party/xwax/fmatrix.c
+  third_party/xwax/ringbuffer.c)
+target_include_directories(xwax_timecode SYSTEM PRIVATE third_party/xwax)
+target_include_directories(xwax_timecode SYSTEM PUBLIC third_party)
 set_target_properties(xwax_timecode PROPERTIES C_STANDARD 11 POSITION_INDEPENDENT_CODE ON)
 if(MSVC)
   target_compile_options(xwax_timecode PRIVATE /W0)

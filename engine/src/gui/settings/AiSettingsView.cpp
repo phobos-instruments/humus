@@ -19,7 +19,7 @@ juce::String connectedText(const juce::String& versionJson, const juce::StringAr
 }
 
 juce::String unreachableText(int status) {
-    return tr("settings-ai.not-reachable", "NOT reachable from Humus (status ") + juce::String(status) + "). "
+    return tr("settings-ai.not-reachable", "NOT reachable from Humus (status {status}).", {{"status", juce::String(status)}}) + " "
            + tr("settings-ai.filter-hint",
                 "It works in a browser/curl but not here? A network filter (Little Snitch, VPN client) "
                 "is likely blocking this app - allow Humus there.");
@@ -111,7 +111,7 @@ void AiSettingsView::onProviderChanged() {
 void AiSettingsView::probe(bool announce) {
     const auto base = endpointBase();
     if (announce)
-        hint_.setText(tr("settings-ai.testing", "Testing ") + base + juce::String::fromUTF8("\xe2\x80\xa6"),
+        hint_.setText(tr("settings-ai.testing", "Testing {url}", {{"url", base}}) + juce::String::fromUTF8("\xe2\x80\xa6"),
                       juce::dontSendNotification);
     const juce::Component::SafePointer<AiSettingsView> safe(this);
     juce::Thread::launch([base, safe, announce] {

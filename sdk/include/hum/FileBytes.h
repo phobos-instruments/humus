@@ -18,6 +18,10 @@ inline std::string utf8Text(const std::filesystem::path& path) {
     return std::string(text.begin(), text.end());
 }
 
+inline std::string utf8FromWide(const wchar_t* text) {
+    return text != nullptr ? utf8Text(std::filesystem::path(text)) : std::string();
+}
+
 inline std::ifstream openForReading(const std::string& path) {
     return std::ifstream(utf8Path(path), std::ios::binary);
 }

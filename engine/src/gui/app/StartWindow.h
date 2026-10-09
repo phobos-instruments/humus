@@ -205,7 +205,8 @@ private:
         g.setFont(juce::Font(juce::FontOptions(10.0f)));
         juce::String text;
         if (lic.valid)
-            text = tr("start.registered-to", "Registered to") + " " + juce::String(lic.name.empty() ? lic.plan : lic.name);
+            text = tr("start.registered-to-name", "Registered to {name}",
+                      {{"name", juce::String(lic.name.empty() ? lic.plan : lic.name)}});
         else
             text = tr("start.unregistered", "Unregistered") + juce::String::fromUTF8(" \xc2\xb7 ")
                    + (actions_.onEnterLicense

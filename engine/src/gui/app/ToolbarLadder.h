@@ -45,7 +45,9 @@ inline constexpr int kPinnedWidth =
     + kMeterW + 6
     + kOutW + 4 + kGrooveCompactW + 8;
 
-inline constexpr int widthFor(int shed) {
+inline constexpr int kCaptionsW = kOutCaptionW + kGrooveW - kGrooveCompactW;
+
+inline constexpr int widthFor(int shed, int captionsW = kCaptionsW) {
     int w = kPinnedWidth;
     if (shed < ShedSetup)  w += kIcon + kTapW + kGap + kBeatW + kGap;
     if (shed < ShedClick)  w += kClickW + kGap;
@@ -55,7 +57,7 @@ inline constexpr int widthFor(int shed) {
     if (shed < ShedLimiter) w += kLimW + 4;
     if (shed < ShedKeep)    w += 2 * kIcon;
     if (shed < ShedPanic)   w += 28 + kGap;
-    if (shed < ShedCaptions) w += kOutCaptionW + kGrooveW - kGrooveCompactW;
+    if (shed < ShedCaptions) w += captionsW;
     if (shed > ShedNone)   w += kIcon;
     return w;
 }
@@ -64,9 +66,9 @@ inline constexpr int kInsets = 12;
 
 inline constexpr int fullWidth() { return widthFor(ShedNone) + kInsets; }
 
-inline constexpr int shedFor(int avail) {
+inline constexpr int shedFor(int avail, int captionsW = kCaptionsW) {
     int shed = ShedNone;
-    while (shed < ShedMax - 1 && widthFor(shed) > avail) ++shed;
+    while (shed < ShedMax - 1 && widthFor(shed, captionsW) > avail) ++shed;
     return shed;
 }
 

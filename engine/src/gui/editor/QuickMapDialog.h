@@ -9,6 +9,7 @@
 
 #include "core/midi/MidiSource.h"
 #include "core/params/RangeEnd.h"
+#include "gui/common/Localisation.h"
 #include "gui/editor/ParamLearners.h"
 #include "gui/properties/ModeChips.h"
 #include "gui/host/BrickHost.h"
@@ -50,10 +51,10 @@ private:
         RangeEnd end = RangeEnd::Whole;
         std::string param;
         juce::Label head, sourceLabel, deviceLabel, numberLabel;
-        juce::TextButton learn{"Learn"};
+        juce::TextButton learn{tr("quick-map.learn", "Learn")};
         juce::ComboBox device;
         juce::TextEditor number;
-        juce::TextButton clear{"Clear"};
+        juce::TextButton clear{tr("quick-map.clear", "Clear")};
         juce::Label howLabel;
         ModeChips<ControlType> type;
         juce::ComboBox how;
@@ -85,7 +86,7 @@ private:
     std::vector<std::unique_ptr<Slot>> slots_;
     std::vector<Remembered> before_;
     std::vector<std::string> devices_;
-    juce::TextButton okBtn_{"OK"}, cancelBtn_{"Cancel"};
+    juce::TextButton okBtn_{tr("quick-map.ok", "OK")}, cancelBtn_{tr("quick-map.cancel", "Cancel")};
     bool wasArmed_ = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(QuickMapDialog)

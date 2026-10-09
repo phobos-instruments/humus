@@ -68,8 +68,8 @@ private:
 
 inline constexpr Words kNoLiveInstance{"cam-preview.no-live-instance", "No live instance"};
 inline constexpr Words kCameraOff{"cam-preview.camera-off-turn-on-enabled", "Camera off - turn on Enabled below"};
-inline constexpr Words kMotion{"cam-preview.motion", "motion "};
-inline constexpr Words kBright{"cam-preview.bright", "   bright "};
+inline constexpr Words kMotion{"cam-preview.motion", "motion {motion}   bright {bright}"};
+inline constexpr Words kNoPictureArriving{"cam-preview.no-picture-arriving", "no picture arriving - is the source on?"};
 
 class CamPreviewModel {
 public:
@@ -92,7 +92,7 @@ public:
     Signals signals() const;
 
     std::string signalText(const Signals& s) const {
-        return say(host_, kMotion) + decimalText(s.motion, 2) + say(host_, kBright) + decimalText(s.bright, 2);
+        return say(host_, kMotion, {{"motion", decimalText(s.motion, 2)}, {"bright", decimalText(s.bright, 2)}});
     }
 
 private:

@@ -43,7 +43,7 @@ std::string CamPreviewModel::message(bool stalled) const {
     if (src == nullptr) return say(host_, kNoLiveInstance);
     if (const auto blocked = src->camUnavailable(); !blocked.empty()) return blocked;
     if (src->camActive() && !stalled) return {};
-    return stalled ? std::string("no picture arriving - is the source on?") : say(host_, kCameraOff);
+    return say(host_, stalled ? kNoPictureArriving : kCameraOff);
 }
 
 bool CamPreviewModel::frameChanged(bool stalled) {

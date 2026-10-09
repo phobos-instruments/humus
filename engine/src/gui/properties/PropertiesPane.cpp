@@ -28,8 +28,8 @@ void PropertiesPane::Surface::paint(juce::Graphics& g) {
     if (owner_.windows_.empty()) {
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(13.0f));
-        g.drawText(juce::String::fromUTF8("Double-click an organism to edit its "
-                                          "parameters  \xc2\xb7  right-click to add one"),
+        g.drawText(tr("properties-pane.empty-hint", "Double-click an organism to edit its parameters  {dot}  right-click to add one",
+                      {{"dot", juce::String::fromUTF8("\xc2\xb7")}}),
                    getLocalBounds().reduced(12), juce::Justification::centred, true);
     }
 }
@@ -46,7 +46,7 @@ void PropertiesPane::Surface::mouseDown(const juce::MouseEvent& e) {
     static constexpr int kSearch = 900001;
     auto ids = std::make_shared<std::vector<std::string>>();
     juce::PopupMenu menu;
-    menu.addItem(kSearch, juce::String::fromUTF8("New Organism\xe2\x80\xa6"));
+    menu.addItem(kSearch, tr("properties-pane.new-organism", "New Organism..."));
     menu.addSeparator();
     {
         juce::PopupMenu picker = classPickerMenu(0, *ids);

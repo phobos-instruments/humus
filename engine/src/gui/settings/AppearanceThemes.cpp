@@ -27,8 +27,8 @@ void AppearanceSettingsView::promptSaveTheme() {
     auto& s = AppSettings::instance();
     const juce::String initial = s.getString("themeMode") == "user"
                                      ? s.getString("themeName") : juce::String("My Theme");
-    auto* aw = new juce::AlertWindow("Save Theme",
-                                     "Name this theme. Saving to an existing name replaces it.",
+    auto* aw = new juce::AlertWindow(tr("appearance-themes.save-theme", "Save Theme"),
+                                     tr("appearance-themes.name-this-theme", "Name this theme. Saving to an existing name replaces it."),
                                      juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", initial);
     aw->addButton(tr("settings.save", "Save"), 1, juce::KeyPress(juce::KeyPress::returnKey));
@@ -60,7 +60,7 @@ void AppearanceSettingsView::exportTheme() {
                                 ? juce::String(themeName(s.getInt("themeIndex", 0)))
                                 : juce::String(tr("settings.my-theme", "My Theme"));
     chooser_ = std::make_unique<juce::FileChooser>(
-        "Export theme",
+        tr("appearance-themes.export-theme", "Export theme"),
         juce::File::getSpecialLocation(juce::File::userDocumentsDirectory)
             .getChildFile(juce::File::createLegalFileName(nm) + ".humtheme"),
         "*.humtheme");
@@ -79,7 +79,7 @@ void AppearanceSettingsView::exportTheme() {
 
 void AppearanceSettingsView::importTheme() {
     chooser_ = std::make_unique<juce::FileChooser>(
-        "Import theme",
+        tr("appearance-themes.import-theme", "Import theme"),
         juce::File::getSpecialLocation(juce::File::userDocumentsDirectory), "*.humtheme");
     chooser_->launchAsync(
         juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
@@ -91,8 +91,8 @@ void AppearanceSettingsView::importTheme() {
             if (!themestore::parseThemeFile(juce::JSON::parse(f.loadFileAsString()), t,
                                             presetColours(0), f.getFileNameWithoutExtension())) {
                 juce::AlertWindow::showMessageBoxAsync(
-                    juce::MessageBoxIconType::WarningIcon, "Import theme",
-                    "This is not a Humus theme file.");
+                    juce::MessageBoxIconType::WarningIcon, tr("appearance-themes.import-theme", "Import theme"),
+                    tr("appearance-themes.not-a-theme-file", "This is not a Humus theme file."));
                 return;
             }
             themestore::save(t.name, t.colours);

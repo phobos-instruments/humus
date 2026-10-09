@@ -87,9 +87,15 @@ inline bool loadSoundFile(std::string uri, juce::AudioBuffer<float>& dest,
     if (!f.existsAsFile()) return false;
 
     juce::AudioFormatManager fm;
+    std::vector<std::unique_ptr<juce::AudioFormat>> extras;
+    if (auto& extra = extraSoundFormats()) extras = extra(track);
+    const bool theirs = std::any_of(extras.begin(), extras.end(),
+                                    [&f](const auto& format) { return format->canHandleFile(f); });
+    if (theirs)
+        for (auto& format : extras) fm.registerFormat(format.release(), false);
     fm.registerBasicFormats();
-    if (auto& extra = extraSoundFormats())
-        for (auto& format : extra(track)) fm.registerFormat(format.release(), false);
+    for (auto& format : extras)
+        if (format != nullptr) fm.registerFormat(format.release(), false);
     std::unique_ptr<juce::AudioFormatReader> reader(fm.createReaderFor(f));
     if (!reader || reader->lengthInSamples <= 0) return false;
 

@@ -214,10 +214,10 @@ private:
         const auto ago = history::agoOf(at, juce::Time::currentTimeMillis());
         switch (ago.unit) {
             case history::Ago::JustNow: return tr("history.just-now", "just now");
-            case history::Ago::Minutes: return juce::String(ago.count) + tr("history.minutes-ago", " min ago");
-            case history::Ago::Hours: return juce::String(ago.count) + tr("history.hours-ago", " h ago");
+            case history::Ago::Minutes: return trn("history.minutes-ago", "{n} min ago", "{n} min ago", ago.count);
+            case history::Ago::Hours: return trn("history.hours-ago", "{n} h ago", "{n} h ago", ago.count);
             case history::Ago::Yesterday: return tr("history.yesterday", "yesterday");
-            case history::Ago::Days: return juce::String(ago.count) + tr("history.days-ago", " days ago");
+            case history::Ago::Days: return trn("history.days-ago", "{n} day ago", "{n} days ago", ago.count);
         }
         return {};
     }

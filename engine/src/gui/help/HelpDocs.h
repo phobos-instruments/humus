@@ -10,8 +10,11 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/app/PageLanguage.h"
 #include "core/packs/Categories.h"
 #include "core/packs/PackRegistry.h"
+#include "gui/common/CategoryText.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -85,6 +88,7 @@ inline std::vector<std::string> helpCandidateNames(const std::string& displayCla
 struct HelpDoc {
     juce::String text;
     std::string docClass;
+    bool translated = false;
 };
 
 inline HelpDoc loadOrganismDoc(const std::string& displayClass) {
@@ -96,19 +100,22 @@ inline HelpDoc loadOrganismDoc(const std::string& displayClass) {
         for (const auto& p : PackRegistry::instance().packs())
             if (p.manifest.id == "core") { pack = &p; break; }
     if (pack == nullptr) return {};
-    const juce::File dir = juce::File(juce::String(pack->dir)).getChildFile("help");
-    for (const auto& n : names) {
-        const auto f = dir.getChildFile(juce::String(n) + ".md");
-        if (f.existsAsFile())
-            if (auto t = f.loadFileAsString().trim(); t.isNotEmpty()) return {t, n};
-    }
+    const juce::File root(juce::String(pack->dir));
+    for (const auto& n : names)
+        for (const auto& file : pageCandidates("help/" + n + ".md")) {
+            const auto f = root.getChildFile(juce::String(file));
+            if (!f.existsAsFile()) continue;
+            const auto page = withoutFrontMatter(f.loadFileAsString().toStdString());
+            if (auto t = juce::String(page).trim(); t.isNotEmpty())
+                return {t, n, file.rfind("translations/", 0) == 0};
+        }
     return {};
 }
 
 inline juce::String loadOrganismHelp(const std::string& displayClass) {
     const auto page = loadOrganismDoc(displayClass);
     if (page.text.isNotEmpty()) return page.text;
-    return "No help is available for " + juce::String(displayClass) + ".";
+    return tr("help.no-help-available", "No help is available for {name}.", {{"name", juce::String(displayClass)}});
 }
 
 inline std::string helpDocClass(const std::string& displayClass) {
@@ -116,8 +123,8 @@ inline std::string helpDocClass(const std::string& displayClass) {
     return page.docClass;
 }
 
-inline std::string helpFamilyLabel(const std::string& displayClass) {
-    return familyName(familyOf(displayClass)) + " family";
+inline juce::String helpFamilyLabel(const std::string& displayClass) {
+    return familyText(familyOf(displayClass));
 }
 
 inline std::map<std::string, std::string>

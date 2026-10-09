@@ -2,9 +2,30 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/HostAudioIo.h"
 
+#include <utility>
+
+#include "core/app/AppPaths.h"
+#include "gui/host/DriverProbe.h"
+#include "gui/host/GuardedDeviceType.h"
+
 namespace hum {
 
 namespace {
+
+class GuardedDeviceManager final : public juce::AudioDeviceManager {
+public:
+    explicit GuardedDeviceManager(juce::File verdicts) : verdicts_(std::move(verdicts)) {}
+
+    void createAudioDeviceTypes(juce::OwnedArray<juce::AudioIODeviceType>& types) override {
+        juce::AudioDeviceManager::createAudioDeviceTypes(types);
+        guardRiskyTypes(types, driverprobe::childProbe(
+                                   juce::File::getSpecialLocation(juce::File::currentExecutableFile),
+                                   verdicts_));
+    }
+
+private:
+    juce::File verdicts_;
+};
 
 class DeviceAudioIo final : public HostAudioIo {
 public:
@@ -21,9 +42,10 @@ public:
         devices_.setAudioDeviceSetup(setup, true);
     }
     juce::AudioDeviceManager& manager() override { return devices_; }
+    DeviceProbe prober() override { return probeDeviceStart; }
 
 private:
-    juce::AudioDeviceManager devices_;
+    GuardedDeviceManager devices_{appDataDir().getChildFile("audio-driver-probe.xml")};
 };
 
 class NullAudioIo final : public HostAudioIo {
@@ -45,6 +67,10 @@ private:
 }
 
 std::unique_ptr<HostAudioIo> deviceAudioIo() { return std::make_unique<DeviceAudioIo>(); }
+
+std::unique_ptr<juce::AudioDeviceManager> guardedDeviceManager(const juce::File& verdicts) {
+    return std::make_unique<GuardedDeviceManager>(verdicts);
+}
 
 std::unique_ptr<HostAudioIo> nullAudioIo() { return std::make_unique<NullAudioIo>(); }
 

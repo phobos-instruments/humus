@@ -107,7 +107,7 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
             w > 40.0f && sx < (float) getWidth()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(9.5f));
-            g.drawText(ci.name.empty() ? tr("tracks-pane-roll.clip", "clip ") + juce::String(ci.index + 1)
+            g.drawText(ci.name.empty() ? tr("tracks-pane-roll.clip", "clip {n}", {{"n", juce::String(ci.index + 1)}})
                                        : juce::String(ci.name),
                        (int) std::max(sx + 9.0f, (float) tracksgeo::kStripW + 3.0f),
                        ribbonY + kRibbonH + 1, 120, 11, juce::Justification::centredLeft, false);
@@ -192,7 +192,7 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
         g.drawHorizontalLine(top, 0.0f, (float) getWidth());
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(9.0f));
-        g.drawText("vel", 4, top + 3, kKeyW - 8, 10, juce::Justification::centredLeft, false);
+        g.drawText(tr("tracks-pane-roll.vel", "vel"), 4, top + 3, kKeyW - 8, 10, juce::Justification::centredLeft, false);
         for (const auto& ci : clips) {
             const auto clipCol = ci.color > 0 ? clipColour(ci.color) : accent;
             for (const auto& n : host().clips().notes(node_, ci.index)) {

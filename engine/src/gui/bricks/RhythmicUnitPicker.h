@@ -26,6 +26,7 @@ public:
         xLabel_.setJustificationType(juce::Justification::centred);
         xLabel_.setColour(juce::Label::textColourId, Palette::textDim);
         xLabel_.setFont(juce::FontOptions(11.0f));
+        xLabel_.setBorderSize({0, 0, 0, 0});
 
         multBox_.setJustification(juce::Justification::centred);
         multBox_.setInputRestrictions(8, "0123456789.");

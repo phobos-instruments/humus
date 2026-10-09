@@ -9,6 +9,7 @@
 #include "hum/dsp/SoundFileBuffer.h"
 #include "core/timeline/ClipRangeOps.h"
 #include "hum/PatternMatrix.h"
+#include "hum/Warp.h"
 #include <climits>
 #include <cmath>
 #include "core/params/ParamSchema.h"
@@ -99,7 +100,8 @@ bool ClipEditor::stretch(const std::string& node, int clip, int newLengthTicks) 
 
 bool ClipEditor::trimTo(const std::string& node, int clip, int fromTick, int toTick) {
     auto* cm = doc_.mutableByName(node);
-    if (!cm || !clipops::trimClipTo(cm->pattern, clip, fromTick, toTick, samplesPerTick()))
+    if (!cm || !clipops::trimClipTo(cm->pattern, clip, fromTick, toTick,
+                                    clipSamplesPerTick(clipops::clipChannel(cm->pattern, clip))))
         return false;
     doc_.flagDirty();
     patternSync_.syncPattern(node);
@@ -110,7 +112,7 @@ bool ClipEditor::removeRange(const std::string& node, int clip, int fromTick, in
                              bool ripple) {
     auto* cm = doc_.mutableByName(node);
     if (!cm || !clipops::removeClipRange(cm->pattern, clip, fromTick, toTick, ripple,
-                                         samplesPerTick()))
+                                         clipSamplesPerTick(clipops::clipChannel(cm->pattern, clip))))
         return false;
     doc_.flagDirty();
     patternSync_.syncPattern(node);
@@ -120,7 +122,9 @@ bool ClipEditor::removeRange(const std::string& node, int clip, int fromTick, in
 PatternChannel ClipEditor::copyRange(const std::string& node, int clip, int fromTick,
                                      int toTick) const {
     if (const auto* cm = doc_.document().byName(node))
-        return clipops::clipRangeCopy(cm->pattern, clip, fromTick, toTick, samplesPerTick());
+        return clipops::clipRangeCopy(
+            cm->pattern, clip, fromTick, toTick,
+            clipSamplesPerTick(clipops::clipChannel(const_cast<Pattern&>(cm->pattern), clip)));
     return {};
 }
 
@@ -281,7 +285,7 @@ void ClipEditor::resize(const std::string& node, int clip, int newLengthTicks, b
     clipops::upgradeLegacyClip(cm->pattern);
     const auto* ch = clipops::clipChannel(cm->pattern, clip);
     const int tail = ch != nullptr && clipops::isMediaClip(*ch) ? tailTicks(*ch) : 0;
-    if (!clipops::resizeClip(cm->pattern, clip, newLengthTicks, fromLeft, samplesPerTick(), tail))
+    if (!clipops::resizeClip(cm->pattern, clip, newLengthTicks, fromLeft, clipSamplesPerTick(ch), tail))
         return;
     doc_.flagDirty();
     patternSync_.syncPattern(node);
@@ -341,7 +345,7 @@ int ClipEditor::tailTicks(const PatternChannel& clip) const {
     const auto t = tape(clip.audioFile);
     if (t.seconds <= 0.0 || t.sampleRate <= 0.0) return 0;
     const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
-    const double rate = clip.warpMode != 0 && clip.sourceBpm > 0.0 ? bpm / clip.sourceBpm : 1.0;
+    const double rate = warpRate(clip, bpm);
     const double left = t.seconds - (double) clip.audioOffset / t.sampleRate;
     return (int) std::floor(left / rate * (bpm / kSecondsPerMinute) * Pattern::kTicksPerBeat);
 }
@@ -349,6 +353,11 @@ int ClipEditor::tailTicks(const PatternChannel& clip) const {
 double ClipEditor::samplesPerTick() const {
     const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
     return (kSecondsPerMinute / bpm) * audio_.sampleRate() / Pattern::kTicksPerBeat;
+}
+
+double ClipEditor::clipSamplesPerTick(const PatternChannel* clip) const {
+    const double bpm = host_.tempo() > 0.0 ? host_.tempo() : 120.0;
+    return samplesPerTick() * (clip != nullptr ? warpRate(*clip, bpm) : 1.0);
 }
 
 void ClipEditor::setLooped(const std::string& node, int clip, bool looped) {

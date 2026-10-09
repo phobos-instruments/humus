@@ -10,6 +10,7 @@
 
 #include "core/app/AppPaths.h"
 #include "core/packs/Roles.h"
+#include "gui/common/Localisation.h"
 #include "hum/caps/Files.h"
 
 namespace hum {
@@ -52,7 +53,11 @@ std::string EngineHost::exportAudioTake(const std::string& node, int take, const
 int EngineHost::audioToTimeline(const std::string& node, int take, std::string& error, int atTick,
                                 const std::string& folder) {
     const auto takes = audioTakesOf(node);
-    if (takes.empty()) { error = node + " has no audio to send"; return 0; }
+    if (takes.empty()) {
+        error = tr("engine-host.has-no-audio-to-send", "{name} has no audio to send", {{"name", juce::String(node)}})
+                    .toStdString();
+        return 0;
+    }
     const int bar = 4 * Pattern::kTicksPerBeat;
     if (atTick < 0) atTick = (int) (std::llround(positionBeats() * Pattern::kTicksPerBeat) / bar) * bar;
     const double bpm = tempo() > 0.0 ? tempo() : 120.0;
@@ -72,7 +77,9 @@ int EngineHost::audioToTimeline(const std::string& node, int take, std::string& 
         ++placed;
     }
     endTransaction();
-    if (placed == 0) error = "nothing recorded on " + node + " yet";
+    if (placed == 0)
+        error = tr("engine-host.nothing-recorded-on-yet", "nothing recorded on {name} yet", {{"name", juce::String(node)}})
+                    .toStdString();
     else if (onArrangementChanged) scheduler_.post([cb = onArrangementChanged] { cb(); });
     return placed;
 }

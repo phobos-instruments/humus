@@ -93,11 +93,10 @@ void hum_register_pack_core(Registry& r) {
 
     r.registerClass("AudioIn",  [] { return std::make_unique<AuxIn>(0); });
     r.registerClass("AudioOut", [] { return std::make_unique<AuxOut>(0); });
-    for (int n = 1; n <= 8; ++n) {
+    for (int n = 1; n <= kAuxPairs; ++n) {
         r.registerClass("AuxIn" + std::to_string(n),
-                        [n] { return std::make_unique<AuxIn>(n + 1); });
-        r.registerClass("AuxOut" + std::to_string(n),
-                        [n] { return std::make_unique<AuxOut>(n + 1); });
+                        [n] { return std::make_unique<AuxIn>(2 * n, 2); });
+        r.registerClass("AuxOut" + std::to_string(n), [n] { return std::make_unique<SoundOut>(2 * n); });
     }
 
     r.registerClass("MidiIn",  [] { return std::make_unique<MidiInNode>(-1); });

@@ -8,6 +8,7 @@
 #include "core/plugins/BridgeWorker.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/app/OffscreenEditorHost.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -80,7 +81,7 @@ private:
 
     struct FloatWindow : juce::DocumentWindow {
         FloatWindow(std::unique_ptr<juce::AudioProcessorEditor> ed, std::function<void()> onClose)
-            : juce::DocumentWindow("Plugin", Palette::background, juce::DocumentWindow::allButtons),
+            : juce::DocumentWindow(tr("bridge-worker.plugin", "Plugin"), Palette::background, juce::DocumentWindow::allButtons),
               editor_(std::move(ed)), onClose_(std::move(onClose)) {
             setUsingNativeTitleBar(true);
             setContentNonOwned(editor_.get(), true);

@@ -9,6 +9,8 @@
 
 #include <juce_audio_utils/juce_audio_utils.h>
 
+#include "core/graph/DeviceChannels.h"
+#include "gui/host/GuardedDeviceType.h"
 #include "gui/host/SettingsHost.h"
 #include "gui/host/MidiState.h"
 #include "gui/style/LookAndFeel.h"
@@ -31,12 +33,21 @@ public:
         if (host_) {
             selector_ = std::make_unique<juce::AudioDeviceSelectorComponent>(
                 host_->audioDevices(),
- 0, 32, 2, 32,
+ 0, kMaxDeviceChannels, 2, kMaxDeviceChannels,
  false, false,
  false, false);
             selViewport_.setViewedComponent(selector_.get(), false);
             selViewport_.setScrollBarsShown(true, false);
             addAndMakeVisible(selViewport_);
+            cueLabel_.setText(tr("audio-settings.preview-output", "File previews play on"), juce::dontSendNotification);
+            cueLabel_.setFont(juce::FontOptions(12.5f));
+            addAndMakeVisible(cueLabel_);
+            cue_.onChange = [this] {
+                const int id = cue_.getSelectedId();
+                host_->setPreviewOutput(id > kMainOutputsId ? id - kMainOutputsId - 1 : -1);
+            };
+            addAndMakeVisible(cue_);
+            fillCueChoices();
             startTimer(1000);
         } else {
             hint_.setText(tr("audio-settings.no-engine-in-this-preview", "No engine in this preview."), juce::dontSendNotification);
@@ -60,6 +71,10 @@ public:
         title_.setBounds(area.removeFromTop(26));
         area.removeFromTop(4);
         if (selector_ == nullptr) { hint_.setBounds(area); return; }
+        if (hint_.getText().isNotEmpty()) hint_.setBounds(area.removeFromBottom(kHiddenNoteH));
+        auto cueRow = area.removeFromBottom(kCueRowH).withTrimmedTop(6);
+        cueLabel_.setBounds(cueRow.removeFromLeft(170));
+        cue_.setBounds(cueRow.withWidth(juce::jmin(cueRow.getWidth(), 280)));
         selViewport_.setBounds(area);
         selector_->setSize(area.getWidth() - 12, juce::jmax(area.getHeight(), 420));
     }
@@ -90,8 +105,8 @@ private:
         const double rate = dev->getCurrentSampleRate();
         combo->clear(juce::dontSendNotification);
         for (int bs : wanted)
-            combo->addItem(juce::String(bs) + tr("audio-settings.samples", " samples (")
-                               + juce::String(bs * 1000.0 / rate, 1) + " ms)", bs);
+            combo->addItem(tr("audio-settings.samples", "{n} samples ({ms} ms)",
+                              {{"n", juce::String(bs)}, {"ms", juce::String(bs * 1000.0 / rate, 1)}}), bs);
         combo->setSelectedId(current, juce::dontSendNotification);
     }
 
@@ -105,14 +120,43 @@ private:
         return nullptr;
     }
 
+    void fillCueChoices() {
+        const auto pairs = host_->choiceItems("audio-out-pairs");
+        if (cue_.getNumItems() == (int) pairs.size() + 1) return;
+        cue_.clear(juce::dontSendNotification);
+        cue_.addItem(tr("audio-settings.main-outputs", "Main outputs"), kMainOutputsId);
+        for (const auto& [first, label] : pairs)
+            if (first > 1) cue_.addItem(juce::String::fromUTF8(label.c_str()), kMainOutputsId + first);
+        const int current = host_->previewOutput();
+        cue_.setSelectedId(current >= 2 ? kMainOutputsId + current + 1 : kMainOutputsId, juce::dontSendNotification);
+    }
+
+    juce::String hiddenDriversNote() const {
+        auto* type = dynamic_cast<GuardedDeviceType*>(host_->audioDevices().getCurrentDeviceTypeObject());
+        if (type == nullptr || type->hiddenDrivers().isEmpty()) return {};
+        return tr("audio-settings.hidden-drivers",
+                  "Not listed because they crashed or froze when Humus tried them on their own: {drivers}",
+                  {{"drivers", type->hiddenDrivers().joinIntoString(", ")}});
+    }
+
     void timerCallback() override {
         if (!host_ || !isShowing()) return;
         filterBufferSizes();
+        fillCueChoices();
+        if (const auto note = hiddenDriversNote(); note != hint_.getText()) {
+            hint_.setText(note, juce::dontSendNotification);
+            resized();
+        }
     }
+
+    static constexpr int kHiddenNoteH = 34;
+    static constexpr int kCueRowH = 34;
+    static constexpr int kMainOutputsId = 1;
 
     SettingsHost* host_;
     bool ensured_ = false;
-    juce::Label title_, hint_;
+    juce::Label title_, hint_, cueLabel_;
+    juce::ComboBox cue_;
     std::unique_ptr<juce::AudioDeviceSelectorComponent> selector_;
     juce::Viewport selViewport_;
 

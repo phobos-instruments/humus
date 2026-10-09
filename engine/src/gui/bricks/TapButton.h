@@ -5,6 +5,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/Localisation.h"
 #include "gui/editor/AutomateMenu.h"
 #include "gui/host/BrickHost.h"
 #include "gui/editor/inputs/PadInputs.h"
@@ -16,7 +17,7 @@ class TapButton : public juce::TextButton {
 public:
     TapButton(BrickHost& host, std::string organism, std::string param,
               std::string offParam, const juce::String& label)
-        : juce::TextButton(label.isEmpty() ? "Tap" : label),
+        : juce::TextButton(label.isEmpty() ? tr("tap-button.tap", "Tap") : label),
           tap_(host, std::move(organism), std::move(param), std::move(offParam)) {
         onClick = [this] { fire(); };
     }

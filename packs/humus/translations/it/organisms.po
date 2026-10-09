@@ -1,0 +1,160 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2026-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Source-SHA256: "
+"1a0201b852e420d9efc2bb6c23cc3f30190a6aea0a43dc7bcf23b7101c7ec412\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"X-Generator: Translate Toolkit 3.20.0\n"
+"Language: it\n"
+"X-Template-SHA256: "
+"1a0201b852e420d9efc2bb6c23cc3f30190a6aea0a43dc7bcf23b7101c7ec412\n"
+"X-Language-Name: Italiano\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "category.Control"
+msgid "Control"
+msgstr "Controllo"
+
+msgctxt "category.Dynamics"
+msgid "Dynamics"
+msgstr "Dinamica"
+
+msgctxt "category.Effects"
+msgid "Effects"
+msgstr "Effetti"
+
+msgctxt "category.Filters"
+msgid "Filters"
+msgstr "Filtri"
+
+msgctxt "category.Input/Output"
+msgid "Input/Output"
+msgstr "Ingresso/Uscita"
+
+msgctxt "category.Instruments"
+msgid "Instruments"
+msgstr "Strumenti"
+
+msgctxt "category.Meters"
+msgid "Meters"
+msgstr "Misuratori"
+
+msgctxt "category.Mixers"
+msgid "Mixers"
+msgstr "Mixer"
+
+msgctxt "category.Players"
+msgid "Players"
+msgstr "Lettori"
+
+msgctxt "category.Primitives"
+msgid "Primitives"
+msgstr "Primitive"
+
+msgctxt "category.Sequencers"
+msgid "Sequencers"
+msgstr "Sequencer"
+
+msgctxt "category.Signal Generators"
+msgid "Signal Generators"
+msgstr "Generatori di segnale"
+
+msgctxt "category.Spectral"
+msgid "Spectral"
+msgstr "Spettrali"
+
+#: packs/humus/organisms/Atom/organism.json
+msgctxt "organism.Atom.blurb"
+msgid "Four rings of evenly spread hits that arpeggiate the notes you hold, or walk a scale when you hold none."
+msgstr ""
+"Quattro anelli di colpi distribuiti in modo uniforme che arpeggiano le note "
+"che tieni, o percorrono una scala quando non ne tieni nessuna."
+
+#: packs/humus/organisms/AudioTrack/organism.json
+msgctxt "organism.AudioTrack.blurb"
+msgid "A timeline row that plays its audio clips and records takes of what reaches it."
+msgstr ""
+"Una riga della timeline che suona le sue clip audio e registra take di ciò "
+"che le arriva."
+
+#: packs/humus/organisms/Board/organism.json
+msgctxt "organism.Board.blurb"
+msgid "A microcontroller on a serial cable: its inputs arrive as control, its pins follow yours."
+msgstr ""
+"Un microcontrollore su un cavo seriale: i suoi ingressi arrivano come "
+"controllo, i suoi pin seguono i tuoi."
+
+#: packs/humus/organisms/Deck/organism.json
+msgctxt "organism.Deck.blurb"
+msgid "A player for audio and video alike: pitch fader, beatgrid, cues and timecode."
+msgstr ""
+"Un lettore per audio e video insieme: fader del pitch, griglia dei beat, cue "
+"e timecode."
+
+#: packs/humus/organisms/Decomposer/organism.json
+msgctxt "organism.Decomposer.blurb"
+msgid "Audio in, MIDI notes out: a pitch tracker that hears a line or a chord as you play."
+msgstr ""
+"Audio in ingresso, note MIDI in uscita: un rilevatore di intonazione che "
+"sente una melodia o un accordo mentre suoni."
+
+#: packs/humus/organisms/Halogen/organism.json
+msgctxt "organism.Halogen.blurb"
+msgid "Plays a picture: across is time, up is pitch, brightness is loudness."
+msgstr ""
+"Suona un'immagine: in orizzontale il tempo, in verticale l'altezza, la "
+"luminosità è il volume."
+
+#: packs/humus/organisms/Leafcutter/organism.json
+msgctxt "organism.Leafcutter.blurb"
+msgid "A loop chopper that cuts a sound at its transients and plays the slices in time."
+msgstr ""
+"Un affetta-loop che taglia un suono sui suoi transienti e ne suona le slice "
+"a tempo."
+
+#: packs/humus/organisms/MidiFilter/organism.json
+msgctxt "organism.MidiFilter.blurb"
+msgid "Lets chosen notes and controllers through, holds others back, or turns one into another."
+msgstr ""
+"Lascia passare le note e i controller scelti, trattiene gli altri, o ne "
+"trasforma uno in un altro."
+
+#: packs/humus/organisms/MidiPlayer/organism.json
+msgctxt "organism.MidiPlayer.blurb"
+msgid "Plays a MIDI file: sixteen channels from its own outlets, or on down a cord."
+msgstr ""
+"Suona un file MIDI: sedici canali dalle sue uscite, o inoltrati lungo un "
+"cavo."
+
+#: packs/humus/organisms/Notes/organism.json
+msgctxt "organism.Notes.blurb"
+msgid "A sticky note laid on the canvas, for whoever reads the patch next."
+msgstr "Un foglietto adesivo sul canvas, per chi leggerà la patch dopo di te."
+
+#: packs/humus/organisms/Scope/organism.json
+msgctxt "organism.Scope.blurb"
+msgid "An oscilloscope with a glowing trace: the wave standing still, or left drawn against right."
+msgstr ""
+"Un oscilloscopio con una traccia luminosa: l'onda ferma, o il canale "
+"sinistro disegnato contro il destro."
+
+#: packs/humus/organisms/Spark/organism.json
+msgctxt "organism.Spark.blurb"
+msgid "A riser that never arrives: twelve comb filters sweeping the same octaves forever."
+msgstr ""
+"Un riser che non arriva mai: dodici filtri a pettine che percorrono le "
+"stesse ottave all'infinito."
+
+#: packs/humus/organisms/Ph/organism.json
+msgctxt "organism.pH.blurb"
+msgid "An FM synthesizer with four engines, from six-operator banks to three chip voices."
+msgstr ""
+"Un sintetizzatore FM con quattro motori, dai banchi a sei operatori a tre "
+"voci da chip."

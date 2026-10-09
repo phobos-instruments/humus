@@ -107,9 +107,8 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
     };
     addChildComponent(*themes_);
 
-    hintLabel_.setText(juce::String::fromUTF8(
-                           "Custom colours, brightness and contrast live in "
-                           "Settings \xe2\x80\xba Graphics & UI."),
+    hintLabel_.setText(tr("setup-wizard.custom-colours-live-in-settings",
+                          "Custom colours, brightness and contrast live in Settings > Graphics & UI."),
                        juce::dontSendNotification);
     hintLabel_.setColour(juce::Label::textColourId, Palette::textDim);
     hintLabel_.setFont(juce::FontOptions(12.0f));
@@ -150,6 +149,7 @@ SetupWizard::SetupWizard(EngineHost& host, Callbacks cbs, bool firstBoot)
         styleBrandButton(*b);
         addAndMakeVisible(*b);
     }
+    backBtn_.setButtonText(tr("setup-wizard.back", "Back"));
     skipBtn_.setButtonText(firstBoot_ ? tr("setup-wizard.skip-setup", "Skip setup") : tr("setup-wizard.close", "Close"));
     backBtn_.onClick = [this] { setPage(wizard::back(page_)); };
     nextBtn_.onClick = [this] {
@@ -277,18 +277,21 @@ void SetupWizard::paint(juce::Graphics& g) {
         r.removeFromTop(14);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(14.0f));
-        for (const char* line :
-             {"Checking for updates at startup asks our server once per",
-              "launch. It sees a random ID, the app version and the platform,",
-              "and nothing about your patches. It is ticked because a beta",
-              "moves fast; untick it and Humus only checks when you ask.", "",
-              "If you opt in below, Humus also sends anonymous usage counts",
-              "(like which organisms you plant or how often you save) and",
-              "whether the last session crashed, tied to the same random ID -",
-              "no names, no emails, no patch contents, ever.", "",
-              "With both off, Humus never touches the network except when you",
-              "ask it to. Change either any time in Settings > License & Privacy."})
-            g.drawText(line, r.removeFromTop(22), juce::Justification::centredLeft);
+        const juce::String privacy =
+            tr("setup-wizard.privacy-update-checks",
+               "Checking for updates at startup asks our server once per launch. It sees a random ID, "
+               "the app version and the platform, and nothing about your patches. It is ticked because "
+               "a beta moves fast; untick it and Humus only checks when you ask.")
+            + "\n\n"
+            + tr("setup-wizard.privacy-usage-counts",
+                 "If you opt in below, Humus also sends anonymous usage counts (like which organisms you "
+                 "plant or how often you save) and whether the last session crashed, tied to the same "
+                 "random ID - no names, no emails, no patch contents, ever.")
+            + "\n\n"
+            + tr("setup-wizard.privacy-both-off",
+                 "With both off, Humus never touches the network except when you ask it to. Change either "
+                 "any time in Settings > License & Privacy.");
+        g.drawMultiLineText(privacy, r.getX(), r.getY() + 15, r.getWidth(), juce::Justification::left, 8.0f);
     } else if (page_ == wizard::kFinish) {
         auto r = content;
         g.setFont(juce::FontOptions(20.0f, juce::Font::bold));
@@ -304,8 +307,7 @@ void SetupWizard::paint(juce::Graphics& g) {
         r.removeFromTop(14);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.5f));
-        g.drawText(juce::String::fromUTF8("Rerun this anytime from Help \xe2\x80\xba "
-                                          "Setup Wizard."),
+        g.drawText(tr("setup-wizard.rerun-this-anytime", "Rerun this anytime from Help > Setup Wizard."),
                    r.removeFromTop(20), juce::Justification::centredLeft);
     }
 }
@@ -326,7 +328,7 @@ std::vector<std::string> SetupWizard::summary() const {
     else if (mode == "user")
         theme = AppSettings::instance().getString("themeName").toStdString();
     else
-        theme = "Custom";
+        theme = tr("setup-wizard.custom-theme", "Custom").toStdString();
     return wizard::summaryLines(device, midiIns, theme, modernMenusEnabled(),
                                 telemetryToggle_.getToggleState(),
                                 updatesToggle_.getToggleState());

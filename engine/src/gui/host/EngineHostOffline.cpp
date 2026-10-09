@@ -15,6 +15,7 @@
 #include "core/net/LinkChase.h"
 #include "core/packs/Roles.h"
 #include "gui/app/AppSettings.h"
+#include "gui/common/Localisation.h"
 #include "io/PatchLoader.h"
 #include "io/WavWriter.h"
 #include "hum/caps/Audio.h"
@@ -30,10 +31,9 @@ bool EngineHost::openOfflineSound(OfflineSound& made, std::string& error) {
     }
     made.graph->prepare(sampleRate_, block_, model_.clock.tempo);
     primeNoteTracks(*made.graph);
-    for (int i = 0; i < made.graph->nodeCount(); ++i)
-        if (auto* s = dynamic_cast<MasterTap*>(made.graph->organism(i))) { made.tap = s; break; }
+    made.tap = findMasterTap(*made.graph);
     if (made.tap == nullptr) {
-        error = "patch has no SoundOut";
+        error = tr("engine-host.patch-has-no-soundout", "patch has no SoundOut").toStdString();
         made.graph.reset();
         return false;
     }
@@ -42,8 +42,14 @@ bool EngineHost::openOfflineSound(OfflineSound& made, std::string& error) {
 
 bool EngineHost::renderOfflineSound(OfflineSound& made, double fromSeconds, double toSeconds,
                                     const SoundSink& sink, std::string& error) {
-    if (made.graph == nullptr || made.tap == nullptr) { error = "nothing to render"; return false; }
-    if (toSeconds <= fromSeconds) { error = "that range is empty"; return false; }
+    if (made.graph == nullptr || made.tap == nullptr) {
+        error = tr("engine-host.nothing-to-render", "nothing to render").toStdString();
+        return false;
+    }
+    if (toSeconds <= fromSeconds) {
+        error = tr("engine-host.that-range-is-empty", "that range is empty").toStdString();
+        return false;
+    }
     const juce::ScopedNoDenormals noDenormals;
     auto& g = *made.graph;
     auto* so = made.tap;
@@ -60,7 +66,7 @@ bool EngineHost::renderOfflineSound(OfflineSound& made, double fromSeconds, doub
         if (from < madeNow) {
             for (int c = 0; c < channels; ++c) ptrs[(size_t) c] = so->channelData(c) + from;
             if (!sink(ptrs.data(), channels, madeNow - (int) from)) {
-                error = "the bounce was stopped";
+                error = tr("engine-host.the-bounce-was-stopped", "the bounce was stopped").toStdString();
                 return false;
             }
         }
@@ -86,16 +92,20 @@ bool EngineHost::renderToFile(const std::string& path, double seconds, std::stri
         return true;
     }, error);
     if (!made) return false;
-    if (!writeSound(path, buf, sampleRate_)) { error = "could not write " + path; return false; }
+    if (!writeSound(path, buf, sampleRate_)) {
+        error = tr("engine-host.could-not-write", "could not write {path}", {{"path", juce::String(path)}}).toStdString();
+        return false;
+    }
     return true;
 }
 
 bool EngineHost::startMixRecording(const std::string& path, std::string& error) {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     if (mixWriter_.active()) mixWriter_.stop();
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
     if (!mixWriter_.start(path, 2, sr, false)) {
-        error = "could not open " + path + " for recording";
+        error = tr("engine-host.could-not-open-for-recording", "could not open {path} for recording",
+                   {{"path", juce::String(path)}}).toStdString();
         return false;
     }
     mixRecording_.store(true);
@@ -103,13 +113,13 @@ bool EngineHost::startMixRecording(const std::string& path, std::string& error) 
 }
 
 void EngineHost::stopMixRecording() {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     mixRecording_.store(false);
     mixWriter_.stop();
 }
 
 void EngineHost::primeOffline(int blocks) {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     if (!graph_ || blocks <= 0) return;
     const juce::ScopedNoDenormals noDenormals;
     takeTransportRequests();

@@ -5,6 +5,7 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 
 #include "gui/app/AppSettings.h"
+#include "gui/common/Languages.h"
 #include "gui/common/Localisation.h"
 #include "gui/patcher/PickerLauncher.h"
 #include "gui/settings/ThemeStore.h"
@@ -85,8 +86,8 @@ AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanc
     }
 
     addAndMakeVisible(rollThemeBtn_);
-    rollThemeBtn_.setTooltip(juce::String::fromUTF8(
-        "Roll a fresh set of colours - every roll stays readable. Save Theme keeps the one you like."));
+    rollThemeBtn_.setTooltip(tr("settings.roll-theme-tip",
+                                "Roll a fresh set of colours - every roll stays readable. Save Theme keeps the one you like."));
     rollThemeBtn_.onClick = [this] { rollTheme(); };
     addAndMakeVisible(saveCustomBtn_);
     saveCustomBtn_.onClick = [this] { promptSaveTheme(); };
@@ -118,8 +119,8 @@ AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanc
         sl.setTextBoxStyle(juce::Slider::TextBoxRight, false, 60, 20);
         addAndMakeVisible(sl);
     };
-    setupAdj(brightness_, brightnessLabel_, "Brightness");
-    setupAdj(contrast_, contrastLabel_, "Contrast");
+    setupAdj(brightness_, brightnessLabel_, tr("settings.brightness", "Brightness"));
+    setupAdj(contrast_, contrastLabel_, tr("settings.contrast", "Contrast"));
     brightness_.onValueChange = [this] {
         setAppearanceAdjustments(brightness_.getValue(), contrast_.getValue());
         AppSettings::instance().set("brightness", brightness_.getValue());
@@ -147,6 +148,7 @@ AppearanceSettingsView::AppearanceSettingsView(std::function<void()> onAppearanc
             const int i = languageCombo_.getSelectedId() - 2;
             i18n::choose(i >= 0 && i < found.size() ? found[i].code
                                                    : juce::String(i18n::kSystem));
+            if (onLanguageChanged) onLanguageChanged();
         };
     }
     addAndMakeVisible(languageCombo_);

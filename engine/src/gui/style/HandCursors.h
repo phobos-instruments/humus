@@ -6,5 +6,6 @@
 namespace hum {
 
 juce::MouseCursor grabbingHandCursor();
+juce::MouseCursor notAllowedCursor();
 
 }

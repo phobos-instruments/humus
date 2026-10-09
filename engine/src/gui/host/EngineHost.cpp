@@ -65,6 +65,37 @@ void EngineHost::requestRebuild() {
     rebuild();
 }
 
+void EngineHost::fadeOutRemovedCords(const AudioGraph& next) {
+    if (!audioRunning_ || fadeGainPub_.load() <= 0.0005f) return;
+    const auto removed = graph_->cordsMissingFrom(next);
+    if (removed.empty()) return;
+    graph_->fadeOutCords(removed);
+    for (int i = 0; i < 40 && !graph_->cordsFaded(removed); ++i) juce::Thread::sleep(1);
+}
+
+void EngineHost::reloadChangedBoxes() {
+    if (reloadAfterRebuild_.empty()) return;
+    auto names = std::move(reloadAfterRebuild_);
+    reloadAfterRebuild_.clear();
+    std::sort(names.begin(), names.end());
+    names.erase(std::unique(names.begin(), names.end()), names.end());
+    std::vector<Organism*> reloaded;
+    {
+        const AudioLock::Scope sl(lock_);
+        for (const auto& name : names)
+            if (const auto* cm = model_.byName(name))
+                if (auto* live = graph_ ? graph_->find(name) : nullptr) {
+                    live->loadFrom(OrganismState{cm->properties, cm->pattern});
+                    reloaded.push_back(live);
+                }
+    }
+    reloadedBoxes_ += (unsigned) reloaded.size();
+    for (auto* live : reloaded) {
+        if (auto* cr = dynamic_cast<ClipRecorder*>(live)) cr->ensureClipsLoaded();
+        if (auto* sa = dynamic_cast<SessionAudio*>(live)) sa->loadSessionAudio();
+    }
+}
+
 void EngineHost::rebuild() {
     rebuildDue_ = false;
     ++rebuilds_;
@@ -110,7 +141,12 @@ void EngineHost::rebuild() {
     if (canAdopt) g->prepare(sampleRate_, block_, model_.clock.tempo, *graph_);
     else g->prepare(sampleRate_, block_, model_.clock.tempo);
 
-    const bool audible = audioRunning_ && fadeGainPub_.load() > 0.0005f && !(midiOnlyEdit_ && canAdopt);
+    const bool seamless = canAdopt;
+    if (seamless) {
+        g->rampInCordsNewTo(*graph_);
+        fadeOutRemovedCords(*g);
+    }
+    const bool audible = !seamless && audioRunning_ && fadeGainPub_.load() > 0.0005f && !(midiOnlyEdit_ && canAdopt);
     if (audible) {
         ++fadedRebuilds_;
         fadeTarget_.store(0.0f);
@@ -120,7 +156,7 @@ void EngineHost::rebuild() {
 
     std::unique_ptr<AudioGraph> retired;
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         const int64_t pos = graph_ ? graph_->transport().samplePosition() : 0;
         const double beats = graph_ ? graph_->transport().beats() : 0.0;
         g->transport().setPlaying(playing_);
@@ -165,7 +201,8 @@ void EngineHost::rebuild() {
                     midiState_.targets.push_back({hp, c.midiReceiveMode, c.midiReceiveChannel});
                 if (auto* in = dynamic_cast<LiveMidiIn*>(node)) {
                     if (in->monitorsAllPorts()) midiMonitors_.push_back(in);
-                    else if (in->liveMidiPort() >= 0 || in->liveMidiPort() == kLiveMidiAllPorts)
+                    else if (classHasRole(c.classRaw, role::kMidiIn)
+                             && (in->liveMidiPort() >= 0 || in->liveMidiPort() == kLiveMidiAllPorts))
                         liveMidiIns_.push_back(in);
                     namedLiveIns_.push_back({c.name, in});
                 }
@@ -180,22 +217,7 @@ void EngineHost::rebuild() {
 
     preparedSampleRate_ = sampleRate_;
     preparedBlock_ = block_;
-    if (modelSwapped_) {
-        modelSwapped_ = false;
-        std::vector<Organism*> clipNodes;
-        {
-            const juce::ScopedLock sl(lock_);
-            for (const auto& cm : model_.organisms)
-                if (auto* live = graph_ ? graph_->find(cm.name) : nullptr) {
-                    live->loadFrom(OrganismState{cm.properties, cm.pattern});
-                    clipNodes.push_back(live);
-                }
-        }
-        for (auto* live : clipNodes) {
-            if (auto* cr = dynamic_cast<ClipRecorder*>(live)) cr->ensureClipsLoaded();
-            if (auto* sa = dynamic_cast<SessionAudio*>(live)) sa->loadSessionAudio();
-        }
-    }
+    reloadChangedBoxes();
     syncAutomation();
     for (const auto& cm : model_.organisms) syncNodeTrack(cm.name);
     applySolo();
@@ -210,7 +232,7 @@ void EngineHost::rebuild() {
                 fl->loadFromFile(resolved);
         }
     queueDeferredLoads();
-    if (audioRunning_) requestFadeIn();
+    if (audioRunning_ && !seamless) requestFadeIn();
     scheduleAuxChannelCheck();
 }
 
@@ -227,7 +249,7 @@ void EngineHost::discardLiveGraph() {
     }
     std::unique_ptr<AudioGraph> retired;
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         retired = std::move(graph_);
         soundOut_ = nullptr;
         masterTaps_.clear();

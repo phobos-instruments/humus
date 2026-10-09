@@ -164,6 +164,8 @@ void AudioGraph::prepareNodes(double sampleRate, int maxBlock, const AudioGraph*
     dryPtrs_.resize((size_t) widest);
     for (int c = 0; c < widest; ++c) dryPtrs_[(size_t) c] = dryScratch_[(size_t) c].data();
     bypassStep_ = (float) (1.0 / std::max(1.0, kBypassFadeMs * 0.001 * sampleRate));
+    cordStep_ = (float) (1.0 / std::max(1.0, kCordFadeMs * 0.001 * sampleRate));
+    cordScratch_.assign((size_t) std::max(1, maxBlock), 0.0f);
     midiScratch_.assign(MidiNode::kMaxMidiEventsPerBlock, MidiEvent{});
     midiScratch2_.assign(2 * MidiNode::kMaxMidiEventsPerBlock, MidiEvent{});
     trackEdges_.assign(MidiNode::kMaxMidiEventsPerBlock, noteschedule::Edge{});
@@ -196,7 +198,7 @@ void AudioGraph::processBlock(int numSamples) {
         for (auto& ch : nd.inBuf) std::fill(ch.begin(), ch.begin() + numSamples, 0.0f);
         for (int cordIndex : inboundCords(node)) {
             const size_t ci = (size_t) cordIndex;
-            const Cord& c = cords_[ci];
+            Cord& c = cords_[ci];
             if (c.dstInlet >= nd.inChannels) continue;
             Node& src = nodes_[c.srcNode];
             if (c.srcOutlet >= src.outChannels) continue;
@@ -204,17 +206,18 @@ void AudioGraph::processBlock(int numSamples) {
             float* d = nd.inBuf[c.dstInlet].data();
             CordDelay& cd = cordDelay_[ci];
             if (cd.buf.empty()) {
-                for (int i = 0; i < numSamples; ++i) d[i] += s[i];
+                sumCord(c, s, d, numSamples);
             } else {
                 const int D = (int) cd.buf.size();
                 int p = cd.pos;
+                float* late = cordScratch_.data();
                 for (int i = 0; i < numSamples; ++i) {
-                    const float out = cd.buf[(size_t) p];
+                    late[i] = cd.buf[(size_t) p];
                     cd.buf[(size_t) p] = s[i];
                     if (++p >= D) p = 0;
-                    d[i] += out;
                 }
                 cd.pos = p;
+                sumCord(c, late, d, numSamples);
             }
         }
 

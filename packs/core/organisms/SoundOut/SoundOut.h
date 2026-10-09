@@ -12,12 +12,13 @@ namespace hum {
 
 class SoundOut : public Organism, public MasterTap, public LevelMeterSource {
 public:
+    explicit SoundOut(int defaultFirstChannel = 0) : defaultFirst_(defaultFirstChannel) {}
     int numAudioInputs() const override { return channels_; }
     int numAudioOutputs() const override { return 0; }
     void configureChannels(int inlets, int) override {
         channels_ = std::max(2, inlets);
     }
-    int firstChannel() const override { return (int) params.get("Channel", 1.0) - 1; }
+    int firstChannel() const override { return (int) params.get("Channel", defaultFirst_ + 1.0) - 1; }
 
     void prepare(double sampleRate, int maxBlock) override;
     void reset() override { meter_.reset(); gainSm_ = (float) params.get("Gain", 1.0); }
@@ -33,6 +34,7 @@ public:
     float meterLevel(int ch) const override { return meter_.level(ch); }
 
 private:
+    int defaultFirst_ = 0;
     int channels_ = 2;
     int blockLen_ = 0;
     float gainSm_ = 1.0f;

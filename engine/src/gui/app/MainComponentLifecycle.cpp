@@ -128,8 +128,8 @@ void MainComponent::checkForUpdatesManually() {
                 safe->showUpdateNotice(r.updateVersion, r.updateUrl, r.updateNotes,
                                    r.updateSha256);
             } else {
-                safe->notifyOn("updates", tr("main-lifecycle.humus", "Humus ") + juce::String(HubClient::appVersion())
-                                              + tr("main-lifecycle.up-to-date", " is up to date"));
+                safe->notifyOn("updates", tr("main-lifecycle.up-to-date", "Humus {version} is up to date",
+                                                 {{"version", juce::String(HubClient::appVersion())}}));
             }
         });
 }
@@ -153,9 +153,7 @@ void MainComponent::showUpdateNotice(const std::string& version,
         updater_->onDone = [safe](bool ok, juce::String message, juce::File file) {
             if (safe == nullptr || !safe->updateNotice_) return;
             safe->downloaded_ = ok ? file : juce::File();
-            safe->updateNotice_->setOutcome(ok ? message + " to "
-                                                     + file.getParentDirectory().getFileName()
-                                               : message,
+            safe->updateNotice_->setOutcome(message,
                                             ok ? AppUpdater::revealVerb() : tr("main-lifecycle.try-again", "Try again"));
         };
         updateNotice_->setProgress(0.0);

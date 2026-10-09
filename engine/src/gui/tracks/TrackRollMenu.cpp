@@ -16,7 +16,7 @@ void TrackRollView::showNoteMenu(juce::Point<int> screenPos) {
     enum { kNoteDelete = 1, kNoteLouder, kNoteSofter, kNoteSelectAll };
     juce::PopupMenu m;
     const int n = (int) sel_.size();
-    const auto count = n == 1 ? juce::String("note") : juce::String(n) + " notes";
+    const auto count = trn("tracks-pane-menu.notes-in-selection", "{n} note", "{n} notes", n);
     m.addSectionHeader(n > 0 ? count : juce::String(tr("tracks-pane-menu.no-notes-selected", "No notes selected")));
     m.addItem(kNoteSelectAll, tr("tracks-pane-menu.select-all", "Select All"), true);
     if (n > 0) {

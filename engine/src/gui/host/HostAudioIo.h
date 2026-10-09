@@ -5,6 +5,8 @@
 
 #include <juce_audio_devices/juce_audio_devices.h>
 
+#include "gui/host/DeviceProbe.h"
+
 namespace hum {
 
 class HostAudioIo {
@@ -19,9 +21,11 @@ public:
     virtual juce::AudioDeviceManager::AudioDeviceSetup setup() = 0;
     virtual void applySetup(const juce::AudioDeviceManager::AudioDeviceSetup& setup) = 0;
     virtual juce::AudioDeviceManager& manager() = 0;
+    virtual DeviceProbe prober() { return {}; }
 };
 
 std::unique_ptr<HostAudioIo> deviceAudioIo();
+std::unique_ptr<juce::AudioDeviceManager> guardedDeviceManager(const juce::File& verdicts);
 std::unique_ptr<HostAudioIo> nullAudioIo();
 
 }

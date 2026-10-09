@@ -54,11 +54,11 @@ public:
                {bound(bind::kBpm), bound(bind::kCue), bound(bind::kGridOffset), bound(bind::kHotCuePrefix),
                 bound(bind::kLoop), bound(bind::kLoopBeats), bound(bind::kLoopIn), bound(bind::kLoopOut),
                 bound(bind::kQuantize)}),
-          setCue_(tr("deck-controls.set-cue", "Set Cue")), cue_("Cue"), loopTgl_("Loop"),
+          setCue_(tr("deck-controls.set-cue", "Set Cue")), cue_(tr("deck-controls.cue", "Cue")), loopTgl_(tr("deck-controls.loop", "Loop")),
           half_("/2"), dbl_("x2"), clear_(tr("deck-controls.clear", "Clear")),
           clearAll_(kClearAllTrigger, tr("deck-controls.clear-all", "All"), false, true),
           nudgeBack_(juce::String::fromUTF8("\xe2\x80\x93")), nudgeOn_("+"),
-          stepParam_(bound(bind::kNudgeStep)) {
+          stepParam_(bound(bind::kNudgeStep)), peak_(tr("deck-controls.peak", "Peak")) {
         for (int i = 0; i < 8; ++i) {
             hot_[(size_t) i].setButtonText(juce::String(i + 1));
             styleBtn(hot_[(size_t) i], "Pad_" + std::to_string(i + 1));
@@ -121,6 +121,15 @@ public:
             styleBtn(loopBtns_[i], trigger.toStdString());
             loopBtns_[i].onClick = [this, trigger] { pad_.fire(trigger.toStdString()); };
         }
+        styleBtn(peak_, "Peak");
+        peak_.setTriggeredOnMouseDown(true);
+        peak_.setTooltip(tr("deck-controls.loop-the-loudest-part",
+                            "Loop the loudest part of the track, press again for the next loudest"));
+        peak_.onClick = [this] { pad_.fire("Peak"); };
+        peakLevel_.setFont(juce::FontOptions(10.0f));
+        peakLevel_.setTooltip(tr("deck-controls.the-loudest-sample",
+                                 "The loudest sample in the track, in dB below full scale"));
+        addAndMakeVisible(peakLevel_);
         auto rowLabel = [this](juce::Label& l, const juce::String& text) {
             l.setText(text, juce::dontSendNotification);
             l.setColour(juce::Label::textColourId, Palette::textDim);
@@ -181,6 +190,9 @@ public:
         loops.removeFromLeft(6);
         for (size_t i = 0; i < loopSizes_.size(); ++i)
             loopBtns_[i].setBounds(loops.removeFromLeft(34).reduced(1));
+        loops.removeFromLeft(6);
+        peak_.setBounds(loops.removeFromLeft(44).reduced(1));
+        peakLevel_.setBounds(loops.removeFromLeft(64));
 
         auto rolls = nextRow(false);
         rollLabel_.setBounds(rolls.removeFromLeft(labelW));
@@ -234,10 +246,18 @@ private:
             pad_.fire(way < 0 ? "CueNudgeBack" : "CueNudgeForward");
     }
 
+    void showPeak(float peak) {
+        const juce::String text(decks::peakText(peak));
+        if (text != peakLevel_.getText()) peakLevel_.setText(text, juce::dontSendNotification);
+        peakLevel_.setColour(juce::Label::textColourId,
+                             peak >= 1.0f ? ink::state::danger : Palette::textDim);
+    }
+
     void timerCallback() override {
         for (int i = 0; i < 8; ++i)
             hot_[(size_t) i].setToggleState(pad_.hotCueLit(i + 1), juce::dontSendNotification);
         loopTgl_.setToggleState(pad_.looping(), juce::dontSendNotification);
+        showPeak(pad_.loudestSample());
         if (const int want = (int) host_.liveParamValue(name_, stepParam_) + 1;
             want != nudgeStep_.getSelectedId())
             nudgeStep_.setSelectedId(want, juce::dontSendNotification);
@@ -261,6 +281,8 @@ private:
     int heldTicks_ = 0;
     std::vector<double> loopSizes_;
     std::array<CueButton, 3> loopBtns_;
+    CueButton peak_;
+    juce::Label peakLevel_;
     juce::Label cueLabel_, loopLabel_, rollLabel_;
     std::array<RollButton, 4> rollBtns_;
     std::vector<Learned> learned_;

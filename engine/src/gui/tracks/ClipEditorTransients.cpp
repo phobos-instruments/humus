@@ -16,7 +16,7 @@ int ClipEditorView::transientCount() {
 }
 
 long long ClipEditorView::sampleToTick(const ClipEditor::ClipInfo& ci, long long s) const {
-    const double spt = samplesPerBeat() / Pattern::kTicksPerBeat;
+    const double spt = sourceSamplesPerBeat(ci) / Pattern::kTicksPerBeat;
     return ci.startTick + (long long) std::llround((double) (s - ci.audioOffset) / spt);
 }
 
@@ -27,7 +27,7 @@ std::vector<long long> ClipEditorView::clipTransients(const ClipEditor::ClipInfo
     const double toFile = (peaks->fileSampleRate > 0.0 ? peaks->fileSampleRate : host().sampleRate())
                           / host().sampleRate();
     const auto clipEnd = ci.audioOffset
-                         + (long long) std::llround(ci.lengthTicks * samplesPerBeat() / Pattern::kTicksPerBeat);
+                         + (long long) std::llround(ci.lengthTicks * sourceSamplesPerBeat(ci) / Pattern::kTicksPerBeat);
     const float thresh = (float) (1.0 - sense_);
     for (const auto& o : peaks->onsets) {
         if (o.pos == 0 || o.strength < thresh) continue;
@@ -45,7 +45,7 @@ bool ClipEditorView::tabToTransient(int dir) {
     ClipEditor::ClipInfo ci;
     if (!clipInfo(ci)) return false;
     const auto ts = clipTransients(ci);
-    const double spt = samplesPerBeat() / Pattern::kTicksPerBeat;
+    const double spt = sourceSamplesPerBeat(ci) / Pattern::kTicksPerBeat;
     const auto cur = ci.audioOffset
                      + (long long) std::llround((host().positionBeats() * Pattern::kTicksPerBeat - ci.startTick) * spt);
     const long long slack = (long long) (spt * 0.5);

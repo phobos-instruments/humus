@@ -2,9 +2,12 @@
 set(HUM_GUI_SOURCES
     src/gui/app/MainComponent.cpp
     src/gui/app/MainComponentDock.cpp
+    src/gui/app/MainComponentLanguage.cpp
+    src/gui/app/MainComponentPanes.cpp
     src/gui/app/MainComponentMenu.cpp
     src/gui/app/MainComponentFiles.cpp
     src/gui/app/MainComponentAutosave.cpp
+    src/gui/app/WhatsNew.cpp
     src/gui/app/MainComponentHistory.cpp
     src/gui/app/MainComponentLifecycle.cpp
     src/gui/app/MainComponentTransport.cpp
@@ -23,6 +26,8 @@ set(HUM_GUI_SOURCES
     src/gui/patcher/PatcherCanvasPaint.cpp
     src/gui/patcher/PatcherCanvasArrange.cpp
     src/gui/patcher/PatcherCanvasMouse.cpp
+    src/gui/patcher/PatcherCanvasCordGrab.cpp
+    src/gui/patcher/PatcherCanvasCordDrop.cpp
     src/gui/patcher/PatcherCanvasMenus.cpp
     src/gui/pianoroll/PianoRollEditor.cpp
     src/gui/pianoroll/PianoRollColour.cpp
@@ -123,6 +128,8 @@ set(HUM_GUI_SOURCES
 
 # The EngineHost and its GUI-free helpers, built once as hum_host (cmake/Host.cmake).
 set(HUM_HOST_SOURCES
+    src/gui/host/EngineHostHealth.cpp
+    src/gui/plugins/PluginGraveyard.cpp
     src/gui/assistant/AssistantEngine.cpp
     src/gui/assistant/AssistantAutomix.cpp
     src/gui/assistant/AssistantTools.cpp
@@ -131,6 +138,8 @@ set(HUM_HOST_SOURCES
     src/gui/video/VisualPlanBuilder.cpp
     src/gui/video/VisualPlanSteps.cpp
     src/gui/host/HostAudioIo.cpp
+    src/gui/host/GuardedDeviceType.cpp
+    src/gui/host/DriverProbe.cpp
     src/gui/host/HostScheduler.cpp
     src/gui/host/HostHistory.cpp
     src/gui/host/GamepadHost.cpp
@@ -257,12 +266,17 @@ if(TARGET hum_tests)
 endif()
 
 if(APPLE)
-  list(APPEND HUM_HOST_SOURCES src/gui/host/GamepadHostMac.mm)
+  list(APPEND HUM_HOST_SOURCES src/gui/host/GamepadHostMac.mm src/gui/host/DeviceProbeMac.cpp)
+else()
+  list(APPEND HUM_HOST_SOURCES src/gui/host/DeviceProbeNone.cpp)
+endif()
+if(APPLE)
   list(APPEND HUM_GUI_SOURCES
     src/gui/plugins/EmbeddedPluginViewMac.mm
     src/gui/plugins/PluginEditorWindowMac.mm
     src/gui/style/HandCursors.mm
     src/gui/app/AppNapMac.mm
+    src/gui/app/MenuBarTitlesMac.mm
     src/gui/tracks/FileDragImageMac.mm
   )
 endif()
@@ -273,8 +287,27 @@ file(GLOB HUM_EMBEDDED_ART CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/resources/glyphs/*.png")
 file(GLOB HUM_EMBEDDED_GUIDE CONFIGURE_DEPENDS
      "${CMAKE_CURRENT_SOURCE_DIR}/resources/guide/*.md")
+# The interface strings (resources/translations/<code>/app.po) and the tour's
+# translations (<code>/guide/) are compiled in. Embedded resources keep only a
+# file's name, so each is copied in as <name>.<code>.<ext>, the name the app
+# looks for (app.it.po, 1-welcome.it.md).
+file(GLOB HUM_TRANSLATED_TOUR CONFIGURE_DEPENDS
+     "${CMAKE_CURRENT_SOURCE_DIR}/resources/translations/*/app.po"
+     "${CMAKE_CURRENT_SOURCE_DIR}/resources/translations/*/guide/*.md")
+set(HUM_EMBEDDED_TRANSLATIONS "")
+foreach(page ${HUM_TRANSLATED_TOUR})
+  file(RELATIVE_PATH rel "${CMAKE_CURRENT_SOURCE_DIR}/resources/translations" "${page}")
+  string(REGEX MATCH "^[^/]+" code "${rel}")
+  get_filename_component(stem "${page}" NAME_WE)
+  get_filename_component(ext "${page}" LAST_EXT)
+  set(copy "${CMAKE_CURRENT_BINARY_DIR}/translated-pages/${stem}.${code}${ext}")
+  configure_file("${page}" "${copy}" COPYONLY)
+  list(APPEND HUM_EMBEDDED_TRANSLATIONS "${copy}")
+endforeach()
 juce_add_binary_data(hum_assets SOURCES
   "${CMAKE_CURRENT_SOURCE_DIR}/resources/logo.png"
   "${CMAKE_CURRENT_SOURCE_DIR}/resources/icon/icon-1024.png"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../CHANGELOG.md"
+  ${HUM_EMBEDDED_TRANSLATIONS}
   ${HUM_EMBEDDED_ART}
   ${HUM_EMBEDDED_GUIDE})

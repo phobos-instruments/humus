@@ -82,6 +82,7 @@ private:
     double xToBeat(float x) const;
     float tickToX(int tick) const;
     double samplesPerBeat() const;
+    double sourceSamplesPerBeat(const ClipEditor::ClipInfo& ci) const;
     juce::Rectangle<int> clipField() const;
     juce::Rectangle<int> clipBox() const;
     juce::Rectangle<int> ribbonBounds() const;

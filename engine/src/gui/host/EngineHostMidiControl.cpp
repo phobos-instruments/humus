@@ -313,7 +313,7 @@ void MidiHost::armInlet(const std::string& name, bool armed) {
         setRecordTarget(name, false);
     }
     if (auto* g = audio_.graph(); g != nullptr && !armed) {
-        const juce::ScopedLock sl(audio_.graphLock());
+        const AudioLock::Scope sl(audio_.graphLock());
         g->setMidiInletTap(g->indexOf(name), false);
     }
     nodes_.refreshArmedInputs();

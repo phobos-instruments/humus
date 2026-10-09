@@ -8,6 +8,7 @@
 #include "core/plugins/PluginListStore.h"
 #include "core/plugins/PluginScanner.h"
 #include "core/tuning/TuningProbe.h"
+#include "gui/host/DriverProbe.h"
 #include "gui/assistant/AiClient.h"
 #include "hum/Registry.h"
 
@@ -38,6 +39,12 @@ Outcome tuningProbe(const juce::StringArray& args, int at) {
     return {true, 0};
 }
 
+Outcome audioDriverProbe(const juce::StringArray& args, int at) {
+    const auto verdict = driverprobe::openAndClose(args[at + 2], args[at + 3]);
+    juce::File(args[at + 1]).replaceWithText(verdict);
+    return {true, 0};
+}
+
 }
 
 Outcome run(const juce::StringArray& args) {
@@ -45,6 +52,9 @@ Outcome run(const juce::StringArray& args) {
 
     if (const int at = args.indexOf("--tuning-probe"); at >= 0 && at + 2 < args.size())
         return tuningProbe(args, at);
+
+    if (const int at = args.indexOf("--audio-driver-probe"); at >= 0 && at + 3 < args.size())
+        return audioDriverProbe(args, at);
 
     if (const int at = args.indexOf("--scan-enumerate-out"); at >= 0 && at + 2 < args.size()) {
         juce::File(args[at + 1]).replaceWithText(PluginScanner::enumerateLines(args[at + 2]));

@@ -49,7 +49,7 @@ public:
         g.fillRect(0, 0, 2, getHeight());
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(12.5f, juce::Font::bold));
-        g.drawText(juce::String(count_) + " " + tr("browser.selected", "selected"), kPad, 0, kStarsX - kPad, getHeight(),
+        g.drawText(trn("browser.selected", "{n} selected", "{n} selected", count_), kPad, 0, kStarsX - kPad, getHeight(),
                    juce::Justification::centredLeft, false);
         paint::drawStars(g, 0, (float) kStarsX, (float) getHeight() * 0.5f, true);
     }

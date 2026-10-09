@@ -8,6 +8,7 @@
 
 #include "core/midi/MidiFormat.h"
 #include "core/params/ParamUnit.h"
+#include "gui/common/Localisation.h"
 #include "gui/style/LookAndFeel.h"
 
 #include "hum/dsp/DspMath.h"
@@ -215,7 +216,7 @@ private:
     std::function<void(double, double)> onApplyRange_;
     juce::Label title_, pitch_, suffix_;
     ValueBox box1_, box2_;
-    juce::TextButton up_{"+"}, down_{"-"}, ok_{"OK"};
+    juce::TextButton up_{"+"}, down_{"-"}, ok_{tr("set-value.ok", "OK")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SetValuePopup)
 };

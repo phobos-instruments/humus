@@ -4,6 +4,8 @@
 
 #include <cmath>
 
+#include <juce_gui_basics/juce_gui_basics.h>
+
 namespace hum {
 
 juce::String AssistantEngine::runTool(const ToolCall& c) {

@@ -10,6 +10,7 @@
 #include <hum/Registry.h>
 
 #include "core/packs/PackRegistry.h"
+#include "gui/common/Localisation.h"
 #include "gui/help/HelpDocs.h"
 
 namespace hum {
@@ -22,12 +23,16 @@ inline juce::String tidy(const juce::String& s) {
     while (t.contains("  ")) t = t.replace("  ", " ");
     juce::String tight;
     tight.preallocateBytes((size_t) t.getNumBytesAsUTF8());
+    constexpr juce::juce_wchar kNoBreakSpace = 0x00A0;
     for (int i = 0; i < t.length(); ++i) {
         const bool spaceBeforeMark = t[i] == ' ' && i + 1 < t.length()
                                   && juce::String(".,;:!?").containsChar(t[i + 1]);
         const bool markOpensAWord = spaceBeforeMark && i + 2 < t.length()
                                  && juce::CharacterFunctions::isLetterOrDigit(t[i + 2]);
-        if (spaceBeforeMark && !markOpensAWord) continue;
+        if (spaceBeforeMark && !markOpensAWord) {
+            if (juce::String(";:!?").containsChar(t[i + 1])) tight += kNoBreakSpace;
+            continue;
+        }
         tight += t[i];
     }
     t = tight;
@@ -68,6 +73,9 @@ inline std::vector<LinkToken> linkTokens(const juce::String& s) {
 
 inline bool isRelatedHeader(const juce::String& t) {
     const auto low = t.trim().toLowerCase();
+    for (const auto& heading : {tr("help-markup.related-organisms", "Related organisms"),
+                                tr("help-markup.see-also", "See also")})
+        if (low == heading.toLowerCase()) return true;
     return low == "related organisms" || low == "see also";
 }
 

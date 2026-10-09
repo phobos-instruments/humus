@@ -19,6 +19,7 @@
 #include "io/PatchWriter.h"
 #include "io/ModRouteBuild.h"
 #include "io/PatchLoader.h"
+#include "io/StateChanges.h"
 #include "gui/app/AppSettings.h"
 
 namespace hum {
@@ -235,9 +236,10 @@ bool EngineHost::undo() {
     cur.positions = positions_;
     redo_.push_back(std::move(cur));
     trimHistory(redo_);
+    const auto changed = organismsWhoseStateChanged(model_, s.model);
+    reloadAfterRebuild_.insert(reloadAfterRebuild_.end(), changed.begin(), changed.end());
     model_ = std::move(s.model);
     positions_ = std::move(s.positions);
-    modelSwapped_ = true;
     requestRebuild();
     dirty_ = s.wasDirty;
     return true;
@@ -264,9 +266,10 @@ bool EngineHost::redo() {
     cur.model = model_;
     cur.positions = positions_;
     undo_.push_back(std::move(cur));
+    const auto changed = organismsWhoseStateChanged(model_, s.model);
+    reloadAfterRebuild_.insert(reloadAfterRebuild_.end(), changed.begin(), changed.end());
     model_ = std::move(s.model);
     positions_ = std::move(s.positions);
-    modelSwapped_ = true;
     requestRebuild();
     dirty_ = s.wasDirty;
     return true;

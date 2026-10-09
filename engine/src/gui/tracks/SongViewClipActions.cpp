@@ -54,8 +54,9 @@ public:
             pane_->placeTracedMelody(clip_, notes_);
         else if (!userPressedCancel && notes_.empty())
             juce::AlertWindow::showMessageBoxAsync(
-                juce::MessageBoxIconType::InfoIcon, "Convert to MIDI Track",
-                "No melody came out of that clip - it may be percussive, noisy or silent.");
+                juce::MessageBoxIconType::InfoIcon,
+                tr("tracks-pane-menu.convert-to-midi-track-2", "Convert to MIDI Track"),
+                tr("tracks-pane-menu.no-melody-came-out", "No melody came out of that clip - it may be percussive, noisy or silent."));
         delete this;
     }
 
@@ -102,7 +103,7 @@ void SongView::consolidateRow(int row) {
 
     if (track.empty()) {
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-                                               "Consolidate", juce::String(error));
+                                               tr("tracks-pane-menu.consolidate", "Consolidate"), juce::String(error));
         return;
     }
     placeRowBelow(track, node);

@@ -173,7 +173,7 @@ private:
         if (done < 0.02 || elapsed < 1.5) return;
         const double left = elapsed * (1.0 - done) / done;
         if (progressView_ != nullptr)
-            progressView_->timeLeft.setText(clock(left) + " " + tr("bounce.time-left", "left"),
+            progressView_->timeLeft.setText(tr("bounce.time-left-of", "{time} left", {{"time", clock(left)}}),
                                             juce::dontSendNotification);
     }
 
@@ -251,7 +251,7 @@ private:
     }
 
     juce::String said() const {
-        juce::String out = tr("bounce.wrote", "bounced ") + wants_.stem;
+        juce::String out = tr("bounce.wrote", "bounced {name}", {{"name", juce::String(wants_.stem)}});
         if (trouble_.isNotEmpty()) out += " (" + trouble_ + ")";
         return out;
     }

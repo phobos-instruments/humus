@@ -38,6 +38,26 @@ juce::Image closedHandImage() {
     return out;
 }
 
+juce::Image notAllowedImage() {
+    juce::Image out(juce::Image::ARGB, kHandSide * kHandScale, kHandSide * kHandScale, true);
+    juce::Graphics g(out);
+    g.addTransform(juce::AffineTransform::scale((float) kHandScale));
+    const juce::Rectangle<float> rim(2.5f, 2.5f, 11.0f, 11.0f);
+    const juce::Line<float> bar(4.6f, 4.6f, 11.4f, 11.4f);
+    g.setColour(juce::Colours::black);
+    g.drawEllipse(rim, 2.0f + 2.0f * kOutline);
+    g.drawLine(bar, 2.0f + 2.0f * kOutline);
+    g.setColour(juce::Colours::white);
+    g.drawEllipse(rim, 2.0f);
+    g.drawLine(bar, 2.0f);
+    return out;
+}
+
+}
+
+juce::MouseCursor notAllowedCursor() {
+    static const juce::MouseCursor cursor(juce::ScaledImage(notAllowedImage(), kHandScale), {8, 8});
+    return cursor;
 }
 
 juce::MouseCursor grabbingHandCursor() {

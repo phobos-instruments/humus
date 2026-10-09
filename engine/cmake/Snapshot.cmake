@@ -45,6 +45,9 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksVideoRender.cpp
     src/gui/snapshot/ChecksHap.cpp
     src/gui/snapshot/ChecksGraphBench.cpp
+    src/gui/snapshot/ChecksAudioStress.cpp
+    src/gui/snapshot/ChecksCordGrab.cpp
+    src/gui/snapshot/AllocationTally.cpp
     src/gui/snapshot/ChecksText.cpp
     src/gui/snapshot/ChecksRebuild.cpp
     src/gui/snapshot/ChecksHelp.cpp
@@ -80,6 +83,7 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksGrit.cpp
     src/gui/snapshot/ChecksBrickBinding.cpp
     src/gui/snapshot/ChecksClip.cpp
+    src/gui/snapshot/ChecksWarpedWave.cpp
     src/gui/snapshot/ChecksHelix.cpp
     src/gui/snapshot/ChecksRoll.cpp
     src/gui/snapshot/ChecksAssets.cpp
@@ -94,7 +98,10 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksShader.cpp
     src/gui/snapshot/ChecksUnits.cpp
     src/gui/snapshot/ChecksWelcome.cpp
+    src/gui/snapshot/ChecksLanguageSwitch.cpp
     src/gui/snapshot/ExportOrganisms.cpp
+    src/gui/snapshot/ExportOrganismText.cpp
+    src/gui/snapshot/ChecksAsioGuard.cpp
     src/gui/snapshot/ExportPose.cpp
     src/gui/snapshot/DiagProbes.cpp
     src/gui/snapshot/DiagPlugins.cpp

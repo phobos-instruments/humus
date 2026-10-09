@@ -55,7 +55,7 @@ private:
     MenuStylePreviewCard classicCard_, modernCard_;
     juce::ToggleButton telemetryToggle_, updatesToggle_;
 
-    juce::TextButton backBtn_{"Back"}, nextBtn_{"Next"}, skipBtn_;
+    juce::TextButton backBtn_, nextBtn_, skipBtn_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SetupWizard)
 };

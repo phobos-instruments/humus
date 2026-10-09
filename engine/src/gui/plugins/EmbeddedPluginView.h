@@ -110,10 +110,10 @@ public:
             windowed_
                 ? (floatOwns
                        ? juce::String(tr("embedded-plugin.ui-open-in-its-own", "UI open in its own window"))
-                       : juce::String("This plugin brings its own window  -  click to open it"))
+                       : tr("embedded-plugin.brings-its-own-window", "This plugin brings its own window  -  click to open it"))
                 : floatOwns
-                    ? juce::String("UI in Float window  -  close it to embed here")
-                    : juce::String::fromUTF8("Plugin UI  -  loading\xe2\x80\xa6"));
+                    ? tr("embedded-plugin.ui-in-float-window", "UI in Float window  -  close it to embed here")
+                    : tr("embedded-plugin.loading", "Plugin UI  -  loading..."));
     }
 
     void mouseDown(const juce::MouseEvent&) override {

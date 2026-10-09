@@ -27,7 +27,7 @@ void PatcherCanvas::showAddMenu(juce::Point<int> at, juce::Point<int> screenPos)
            kArrange, kSearch };
     std::vector<std::string> ids;
     juce::PopupMenu menu;
-    menu.addItem(kSearch, juce::String::fromUTF8("New Organism\xe2\x80\xa6"));
+    menu.addItem(kSearch, tr("patcher-canvas-menus.new-organism", "New Organism..."));
     menu.addSeparator();
     if (!modernMenusEnabled()) {
         juce::PopupMenu picker = classPickerMenu(0, ids);
@@ -105,7 +105,7 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
     auto pickerSubmenu = [&](int base, int searchId, bool capture) {
         std::vector<std::string> scratch;
         juce::PopupMenu m;
-        m.addItem(kSearchBase + searchId, juce::String::fromUTF8("Search\xe2\x80\xa6"));
+        m.addItem(kSearchBase + searchId, tr("patcher-canvas-menus.search", "Search..."));
         m.addSeparator();
         juce::PopupMenu picker = classPickerMenu(groups, base, capture ? classOrder : scratch);
         for (juce::PopupMenu::MenuItemIterator it(picker); it.next();)
@@ -137,10 +137,10 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
     menu.addItem(Rename, tr("patcher-canvas-menus.rename", "Rename... (F2)"));
     menu.addSeparator();
     if (modernMenusEnabled()) {
-        menu.addItem(kSearchBase + SearchReplace, juce::String::fromUTF8("Replace\xe2\x80\xa6"));
-        menu.addItem(kSearchBase + SearchSubstitute, juce::String::fromUTF8("Substitute\xe2\x80\xa6"));
-        menu.addItem(kSearchBase + SearchInsBefore, juce::String::fromUTF8("Insert Before\xe2\x80\xa6"));
-        menu.addItem(kSearchBase + SearchInsAfter, juce::String::fromUTF8("Insert After\xe2\x80\xa6"));
+        menu.addItem(kSearchBase + SearchReplace, tr("patcher-canvas-menus.replace-dots", "Replace..."));
+        menu.addItem(kSearchBase + SearchSubstitute, tr("patcher-canvas-menus.substitute-dots", "Substitute..."));
+        menu.addItem(kSearchBase + SearchInsBefore, tr("patcher-canvas-menus.insert-before-dots", "Insert Before..."));
+        menu.addItem(kSearchBase + SearchInsAfter, tr("patcher-canvas-menus.insert-after-dots", "Insert After..."));
     } else {
         menu.addSubMenu(tr("patcher-canvas-menus.replace", "Replace"), pickerSubmenu(kReplace, SearchReplace, true));
         menu.addSubMenu(tr("patcher-canvas-menus.substitute", "Substitute"), pickerSubmenu(kSubstitute, SearchSubstitute, false));
@@ -188,7 +188,7 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
                      cmNode->midiReceiveMode == OrganismModel::kMidiCordsOnly);
         juce::PopupMenu chans;
         for (int ch = 1; ch <= 16; ++ch)
-            chans.addItem(kRecv + 1 + ch, tr("patcher-canvas-menus.channel", "Channel ") + juce::String(ch), true,
+            chans.addItem(kRecv + 1 + ch, tr("patcher-canvas-menus.channel", "Channel {n}", {{"n", juce::String(ch)}}), true,
                           cmNode->midiReceiveMode == OrganismModel::kMidiChannel
                               && cmNode->midiReceiveChannel == ch);
         recv.addSubMenu(tr("patcher-canvas-menus.channel-2", "Channel"), chans);
@@ -234,7 +234,7 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
             host_.printToTimeline(node, err, -1, pref);
             if (!err.empty())
                 juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
-                                                       "MIDI to Track",
+                                                       tr("patcher-canvas-menus.midi-to-track", "MIDI to Track"),
                                                        juce::String(err));
             return;
         }
@@ -303,10 +303,10 @@ void PatcherCanvas::showCordMenu(const Edge& cord, juce::Point<int> at, juce::Po
     juce::PopupMenu menu;
     if (!cord.midi && !cord.video && !cord.control) {
         if (modernMenusEnabled()) {
-            menu.addItem(SearchInsert, juce::String::fromUTF8("Insert\xe2\x80\xa6"));
+            menu.addItem(SearchInsert, tr("patcher-canvas-menus.insert-dots", "Insert..."));
         } else {
             juce::PopupMenu ins;
-            ins.addItem(SearchInsert, juce::String::fromUTF8("Search\xe2\x80\xa6"));
+            ins.addItem(SearchInsert, tr("patcher-canvas-menus.search", "Search..."));
             ins.addSeparator();
             juce::PopupMenu picker = classPickerMenu(kInsert, classOrder);
             for (juce::PopupMenu::MenuItemIterator it(picker); it.next();)
@@ -319,7 +319,7 @@ void PatcherCanvas::showCordMenu(const Edge& cord, juce::Point<int> at, juce::Po
         juce::PopupMenu chan;
         chan.addItem(kChan, tr("patcher-canvas-menus.omni-all-channels", "Omni (all channels)"), true, cur == 0);
         for (int c = 1; c <= 16; ++c)
-            chan.addItem(kChan + c, tr("patcher-canvas-menus.channel", "Channel ") + juce::String(c), true, cur == c);
+            chan.addItem(kChan + c, tr("patcher-canvas-menus.channel", "Channel {n}", {{"n", juce::String(c)}}), true, cur == c);
         menu.addSubMenu(tr("patcher-canvas-menus.midi-channel", "MIDI Channel"), chan);
         menu.addSeparator();
     }
@@ -370,8 +370,9 @@ void PatcherCanvas::renameSelection() {
 void PatcherCanvas::renameNode(const std::string& node) {
     const auto leaf = pods::leafOf(node);
     const auto parent = pods::parentOf(node);
-    auto* aw = new juce::AlertWindow("Rename Organism",
-                                     "New name for \"" + leaf + "\":",
+    auto* aw = new juce::AlertWindow(tr("patcher-canvas-menus.rename-organism", "Rename Organism"),
+                                     tr("patcher-canvas-menus.new-name-for", "New name for \"{name}\":",
+                                        {{"name", juce::String(leaf)}}),
                                      juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", leaf);
     aw->addButton(tr("patcher-canvas-menus.ok", "OK"), 1, juce::KeyPress(juce::KeyPress::returnKey));

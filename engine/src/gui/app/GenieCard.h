@@ -42,7 +42,7 @@ public:
 
     void start() {
         const auto* cm = host_.model().byName(node_);
-        if (cm == nullptr) { finish(State::Failed, "That organism is no longer in the patch."); return; }
+        if (cm == nullptr) { finish(State::Failed, tr("genie.organism-gone", "That organism is no longer in the patch.")); return; }
         const auto schema = schemaFor(cm->classRaw);
         ticket_ = std::make_shared<AiClient::Ticket>();
         AiClient::Request req;
@@ -62,7 +62,7 @@ public:
     void stop() {
         if (state_ != State::Thinking) return;
         if (ticket_ != nullptr) ticket_->cancel();
-        finish(State::Stopped, "Stopped. Nothing was changed.");
+        finish(State::Stopped, tr("genie-card.stopped-nothing-changed", "Stopped. Nothing was changed."));
     }
 
     State state() const { return state_; }
@@ -73,16 +73,17 @@ public:
         paintBody(g, state_ != State::Failed);
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(14.0f, juce::Font::bold));
-        g.drawText("Preset Genie - " + juce::String(node_), 14, 10, titleWidth(), 20,
-                   juce::Justification::centredLeft);
+        g.drawText(tr("genie-card.preset-genie-title", "Preset Genie - {name}", {{"name", juce::String(node_)}}),
+                   14, 10, titleWidth(), 20, juce::Justification::centredLeft);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.0f));
         g.drawText("\"" + prompt_ + "\"", 14, 30, getWidth() - 28, 16,
                    juce::Justification::centredLeft, true);
         if (state_ == State::Thinking) {
             g.setColour(Palette::text);
-            g.drawText("Thinking... " + juce::String(ticks_ / kTickHz) + " s", 14, 48,
-                       getWidth() - 28, 16, juce::Justification::centredLeft);
+            g.drawText(tr("genie-card.thinking-seconds", "Thinking... {seconds} s",
+                          {{"seconds", juce::String(ticks_ / kTickHz)}}),
+                       14, 48, getWidth() - 28, 16, juce::Justification::centredLeft);
             paintWorkingBar(g, {14.0f, 67.0f, (float) getWidth() - 28.0f, 4.0f}, ticks_);
         } else {
             g.setColour(state_ == State::Done ? Palette::text : Palette::textDim);
@@ -106,17 +107,16 @@ private:
         if (state_ != State::Thinking) return;
         if (error.isNotEmpty()) { finish(State::Failed, error); return; }
         if (host_.model().byName(node_) == nullptr) {
-            finish(State::Failed, "That organism is no longer in the patch.");
+            finish(State::Failed, tr("genie.organism-gone", "That organism is no longer in the patch."));
             return;
         }
         const auto vals = parseGenieReply(text, schema);
-        if (vals.empty()) { finish(State::Failed, "The reply had no parameters this organism knows."); return; }
+        if (vals.empty()) { finish(State::Failed, tr("genie-card.reply-had-no-parameters", "The reply had no parameters this organism knows.")); return; }
         host_.pushUndo();
         for (const auto& [param, value] : vals) host_.setParam(node_, param, value);
         if (onChanged_) onChanged_();
-        finish(State::Done, vals.size() == 1 ? juce::String("1 parameter set. Undo takes it back.")
-                                             : juce::String((int) vals.size())
-                                                   + " parameters set. Undo takes them back.");
+        finish(State::Done, trn("genie-card.parameters-set", "{n} parameter set. Undo takes it back.",
+                                "{n} parameters set. Undo takes them back.", (long long) vals.size()));
     }
 
     void enter(State s, juce::String message) {

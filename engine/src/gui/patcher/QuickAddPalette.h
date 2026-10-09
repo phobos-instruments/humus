@@ -15,6 +15,7 @@
 #include "gui/patcher/OrganismBlurb.h"
 #include "gui/help/TextHighlight.h"
 #include "gui/common/Localisation.h"
+#include "gui/common/CategoryText.h"
 
 namespace hum {
 
@@ -31,13 +32,13 @@ public:
                     e.display = juce::String::fromUTF8(parseClassString(cls).display.c_str());
                     e.tag = juce::String::fromUTF8(origin.first.c_str())
                           + juce::String::fromUTF8(" \xe2\x80\xba ")
-                          + juce::String::fromUTF8(group.first.c_str());
+                          + categoryText(group.first);
                     all_.push_back(std::move(e));
                 }
 
         search_.onNav = [this](const juce::KeyPress& k) { return navigate(k); };
         search_.setFont(juce::FontOptions(14.5f));
-        search_.setTextToShowWhenEmpty(juce::String::fromUTF8("Search organisms\xe2\x80\xa6"),
+        search_.setTextToShowWhenEmpty(tr("help.search-organisms", "Search organisms..."),
                                        Palette::textDim);
         search_.setColour(juce::TextEditor::backgroundColourId, Palette::panelLight);
         search_.setColour(juce::TextEditor::textColourId, Palette::text);

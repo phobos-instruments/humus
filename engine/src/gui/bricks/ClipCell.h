@@ -118,8 +118,8 @@ private:
     bool badgeDrag_ = false, lifted_ = false;
     padbar::Grip grip_ = padbar::Grip::None;
     double pos_ = 0.0, len_ = 0.0, inSec_ = 0.0, outSec_ = 0.0;
-    CellButton open_{IconGlyph::Open, {}}, play_{IconGlyph::Play, {}}, in_{IconGlyph::Play, "In"},
-        out_{IconGlyph::Play, "Out"}, loop_{IconGlyph::Loop, {}};
+    CellButton open_{IconGlyph::Open, {}}, play_{IconGlyph::Play, {}}, in_{IconGlyph::Play, tr("clip-grid.in", "In")},
+        out_{IconGlyph::Play, tr("clip-grid.out", "Out")}, loop_{IconGlyph::Loop, {}};
 };
 
 }

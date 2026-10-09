@@ -67,6 +67,25 @@ void MainComponent::buildWorkspaceRail() {
     };
 }
 
+std::unique_ptr<juce::Component> MainComponent::makeSettingsContent(int category) {
+    auto content = std::make_unique<SettingsComponent>([this] { refreshAppearance(); }, &host_);
+    content->onPacksChanged = [this] {
+        juce::StringArray disabled;
+        for (const auto& pack : PackRegistry::instance().packs())
+            if (!pack.enabled) disabled.add(pack.manifest.id);
+        AppSettings::instance().set("packs.disabled", disabled.joinIntoString(","));
+        host_.applyPackChanges();
+    };
+    content->onPluginsChanged = [] {};
+    content->onLanguageChanged = [safe = juce::Component::SafePointer<MainComponent>(this)] {
+        juce::MessageManager::callAsync([safe] {
+            if (safe != nullptr) safe->changeLanguage();
+        });
+    };
+    if (category >= 0) content->selectCategory(category);
+    return content;
+}
+
 void MainComponent::openSettings(int category) {
     if (wizard_) {
         wizard_->toFront(true);
@@ -79,19 +98,9 @@ void MainComponent::openSettings(int category) {
         settingsWindow_->toFront(true);
         return;
     }
-    auto content = std::make_unique<SettingsComponent>([this] { refreshAppearance(); }, &host_);
-    content->onPacksChanged = [this] {
-        juce::StringArray disabled;
-        for (const auto& pack : PackRegistry::instance().packs())
-            if (!pack.enabled) disabled.add(pack.manifest.id);
-        AppSettings::instance().set("packs.disabled", disabled.joinIntoString(","));
-        host_.applyPackChanges();
-    };
-    content->onPluginsChanged = [] {};
-    if (category >= 0) content->selectCategory(category);
     juce::DialogWindow::LaunchOptions o;
-    o.content.setOwned(content.release());
-    o.dialogTitle = "Settings";
+    o.content.setOwned(makeSettingsContent(category).release());
+    o.dialogTitle = tr("main.settings", "Settings");
     o.dialogBackgroundColour = Palette::background;
     o.escapeKeyTriggersCloseButton = true;
     o.useNativeTitleBar = true;
@@ -124,7 +133,7 @@ void MainComponent::openHelpBrowser() {
         auto* browser = new HelpBrowser();
         if (const auto& sel = canvas_->selected(); !sel.empty())
             if (const auto* cm = host_.model().byName(sel)) browser->showClass(cm->displayClass);
-        helpWindow_ = std::make_unique<FreeWindow>("Help", browser);
+        helpWindow_ = std::make_unique<FreeWindow>(tr("main-windows.help", "Help"), browser);
         helpWindow_->onClose = [this] { helpWindow_.reset(); };
         wireGlobalKeys(*helpWindow_);
     }
@@ -134,7 +143,7 @@ void MainComponent::openHelpBrowser() {
 
 void MainComponent::openNotes() {
     if (!notesWindow_) {
-        notesWindow_ = std::make_unique<FreeWindow>("Notes", new NotesView(host_));
+        notesWindow_ = std::make_unique<FreeWindow>(tr("main-windows.notes", "Notes"), new NotesView(host_));
         notesWindow_->onClose = [this] { notesWindow_.reset(); };
         wireGlobalKeys(*notesWindow_);
     }

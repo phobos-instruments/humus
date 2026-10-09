@@ -161,7 +161,7 @@ void ClipEditorView::normalizeClip() {
     if (!peaks || !peaks->ready || peaks->binSamples <= 0) return;
     const double toFile = (peaks->fileSampleRate > 0.0 ? peaks->fileSampleRate : host().sampleRate())
                           / host().sampleRate();
-    const auto len = (long long) std::llround(ci.lengthTicks * samplesPerBeat() / Pattern::kTicksPerBeat);
+    const auto len = (long long) std::llround(ci.lengthTicks * sourceSamplesPerBeat(ci) / Pattern::kTicksPerBeat);
     const int b0 = (int) ((double) ci.audioOffset * toFile / peaks->binSamples);
     const int b1 = (int) ((double) (ci.audioOffset + len) * toFile / peaks->binSamples) + 1;
     float peak = 0.0f;
@@ -230,7 +230,7 @@ void ClipEditorView::showClipDetailMenu(juce::Point<int> screenPos) {
     m.addItem(kHalf, tr("tracks-pane-clip.stretch-to-half-length", "Stretch to Half Length"));
     juce::PopupMenu pitch;
     for (int st = 12; st >= -12; --st)
-        pitch.addItem(kPitch0 + st + 24, (st > 0 ? "+" : "") + juce::String(st) + tr("tracks-pane-clip.st", " st"), true,
+        pitch.addItem(kPitch0 + st + 24, tr("tracks-pane-clip.st", "{n} st", {{"n", (st > 0 ? "+" : "") + juce::String(st)}}), true,
                       std::abs(ci.audioPitch - st) < 0.01);
     m.addSubMenu(tr("tracks-pane-clip.pitch", "Pitch"), pitch);
     m.addSeparator();

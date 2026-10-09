@@ -154,7 +154,8 @@ int ClipEditor::split(const std::string& node, int clip, int atTick) {
     auto* cm = doc_.mutableByName(node);
     if (!cm) return -1;
     clipops::upgradeLegacyClip(cm->pattern);
-    const int out = clipops::splitClip(cm->pattern, clip, atTick, samplesPerTick());
+    const int out = clipops::splitClip(cm->pattern, clip, atTick,
+                                       clipSamplesPerTick(clipops::clipChannel(cm->pattern, clip)));
     if (out >= 0) { doc_.flagDirty(); patternSync_.syncPattern(node); }
     return out;
 }
@@ -163,7 +164,7 @@ int ClipEditor::join(const std::string& node, int a, int b) {
     auto* cm = doc_.mutableByName(node);
     if (!cm) return -1;
     clipops::upgradeLegacyClip(cm->pattern);
-    const int out = clipops::joinClips(cm->pattern, a, b, samplesPerTick());
+    const int out = clipops::joinClips(cm->pattern, a, b, clipSamplesPerTick(clipops::clipChannel(cm->pattern, a)));
     if (out >= 0) { doc_.flagDirty(); patternSync_.syncPattern(node); }
     return out;
 }

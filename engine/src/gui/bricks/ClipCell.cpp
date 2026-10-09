@@ -240,7 +240,7 @@ juce::String ClipCell::clock(double seconds) {
 
 juce::String ClipCell::rangeText() const {
     if (fileName_.isEmpty()) return {};
-    return clock(inSec_) + " - " + (outSec_ > inSec_ ? clock(outSec_) : juce::String("end"));
+    return clock(inSec_) + " - " + (outSec_ > inSec_ ? clock(outSec_) : tr("clip-grid.end", "end"));
 }
 
 }

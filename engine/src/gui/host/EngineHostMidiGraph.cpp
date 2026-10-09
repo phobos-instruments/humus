@@ -132,7 +132,7 @@ void EngineHost::injectLiveMidiToNode(const std::string& node, const juce::MidiM
 
 void EngineHost::panic() {
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_ != nullptr) graph_->panic();
     }
     const juce::ScopedLock ml(midiState_.targetsLock);

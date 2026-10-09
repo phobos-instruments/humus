@@ -81,8 +81,9 @@ public:
         sizeCombo_.setSelectedId(pick + 1, juce::dontSendNotification);
         const auto used = thumbstore::bytesUsed();
         usage_.setText(used <= 0 ? juce::String(tr("video-cache-settings.nothing-stored-yet", "Nothing stored yet."))
-                                 : juce::File::descriptionOfSizeInBytes(used) + " stored in "
-                                       + thumbstore::dir().getFullPathName(),
+                                 : tr("video-cache-settings.stored-in", "{size} stored in {path}",
+                                      {{"size", juce::File::descriptionOfSizeInBytes(used)},
+                                       {"path", thumbstore::dir().getFullPathName()}}),
                        juce::dontSendNotification);
         clearBtn_.setEnabled(used > 0);
         takeCombo_.setSelectedId(videotake::heightSetting(), juce::dontSendNotification);

@@ -13,12 +13,13 @@
 
 namespace hum::files {
 
-inline constexpr Words kMissing{"sound-file-slot.missing", "missing: "};
+inline constexpr Words kMissing{"sound-file-slot.missing", "missing: {name}"};
 inline constexpr Words kMissingTip{"sound-file-slot.missing-tip",
-                                   "Not found - File > Locate Missing Media, or pick it again here: "};
-inline constexpr Words kWrittenHere{"sound-file-slot.written-here", "The take will be written here: "};
+                                   "Not found - File > Locate Missing Media, or pick it again here: {path}"};
+inline constexpr Words kWrittenHere{"sound-file-slot.written-here", "The take will be written here: {path}"};
 inline constexpr Words kNameToWrite{"sound-file-slot.name-a-sound-file-to-write-2", "Name a sound file to write"};
 inline constexpr Words kSelectSound{"sound-file-slot.select-a-sound-file-2", "Select a sound file"};
+inline constexpr Words kNoFile{"sound-file-slot.no-file", "(no file)"};
 
 class SoundSlotModel {
 public:
@@ -54,11 +55,11 @@ public:
         out.missing = !saving_ && named && !there;
         const bool awaited = saving_ && named && !there;
         const auto name = fileNameOf(out.path);
-        out.text = !named ? "(no file)"
-                 : out.missing ? say(host_, kMissing) + name
+        out.text = !named ? say(host_, kNoFile)
+                 : out.missing ? say(host_, kMissing, {{"name", name}})
                                : name;
-        out.tooltip = out.missing ? say(host_, kMissingTip) + out.path
-                    : awaited ? say(host_, kWrittenHere) + out.path
+        out.tooltip = out.missing ? say(host_, kMissingTip, {{"path", out.path}})
+                    : awaited ? say(host_, kWrittenHere, {{"path", out.path}})
                               : out.path;
         out.clearable = named;
         const auto here = resolved(out.path);

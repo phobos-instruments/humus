@@ -111,6 +111,8 @@ void hum_register_pack_humus(Registry& r) {
     r.registerClass("AudioTrack", [] { return std::make_unique<AudioTrack>(); });
     r.registerClass("Sampler", [] { return std::make_unique<Sampler>(); });
     r.registerClass("FilePlayer", [] { return std::make_unique<FilePlayer>(); });
+    for (int n : {4, 6, 8, 16, 24, 32})
+        r.registerClass(std::to_string(n) + "FilePlayer", [n] { return std::make_unique<FilePlayer>(n); });
     r.registerClass("Graft", [] { return std::make_unique<Graft>(); });
     r.registerClass("Leafcutter", [] { return std::make_unique<Leafcutter>(); });
     r.registerClass("SoundSpace", [] { return std::make_unique<SoundSpace>(); });

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/patcher/ModernPicker.h"
+#include "gui/common/CategoryText.h"
 
 #include <cmath>
 
@@ -70,7 +71,7 @@ void ModernPicker::paint(juce::Graphics& g) {
     const juce::Font pillFont = juce::FontOptions(12.0f);
     g.setFont(pillFont);
     for (size_t i = 0; i < trail.size(); ++i) {
-        const auto label = juce::String::fromUTF8(trail[i].c_str());
+        const auto label = categoryText(trail[i]);
         const int tw = (int) std::ceil(juce::GlyphArrangement::getStringWidth(pillFont, label));
         const juce::Rectangle<int> pill(x, crumbArea_.getY(), tw + 16, crumbArea_.getHeight());
         const bool last = i + 1 == trail.size();
@@ -227,17 +228,15 @@ void ModernPicker::paintCard(juce::Graphics& g, size_t i) {
                                    .withHeight(fr.getHeight() * 0.34f), 3.0f);
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(14.0f, juce::Font::bold));
-        const auto count = juce::String(c.f.classCount)
-                           + (c.f.classCount == 1 ? tr("modern-picker.organism", " organism")
-                                                  : tr("modern-picker.organisms", " organisms"));
-        g.drawText(juce::String::fromUTF8(c.f.label.c_str()), inner, juce::Justification::centredLeft);
+        const auto count = trn("modern-picker.organisms", "{n} organism", "{n} organisms", c.f.classCount);
+        g.drawText(categoryText(c.f.label), inner, juce::Justification::centredLeft);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(12.0f));
         g.drawText(count, inner, juce::Justification::centredRight);
         return;
     }
     paintTile(g, c.l, tile);
-    const auto tag = juce::String::fromUTF8(c.l.tag.c_str());
+    const auto tag = pickerTagText(c.l.tag);
     const juce::Font tagFont(juce::FontOptions(11.0f));
     const int tagW = juce::jmin(inner.getWidth() / 3,
                                 (int) std::ceil(juce::GlyphArrangement::getStringWidth(tagFont, tag)) + 4);
@@ -292,11 +291,10 @@ void ModernPicker::paintTile(juce::Graphics& g, const picker::Leaf& leaf, juce::
 }
 
 void ModernPicker::updateSearchPlaceholder() {
-    const auto scope = path_.empty()
-        ? juce::String("organisms")
-        : juce::String::fromUTF8(path_.back().c_str());
-    search_.setTextToShowWhenEmpty("Search " + (path_.empty() ? scope : "in " + scope)
-                                       + juce::String::fromUTF8("\xe2\x80\xa6"),
+    search_.setTextToShowWhenEmpty(path_.empty()
+                                       ? tr("modern-picker.search-organisms", "Search organisms...")
+                                       : tr("modern-picker.search-in", "Search in {scope}...",
+                                            {{"scope", juce::String::fromUTF8(path_.back().c_str())}}),
                                    Palette::textDim);
     search_.repaint();
 }

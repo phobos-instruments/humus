@@ -11,6 +11,7 @@
 #include "gui/pianoroll/NoteEdit.h"
 
 #include "gui/style/LookAndFeel.h"
+#include "gui/common/Localisation.h"
 
 #include "hum/dsp/DspMath.h"
 #include "core/midi/MidiFormat.h"
@@ -155,7 +156,7 @@ void PianoRollEditor::paintVelocity(juce::Graphics& g) {
 
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(9.0f));
-    g.drawText("vel", 4, top + 3, kKeyW - 8, 10, juce::Justification::centredLeft, false);
+    g.drawText(tr("piano-roll-grid.vel", "vel"), 4, top + 3, kKeyW - 8, 10, juce::Justification::centredLeft, false);
 
     const auto ns = model_.gesture() == Gesture::None ? model_.notes() : model_.gestureNotes();
     for (size_t i = 0; i < ns.size(); ++i) {

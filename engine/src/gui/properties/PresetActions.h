@@ -55,8 +55,9 @@ inline void showGenie(PropertiesHost& host, const std::string& node,
     const juce::String display(cm->displayClass);
 
     auto* w = new juce::AlertWindow(
-        juce::String("Preset Genie - ") + juce::String(node),
-        "Describe the sound; the model sets " + display + "'s parameters (one undo step).",
+        tr("preset-actions.preset-genie-title", "Preset Genie - {name}", {{"name", juce::String(node)}}),
+        tr("preset-actions.describe-the-sound", "Describe the sound; the model sets {organism}'s parameters (one undo step).",
+           {{"organism", display}}),
         juce::MessageBoxIconType::NoIcon);
     w->addTextEditor("prompt", "", tr("preset-actions.describe-it", "Describe it:"));
     if (AiClient::needsApiKey())

@@ -48,7 +48,8 @@ public:
         wider_.setVisible(false);
         grid_.setTooltip(tr("deck.anchor-the-beatgrid-beat-1", "Anchor the beatgrid (beat 1) at the playhead"));
         x2_.setTooltip(tr("deck.double-the-detected-bpm-grid", "Double the detected BPM (grid x2)"));
-        half_.setTooltip(juce::String::fromUTF8("Halve the detected BPM (grid \xc3\xb7""2)"));
+        half_.setTooltip(tr("deck.halve-the-detected-bpm-grid", "Halve the detected BPM (grid {divide}2)",
+                            {{"divide", juce::String::fromUTF8("\xc3\xb7")}}));
         closer_.setTooltip(tr("deck.zoom-the-wave-in", "Zoom the wave in"));
         wider_.setTooltip(tr("deck.zoom-the-wave-out", "Zoom the wave out"));
         closer_.onClick = [this] { deck_.zoomBy(-1); repaint(); };
@@ -97,6 +98,7 @@ public:
         g.setColour(Palette::text.withAlpha(alpha::veil));
         g.fillRect(juce::Rectangle<float>(ovX(left), (float) overview_.getY(),
                                           ovX(left + span) - ovX(left), (float) overview_.getHeight()));
+        paintLoudSpots(g, ovX);
         g.setColour(juce::Colours::white);
         g.drawVerticalLine((int) ovX((double) pos), (float) overview_.getY(), (float) overview_.getBottom());
 
@@ -136,7 +138,7 @@ public:
         const auto bpm = deck_.bpmText();
         g.setColour(Palette::accent);
         g.setFont(juce::FontOptions(13.0f, juce::Font::bold));
-        if (!bpm.empty()) g.drawText(juce::String(bpm) + tr("deck.bpm", " BPM"), main_.reduced(6, 4), juce::Justification::topLeft);
+        if (!bpm.empty()) g.drawText(tr("deck.bpm", "{bpm} BPM", {{"bpm", juce::String(bpm)}}), main_.reduced(6, 4), juce::Justification::topLeft);
         const juce::String info(deck_.infoText());
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(11.0f));
@@ -192,6 +194,19 @@ private:
         closer_.setVisible(zoomable);
         wider_.setVisible(zoomable);
         repaint();
+    }
+
+    template <typename ToX>
+    void paintLoudSpots(juce::Graphics& g, ToX&& toX) {
+        constexpr float kHalfW = 3.0f, kDepth = 5.0f;
+        const auto top = (float) overview_.getY();
+        g.setColour(ink::vu::peakLampLit);
+        for (const auto at : deck_.loudSpots()) {
+            const float x = toX((double) at);
+            juce::Path mark;
+            mark.addTriangle(x - kHalfW, top, x + kHalfW, top, x, top + kDepth);
+            g.fillPath(mark);
+        }
     }
 
     void paintWave(juce::Graphics& g, juce::Rectangle<int> r, const std::vector<float>& peaks,

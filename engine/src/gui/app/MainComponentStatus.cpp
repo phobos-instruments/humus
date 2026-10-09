@@ -79,9 +79,10 @@ void MainComponent::updateDspReadout() {
         lastDeviceRestarts_ = restarts;
         notify(tr("main.audio-device-restarted-opening-aux", "audio device restarted (opening aux hardware channels)"));
     }
+    logAudioGlitchesEverySecond();
     dspLoadHold_ = juce::jmax(host_.audioLoad(), dspLoadHold_ * 0.94f);
     if (dspLoadHold_ < 0.005f) dspLoadHold_ = 0.0f;
-    const unsigned drops = host_.dropoutCount();
+    const unsigned drops = host_.glitchCount();
     if (drops != lastDropouts_) { lastDropouts_ = drops; dropFlashTicks_ = 60; }
     juce::String s(juce::String((int) std::lround(dspLoadHold_ * 100.0f)) + "%");
     if (drops > 0) s << " !" << juce::String(drops);
@@ -91,9 +92,17 @@ void MainComponent::updateDspReadout() {
     if (dropFlashTicks_ > 0) --dropFlashTicks_;
 }
 
+void MainComponent::logAudioGlitchesEverySecond() {
+    const double now = juce::Time::getMillisecondCounterHiRes();
+    if (now - lastGlitchReportMs_ < 1000.0) return;
+    lastGlitchReportMs_ = now;
+    if (const auto window = host_.takeAudioGlitches(); hasGlitches(window))
+        juce::Logger::writeToLog(juce::String(describeAudioGlitches(window)));
+}
+
 void MainComponent::updateWindowTitle() {
     const juce::String project = currentFile_.isEmpty()
-        ? "Untitled"
+        ? tr("main.untitled", "Untitled")
         : juce::File(currentFile_).getFileNameWithoutExtension();
     juce::String t = (host_.isDirty() ? "*" : "") + project
                    + juce::String("  -  Humus");

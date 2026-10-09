@@ -10,10 +10,10 @@
 
 namespace hum::launch {
 
-inline const std::array<const char*, 5>& helperFlags() {
-    static const std::array<const char*, 5> flags = {
+inline const std::array<const char*, 6>& helperFlags() {
+    static const std::array<const char*, 6> flags = {
         "--ai-ping", "--tuning-probe", "--scan-enumerate-out",
-        "--scan-plugin-out", "--scan-plugin"};
+        "--scan-plugin-out", "--scan-plugin", "--audio-driver-probe"};
     return flags;
 }
 

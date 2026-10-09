@@ -94,7 +94,7 @@ public:
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(12.5f));
         auto rows = preview_.getBottom() + 10;
-        const juce::String labels[] = {tr("new-pod.audio-in", "Audio in"), tr("new-pod.audio-out", "Audio out"), tr("new-pod.midi-in", "MIDI in"), tr("new-pod.midi-out", "MIDI out"), "Ports"};
+        const juce::String labels[] = {tr("new-pod.audio-in", "Audio in"), tr("new-pod.audio-out", "Audio out"), tr("new-pod.midi-in", "MIDI in"), tr("new-pod.midi-out", "MIDI out"), tr("new-pod.ports", "Ports")};
         for (int i = 0; i < 5; ++i)
             g.drawText(labels[i], r.getX(), rows + i * 32, 92, 26,
                        juce::Justification::centredLeft);
@@ -167,17 +167,19 @@ private:
         dots(mIns, box.getY(), true, true, Palette::midiCord());
         dots(mOuts, box.getBottom(), true, false, Palette::midiCord());
 
+        auto mono = [](int n) { return trn("new-pod.mono-count", "{n} mono", "{n} mono", n); };
         auto caption = [&](int ch) -> juce::String {
             if (ch <= 0) return "0";
-            if (!stereo) return juce::String(ch) + " mono";
+            if (!stereo) return mono(ch);
             const int pairs = ch / 2, rest = ch % 2;
-            juce::String s = pairs > 0 ? juce::String(pairs) + " stereo" : juce::String();
-            if (rest) s += (s.isEmpty() ? "" : " + ") + juce::String("1 mono");
-            return s;
+            if (pairs == 0) return mono(rest);
+            const auto pairsText = trn("new-pod.stereo-count", "{n} stereo", "{n} stereo", pairs);
+            if (rest == 0) return pairsText;
+            return tr("new-pod.stereo-plus-mono", "{stereo} + {mono}", {{"stereo", pairsText}, {"mono", mono(rest)}});
         };
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.5f));
-        g.drawText(tr("new-pod.in", "in: ") + caption(aIns) + tr("new-pod.out", "    out: ") + caption(aOuts),
+        g.drawText(tr("new-pod.in-out", "in: {ins}    out: {outs}", {{"ins", caption(aIns)}, {"outs", caption(aOuts)}}),
                    preview_.withTop(preview_.getBottom() - 16),
                    juce::Justification::centredTop);
     }
@@ -198,7 +200,7 @@ private:
     juce::Rectangle<int> preview_;
     juce::Slider ins_, outs_, midiIns_, midiOuts_;
     juce::ComboBox ports_;
-    juce::TextButton createBtn_{"Create"}, cancelBtn_{"Cancel"};
+    juce::TextButton createBtn_{tr("new-pod.create", "Create")}, cancelBtn_{tr("new-pod.cancel", "Cancel")};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(NewPodPanel)
 };

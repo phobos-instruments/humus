@@ -30,6 +30,12 @@ public:
 
     static OrganismPtr createOrganism(const std::string& classRaw);
 
+    using Retirer = std::function<void(std::unique_ptr<juce::AudioPluginInstance>, const std::string& classRaw)>;
+    void setRetirer(Retirer retirer) { retirer_ = std::move(retirer); }
+    void retire(std::unique_ptr<juce::AudioPluginInstance> instance, const std::string& classRaw);
+    static void destroyNow(std::unique_ptr<juce::AudioPluginInstance> instance, const std::string& classRaw);
+    int instancesMade() const { return instancesMade_; }
+
     std::vector<std::string> classRawList() const;
     static std::vector<std::string> allPaletteClasses();
     bool isPluginClass(const std::string& classRaw) const;
@@ -37,6 +43,8 @@ public:
     std::string vendorOf(const std::string& classRaw);
 
     const std::vector<ParamDesc>& schemaFor(const std::string& classRaw);
+    const std::vector<ParamDesc>& learnFrom(const std::string& classRaw, juce::AudioPluginInstance& instance);
+    void forgetSchemaFor(const std::string& classRaw) { schemaCache_.erase(classRaw); ioCache_.erase(classRaw); }
     static constexpr int kMaxParams = 256;
 
     struct PluginIoFacts {
@@ -74,6 +82,8 @@ private:
     std::unordered_map<std::string, PluginIoFacts> ioCache_;
     juce::File bridgeExe_;
     std::function<bool(const std::string&)> bridgePolicy_;
+    Retirer retirer_;
+    int instancesMade_ = 0;
 };
 
 }

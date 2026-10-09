@@ -244,7 +244,7 @@ void WaveDrawBrick::paintStrip(juce::Graphics& g) {
 
 void WaveDrawBrick::chooseSeed() {
     files::FilePick request;
-    request.title = "Seed a wave from any file";
+    request.title = tr("wave-draw.seed-a-wave-from-any-file", "Seed a wave from any file").toStdString();
     request.patterns = "*";
     picker_.pick(request, [this](const std::vector<std::string>& paths) {
         if (!paths.empty()) seedFromFile(juce::File(juce::String::fromUTF8(paths.front().c_str())));

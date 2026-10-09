@@ -77,6 +77,7 @@ public:
     void setCCs(const std::string& node, int clip, const std::vector<CCEvent>& ccs) override;
 
 private:
+    double clipSamplesPerTick(const PatternChannel* clip) const;
     BrickHost& host_;
     HostDocument& doc_;
     HostPatterns& patternSync_;

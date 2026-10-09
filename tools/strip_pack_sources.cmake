@@ -8,7 +8,8 @@ if(NOT DIR)
   message(FATAL_ERROR "strip_pack_sources.cmake: DIR is required")
 endif()
 file(GLOB_RECURSE HUM_PACK_SOURCES
-     "${DIR}/*.cpp" "${DIR}/*.h" "${DIR}/*.hpp" "${DIR}/*.mm" "${DIR}/CMakeLists.txt")
+     "${DIR}/*.cpp" "${DIR}/*.h" "${DIR}/*.hpp" "${DIR}/*.mm" "${DIR}/CMakeLists.txt"
+     "${DIR}/*.pot")
 foreach(f ${HUM_PACK_SOURCES})
   file(REMOVE "${f}")
 endforeach()

@@ -63,8 +63,7 @@ private:
             text_.setText(what, juce::dontSendNotification);
         }
         void setCountdown(int seconds) {
-            wait_.setText(tr("quick-map.waiting", "waiting ") + juce::String(seconds) + "s "
-                              + juce::String("-") + " Esc to cancel",
+            wait_.setText(tr("quick-map.waiting", "waiting {n}s - Esc to cancel", {{"n", juce::String(seconds)}}),
                           juce::dontSendNotification);
         }
         void cancel() {
@@ -102,9 +101,11 @@ inline void ask(const juce::String& kind, const juce::String& source, const juce
         list << juce::String(o) << " / " << juce::String(p);
     }
     juce::AlertWindow::showYesNoCancelBox(
-        juce::MessageBoxIconType::QuestionIcon, source + " is already assigned",
-        source + " already controls " + list + ".\n\nReassign it to " + target
-            + ", or add " + target + " so they move together?",
+        juce::MessageBoxIconType::QuestionIcon,
+        tr("quick-map.already-assigned", "{source} is already assigned", {{"source", source}}),
+        tr("quick-map.already-controls",
+           "{source} already controls {list}.\n\nReassign it to {target}, or add {target} so they move together?",
+           {{"source", source}, {"list", list}, {"target", target}}),
         tr("quick-map.reassign", "Reassign"), tr("quick-map.add-both", "Add both"),
         tr("quick-map.cancel", "Cancel"), nullptr,
         juce::ModalCallbackFunction::create([onResolve](int r) {

@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/Localisation.h"
 #include "gui/style/LookAndFeel.h"
 
 namespace hum {
@@ -59,7 +60,7 @@ private:
 
     juce::Label title_;
     juce::TextEditor field_;
-    juce::TextButton okBtn_{"OK"};
+    juce::TextButton okBtn_{tr("number-prompt.ok", "OK")};
     std::function<void(int)> onPick_;
     juce::CallOutBox* box_ = nullptr;
 

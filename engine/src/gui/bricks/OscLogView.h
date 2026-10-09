@@ -14,12 +14,14 @@ public:
 
 private:
     juce::String headerText() const override {
-        const auto count = juce::String((int) lineCount());
+        const auto count = (long long) lineCount();
         return host_.osc().enabled()
-            ? count + " messages"
-            : count + juce::String::fromUTF8(" messages \xc2\xb7 input OFF (Settings)");
+            ? trn("osc-log.messages", "{n} message", "{n} messages", count)
+            : trn("osc-log.messages-input-off", "{n} message {dot} input OFF (Settings)",
+                  "{n} messages {dot} input OFF (Settings)", count,
+                  {{"dot", juce::String::fromUTF8("\xc2\xb7")}});
     }
-    juce::String emptyText() const override { return "waiting for OSC..."; }
+    juce::String emptyText() const override { return tr("osc-log.waiting-for-osc", "waiting for OSC..."); }
 
     bool drain(readout::EventLog& log) override { return reading_.drain(host_, name_, paused(), log); }
 

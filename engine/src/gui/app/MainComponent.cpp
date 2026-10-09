@@ -5,6 +5,7 @@
 #include "core/browser/BrowserIndex.h"
 #include "gui/editor/juce/JuceFilePicker.h"
 #include "gui/app/AboutWindow.h"
+#include "gui/app/WhatsNewWindow.h"
 #include "gui/app/AppUpdater.h"
 #include "gui/app/BounceJob.h"
 #include "gui/help/GuideView.h"
@@ -53,6 +54,7 @@
 #include "gui/plugins/EmbeddedDebug.h"
 #include "gui/app/NativeMac.h"
 #include "gui/settings/SettingsComponent.h"
+#include "gui/common/Languages.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
@@ -77,6 +79,7 @@ MainComponent::MainComponent()
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
                                                tr("main.plugin-safe-mode", "Plugin safe mode"), msg);
     PackLoader::instance().loadInstalledPacks();
+    i18n::refresh();
     PluginHost::instance().restoreKnownListFromXml(pluginListStore::load());
     {
         juce::StringArray disabled;
@@ -97,37 +100,7 @@ MainComponent::MainComponent()
                                                "disposing its instance");
     };
 
-    canvas_ = std::make_unique<PatcherCanvas>(host_);
-    propsPane_ = std::make_unique<PropertiesPane>(host_);
-    canvas_->onActivate = [this](const std::string& n) { propsPane_->openFor(n); };
-
-    canvas_->onSelect = [this](const std::string& n) { propsPane_->setSelected(n); };
-    propsPane_->onSelect = [this](const std::string& n) {
-        canvas_->select(n);
-        canvas_->refresh();
-    };
-
-    canvas_->onAddRequest = [this](const std::string& cls, juce::Point<int> at) { addAt(cls, at); };
-    propsPane_->onOpenPluginUI = [this](const std::string& n) { openPluginUI(n); };
-    propsPane_->onFloatKey = [this](const juce::KeyPress& k) { return keyPressed(k); };
-    propsPane_->onFloatKeyState = [this](bool down) { return keyStateChanged(down); };
-    propsPane_->onAddOrganism = [this](const std::string& cls) {
-        auto centre = patcherView_.getViewArea().getCentre();
-        addAt(cls, {centre.x - 75, centre.y - 36});
-    };
-    canvas_->onRandomisePod = [this](const std::string& pod) { rollScope(pod); };
-    canvas_->onMapPodRandom = [this](const std::string& pod, juce::Point<int> at) {
-        showAutomateMenu(host_, host_.clockNodeName(), rollscope::podAction(pod), at, nullptr, false);
-    };
-    canvas_->onOpenPluginUI = [this](const std::string& n) { openPluginUI(n); };
-    canvas_->onOpenVisuals = [this](const std::string& n) { openVisualUI(n); };
-    canvas_->onRecordNode = [this](const std::string& tk) {
-        refreshTimelinePanes();
-        if (!viewAutomation_.getToggleState())
-            viewAutomation_.setToggleState(true, juce::sendNotification);
-        notify(juce::String::fromUTF8("Armed \xe2\x80\x9c") + tk
-                  + juce::String::fromUTF8("\xe2\x80\x9d - press \xe2\x8f\xba Record, then \xe2\x96\xb6 Play to capture the take"));
-    };
+    buildPatchPanes();
     host_.onBeforeRebuild = [this](const std::function<bool(const std::string&)>& survives) {
         for (auto it = pluginWindows_.begin(); it != pluginWindows_.end();)
             it = survives(it->first) ? std::next(it) : pluginWindows_.erase(it);
@@ -144,8 +117,8 @@ MainComponent::MainComponent()
         openParameterControl(c, p);
     };
     host_.onBuildFailed = [this](const std::string& e) {
-        notifyError(tr("main.rebuild-failed", "the patch could not be rebuilt, the last good one keeps playing: ")
-                  + juce::String(e));
+        notifyError(tr("main.rebuild-failed", "the patch could not be rebuilt, the last good one keeps playing: {reason}",
+                       {{"reason", juce::String(e)}}));
     };
     host_.onTopologyChanged = [this] {
         canvas_->refresh();
@@ -159,27 +132,14 @@ MainComponent::MainComponent()
     host_.onNodeRolled = [this](const std::string& n) { propsPane_->reloadValuesFor(n); };
     host_.onPanelEdit = [this](const std::string& n) { propsPane_->reloadValuesFor(n); };
     host_.gamepads().setEnabled(AppSettings::instance().getInt("gamepad.enabled", 1) != 0);
-    canvas_->onUndoRedo = [this] { propsPane_->reload(); refreshTimelinePanes(); };
     QwertyPiano::instance().emitDirect = [this](const juce::MidiMessage& m) {
         host_.injectLiveMidi(m);
     };
     host_.record().onSessionEnded = [this] { refreshTimelinePanes(); };
     host_.record().onStartRolling = [this] { ensureAudio(); host_.play(); };
-    propsPane_->onAutomationChanged = [this] {
-        refreshTimelinePanes();
-        if (!viewAutomation_.getToggleState())
-            viewAutomation_.setToggleState(true, juce::sendNotification);
-    };
 
 #if JUCE_MAC
-    {
-        juce::PopupMenu appleExtras;
-        appleExtras.addItem(50, juce::String::fromUTF8("About Humus\xe2\x80\xa6"));
-        appleExtras.addItem(53, juce::String::fromUTF8("Check for Updates\xe2\x80\xa6"));
-        appleExtras.addSeparator();
-        appleExtras.addItem(16, juce::String::fromUTF8("Settings\xe2\x80\xa6"));
-        juce::MenuBarModel::setMacMainMenu(this, &appleExtras);
-    }
+    installMacMenu();
 #else
     addAndMakeVisible(menuBar_);
 #endif
@@ -191,6 +151,7 @@ MainComponent::MainComponent()
     refreshAppearance();
     buildDock();
     restoreDock();
+    applyTexts();
 
     if (AppSettings::instance().getInt("audio.enabled", 1) != 0)
         juce::MessageManager::callAsync([safe = juce::Component::SafePointer<MainComponent>(this)] {
@@ -291,17 +252,16 @@ juce::String MainComponent::loadLeftText(const EngineHost::Loading& load) {
     if (elapsed < kEtaSettleMs) return {};
     const int secs = juce::roundToInt(elapsed * (1.0 - load.progress) / load.progress
                                       / kMillisPerSecond);
-    const juce::String about = "  " + tr("main.load-left", "about ");
     if (secs < (int) kSecondsPerMinute)
-        return about + juce::String(std::max(1, secs)) + tr("main.load-left-sec", " s left");
-    return about + juce::String(secs / (int) kSecondsPerMinute + 1)
-         + tr("main.load-left-min", " min left");
+        return "  " + trn("main.load-left-sec", "about {n} s left", "about {n} s left", std::max(1, secs));
+    return "  " + trn("main.load-left-min", "about {n} min left", "about {n} min left",
+                      secs / (int) kSecondsPerMinute + 1);
 }
 
 void MainComponent::showLoadProgress() {
     for (const auto& f : host_.takeLoadFaults())
-        notices_.say(tr("main.load-failed", "Could not load ") + juce::String(f.file) + ": "
-                         + juce::String(f.message),
+        notices_.say(tr("main.load-failed", "Could not load {file}: {reason}",
+                        {{"file", juce::String(f.file)}, {"reason", juce::String(f.message)}}),
                      NoticeCard::Kind::Passing);
     const auto loads = host_.loadsInFlight();
     if (loads.empty()) {
@@ -313,12 +273,12 @@ void MainComponent::showLoadProgress() {
     }
     const auto& first = loads.front();
     const bool listening = first.stage == EngineHost::Loading::Stage::Listening;
-    juce::String text = listening ? tr("main.load-beat", "Reading the beat of ")
-                                  : tr("main.loading", "Loading ");
-    text += juce::String(first.file);
+    const juce::String file(first.file);
+    juce::String text = listening ? tr("main.load-beat", "Reading the beat of {file}", {{"file", file}})
+                                  : tr("main.loading", "Loading {file}", {{"file", file}});
     if (loads.size() > 1)
-        text += " " + tr("main.and-others", "and ") + juce::String((int) loads.size() - 1)
-              + tr("main.more", " more");
+        text = trn("main.and-others", "{what} and {n} more", "{what} and {n} more", (int) loads.size() - 1,
+                   {{"what", text}});
     if (!listening) {
         text += "  " + juce::String(juce::roundToInt(first.progress * 100.0f)) + "%";
         text += loadLeftText(first);

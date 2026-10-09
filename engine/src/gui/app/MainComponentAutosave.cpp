@@ -37,7 +37,7 @@ void MainComponent::clearAutosave() {
 void MainComponent::restoreAutosave(const AutosaveStore::Recovery& r) {
     std::string err;
     if (!host_.loadFile(r.autosave.getFullPathName().toStdString(), err)) {
-        notifyError(tr("main-autosave.recovery-failed", "recovery failed: ") + juce::String(err));
+        notifyError(tr("main-autosave.recovery-failed", "recovery failed: {reason}", {{"reason", juce::String(err)}}));
         return;
     }
     currentFile_ = r.originalPath;
@@ -49,9 +49,10 @@ void MainComponent::restoreAutosave(const AutosaveStore::Recovery& r) {
     propsPane_->syncFromModel();
     refreshTimelinePanes();
     canvas_->refresh();
-    notify(tr("main-autosave.recovered-unsaved-session", "recovered unsaved session")
-              + (r.originalPath.isEmpty() ? juce::String()
-                                          : " (" + juce::File(r.originalPath).getFileName() + ")"));
+    notify(r.originalPath.isEmpty()
+               ? tr("main-autosave.recovered-unsaved-session", "recovered unsaved session")
+               : tr("main-autosave.recovered-unsaved-session-of", "recovered unsaved session ({name})",
+                    {{"name", juce::File(r.originalPath).getFileName()}}));
 }
 
 }

@@ -48,9 +48,8 @@ ParameterWindow::ParameterWindow(PropertiesHost& host, const std::string& name)
     rail_.onChanged = [this] { reloadValues(); };
     rail_.onOpenBrowser = [this] { openPresets(); };
     addAndMakeVisible(bypass_);
-    bypass_.setTooltip(juce::String::fromUTF8(
-        "Bypass - pass the signal straight through this organism "
-        "(the cords stay put)"));
+    bypass_.setTooltip(tr("parameter-window.bypass-tip",
+                          "Bypass - pass the signal straight through this organism (the cords stay put)"));
     bypass_.onClick = [this] {
         host_.setBypass(name_, !bypass_.isOn());
         refreshBypass();
@@ -83,11 +82,9 @@ ParameterWindow::ParameterWindow(PropertiesHost& host, const std::string& name)
 
     addChildComponent(histBack_);
     addChildComponent(histFwd_);
-    histBack_.setTooltip(juce::String::fromUTF8(
-        "Undo - step back through THIS organism's settings; your current "
-        "tweaks are kept as the newest entry"));
-    histFwd_.setTooltip(juce::String::fromUTF8(
-        "Redo - step forward through THIS organism's settings"));
+    histBack_.setTooltip(tr("parameter-window.undo-tip",
+                            "Undo - step back through THIS organism's settings; your current tweaks are kept as the newest entry"));
+    histFwd_.setTooltip(tr("parameter-window.redo-tip", "Redo - step forward through THIS organism's settings"));
     histBack_.onClick = [this] {
         if (const auto* s = host_.paramHistory().back(name_, host_.captureNodeState(name_))) {
             host_.applyNodeState(name_, *s);
@@ -188,7 +185,7 @@ void ParameterWindow::buildContentImpl() {
         cm && isPluginKind(cm->kind) && (pn == nullptr || !pn->responding())) {
         showStrip()->setNote(
             pn == nullptr
-                ? juce::String("Plugin not installed  -  passing through")
+                ? tr("parameter-window.plugin-not-installed", "Plugin not installed  -  passing through")
                 : juce::String(tr("parameter.plugin-not-responding", "Plugin not responding")),
             pn == nullptr ? Palette::recordRed() : Palette::warnAmber());
         fold_.setVisible(false);
@@ -196,8 +193,8 @@ void ParameterWindow::buildContentImpl() {
     }
 
     if (const auto note = host_.missingClassNote(name_); !note.empty()) {
-        showStrip()->setNote(juce::String::fromUTF8(note.c_str())
-                                 + juce::String("  -  passing through"),
+        showStrip()->setNote(tr("parameter-window.note-passing-through", "{note}  -  passing through",
+                                {{"note", juce::String::fromUTF8(note.c_str())}}),
                              Palette::warnAmber());
         fold_.setVisible(false);
         return;
@@ -292,12 +289,10 @@ void ParameterWindow::updateDiceEnablement() {
     const bool guarded = host_.rollLocked(name_, rollscope::kWholeOrganism);
     dice_.setGuarded(can && guarded);
     dice_.setTooltip(can && guarded
-        ? juce::String::fromUTF8("Randomise this organism - protected from Randomise everything")
+        ? tr("parameter-window.randomise-protected", "Randomise this organism - protected from Randomise everything")
         : can
-        ? juce::String::fromUTF8(
-              "Randomise this organism")
-        : juce::String::fromUTF8(
-              "Nothing to randomise here"));
+        ? tr("parameter-window.randomise-this-organism", "Randomise this organism")
+        : tr("parameter-window.nothing-to-randomise", "Nothing to randomise here"));
 }
 
 void ParameterWindow::syncRail() {

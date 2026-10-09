@@ -122,10 +122,11 @@ void MetapadView::paint(juce::Graphics& g) {
     g.setColour(placing_ >= 0 ? Palette::accent : Palette::textDim);
     g.setFont(11.0f);
     g.drawText(placing_ >= 0
-                   ? "Click the pad to place " + nameFor(placing_) + "  -  Esc leaves it off the pad"
+                   ? tr("metapad.click-the-pad-to-place", "Click the pad to place {name}  -  Esc leaves it off the pad",
+                        {{"name", nameFor(placing_)}})
                : interpolate_
-                   ? juce::String("Drag to morph  -  Alt-drag a point to move it  -  Ctrl-click = new snapshot here")
-                   : juce::String("Drag a point to move it  -  click empty space to place the selected snapshot"),
+                   ? tr("metapad.drag-to-morph-hint", "Drag to morph  -  Alt-drag a point to move it  -  Ctrl-click = new snapshot here")
+                   : tr("metapad.drag-a-point-hint", "Drag a point to move it  -  click empty space to place the selected snapshot"),
                (int) surface_.getX() + 4, (int) surface_.getBottom() - 18,
                (int) surface_.getWidth() - 8, 16, juce::Justification::centredLeft);
 }
@@ -307,12 +308,11 @@ void MetapadView::syncFromHost() {
 void MetapadView::confirmClear(int index) {
     const juce::String nm = nameFor(index);
     juce::AlertWindow::showOkCancelBox(
-        juce::MessageBoxIconType::QuestionIcon, "Delete snapshot",
-        "Delete " + (nm.isEmpty() ? "this snapshot"
-                                  : juce::String::fromUTF8("\xe2\x80\x9c") + nm
-                                        + juce::String::fromUTF8("\xe2\x80\x9d"))
-            + "? Its points on the surface go with it.",
-        "Delete", "Cancel", this,
+        juce::MessageBoxIconType::QuestionIcon, tr("metapad.delete-snapshot", "Delete snapshot"),
+        nm.isEmpty() ? tr("metapad.delete-this-snapshot-question", "Delete this snapshot? Its points on the surface go with it.")
+                     : tr("metapad.delete-named-snapshot-question", "Delete \"{name}\"? Its points on the surface go with it.",
+                          {{"name", nm}}),
+        tr("metapad.delete", "Delete"), tr("metapad.cancel", "Cancel"), this,
         juce::ModalCallbackFunction::create(
             [&host = host_, index,
              sp = juce::Component::SafePointer<MetapadView>(this)](int r) {

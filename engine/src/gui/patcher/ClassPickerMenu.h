@@ -10,6 +10,7 @@
 #include "core/packs/Categories.h"
 #include "core/packs/ClassString.h"
 #include "core/plugins/PluginHost.h"
+#include "gui/common/CategoryText.h"
 
 namespace hum {
 
@@ -43,7 +44,7 @@ inline juce::PopupMenu classPickerMenu(const std::vector<std::pair<std::string, 
                     const std::string& s = segs[k][depth];
                     size_t e = k + 1;
                     while (e < hi && segs[e].size() > depth && segs[e][depth] == s) ++e;
-                    menu.addSubMenu(juce::String::fromUTF8(s.c_str()), build(k, e, depth + 1));
+                    menu.addSubMenu(categoryText(s), build(k, e, depth + 1));
                     k = e;
                 }
                 return menu;

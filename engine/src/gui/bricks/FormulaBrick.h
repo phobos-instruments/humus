@@ -13,6 +13,7 @@
 #include "gui/host/BrickHost.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
+#include "gui/common/Localisation.h"
 #include "gui/editor/inputs/FormulaModel.h"
 
 namespace hum {
@@ -96,14 +97,16 @@ public:
                                     11.0f, juce::Font::plain));
         if (hasError) {
             g.setColour(Palette::recordRed());
-            juce::String line(err.msg != nullptr ? err.msg : "does not parse");
+            juce::String line = err.msg != nullptr ? juce::String(err.msg)
+                                                   : tr("formula.does-not-parse", "does not parse");
             if (err.pos >= 0) {
                 const float charW = juce::GlyphArrangement::getStringWidth(
                     field_.getFont(), "0");
                 const int cx = field_.getX() + 6 + (int) (charW * (float) err.pos);
                 g.drawText("^", cx - 3, field_.getBottom() - 3, 10, 10,
                            juce::Justification::centred);
-                line << "  (column " << (err.pos + 1) << ")";
+                line = tr("formula.error-at-column", "{error}  (column {column})",
+                          {{"error", line}, {"column", juce::String(err.pos + 1)}});
             }
             g.drawText(line, hintArea_.reduced(4, 0), juce::Justification::centredLeft);
         } else {

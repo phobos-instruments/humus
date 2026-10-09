@@ -53,8 +53,7 @@ HostedPlugin::~HostedPlugin() {
         (void) instance_.release();
         return;
     }
-    auto guard = disposeGuard ? disposeGuard(classRaw_) : nullptr;
-    instance_.reset();
+    PluginHost::instance().retire(std::move(instance_), classRaw_);
 }
 
 void HostedPlugin::prepare(double sampleRate, int maxBlock) {
@@ -176,7 +175,19 @@ OrganismPtr PluginHost::createOrganism(const std::string& classRaw) {
     std::string err;
     auto inst = instance().createInstance(*desc, kDefaultSampleRate, 512, err);
     if (!inst) return nullptr;
+    instance().learnFrom(classRaw, *inst);
     return std::make_unique<HostedPlugin>(std::move(inst), classRaw);
+}
+
+void PluginHost::retire(std::unique_ptr<juce::AudioPluginInstance> instance, const std::string& classRaw) {
+    if (instance == nullptr) return;
+    if (retirer_) retirer_(std::move(instance), classRaw);
+    else destroyNow(std::move(instance), classRaw);
+}
+
+void PluginHost::destroyNow(std::unique_ptr<juce::AudioPluginInstance> instance, const std::string& classRaw) {
+    auto guard = HostedPlugin::disposeGuard ? HostedPlugin::disposeGuard(classRaw) : nullptr;
+    instance.reset();
 }
 
 }

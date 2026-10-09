@@ -90,12 +90,12 @@ public:
         const auto lic = LicenseStore::current();
         if (lic.valid) {
             const auto who = lic.name.empty() ? lic.plan : lic.name;
-            status_.setText(tr("license.registered-to", "Registered to ") + juce::String(who),
+            status_.setText(tr("license.registered-to", "Registered to {name}", {{"name", juce::String(who)}}),
                             juce::dontSendNotification);
             status_.setColour(juce::Label::textColourId, Palette::accent);
-            detail_.setText(juce::String(lic.plan) + tr("license.activated", "  -  activated ")
-                                + juce::String(lic.issuedAt).upToFirstOccurrenceOf(
-                                    "T", false, false),
+            detail_.setText(tr("license.activated", "{plan}  -  activated {date}",
+                               {{"plan", juce::String(lic.plan)},
+                                {"date", juce::String(lic.issuedAt).upToFirstOccurrenceOf("T", false, false)}}),
                             juce::dontSendNotification);
         } else {
             status_.setText(tr("license.unregistered", "Unregistered"), juce::dontSendNotification);
@@ -148,7 +148,7 @@ private:
 
     void doActivate() {
         activate_.setEnabled(false);
-        feedback_.setText("activating...", juce::dontSendNotification);
+        feedback_.setText(tr("license.activating", "activating..."), juce::dontSendNotification);
         HubClient::activate(
             code_.getText().toStdString(), {},
             [safe = juce::Component::SafePointer<LicensePanel>(this)](
@@ -165,7 +165,7 @@ private:
                 const auto lic = LicenseStore::save(r.payloadB64, r.sigB64);
                 if (!lic.valid) {
                     safe->feedback_.setText(
-                        "that license did not verify - try again, or ping us",
+                        tr("license.did-not-verify", "that license did not verify - try again, or ping us"),
                         juce::dontSendNotification);
                     safe->activate_.setEnabled(true);
                     return;
@@ -175,10 +175,10 @@ private:
     }
 
     static juce::String friendlyError(const std::string& e) {
-        if (e == "unknown_code") return "the hub does not know that code";
-        if (e == "code_revoked") return "that code has been retired";
-        if (e == "activation_limit") return "that code has used all its activations";
-        return "could not reach the hub - check your connection and try again";
+        if (e == "unknown_code") return tr("license.unknown-code", "the hub does not know that code");
+        if (e == "code_revoked") return tr("license.code-revoked", "that code has been retired");
+        if (e == "activation_limit") return tr("license.activation-limit", "that code has used all its activations");
+        return tr("license.could-not-reach-hub", "could not reach the hub - check your connection and try again");
     }
 
     juce::Label status_, detail_, feedback_, privacyTitle_, recap_;

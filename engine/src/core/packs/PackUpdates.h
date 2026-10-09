@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "core/app/Versions.h"
+
 namespace hum {
 
 struct InstalledPack {
@@ -18,8 +20,6 @@ struct PackUpdate {
     std::string sha256;
     std::string notes;
 };
-
-int compareVersions(const std::string& a, const std::string& b);
 
 std::vector<PackUpdate> availableUpdates(const std::string& manifestJson,
                                          const std::vector<InstalledPack>& installed,

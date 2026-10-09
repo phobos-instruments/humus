@@ -32,6 +32,7 @@ target_sources(hum_tests PRIVATE
   tests/organisms/OrganismTests.cpp
   tests/organisms/OrganismControlTests.cpp
   tests/organisms/OrganismLiveTests.cpp
+  tests/organisms/FilePlayerOutputsTests.cpp
   tests/organisms/OrganismDynamicsTests.cpp
   tests/organisms/OrganismRoutingTests.cpp
   tests/organisms/OrganismSourceTests.cpp
@@ -85,8 +86,11 @@ target_sources(hum_tests PRIVATE
   tests/timeline/RecordSessionTests.cpp
   tests/gui/TracksLayoutTests.cpp
   tests/gui/WaveformCacheTests.cpp
+  tests/gui/SelectableTextTests.cpp
   tests/organisms/DeckTests.cpp
   tests/organisms/DeckAnalysisTests.cpp
+  tests/organisms/DeckMemoryTests.cpp
+  tests/organisms/DeckSpeedTests.cpp
   tests/organisms/SamplerTests.cpp
   tests/organisms/SamplerBankTests.cpp
   tests/organisms/GraftTests.cpp
@@ -214,6 +218,7 @@ target_sources(hum_tests PRIVATE
   tests/assistant/AssistantTests.cpp
   tests/assistant/AutomixPlanTests.cpp
   tests/dsp/SpectrumBandsTests.cpp
+  tests/dsp/LoudSpotsTests.cpp
   tests/assistant/RecipeSynthTests.cpp
   tests/assistant/OllamaWireTests.cpp
   tests/packs/PackSdkTests.cpp
@@ -221,6 +226,7 @@ target_sources(hum_tests PRIVATE
   tests/plugins/PluginHostTests.cpp
   tests/plugins/PluginInstanceTests.cpp
   tests/plugins/PluginPatchTests.cpp
+  tests/plugins/PluginLifetimeTests.cpp
   tests/plugins/PluginDogfoodTests.cpp
   tests/plugins/PluginListStoreTests.cpp
   tests/gui/LooperFlowTests.cpp
@@ -228,8 +234,11 @@ target_sources(hum_tests PRIVATE
   tests/midi/MidiBusTests.cpp
   tests/params/ParamGroupingTests.cpp
   tests/app/PickerModelTests.cpp
+  tests/app/PageLanguageTests.cpp
+  tests/app/CatalogueTests.cpp
   tests/app/WizardFlowTests.cpp
   tests/app/GuideFlowTests.cpp
+  tests/app/ReleaseNotesTests.cpp
   tests/app/UsageTallyTests.cpp
   tests/app/AssetRefTests.cpp
   tests/app/StartDirTests.cpp
@@ -265,6 +274,7 @@ target_sources(hum_tests PRIVATE
   tests/video/VideoPadTests.cpp
   tests/organisms/FollowerSensorTests.cpp
   tests/graph/GraphHandoverTests.cpp
+  tests/graph/CordFadeTests.cpp
   tests/gui/UiTickerTests.cpp
   tests/organisms/GateTests.cpp
   tests/organisms/ClusterTests.cpp
@@ -328,7 +338,12 @@ target_sources(hum_tests PRIVATE
   tests/io/DocumentSetTests.cpp)
 target_include_directories(hum_tests PRIVATE tests)
 # First, so every JUCE module is taken from the modal archive (cmake/JuceShared.cmake).
-target_link_libraries(hum_tests PRIVATE hum_juce_modal hum_core hum_assets)
+target_link_libraries(hum_tests PRIVATE hum_juce_modal)
+# With the GUI, hum_host (cmake/Host.cmake) brings hum_core and hum_assets; naming
+# them here as well puts each on the link line twice and the linker warns.
+if(NOT HUM_GUI)
+  target_link_libraries(hum_tests PRIVATE hum_core hum_assets)
+endif()
 foreach(addon ${HUM_ADDON_PACKS})
   target_link_libraries(hum_tests PRIVATE hum_pack_${addon})
   target_compile_definitions(hum_tests PRIVATE

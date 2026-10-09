@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
 #include "hum/dsp/FadeLaw.h"
+#include "hum/Warp.h"
 #include "AudioTrack/AudioTrack.h"
 
 #include <algorithm>
@@ -80,12 +81,6 @@ void AudioTrack::process(const float* const* in, int numIn,
             for (int n = 0; n < numSamples; ++n) out[c][n] *= gain;
     }
     meter_.measure(out, numOut, numSamples);
-}
-
-static double warpRate(int mode, double sourceBpm, double projectBpm) {
-    if (mode == (int) PatternChannel::Warp::Off) return 1.0;
-    if (sourceBpm <= 0.0 || projectBpm <= 0.0) return 1.0;
-    return projectBpm / sourceBpm;
 }
 
 void AudioTrack::renderClips(float* const* out, int numOut, int numSamples,

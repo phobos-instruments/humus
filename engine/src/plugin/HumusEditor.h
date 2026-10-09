@@ -36,6 +36,7 @@ public:
         status_.setFont(juce::FontOptions(11.0f));
         addAndMakeVisible(status_);
 
+        playBtn_.setButtonText(tr("humus-editor.play", "Play"));
         playBtn_.setClickingTogglesState(true);
         playBtn_.setToggleState(proc_.freeRun(), juce::dontSendNotification);
         playBtn_.setColour(juce::TextButton::buttonOnColourId,
@@ -118,7 +119,8 @@ private:
                                   if (f == juce::File{}) return;
                                   std::string err;
                                   if (!proc_.loadPatchFile(f, err))
-                                      loadError_ = "Load failed: " + juce::String(err);
+                                      loadError_ = tr("humus-editor.load-failed", "Load failed: {reason}",
+                                                       {{"reason", juce::String(err)}});
                                   else
                                       loadError_.clear();
                                   refreshAll();
@@ -185,15 +187,17 @@ private:
         const double beats = proc_.transportBeats();
         const int bar = (int) (beats / 4.0) + 1;
         const int beat = (int) std::fmod(beats, 4.0) + 1;
-        clock_.setText(juce::String(bar) + "." + juce::String(beat) + "   "
-                           + juce::String(proc_.transportTempo(), 1) + " bpm"
-                           + (proc_.transportPlaying() ? "" : "   (stopped)"),
+        const juce::String clock = juce::String(bar) + "." + juce::String(beat) + "   "
+                                 + juce::String(proc_.transportTempo(), 1) + " bpm";
+        clock_.setText(proc_.transportPlaying()
+                           ? clock
+                           : tr("humus-editor.clock-stopped", "{clock}   (stopped)", {{"clock", clock}}),
                        juce::dontSendNotification);
     }
 
     HumusProcessor& proc_;
     juce::TextButton load_;
-    juce::TextButton playBtn_{"Play"}, rewindBtn_{"|<"};
+    juce::TextButton playBtn_, rewindBtn_{"|<"};
     juce::Label clock_;
     juce::Label name_, status_;
     PatchMapView map_;

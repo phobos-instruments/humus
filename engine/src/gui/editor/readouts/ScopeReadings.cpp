@@ -109,7 +109,9 @@ bool Timecode::poll(ModelHost& host, const std::string& organism) {
     const float lv = src != nullptr ? src->timecodeLevel() : 0.0f;
     const float sp = src != nullptr ? src->timecodeSpeed() : 0.0f;
     const float hz = src != nullptr ? src->timecodeCarrierHz() : 0.0f;
-    if (on == on_ && there == present_ && std::abs(lv - level_) <= 0.002f
+    const auto* needle = live::source<TimecodeNeedle>(host, organism);
+    const bool found = needle != nullptr && needle->needleFound();
+    if (on == on_ && there == present_ && found == needle_ && std::abs(lv - level_) <= 0.002f
         && std::abs(sp - speed_) <= 0.002f && std::abs(hz - carrier_) <= 0.5f)
         return false;
     on_ = on;
@@ -117,6 +119,7 @@ bool Timecode::poll(ModelHost& host, const std::string& organism) {
     level_ = lv;
     speed_ = sp;
     carrier_ = hz;
+    needle_ = found;
     return true;
 }
 

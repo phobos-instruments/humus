@@ -121,7 +121,7 @@ std::string EngineHost::duplicateTrack(const std::string& name) {
         cm->properties = state.props;
         cm->pattern = state.pattern;
     }
-    modelSwapped_ = true;
+    reloadAfterRebuild_.push_back(made);
     rebuild();
     syncPattern(made);
 
@@ -239,8 +239,8 @@ std::string EngineHost::replaceOrganism(const std::string& nameIn, const std::st
     pushUndo();
     const std::string oldDisplay = old->displayClass;
 
-    std::map<std::string, double> kept;
-    for (auto& p : old->properties) kept[p.name] = p.value;
+    std::map<std::string, Parameter> kept;
+    for (auto& p : old->properties) kept[p.name] = p;
 
     OrganismModel cm;
     cm.name = name;
@@ -249,14 +249,24 @@ std::string EngineHost::replaceOrganism(const std::string& nameIn, const std::st
     cm.displayClass = classId.display;
     cm.kind = classId.kind;
     int idx = 0;
+    const auto keptAs = [&kept](const ParamDesc& d) {
+        auto it = kept.find(d.name);
+        if (it != kept.end() || !d.isText) return it;
+        const bool numbered = d.name.size() > 2 && d.name.compare(d.name.size() - 2, 2, "_1") == 0;
+        return numbered ? kept.find(d.name.substr(0, d.name.size() - 2)) : kept.find(d.name + "_1");
+    };
     for (const auto& d : schemaFor(newClass)) {
-        Parameter p;
+        const auto it = keptAs(d);
+        Parameter p = it != kept.end() ? it->second : Parameter{};
         p.index = idx++;
         p.name = d.name;
-        p.type = d.isBool ? "bool" : d.isEnum ? "enum" : d.isInt ? "int" : "double";
-        auto it = kept.find(d.name);
-        p.value = it != kept.end() ? it->second
-                                   : rollDefaultValue(d, juce::Random::getSystemRandom());
+        if (d.isText) p.type = d.isPlainText ? "text" : "soundfile";
+        else if (it == kept.end() || !it->second.isRange)
+            p.type = d.isBool ? "bool" : d.isEnum ? "enum" : d.isInt ? "int" : "double";
+        if (it == kept.end()) {
+            if (d.isText) p.text = d.text;
+            else p.value = rollDefaultValue(d, juce::Random::getSystemRandom());
+        }
         cm.properties.push_back(p);
     }
     for (auto& c : model_.organisms) if (c.name == name) { c = std::move(cm); break; }

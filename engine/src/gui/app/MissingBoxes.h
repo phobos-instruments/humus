@@ -30,12 +30,12 @@ inline juce::String statusLine(const std::vector<std::string>& names) {
     const int named = count > kNamedInLine ? kNamedInLine : count;
     juce::String s = boxName(names.front());
     for (int i = 1; i < named; ++i)
-        s << (i == count - 1 ? tr("missing-boxes.and", " and ") : juce::String(", ")) << boxName(names[(size_t) i]);
+        s = i == count - 1 ? tr("missing-boxes.and", "{list} and {name}", {{"list", s}, {"name", boxName(names[(size_t) i])}})
+                           : s + ", " + boxName(names[(size_t) i]);
     if (count > named)
-        s << tr("missing-boxes.and", " and ") << juce::String(count - named) << tr("missing-boxes.more", " more");
-    return s + (count == 1
-                    ? tr("missing-boxes.one", " is unavailable here and passes sound straight through")
-                    : tr("missing-boxes.many", " are unavailable here and pass sound straight through"));
+        s = trn("missing-boxes.more", "{list} and {n} more", "{list} and {n} more", count - named, {{"list", s}});
+    return trn("missing-boxes.unavailable", "{names} is unavailable here and passes sound straight through",
+               "{names} are unavailable here and pass sound straight through", count, {{"names", s}});
 }
 
 }

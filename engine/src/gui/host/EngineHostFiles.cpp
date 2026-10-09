@@ -82,7 +82,7 @@ void FileHost::setRecorderActive(const std::string& name, bool on) {
     auto* fr = dynamic_cast<Recorder*>(audio_.graph()->find(name));
     if (!fr) return;
     if (!on) {
-        { const juce::ScopedLock sl(audio_.graphLock()); fr->stopRecording(); }
+        { const AudioLock::Scope sl(audio_.graphLock()); fr->stopRecording(); }
         nodes_.pullVoiceTexts(name);
         return;
     }
@@ -149,7 +149,7 @@ void FileHost::setRecorderActive(const std::string& name, bool on) {
     const bool append = num("FileMode", 0) >= 0.5;
     bool began = false;
     {
-        const juce::ScopedLock sl(audio_.graphLock());
+        const AudioLock::Scope sl(audio_.graphLock());
         began = fr->startRecording(targets, punch, durSec, audio_.sampleRate(), append);
     }
     if (!began) {
@@ -168,7 +168,7 @@ void FileHost::pollRecorders() {
     std::vector<std::string> stopped;
     for (auto& [n, fr] : recording_.recorders())
         if (fr && fr->consumeAutoStop()) {
-            const juce::ScopedLock sl(audio_.graphLock());
+            const AudioLock::Scope sl(audio_.graphLock());
             fr->stopRecording();
             stopped.push_back(n);
         }

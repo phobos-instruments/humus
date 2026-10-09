@@ -38,10 +38,11 @@ public:
         armedAt_ = juce::Time::getMillisecondCounter();
         host.midi().clearLastCC();
         if (onStatus)
-            onStatus("MIDI Learn: move a controller or play a note for " + juce::String(param_)
-                     + " (waiting " + juce::String((int) (kTimeoutMs / 1000)) + "s)");
+            onStatus(tr("organism-editor.midi-learn-move-a-controller",
+                        "MIDI Learn: move a controller or play a note for {param} (waiting {n}s)",
+                        {{"param", juce::String(param_)}, {"n", juce::String((int) (kTimeoutMs / 1000))}}));
         if (showCard) window_ = std::make_unique<QuickMapWindow>(
-            "Quick Map MIDI Control",
+            tr("organism-editor.quick-map-midi-control", "Quick Map MIDI Control"),
             tr("organism-editor.learn-card-move", "Move a knob, fader, encoder or button on your MIDI device\nto control")
                 + "\n" + juce::String(organism_) + " / " + juce::String(param_) + "\n\n"
                 + tr("organism-editor.learn-card-combo", "For a combo, hold a pad or button first,\nthen move the control it unlocks."),
@@ -136,11 +137,17 @@ private:
             const auto stolen = host->midi().mapCC(src, org, prm, lo, hi, steal);
             const auto shape = learnedShape(*host, org, prm, guess);
             host->midi().setShape(src, org, prm, shape);
+            const auto target = juce::String(org) + " / " + juce::String(prm);
             if (status)
-                status("MIDI: mapped " + juce::String(midiSourceLabel(src)) + " ("
-                       + juce::String(modeLabel(shape.type)) + ") to "
-                       + juce::String(org) + " / " + juce::String(prm)
-                       + (!stolen.empty() ? " (reassigned from " + juce::String::fromUTF8(stolen.c_str()) + ")" : ""));
+                status(stolen.empty()
+                    ? tr("organism-editor.midi-mapped", "MIDI: mapped {source} ({mode}) to {target}",
+                         {{"source", juce::String(midiSourceLabel(src))},
+                          {"mode", juce::String(modeLabel(shape.type))}, {"target", target}})
+                    : tr("organism-editor.midi-mapped-reassigned",
+                         "MIDI: mapped {source} ({mode}) to {target} (reassigned from {previous})",
+                         {{"source", juce::String(midiSourceLabel(src))},
+                          {"mode", juce::String(modeLabel(shape.type))}, {"target", target},
+                          {"previous", juce::String::fromUTF8(stolen.c_str())}}));
             if (next) next();
         };
         if (others.empty()) { commit(true); return; }
@@ -173,13 +180,15 @@ public:
         armedAt_ = juce::Time::getMillisecondCounter();
         host.osc().clearLastAddress();
         if (onStatus)
-            onStatus("OSC Learn: move an OSC control for " + juce::String(param_)
-                     + " (port " + juce::String(host.osc().port()) + ", waiting "
-                     + juce::String((int) (kTimeoutMs / 1000)) + "s)");
+            onStatus(tr("organism-editor.osc-learn-move-an-osc-control",
+                        "OSC Learn: move an OSC control for {param} (port {port}, waiting {n}s)",
+                        {{"param", juce::String(param_)}, {"port", juce::String(host.osc().port())},
+                         {"n", juce::String((int) (kTimeoutMs / 1000))}}));
         window_ = std::make_unique<QuickMapWindow>(
-            "Quick Map OSC Control",
-            "Move an OSC control (port " + juce::String(host.osc().port())
-                + ") to control\n" + juce::String(organism_) + " / " + juce::String(param_),
+            tr("organism-editor.quick-map-osc-control", "Quick Map OSC Control"),
+            tr("organism-editor.osc-learn-card", "Move an OSC control (port {port}) to control\n{target}",
+               {{"port", juce::String(host.osc().port())},
+                {"target", juce::String(organism_) + " / " + juce::String(param_)}}),
             [] { OscLearner::instance().cancel(); });
         window_->setCountdown((int) (kTimeoutMs / 1000));
         startTimerHz(20);
@@ -221,9 +230,15 @@ private:
         disarm();
         auto commit = [host, address, addr, org, prm, lo, hi, status](bool steal) {
             const auto stolen = host->osc().mapAddress(address, org, prm, lo, hi, steal);
+            const auto target = juce::String(org) + " / " + juce::String(prm);
             if (status)
-                status("OSC: mapped " + addr + " to " + juce::String(org) + " / " + juce::String(prm)
-                       + (!stolen.empty() ? " (reassigned from " + juce::String::fromUTF8(stolen.c_str()) + ")" : ""));
+                status(stolen.empty()
+                    ? tr("organism-editor.osc-mapped", "OSC: mapped {source} to {target}",
+                         {{"source", addr}, {"target", target}})
+                    : tr("organism-editor.osc-mapped-reassigned",
+                         "OSC: mapped {source} to {target} (reassigned from {previous})",
+                         {{"source", addr}, {"target", target},
+                          {"previous", juce::String::fromUTF8(stolen.c_str())}}));
         };
         if (others.empty()) { commit(true); return; }
         mapconflict::ask("OSC", addr, juce::String(org) + " / " + juce::String(prm), others, commit);

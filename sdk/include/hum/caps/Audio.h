@@ -1,8 +1,17 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <cstdint>
 
 namespace hum {
+
+class LoudSpotSource {
+public:
+    static constexpr int kMaxLoudSpots = 3;
+    virtual ~LoudSpotSource() = default;
+    virtual float loudestSample() const = 0;
+    virtual int loudSpots(std::int64_t* starts, int maxSpots) const = 0;
+};
 
 class MasterTap {
 public:
@@ -92,6 +101,18 @@ public:
     virtual float timecodeSpeed() const = 0;
     virtual int timecodeFormat() const { return -1; }
     virtual float timecodeCarrierHz() const { return 0.0f; }
+};
+
+class TimecodeTone {
+public:
+    virtual ~TimecodeTone() = default;
+    virtual float timecodeToneHz() const = 0;
+};
+
+class TimecodeNeedle {
+public:
+    virtual ~TimecodeNeedle() = default;
+    virtual bool needleFound() const = 0;
 };
 
 class PitchDetectSource {

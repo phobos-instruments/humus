@@ -54,7 +54,7 @@ inline void videoRows(std::vector<Row>& rows, const media::Vid& m) {
     if (m.seconds > 0.0) rows.push_back({tr("media-info.duration", "Duration"), clock(m.seconds) + "  (" + seconds(m.seconds) + ")"});
     int n = 0;
     for (const auto& p : m.pictures) {
-        heading(rows, m.pictures.size() > 1 ? tr("media-info.picture-n", "Picture") + " " + juce::String(++n)
+        heading(rows, m.pictures.size() > 1 ? tr("media-info.picture-n", "Picture {n}", {{"n", juce::String(++n)}})
                                             : tr("media-info.picture", "Picture"));
         rows.push_back({tr("media-info.codec", "Codec"),
                         juce::String(p.codec.empty() ? p.tag : p.codec + " (" + p.tag + ")")});
@@ -79,7 +79,7 @@ inline void videoRows(std::vector<Row>& rows, const media::Vid& m) {
     }
     n = 0;
     for (const auto& s : m.sounds) {
-        heading(rows, m.sounds.size() > 1 ? tr("media-info.sound-n", "Sound") + " " + juce::String(++n)
+        heading(rows, m.sounds.size() > 1 ? tr("media-info.sound-n", "Sound {n}", {{"n", juce::String(++n)}})
                                           : tr("media-info.sound", "Sound"));
         rows.push_back({tr("media-info.codec", "Codec"),
                         juce::String(s.codec.empty() ? s.tag : s.codec + " (" + s.tag + ")")});
@@ -103,7 +103,9 @@ inline bool soundFileRows(std::vector<Row>& rows, const juce::File& f) {
     rows.push_back({tr("media-info.channels", "Channels"), juce::String((int) reader->numChannels)});
     if (reader->bitsPerSample > 0)
         rows.push_back({tr("media-info.bit-depth", "Bit depth"),
-                        juce::String((int) reader->bitsPerSample) + (reader->usesFloatingPointData ? " float" : "")});
+                        reader->usesFloatingPointData
+                            ? tr("media-info.bits-float", "{bits} float", {{"bits", juce::String((int) reader->bitsPerSample)}})
+                            : juce::String((int) reader->bitsPerSample)});
     rows.push_back({tr("media-info.samples", "Samples"), juce::String(reader->lengthInSamples)});
     if (reader->sampleRate > 0.0) {
         const double s = (double) reader->lengthInSamples / reader->sampleRate;
@@ -127,7 +129,8 @@ inline void fileRows(std::vector<Row>& rows, const juce::File& f) {
         return;
     }
     rows.push_back({tr("media-info.file-size", "Size"), juce::File::descriptionOfSizeInBytes(f.getSize())
-                                                          + "  (" + juce::String(f.getSize()) + " bytes)"});
+                                                          + "  (" + trn("media-info.bytes", "{n} byte", "{n} bytes", (long long) f.getSize())
+                                                          + ")"});
     rows.push_back({tr("media-info.modified", "Modified"), f.getLastModificationTime().toString(true, true, false, true)});
 }
 

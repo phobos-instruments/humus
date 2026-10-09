@@ -26,15 +26,12 @@ inline juce::String summary(const std::vector<media::Ref>& missing) {
     const int shown = std::min((int) missing.size(), 8);
     for (int i = 0; i < shown; ++i) s << describe(missing[(size_t) i]) << "\n";
     if ((int) missing.size() > shown)
-        s << tr("missing-media.and", "and ") << juce::String((int) missing.size() - shown)
-          << tr("missing-media.more", " more") << "\n";
+        s << trn("missing-media.more", "and {n} more", "and {n} more", (int) missing.size() - shown) << "\n";
     return s;
 }
 
 inline juce::String statusLine(int count) {
-    return juce::String(count)
-           + (count == 1 ? tr("missing-media.one-missing", " media file is missing")
-                         : tr("missing-media.many-missing", " media files are missing"));
+    return trn("missing-media.missing", "{n} media file is missing", "{n} media files are missing", count);
 }
 
 inline void show(EngineHost& host, std::function<void()> onChanged) {
@@ -57,7 +54,7 @@ inline void show(EngineHost& host, std::function<void()> onChanged) {
                                      ? first.resolved.getParentDirectory()
                                      : juce::File::getSpecialLocation(juce::File::userHomeDirectory);
         auto chooser = std::make_shared<juce::FileChooser>(
-            tr("missing-media.locate-title", "Locate ") + first.leaf(), start.getChildFile(first.leaf()), "*");
+            tr("missing-media.locate-title", "Locate {name}", {{"name", juce::String(first.leaf())}}), start.getChildFile(first.leaf()), "*");
         chooser->launchAsync(juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
                              [&host, onChanged, first, chooser](const juce::FileChooser& fc) {
             const auto f = fc.getResult();

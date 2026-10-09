@@ -58,7 +58,7 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         return items;
     }
     if (source == "midi-targets") {
-        items.push_back({1, "(nothing)"});
+        items.push_back({1, tr("choices.nothing", "(nothing)").toStdString()});
         int id = 2;
         for (const auto& cm : model_.organisms) {
             if (cm.name == organism) continue;
@@ -70,7 +70,7 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         return items;
     }
     if (source == "serial-ports") {
-        items.push_back({1, "Auto - first USB serial"});
+        items.push_back({1, tr("midi-settings.serial-auto", "Auto - first USB serial").toStdString()});
         const auto devs = serial::listDevices();
         for (size_t i = 0; i < devs.size(); ++i) {
             const auto slash = devs[i].rfind('/');
@@ -83,14 +83,16 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
     const bool midiIn = source == "midi-in-ports", midiOut = source == "midi-out-ports";
     if (midiIn || midiOut) {
         auto& s = AppSettings::instance();
-        if (midiIn) items.push_back({0, "All inputs"});
+        if (midiIn) items.push_back({0, tr("tracks-pane.input-all", "All inputs").toStdString()});
         for (int p = 1; p <= kMidiPorts; ++p) {
             const auto key = juce::String(midiIn ? "midi.in." : "midi.out.") + juce::String(p);
             auto name = s.getString(key + ".name");
-            if (name.isEmpty()) name = s.getString(key).isEmpty() ? "(none)" : "(not connected)";
+            if (name.isEmpty())
+                name = s.getString(key).isEmpty() ? tr("midi-settings.none", "(none)")
+                                                   : tr("midi-settings.not-connected", "(not connected)");
             if (name.length() > 16) name = name.substring(0, 15).trim() + "...";
-            items.push_back({p, "Port " + std::to_string(p) + " - "   // utf8-ok: data
-                            + name.toStdString()});
+            items.push_back({p, tr("choices.port-name", "Port {n} - {name}",
+                                   {{"n", juce::String(p)}, {"name", name}}).toStdString()});
         }
         return items;
     }
@@ -100,7 +102,7 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         const auto names = dev ? (inPairs ? dev->getInputChannelNames()
                                           : dev->getOutputChannelNames())
                                : juce::StringArray();
-        for (int i = 0; i < names.size(); i += 2) {
+        for (int i = 0; i < names.size() && i < kMaxDeviceChannels; i += 2) {
             std::string label = std::to_string(i + 1) + "/" + std::to_string(i + 2)
                               + " - " + names[i].toStdString();   // utf8-ok: data
             if (i + 1 < names.size()) label += " / " + names[i + 1].toStdString();
@@ -108,7 +110,8 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         }
         if (items.empty())
             for (int i = 1; i <= 7; i += 2)
-                items.push_back({i, "Channels " + std::to_string(i) + "/" + std::to_string(i + 1)});
+                items.push_back({i, tr("choices.channels-pair", "Channels {first}/{second}",
+                                       {{"first", juce::String(i)}, {"second", juce::String(i + 1)}}).toStdString()});
         return items;
     }
     const bool audioIn = source == "audio-in-channels";
@@ -117,11 +120,12 @@ std::vector<std::pair<int, std::string>> EngineHost::choiceItems(const std::stri
         const auto names = dev ? (audioIn ? dev->getInputChannelNames()
                                           : dev->getOutputChannelNames())
                                : juce::StringArray();
-        for (int i = 0; i < names.size(); ++i)
+        for (int i = 0; i < names.size() && i < kMaxDeviceChannels; ++i)
             items.push_back({i + 1, std::to_string(i + 1) + " - "   // utf8-ok: data
                                 + names[i].toStdString()});
         if (items.empty())
-            for (int i = 1; i <= 8; ++i) items.push_back({i, "Channel " + std::to_string(i)});
+            for (int i = 1; i <= 8; ++i)
+                items.push_back({i, tr("choices.channel-n", "Channel {n}", {{"n", juce::String(i)}}).toStdString()});
     }
     return items;
 }

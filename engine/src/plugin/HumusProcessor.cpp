@@ -7,6 +7,7 @@
 #include "core/params/ParamSchema.h"
 #include "io/PatchLoader.h"
 #include "io/PatchWriter.h"
+#include "gui/common/Localisation.h"
 #include "plugin/HumusEditor.h"
 
 namespace hum {
@@ -57,7 +58,7 @@ bool HumusProcessor::loadPatchText(const std::string& amhXml, std::string& error
         pendingEdits_.clear();
         appliedEdits_.clear();
     }
-    if (patchName_.isEmpty()) patchName_ = "(embedded patch)";
+    if (patchName_.isEmpty()) patchName_ = tr("humus-processor.embedded-patch", "(embedded patch)");
     return true;
 }
 

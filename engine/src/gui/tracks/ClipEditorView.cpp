@@ -17,6 +17,7 @@
 #include "io/PatchDocument.h"
 
 #include "hum/dsp/DspMath.h"
+#include "hum/Warp.h"
 
 namespace hum {
 
@@ -126,6 +127,10 @@ bool ClipEditorView::clipInfo(ClipEditor::ClipInfo& ci) const {
 
 double ClipEditorView::samplesPerBeat() const {
     return (host().tempo() > 0.0 ? kSecondsPerMinute / host().tempo() : 0.5) * host().sampleRate();
+}
+
+double ClipEditorView::sourceSamplesPerBeat(const ClipEditor::ClipInfo& ci) const {
+    return samplesPerBeat() * warpRate(ci.warpMode, ci.sourceBpm, host().tempo());
 }
 
 juce::Rectangle<int> ClipEditorView::clipField() const {
@@ -260,7 +265,7 @@ void ClipEditorView::mouseDragClip(const juce::MouseEvent& e) {
         case Drag::TrimL: {
             const auto ci = host().clips().list(node_)[(size_t) c];
             const int floorTick = ci.hasMedia() && !ci.audioReverse
-                ? start0_ - (int) std::llround((double) offset0_ * Pattern::kTicksPerBeat / samplesPerBeat())
+                ? start0_ - (int) std::llround((double) offset0_ * Pattern::kTicksPerBeat / sourceSamplesPerBeat(ci))
                 : 0;
             const int end = start0_ + len0_;
             const int t = juce::jlimit(std::max(0, floorTick), end - 1,
@@ -290,8 +295,9 @@ void ClipEditorView::mouseDragClip(const juce::MouseEvent& e) {
             break;
         }
         case Drag::Slip: {
-            const auto delta = (long long) std::llround((anchorBeat_ - beat) * samplesPerBeat());
-            const auto cur = host().clips().list(node_)[(size_t) c].audioOffset;
+            const auto ci = host().clips().list(node_)[(size_t) c];
+            const auto delta = (long long) std::llround((anchorBeat_ - beat) * sourceSamplesPerBeat(ci));
+            const auto cur = ci.audioOffset;
             host().clips().slip(node_, c, offset0_ + delta - cur);
             break;
         }

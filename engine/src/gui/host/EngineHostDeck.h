@@ -26,6 +26,8 @@ public:
     std::vector<float> waveform(const std::string& name) override;
     std::vector<float> waveBetween(const std::string& name, std::int64_t from, std::int64_t to,
                                    int buckets) override;
+    std::vector<std::int64_t> loudSpots(const std::string& name) override;
+    float loudestSample(const std::string& name) override;
 
     void setCue(const std::string& name, const DeckParams& p) override;
     void jumpCue(const std::string& name, const DeckParams& p) override;
@@ -39,6 +41,8 @@ public:
     void toggleLoop(const std::string& name, const DeckParams& p) override;
     void beginLoopRoll(const std::string& name, const DeckParams& p, double beats) override;
     void endLoopRoll(const std::string& name, const DeckParams& p) override;
+    void peakSearch(const std::string& name, const DeckParams& p);
+    void calibrateTimecode(const std::string& name);
 
     bool fireTrigger(const std::string& name, const std::string& param, double value);
 

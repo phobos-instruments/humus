@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <cmath>
 #include <functional>
 #include <string>
@@ -17,6 +18,11 @@
 
 namespace hum {
 
+inline int toolbarCaptionWidth(const juce::Label& caption, int atLeast) {
+    const auto text = std::ceil(juce::GlyphArrangement::getStringWidth(caption.getFont(), caption.getText()));
+    return std::max(atLeast, (int) text + caption.getBorderSize().getLeftAndRight() + 2);
+}
+
 class GroovePots : public juce::Component {
 public:
     static constexpr int kPotW = 30;
@@ -28,38 +34,44 @@ public:
     static_assert(kWidth == toolbar::kGrooveW && kCompactWidth == toolbar::kGrooveCompactW);
 
     explicit GroovePots(EngineHost& host) : host_(host) {
-        caption(grooveCaption_, tr("main-transport.groove", "Groove"));
-        caption(gridCaption_, tr("main-transport.grid", "Grid"));
+        caption(grooveCaption_);
+        caption(gridCaption_);
 
         addAndMakeVisible(groove_);
         groove_.setRange(0.0, 1.0, 0.01);
         groove_.setUnit(Unit::Percent);
-        groove_.paramLabel = tr("main-transport.groove", "Groove");
         groove_.setPopupDisplayEnabled(true, false, nullptr);
         groove_.tooltipProvider = [this] {
-            return "Groove " + groove_.getTextFromValue(groove_.getValue())
-                   + " - how late the offbeats land";
+            return tr("main-transport.groove-tip", "Groove {value} - how late the offbeats land",
+                      {{"value", groove_.getTextFromValue(groove_.getValue())}});
         };
         groove_.onValueChange = [this] { host_.performGroove(groove_.getValue()); };
         groove_.onPopup = [this](juce::Point<int> at) { if (onMenu) onMenu(kGrooveParam, at); };
 
         addAndMakeVisible(grid_);
         grid_.setRange(0.0, (double) (swing::kGridChoices - 1), 1.0);
-        grid_.paramLabel = tr("main-transport.grid", "Grid");
         grid_.textFromValueFunction = [](double v) {
             return juce::String(swing::gridLabelAt(std::lround(v)));
         };
         grid_.setPopupDisplayEnabled(true, false, nullptr);
         grid_.tooltipProvider = [this] {
-            return "Grid " + grid_.getTextFromValue(grid_.getValue())
-                   + " - which notes the groove swings";
+            return tr("main-transport.grid-tip", "Grid {value} - which notes the groove swings",
+                      {{"value", grid_.getTextFromValue(grid_.getValue())}});
         };
         grid_.onValueChange = [this] {
             host_.performGrooveGrid((int) std::lround(grid_.getValue()));
         };
         grid_.onPopup = [this](juce::Point<int> at) { if (onMenu) onMenu(kGrooveGridParam, at); };
 
+        applyTexts();
         refresh();
+    }
+
+    void applyTexts() {
+        grooveCaption_.setText(tr("main-transport.groove", "Groove"), juce::dontSendNotification);
+        gridCaption_.setText(tr("main-transport.grid", "Grid"), juce::dontSendNotification);
+        groove_.paramLabel = tr("main-transport.groove", "Groove");
+        grid_.paramLabel = tr("main-transport.grid", "Grid");
     }
 
     std::function<void(const std::string& param, juce::Point<int> screen)> onMenu;
@@ -79,14 +91,17 @@ public:
         gridCaption_.setVisible(!compact);
         resized();
     }
-    int preferredWidth() const { return compact_ ? kCompactWidth : kWidth; }
+    int captionsWidth() const {
+        return toolbarCaptionWidth(grooveCaption_, kGrooveCaptionW) + toolbarCaptionWidth(gridCaption_, kGridCaptionW);
+    }
+    int preferredWidth() const { return compact_ ? kCompactWidth : kCompactWidth + captionsWidth(); }
 
     void resized() override {
         auto r = getLocalBounds();
-        if (!compact_) grooveCaption_.setBounds(r.removeFromLeft(kGrooveCaptionW));
+        if (!compact_) grooveCaption_.setBounds(r.removeFromLeft(toolbarCaptionWidth(grooveCaption_, kGrooveCaptionW)));
         groove_.setBounds(r.removeFromLeft(kPotW));
         r.removeFromLeft(kGap);
-        if (!compact_) gridCaption_.setBounds(r.removeFromLeft(kGridCaptionW));
+        if (!compact_) gridCaption_.setBounds(r.removeFromLeft(toolbarCaptionWidth(gridCaption_, kGridCaptionW)));
         grid_.setBounds(r.removeFromLeft(kPotW));
     }
 
@@ -98,9 +113,8 @@ private:
         }
     };
 
-    void caption(juce::Label& l, const juce::String& text) {
+    void caption(juce::Label& l) {
         addAndMakeVisible(l);
-        l.setText(text, juce::dontSendNotification);
         l.setColour(juce::Label::textColourId, Palette::textDim);
         l.setFont(juce::FontOptions(11.0f));
         l.setJustificationType(juce::Justification::centredRight);

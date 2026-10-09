@@ -25,15 +25,16 @@ inline void open(AssistantHost& host, Present present, std::function<void()> onC
         if (classHasRole(cm.classRaw, role::kSampleKit)) samplers.add(juce::String(cm.name));
 
     auto* w = new juce::AlertWindow(
-        "AI Sample Lab",
-        "Describe a family of sounds (\"dusty vinyl drum kit\", \"glass bell plucks\"). "
-        "The model designs them, Humus renders them, and they land on a Sampler as a kit "
-        "(one undo step).",
+        tr("sample-lab.dialog-title", "AI Sample Lab"),
+        tr("sample-lab.dialog-message",
+           "Describe a family of sounds (\"dusty vinyl drum kit\", \"glass bell plucks\"). "
+           "The model designs them, Humus renders them, and they land on a Sampler as a kit "
+           "(one undo step)."),
         juce::MessageBoxIconType::NoIcon);
     w->addTextEditor("prompt", "", tr("sample-lab.describe-the-sounds", "Describe the sounds:"));
     juce::StringArray choices = samplers;
     choices.add(tr("sample-lab.new-sampler", "New Sampler"));
-    w->addComboBox("target", choices, "Onto:");
+    w->addComboBox("target", choices, tr("sample-lab.onto", "Onto:"));
     w->getComboBoxComponent("target")->setSelectedItemIndex(choices.size() - 1);
     if (AiClient::needsApiKey())
         w->addTextEditor("key", "", tr("sample-lab.claude-api-key-stored-for", "Claude API key (stored for next time):"));

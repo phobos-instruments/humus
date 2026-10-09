@@ -11,6 +11,7 @@
 #include "gui/style/LookAndFeel.h"
 
 #include "hum/dsp/DspMath.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -41,7 +42,7 @@ public:
 
     static void show(const std::string& displayClass, juce::Rectangle<int> anchorScreen) {
         auto v = std::make_unique<HelpView>(
-            juce::String(displayClass) + juce::String(" - Help"),
+            tr("help.page-title", "{organism} - Help").replace("{organism}", juce::String(displayClass)),
             loadOrganismDoc(displayClass), displayClass);
         juce::CallOutBox::launchAsynchronously(std::move(v), anchorScreen, nullptr);
     }

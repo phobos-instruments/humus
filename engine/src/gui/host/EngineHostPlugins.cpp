@@ -23,8 +23,9 @@ PluginNode* EngineHost::pluginNodeFor(const std::string& name) {
 
 void EngineHost::pumpPluginTunings() {
     if (graph_ && graph_->takeLatencyChanges()) rebuild();
-    const juce::ScopedLock sl(lock_);
-    if (graph_) graph_->pumpPluginTunings();
+    if (graph_ == nullptr || !graph_->pluginsMayNeedRetuning()) return;
+    const AudioLock::Scope sl(lock_);
+    graph_->pumpPluginTunings();
 }
 
 static long long pluginMtimeMs(const std::string& classRaw) {
@@ -49,7 +50,7 @@ void EngineHost::pollTuningProbes() {
         if (parseTuningProbeVerdict(probeOut_.loadFileAsString().trim().toStdString(), v)
             && v != TuningProbeVerdict::Inconclusive) {
             tuningProbeStore::store(probeClass_, pluginMtimeMs(probeClass_), v);
-            const juce::ScopedLock sl(lock_);
+            const AudioLock::Scope sl(lock_);
             if (graph_)
                 graph_->setBendVerdict(probeClass_, v != TuningProbeVerdict::SpeaksMts);
         }
@@ -57,16 +58,16 @@ void EngineHost::pollTuningProbes() {
         probeChild_.reset();
     }
 
+    if (graph_ == nullptr || !graph_->pluginsMayNeedRetuning()) return;
     std::vector<std::string> need;
     {
-        const juce::ScopedLock sl(lock_);
-        if (!graph_) return;
+        const AudioLock::Scope sl(lock_);
         need = graph_->pluginsNeedingVerdict();
     }
     for (const auto& cls : need) {
         TuningProbeVerdict v;
         if (tuningProbeStore::lookup(cls, pluginMtimeMs(cls), v)) {
-            const juce::ScopedLock sl(lock_);
+            const AudioLock::Scope sl(lock_);
             if (graph_) graph_->setBendVerdict(cls, v != TuningProbeVerdict::SpeaksMts);
             continue;
         }

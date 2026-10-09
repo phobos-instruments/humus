@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/params/UnitText.h"
 #include "gui/editor/inputs/NumberInputs.h"
 #include "gui/bricks/PolledBrick.h"
 #include "gui/editor/AutomateMenu.h"
@@ -20,7 +21,8 @@ class NumberBoxBrick : public PolledBrick {
 public:
     NumberBoxBrick(BrickHost& host, std::string cn, std::string param, int decimals, double step,
                    std::string shows = {})
-        : PolledBrick(host, cn, 4), box_(host, cn, std::move(param), decimals, step, std::move(shows)) {}
+        : PolledBrick(host, cn, 4), box_(host, cn, std::move(param), decimals, step, std::move(shows)),
+          unit_(paramUnit(host, name_, box_.number().param())) {}
 
     void reloadValues() override { repaint(); }
     void refreshAutomatedValues() override { repaint(); }
@@ -35,8 +37,7 @@ public:
         g.drawRoundedRectangle(r.reduced(0.5f), 4.0f, 1.0f);
         g.setColour(Palette::text);
         g.setFont(juce::FontOptions(14.0f));
-        g.drawText(juce::String(box_.text(box_.number().shown())), getLocalBounds().reduced(6, 0),
-                   juce::Justification::centredLeft, true);
+        g.drawText(shownText(), getLocalBounds().reduced(6, 0), juce::Justification::centredLeft, true);
     }
 
     void mouseEnter(const juce::MouseEvent&) override { hover_ = true; repaint(); }
@@ -71,7 +72,7 @@ public:
     void mouseDoubleClick(const juce::MouseEvent&) override {
         SetValuePopup::show(getScreenBounds(), juce::String::fromUTF8(box_.number().param().c_str()),
                             box_.number().setting(), box_.number().range().lo, box_.number().range().hi,
-                            box_.number().range().integer ? 1.0 : 0.0, Unit::None, false,
+                            box_.number().range().integer ? 1.0 : 0.0, unit_, false,
                             [safe = juce::Component::SafePointer<NumberBoxBrick>(this)](double v) {
                                 if (safe != nullptr) safe->set(v);
                             });
@@ -83,6 +84,12 @@ public:
     }
 
 private:
+    juce::String shownText() const {
+        const juce::String value(box_.text(box_.number().shown()));
+        const juce::String suffix(unitSuffix(unit_));
+        return suffix.isEmpty() ? value : value + " " + suffix;
+    }
+
     void set(double v) {
         if (box_.number().set(v)) repaint();
     }
@@ -92,6 +99,7 @@ private:
     }
 
     input::NumberBox box_;
+    Unit unit_ = Unit::None;
     double dragFrom_ = 0.0;
     bool hover_ = false, dragging_ = false;
 

@@ -18,7 +18,7 @@ From 3 inputs up it becomes a channel mixer with one vertical fader per inlet. T
 
 ## Recipe
 
-**Bar-synced swap** Cord a VideoPlayer into inlet 1, a CameraIn into inlet 2 and the outlet into a VideoOut. Set Curve to two thirds, then right-click Fade, choose Modulate with LFO, and sync the LFO to 8 beats with a square wave so the feeds swap on the bar.
+**Bar-synced swap** Cord a VideoPlayer into inlet 1, a CameraIn into inlet 2 and the outlet into a VideoOut. Set Curve to two thirds and add an LFO, then right-click Fade, choose Control with and pick the LFO, and set the LFO to sync at 8 beats with a square wave so the feeds swap on the bar.
 
 **Four feeds, one screen** Set Inputs to 4 and cord a CameraIn, two VideoPlayers and a VideoPad into inlets 1 to 4. Leave channel 1 up as the base, then map faders 2 to 4 to three hardware faders and push each one up to cut its feed in over the rest.
 

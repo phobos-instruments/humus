@@ -15,6 +15,7 @@
 #include "core/params/SpanMove.h"
 #include "core/graph/RtWord.h"
 #include "core/packs/Roles.h"
+#include "gui/common/Localisation.h"
 #include "gui/host/NodeRoll.h"
 #include "hum/caps/Params.h"
 
@@ -215,7 +216,7 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
                 rtStoreWord(p->rangeMin, value);
                 rtStoreWord(p->rangeMax, value);
             } else {
-                const juce::ScopedLock sl(lock_);
+                const AudioLock::Scope sl(lock_);
                 Parameter np;
                 const auto* cm = model_.byName(organism);
                 np.index = cm && isPluginKind(cm->kind) ? -1
@@ -386,8 +387,12 @@ bool EngineHost::isExternallyControlled(const std::string& organism,
 }
 
 std::string EngineHost::translated(const std::string& key, const std::string& written) const {
-    return juce::translate(juce::String::fromUTF8(key.c_str()), juce::String::fromUTF8(written.c_str()))
-        .toStdString();
+    return trKey(key, juce::String::fromUTF8(written.c_str())).toStdString();
+}
+
+std::string EngineHost::translatedCount(const std::string& key, const std::string& one, const std::string& other,
+                                        long long n) const {
+    return hum::trn(key.c_str(), one.c_str(), other.c_str(), n).toStdString();
 }
 
 bool EngineHost::isLiveTracked(const std::string& organism, const std::string& param) const {
@@ -438,7 +443,7 @@ void EngineHost::setParamText(const std::string& organism, const std::string& pa
     }
     const auto forDsp = textForDsp(organism, text);
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_)
             if (auto* c = graph_->find(organism))
                 if (auto* p = c->params.byName(param)) p->text = forDsp;
@@ -447,7 +452,7 @@ void EngineHost::setParamText(const std::string& organism, const std::string& pa
         if (auto* c = graph_->find(organism)) {
             c->onTextChanged(param, forDsp);
             if (dynamic_cast<Tagged*>(c) != nullptr || dynamic_cast<NamedInlet*>(c) != nullptr) {
-                const juce::ScopedLock sl(lock_);
+                const AudioLock::Scope sl(lock_);
                 graph_->rebindNamedInlets();
             }
         }

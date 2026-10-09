@@ -109,7 +109,7 @@ void ParameterControlView::showRowMenu(int row) {
     juce::PopupMenu menu;
     if (selectedIsRange() && !waiting) {
         for (int i = 0; i < 3; ++i)
-            menu.addItem(i + 1, tr("parameter-control.move-to", "Move to ") + endName(kEnds[i]),
+            menu.addItem(i + 1, tr("parameter-control.move-to", "Move to {end}", {{"end", endName(kEnds[i])}}),
                          kEnds[i] != was, kEnds[i] == was);
         menu.addSeparator();
     }

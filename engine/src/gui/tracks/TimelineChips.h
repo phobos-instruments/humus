@@ -11,7 +11,9 @@
 #include "core/packs/Categories.h"
 #include "core/params/ParamUnit.h"
 #include "gui/style/Colours.h"
+#include "gui/common/Localisation.h"
 #include "gui/style/LookAndFeel.h"
+#include "gui/tracks/QuantiseMenu.h"
 #include "gui/tracks/TracksLayout.h"
 
 namespace hum::timelinechrome {
@@ -25,9 +27,9 @@ inline constexpr float kChipFont = 11.0f;
 inline constexpr float kCrumbFont = 11.5f;
 
 inline void paintSnapChip(juce::Graphics& g, juce::Rectangle<int> r,
-                          double gridBeats, bool chosen, const char* labelOverride = nullptr) {
+                          double gridBeats, bool chosen, const juce::String& labelOverride = {}) {
     if (r.getWidth() < 24 || r.getHeight() < 8) return;
-    const auto label = labelOverride ? std::string(labelOverride) : trackslayout::gridLabel(gridBeats);
+    const auto label = labelOverride.isNotEmpty() ? labelOverride : quantise::gridName(gridBeats);
     g.setColour(Palette::panelLight);
     g.fillRoundedRectangle(r.toFloat(), 2.0f);
     g.setColour(Palette::border);
@@ -68,7 +70,7 @@ inline juce::String midiDestLabel(const PatchDocumentModel& m, const std::string
     for (const auto& c : m.midiConnections)
         if (c.src == node && c.srcOutlet == 0) { dest = c.dst; break; }
     return juce::String::fromUTF8("\xe2\x86\x92 ")
-           + (dest.empty() ? juce::String("(nothing)") : juce::String(dest))
+           + (dest.empty() ? tr("tracks-pane.dest-nothing", "(nothing)") : juce::String(dest))
            + juce::String::fromUTF8("  \xe2\x96\xbe");
 }
 
@@ -112,10 +114,11 @@ inline void paintGummyShine(juce::Graphics& g, juce::Rectangle<float> r, float r
 }
 
 inline juce::String midiInputLabel(int input) {
-    const juce::String name = input == OrganismModel::kTrackInputAuto   ? juce::String("Auto")
-                            : input == OrganismModel::kTrackInputAll    ? juce::String("All")
-                            : input == OrganismModel::kTrackInputNone   ? juce::String("None")
-                                                                        : "In " + juce::String(input + 1);
+    const juce::String name = input == OrganismModel::kTrackInputAuto   ? tr("tracks-pane.input-chip-auto", "Auto")
+                            : input == OrganismModel::kTrackInputAll    ? tr("tracks-pane.input-chip-all", "All")
+                            : input == OrganismModel::kTrackInputNone   ? tr("tracks-pane.input-chip-none", "None")
+                                                                        : tr("tracks-pane.input-chip-in", "In {n}",
+                                                                             {{"n", juce::String(input + 1)}});
     return name + juce::String::fromUTF8(" \xe2\x96\xbe");
 }
 

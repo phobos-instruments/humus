@@ -245,8 +245,8 @@ juce::String FileBrowserView::statusText() const {
     if (flash_.isNotEmpty() && juce::Time::getMillisecondCounterHiRes() < flashUntil_) return flash_;
     const int n = (int) model_.rows().size();
     const int picked = (int) model_.selection().size();
-    juce::String s = juce::String(n) + " " + (n == 1 ? tr("browser.item", "item") : tr("browser.items", "items"));
-    if (picked > 1) s += "   " + juce::String(picked) + " " + tr("browser.selected", "selected");
+    juce::String s = trn("browser.items", "{n} item", "{n} items", n);
+    if (picked > 1) s += "   " + trn("browser.selected", "{n} selected", "{n} selected", picked);
     const auto scanning = index_.scanningPlace();
     if (!scanning.empty()) s += "   " + tr("browser.indexing", "Indexing") + " " + juce::String::fromUTF8(fileName(scanning).c_str());
     return s;

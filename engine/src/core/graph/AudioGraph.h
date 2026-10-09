@@ -26,7 +26,14 @@ class PluginNode;
 
 class AudioGraph {
 public:
-    struct Cord { int srcNode; int srcOutlet; int dstNode; int dstInlet; };
+    struct Cord {
+        int srcNode;
+        int srcOutlet;
+        int dstNode;
+        int dstInlet;
+        float gain = 1.0f;
+        float target = 1.0f;
+    };
     struct MidiCord { int srcNode; int srcPort; int dstNode; int dstPort; int channel; };
 
     int addNode(OrganismPtr c);
@@ -35,6 +42,10 @@ public:
 
     int nodeCount() const { return (int) nodes_.size(); }
     Organism* organism(int node) { return nodes_[node].c.get(); }
+    const Organism* organism(int node) const {
+        return node >= 0 && node < (int) nodes_.size() ? nodes_[(size_t) node].c.get() : nullptr;
+    }
+    const std::vector<Cord>& cords() const { return cords_; }
     Organism* find(const std::string& name);
     int indexOf(const std::string& name) const;
 
@@ -76,6 +87,12 @@ public:
     bool hasFeedback() const { return hasFeedback_; }
 
     static constexpr double kBypassFadeMs = 10.0;
+    static constexpr double kCordFadeMs = 8.0;
+
+    void rampInCordsNewTo(const AudioGraph& old);
+    std::vector<int> cordsMissingFrom(const AudioGraph& next) const;
+    void fadeOutCords(const std::vector<int>& cords);
+    bool cordsFaded(const std::vector<int>& cords) const;
     void setNodeBypass(int node, bool on);
     bool nodeBypass(int node) const;
 
@@ -163,6 +180,7 @@ private:
 
 public:
     void pumpPluginTunings();
+    bool pluginsMayNeedRetuning() const;
 
     std::vector<std::string> pluginsNeedingVerdict() const;
     void setBendVerdict(const std::string& classRaw, bool needsBend);
@@ -188,6 +206,9 @@ private:
     std::vector<std::vector<float>> dryScratch_;
     std::vector<float*> dryPtrs_;
     float bypassStep_ = 1.0f;
+    float cordStep_ = 1.0f;
+    std::vector<float> cordScratch_;
+    void sumCord(Cord& c, const float* s, float* d, int numSamples);
     int gatherMidiFor(int node, int port);
 
     struct CordDelay { std::vector<float> buf; int pos = 0; };

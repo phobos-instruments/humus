@@ -7,6 +7,7 @@
 #include "core/app/WindowGeometry.h"
 #include "gui/app/AppSettings.h"
 #include "gui/app/MainComponent.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -15,7 +16,7 @@ public:
     static constexpr int kMinW = 900, kMinH = 600;
 
     MainWindow()
-        : juce::DocumentWindow(juce::String("Untitled  -  Humus"),
+        : juce::DocumentWindow(tr("main.untitled", "Untitled") + "  -  Humus",
                                juce::Colours::black,
                                juce::DocumentWindow::allButtons) {
         setUsingNativeTitleBar(true);

@@ -67,7 +67,7 @@ private:
 
     juce::String readoutText() const {
         if (threshold_.off()) return tr("threshold-meter.start-at-any-sound", "Start at: any sound");
-        return juce::String::fromUTF8("Start at: ") + juce::String(threshold_.decibels(), 1) + " dB";
+        return tr("threshold-meter.start-at-db", "Start at: {db} dB", {{"db", juce::String(threshold_.decibels(), 1)}});
     }
 
     void dragTo(int x) {

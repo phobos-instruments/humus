@@ -36,7 +36,7 @@ public:
 
         paths_.setMultiLine(true);
         paths_.setReturnKeyStartsNewLine(true);
-        paths_.setText(AppSettings::instance().getString(tr("plugin-manager.plugins-searchpaths", "plugins.searchPaths")),
+        paths_.setText(AppSettings::instance().getString("plugins.searchPaths"),
                        juce::dontSendNotification);
         addAndMakeVisible(paths_);
 
@@ -94,7 +94,7 @@ public:
 
 private:
     struct Row : juce::Component {
-        juce::ToggleButton toggle{"separate process"};
+        juce::ToggleButton toggle{tr("plugin-manager.separate-process", "separate process")};
         juce::String label;
         Row() {
             toggle.setColour(juce::ToggleButton::textColourId, Palette::textDim);
@@ -117,7 +117,10 @@ private:
         if (row < 0 || row >= (int) rows_.size()) { return nullptr; }
         if (r == nullptr) r = std::make_unique<Row>();
         const auto& d = rows_[(size_t) row];
-        r->label = d.name + "  -  " + d.pluginFormatName + (d.isInstrument ? "  (instrument)" : "");
+        r->label = d.isInstrument
+            ? tr("plugin-manager.row-instrument", "{name}  -  {format}  (instrument)",
+                 {{"name", d.name}, {"format", d.pluginFormatName}})
+            : d.name + "  -  " + d.pluginFormatName;
         const auto raw = PluginHost::classRawFor(d);
         const bool master = bridgePolicy::sandboxEnabled();
         r->toggle.setEnabled(master);
@@ -148,7 +151,7 @@ private:
         if (!scanner_) { stopTimer(); return; }
         juce::String current;
         if (scanner_->pumpAsync(current)) {
-            status_.setText(tr("plugin-manager.scanning", "Scanning: ") + current, juce::dontSendNotification);
+            status_.setText(tr("plugin-manager.scanning", "Scanning: {name}", {{"name", current}}), juce::dontSendNotification);
             return;
         }
         stopTimer();
@@ -157,10 +160,11 @@ private:
         pluginListStore::save(PluginHost::instance().knownListToXml());
         AppSettings::instance().set("plugins.scanSkip",
                                     scanner_->failed().joinIntoString("\n"));
-        status_.setText(juce::String(tr("plugin-manager.scan-complete", "Scan complete - ")) +
-                            juce::String(PluginHost::instance().knownPlugins().getNumTypes())
-                            + " plugins" + (failedCount > 0
-                                ? " (" + juce::String(failedCount) + " failed)" : juce::String()),
+        const auto found = trn("plugin-manager.scan-complete", "Scan complete - {n} plugin", "Scan complete - {n} plugins",
+                               PluginHost::instance().knownPlugins().getNumTypes());
+        status_.setText(failedCount > 0 ? trn("plugin-manager.scan-failed", "{found} ({n} failed)", "{found} ({n} failed)",
+                                              (int) failedCount, {{"found", found}})
+                                        : found,
                         juce::dontSendNotification);
         rebuildRows();
         scanner_.reset();

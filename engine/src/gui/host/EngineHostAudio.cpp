@@ -31,6 +31,8 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
                                                   const juce::AudioIODeviceCallbackContext&) {
     const juce::ScopedNoDenormals noDenormals;
     const double t0 = juce::Time::getMillisecondCounterHiRes();
+    const double budgetMs =
+        1000.0 * numSamples / (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
     for (int c = 0; c < numOut; ++c) std::memset(out[c], 0, sizeof(float) * (size_t) numSamples);
     if (numSamples > block_) {
         refusedBlocks_.fetch_add(1, std::memory_order_relaxed);
@@ -39,7 +41,7 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
         return;
     }
     {
-        const juce::ScopedTryLock sl(lock_);
+        const AudioLock::AudioThreadTry sl(lock_, AudioLock::kGraphWaitShare * budgetMs);
         if (sl.isLocked() && graph_ && numSamples > graph_->preparedBlock()) {
             refusedBlocks_.fetch_add(1, std::memory_order_relaxed);
             if (numSamples > refusedLargest_.load(std::memory_order_relaxed))
@@ -239,7 +241,7 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
     const int rR = mR >= 0 && mR < numOut ? mR : rL;
 
     if ((mixRecording_.load(std::memory_order_relaxed) || playing_) && numOut > 0) {
-        const juce::ScopedTryLock sl(lock_);
+        const AudioLock::AudioThreadTry sl(lock_, AudioLock::kTapWaitShare * budgetMs);
         if (sl.isLocked()) {
             if (mixRecording_.load(std::memory_order_relaxed) && mixWriter_.active()) {
                 const float* chans[2] = { out[rL], out[rR] };
@@ -258,7 +260,13 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
         }
     }
 
-    if (numOut > 0) preview_.render(out[rL], out[rR], numSamples, sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
+    const int cue = previewFirst_.load(std::memory_order_relaxed);
+    const int cueL = cue >= 0 && cue + 1 < kMaxDeviceChannels ? outMap_[cue] : -1;
+    const int cueR = cue >= 0 && cue + 1 < kMaxDeviceChannels ? outMap_[cue + 1] : -1;
+    const bool cued = cueL >= 0 && cueL < numOut && cueR >= 0 && cueR < numOut;
+    if (numOut > 0)
+        preview_.render(out[cued ? cueL : rL], out[cued ? cueR : rR], numSamples,
+                        sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
 
     for (int c = 0; c < 2 && c < numOut; ++c) {
         const float* src = out[c == 0 ? rL : rR];
@@ -267,10 +275,10 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
         level_[c].store(peak);
     }
 
-    const double budgetMs =
-        1000.0 * numSamples / (sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate);
-    audioLoad_.store((float) ((juce::Time::getMillisecondCounterHiRes() - t0) / budgetMs),
-                     std::memory_order_relaxed);
+    const float load = (float) ((juce::Time::getMillisecondCounterHiRes() - t0) / budgetMs);
+    audioLoad_.store(load, std::memory_order_relaxed);
+    if (load >= 1.0f) lateBlocks_.fetch_add(1, std::memory_order_relaxed);
+    if (load > loadPeak_.load(std::memory_order_relaxed)) loadPeak_.store(load, std::memory_order_relaxed);
     lastCallbackMs_.store(juce::Time::getMillisecondCounterHiRes(),
                           std::memory_order_relaxed);
 }

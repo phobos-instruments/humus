@@ -47,7 +47,7 @@ public:
                    noteBox.removeFromTop(38), juce::Justification::centred);
         g.setColour(Palette::textDim);
         g.setFont(juce::FontOptions(10.0f));
-        g.drawText(reading_.hz() > 0.0f ? juce::String(reading_.hz(), 1) + tr("pitch-readout.hz", " Hz") : juce::String(tr("pitch-readout.no-pitch", "no pitch")),
+        g.drawText(reading_.hz() > 0.0f ? tr("pitch-readout.hz", "{hz} Hz", {{"hz", juce::String(reading_.hz(), 1)}}) : juce::String(tr("pitch-readout.no-pitch", "no pitch")),
                    noteBox, juce::Justification::centred);
 
         r.removeFromLeft(8);

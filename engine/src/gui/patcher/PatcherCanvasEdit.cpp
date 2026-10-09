@@ -14,6 +14,7 @@ bool PatcherCanvas::keyPressed(const juce::KeyPress& k) {
     using juce::KeyPress;
     const auto cmd = juce::ModifierKeys::commandModifier;
     const auto cmdShift = cmd | juce::ModifierKeys::shiftModifier;
+    if (drag_ == Drag::Grab && k == KeyPress(KeyPress::escapeKey)) { cancelGrab(); return true; }
     if (k == KeyPress('z', cmdShift, 0)) { redo(); return true; }
     if (k == KeyPress('z', cmd, 0)) { undo(); return true; }
     if (k == KeyPress('a', cmd, 0)) { selectAll(); return true; }
@@ -170,18 +171,7 @@ void PatcherCanvas::instantiateClones(const std::vector<OrganismModel>& items,
 
 void PatcherCanvas::deleteSelection() {
     if (cordSelected_) {
-        if (selectedCord_.control)
-            host_.disconnectControl(selectedCord_.src, selectedCord_.srcOutlet,
-                                    selectedCord_.dst, selectedCord_.dstInlet);
-        else if (selectedCord_.midi)
-            host_.removeMidiConnection(selectedCord_.src, selectedCord_.srcOutlet,
-                                       selectedCord_.dst, selectedCord_.dstInlet);
-        else if (selectedCord_.video)
-            host_.removeVideoConnection(selectedCord_.src, selectedCord_.srcOutlet,
-                                        selectedCord_.dst, selectedCord_.dstInlet);
-        else
-            host_.removeConnection(selectedCord_.src, selectedCord_.srcOutlet,
-                                   selectedCord_.dst, selectedCord_.dstInlet);
+        removeCord(selectedCord_);
         cordSelected_ = false;
         refresh();
         return;

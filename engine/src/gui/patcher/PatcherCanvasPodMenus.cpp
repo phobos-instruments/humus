@@ -19,7 +19,7 @@
 namespace hum {
 
 void PatcherCanvas::podFromPatchDialog(juce::Point<int> at) {
-    chooser_ = std::make_unique<juce::FileChooser>("Pod from Patch", juce::File(),
+    chooser_ = std::make_unique<juce::FileChooser>(tr("patcher-canvas-pod-menus.pod-from-patch", "Pod from Patch"), juce::File(),
                                                    kPatchOpenFilter);
     chooser_->launchAsync(juce::FileBrowserComponent::openMode
                               | juce::FileBrowserComponent::canSelectFiles,
@@ -30,7 +30,8 @@ void PatcherCanvas::podFromPatchDialog(juce::Point<int> at) {
             fc.getResult().getFullPathName().toStdString(), at, scope_, err);
         if (pod.empty()) {
             juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::WarningIcon,
-                                                   "Pod from Patch", juce::String(err));
+                                                   tr("patcher-canvas-pod-menus.pod-from-patch", "Pod from Patch"),
+                                                   juce::String(err));
             return;
         }
         select(pod);
@@ -60,7 +61,7 @@ void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenP
     auto pickerSubmenu = [&](int base, int searchId, bool capture) {
         std::vector<std::string> scratch;
         juce::PopupMenu m;
-        m.addItem(kSearchBase + searchId, juce::String::fromUTF8("Search\xe2\x80\xa6"));
+        m.addItem(kSearchBase + searchId, tr("patcher-canvas-menus.search", "Search..."));
         m.addSeparator();
         juce::PopupMenu picker = classPickerMenu(groups, base, capture ? classOrder : scratch);
         for (juce::PopupMenu::MenuItemIterator it(picker); it.next();)
@@ -80,8 +81,8 @@ void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenP
     menu.addItem(Rename, tr("patcher-canvas-menus.rename", "Rename... (F2)"));
     menu.addSeparator();
     if (modernMenusEnabled()) {
-        menu.addItem(kSearchBase + 1, juce::String::fromUTF8("Insert Before\xe2\x80\xa6"));
-        menu.addItem(kSearchBase + 2, juce::String::fromUTF8("Insert After\xe2\x80\xa6"));
+        menu.addItem(kSearchBase + 1, tr("patcher-canvas-menus.insert-before-dots", "Insert Before..."));
+        menu.addItem(kSearchBase + 2, tr("patcher-canvas-menus.insert-after-dots", "Insert After..."));
     } else {
         menu.addSubMenu(tr("patcher-canvas-menus.insert-before", "Insert Before"), pickerSubmenu(kInsBefore, 1, true));
         menu.addSubMenu(tr("patcher-canvas-menus.insert-after", "Insert After"), pickerSubmenu(kInsAfter, 2, false));
@@ -147,8 +148,9 @@ void PatcherCanvas::showPodMenu(const std::string& pod, juce::Point<int> screenP
 }
 
 void PatcherCanvas::renamePodDialog(const std::string& pod) {
-    auto* aw = new juce::AlertWindow("Rename Pod",
-                                     "New name for \"" + pods::leafOf(pod) + "\":",
+    auto* aw = new juce::AlertWindow(tr("patcher-canvas-menus.rename-pod", "Rename Pod"),
+                                     tr("patcher-canvas-menus.new-name-for", "New name for \"{name}\":",
+                                        {{"name", juce::String(pods::leafOf(pod))}}),
                                      juce::MessageBoxIconType::NoIcon);
     aw->addTextEditor("name", pods::leafOf(pod));
     aw->addButton(tr("patcher-canvas-menus.ok", "OK"), 1, juce::KeyPress(juce::KeyPress::returnKey));

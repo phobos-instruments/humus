@@ -39,9 +39,10 @@ public:
         if (model_ == nullptr || model_->organisms.empty()) {
             g.setColour(fxlook::dim());
             g.setFont(juce::FontOptions(13.0f));
-            g.drawFittedText("Load a .hum patch.\n\n"
-                             "The DAW's audio enters the patch at SoundIn;\n"
-                             "whatever reaches SoundOut is the plugin's output.",
+            g.drawFittedText(tr("patch-map.load-a-hum-patch",
+                                "Load a .hum patch.\n\n"
+                                "The DAW's audio enters the patch at SoundIn;\n"
+                                "whatever reaches SoundOut is the plugin's output."),
                              getLocalBounds().reduced(20), juce::Justification::centred, 6);
             return;
         }

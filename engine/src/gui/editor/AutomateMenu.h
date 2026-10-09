@@ -148,16 +148,19 @@ public:
     void arm(BrickHost& host, std::string organism, std::string param,
              double lo, double hi, std::function<void()> onChanged) {
         const auto target = juce::String(organism) + " / " + juce::String(param);
-        if (onStatus) onStatus("Follow: click the control that should move " + target);
+        if (onStatus) onStatus(tr("organism-editor.follow-click-the-control",
+                                  "Follow: click the control that should move {target}", {{"target", target}}));
         window_ = std::make_unique<QuickMapWindow>(
-            "Follow a Control",
-            "Click any knob to make it move\n" + target,
+            tr("organism-editor.follow-a-control", "Follow a Control"),
+            tr("organism-editor.click-any-knob-to-make-it-move", "Click any knob to make it move\n{target}",
+               {{"target", target}}),
             [] { juce::MessageManager::callAsync([] { FollowPicker::instance().cancel(); }); });
         followpick::arm([this, &host, organism, param, lo, hi, onChanged]
                         (const std::string& from, const std::string& value) {
             close();
             if (from == organism && value == param) {
-                if (onStatus) onStatus("Follow: a control cannot follow itself");
+                if (onStatus) onStatus(tr("organism-editor.a-control-cannot-follow-itself",
+                                         "Follow: a control cannot follow itself"));
                 return;
             }
             const auto src = std::string(kParamSource) + value;
@@ -166,7 +169,7 @@ public:
             auto status = onStatus;
             if (paramIsSwitch(host, organism, param)) {
                 host.mod().mapRoute(from, src, organism, param, lo, hi);
-                if (status) status("Follow: " + title);
+                if (status) status(tr("organism-editor.follow-route", "Follow: {route}", {{"route", title}}));
                 if (onChanged) onChanged();
                 return;
             }
@@ -178,7 +181,7 @@ public:
                                   [&host, organism, param, from, src, title, status,
                                    onChanged](double a, double b) {
                                       host.mod().mapRoute(from, src, organism, param, a, b);
-                                      if (status) status("Follow: " + title);
+                                      if (status) status(tr("organism-editor.follow-route", "Follow: {route}", {{"route", title}}));
                                       if (onChanged) onChanged();
                                   });
             });
@@ -282,7 +285,7 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
         flush(mod, modNode, modOpen, modOpenRouted);
         flush(follow, followNode, followOpen, followOpenRouted);
         juce::PopupMenu followTop;
-        followTop.addItem(13, juce::String::fromUTF8("Pick a control\xe2\x80\xa6"));
+        followTop.addItem(13, tr("organism-editor.pick-a-control", "Pick a control..."));
         if (follow.getNumItems() > 0) {
             followTop.addSeparator();
             followTop.addSubMenu(tr("organism-editor.from-a-list", "From a list"), follow,

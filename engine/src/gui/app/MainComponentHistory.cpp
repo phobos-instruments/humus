@@ -28,7 +28,7 @@ void MainComponent::openHistory() {
             std::string err;
             const bool sounding = host_.audioRunning();
             if (!history_.restore(e, currentFile_, nowMs(), err)) {
-                notifyError(tr("main-history.restore-failed", "restore failed: ") + juce::String(err));
+                notifyError(tr("main-history.restore-failed", "restore failed: {reason}", {{"reason", juce::String(err)}}));
                 return;
             }
             refreshAfterLoad();
@@ -41,7 +41,7 @@ void MainComponent::openHistory() {
                 const bool sounding = host_.audioRunning();
                 const auto original = currentFile_;
                 if (!history_.openCopy(e, original, nowMs(), err)) {
-                    notifyError(tr("main-history.open-failed", "could not open that version: ") + juce::String(err));
+                    notifyError(tr("main-history.open-failed", "could not open that version: {reason}", {{"reason", juce::String(err)}}));
                     return;
                 }
                 currentFile_.clear();

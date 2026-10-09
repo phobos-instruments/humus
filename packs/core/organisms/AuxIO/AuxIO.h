@@ -9,26 +9,32 @@
 
 namespace hum {
 
+inline constexpr int kAuxDeviceChannels = 256;
+inline constexpr int kAuxPairs = kAuxDeviceChannels / 2 - 1;
+
 class AuxIn : public Organism, public HardwareIn {
 public:
-    explicit AuxIn(int hardwareChannel = 2) : default_(hardwareChannel) {}
+    explicit AuxIn(int hardwareChannel = 2, int width = 1)
+        : default_(hardwareChannel), width_(std::max(1, width)) {}
     int numAudioInputs() const override { return 0; }
-    int numAudioOutputs() const override { return 1; }
+    int numAudioOutputs() const override { return width_; }
     void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; }
     int channel() const override {
         return (int) params.get("Channel", default_ + 1.0) - 1;
     }
+    int channelCount() const override { return width_; }
     void process(const float* const*, int, float* const* out, int numOut,
                  int numSamples, const Transport& transport) override {
-        const float* src = transport.liveInput(channel());
         for (int c = 0; c < numOut; ++c) {
-            if (c == 0 && src) std::copy(src, src + numSamples, out[c]);
+            const float* src = c < width_ ? transport.liveInput(channel() + c) : nullptr;
+            if (src) std::copy(src, src + numSamples, out[c]);
             else std::fill(out[c], out[c] + numSamples, 0.0f);
         }
     }
 
 private:
     int default_ = 2;
+    int width_ = 1;
 };
 
 class AuxOut : public Organism, public HardwareOut {

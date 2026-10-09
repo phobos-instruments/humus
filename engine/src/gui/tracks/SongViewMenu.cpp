@@ -90,13 +90,12 @@ void SongView::showClipMenu(int row, int clip, juce::Point<int> screenPos, int a
     }
     if (ci.hasMedia()) {
         juce::PopupMenu warp;
-        const char* names[] = {"Off", "Beats", "Tone"};
         for (int i = 0; i < 3; ++i)
-            warp.addItem(kMenuWarp0 + i, names[i], true, ci.warpMode == i);
+            warp.addItem(kMenuWarp0 + i, mediainfo::warpName(i), true, ci.warpMode == i);
         warp.addSeparator();
         warp.addItem(kMenuSetBpm, ci.sourceBpm > 0.0
-                                      ? "Source Tempo: " + juce::String(ci.sourceBpm, 1) + "..."
-                                      : juce::String("Source Tempo..."));
+                                      ? tr("tracks-pane-menu.source-tempo-is", "Source Tempo: {bpm}...", {{"bpm", juce::String(ci.sourceBpm, 1)}})
+                                      : tr("tracks-pane-menu.source-tempo", "Source Tempo..."));
         menu.addSubMenu(tr("tracks-pane-menu.warp", "Warp"), warp);
 
         juce::PopupMenu fades;
@@ -118,7 +117,8 @@ void SongView::showClipMenu(int row, int clip, juce::Point<int> screenPos, int a
         static const int kStretchFactors[] = {4, 8, 16, 50};
         for (int i = 0; i < 4; ++i)
             stretch.addItem(kMenuStretch0 + i,
-                            juce::String(kStretchFactors[i]) + "x to New Track");
+                            tr("tracks-pane-menu.stretch-to-new-track", "{factor}x to New Track",
+                               {{"factor", juce::String(kStretchFactors[i])}}));
         menu.addSubMenu(tr("tracks-pane-menu.paulstretch", "Paulstretch"), stretch);
     }
     menu.addSeparator();
@@ -162,8 +162,9 @@ void SongView::showClipMenu(int row, int clip, juce::Point<int> screenPos, int a
             return;
         }
         if (res == kMenuSetBpm) {
-            auto* aw = new juce::AlertWindow("Source Tempo",
-                                             "What does this material run at? (0 = unknown)",
+            auto* aw = new juce::AlertWindow(tr("tracks-pane-menu.source-tempo-title", "Source Tempo"),
+                                             tr("tracks-pane-menu.source-tempo-question",
+                                                "What does this material run at? (0 = unknown)"),
                                              juce::MessageBoxIconType::NoIcon);
             aw->addTextEditor("bpm", juce::String(ci.sourceBpm > 0.0 ? ci.sourceBpm : 0.0, 2));
             aw->addButton(tr("tracks-pane-menu.set", "Set"), 1, juce::KeyPress(juce::KeyPress::returnKey));

@@ -26,7 +26,7 @@ Cord its MIDI outlet to an instrument and that instrument plays in this tuning. 
 
 ## Recipe
 
-**Beatless fifth** Preset Just - 17-limit, Map Keyboard, cord it to nothing so the whole patch follows. Hold a fifth on a Rhizome from a PianoRoll: it locks without beating in a way no tempered fifth can. Then switch to Harmonics 8-16 and play a scale on the same Rhizome for the overtone series itself.
+**Beatless fifth** Preset Just - 17-limit, Map Fit to 12 keys, cord it to nothing so the whole patch follows. Hold a fifth on a Rhizome from a PianoRoll: it locks without beating in a way no tempered fifth can. Then switch to Harmonics 8-16 and play a scale on the same Rhizome for the overtone series itself.
 
 ## Related Organisms
 

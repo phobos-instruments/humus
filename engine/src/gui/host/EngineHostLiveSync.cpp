@@ -33,7 +33,7 @@ void EngineHost::syncRoutes() {
             routes.push_back(std::move(r));
     }
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         graph_->setModRoutes(std::move(routes));
     }
     pushSocketSources();
@@ -91,7 +91,7 @@ void EngineHost::syncAutomation() {
             lanes.push_back(std::move(lane));
         }
     }
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     graph_->setAutomation(std::move(lanes));
     graph_->setMeterMap(meterMapOf(model_));
     restoreUnautomatedGroove(amountLane, gridLane);
@@ -108,7 +108,7 @@ void EngineHost::syncPattern(const std::string& name) {
     if (!cm) return;
     Organism* live = nullptr;
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_)
             if (auto* c = graph_->find(name)) { c->setPattern(cm->pattern); live = c; }
     }
@@ -150,14 +150,14 @@ void EngineHost::syncNodeTrack(const std::string& name) {
         std::fprintf(stderr, "[note] %s: track holds %d at peak\n", name.c_str(),
                      graph_->maxTrackHeld());
     if (voices.empty() && !graph_->hasNodeTrack(idx)) return;
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     graph_->setNodeTrack(idx, std::move(voices));
     if (const auto* cm = model_.byName(name))
         graph_->setNodeTrackMuted(idx, modelTrackMuted(*cm));
 }
 
 void EngineHost::syncMeter() {
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     if (graph_) graph_->setMeterMap(meterMapOf(model_));
 }
 

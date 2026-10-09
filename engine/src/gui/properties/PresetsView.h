@@ -134,6 +134,9 @@ public:
            " (one undo step)"));
         randomBtn_.setTooltip(tr("presets.randomize-every-parameter-within-its", "Randomize every parameter within its range (one undo step)"));
         evolveBtn_.setTooltip(juce::String(tr("presets.mutate-the-current-settings-slightly", "Mutate the current settings slightly - repeat to wander (one undo step)")));
+        genieBtn_.setButtonText(tr("presets.generate", "Generate..."));
+        randomBtn_.setButtonText(tr("presets.random", "Random"));
+        evolveBtn_.setButtonText(tr("presets.evolve", "Evolve"));
         genieBtn_.onClick  = [this] { openGenie(); };
         randomBtn_.onClick = [this] { randomize(false); };
         evolveBtn_.onClick = [this] { randomize(true); };
@@ -226,18 +229,19 @@ private:
 
     void confirmClear(const presets::Ref& ref) {
         const juce::String nm = juce::String(ref.name);
-        const juce::String what = nm.isEmpty()
-            ? juce::String("this preset")
-            : juce::String::fromUTF8("\xe2\x80\x9c") + nm
-                + juce::String::fromUTF8("\xe2\x80\x9d");
         if (ref.source == presets::Source::Shipped) return;
         const bool mine = ref.source == presets::Source::Patch;
+        const juce::String question = nm.isEmpty()
+            ? (mine ? tr("presets.delete-this-from-patch", "Delete this preset from this patch?")
+                    : tr("presets.delete-this-from-user-presets", "Delete this preset from your user presets?"))
+            : (mine ? tr("presets.delete-named-from-patch", "Delete \"{name}\" from this patch?", {{"name", nm}})
+                    : tr("presets.delete-named-from-user-presets", "Delete \"{name}\" from your user presets?",
+                         {{"name", nm}}));
         juce::AlertWindow::showOkCancelBox(
             juce::MessageBoxIconType::QuestionIcon,
-            "Delete preset",
-            mine ? "Delete " + what + " from this patch?"
-                 : "Delete " + what + " from your user presets?",
-            "Delete", "Cancel", this,
+            tr("presets.delete-preset", "Delete preset"),
+            question,
+            tr("presets.delete", "Delete"), tr("presets.cancel", "Cancel"), this,
             juce::ModalCallbackFunction::create(
                 [&host = host_, name = name_, ref,
                  sp = juce::Component::SafePointer<PresetsView>(this)](int r) {
@@ -300,9 +304,9 @@ private:
     std::string name_;
     std::function<void()> onChanged_;
 
-    juce::TextButton addBtn_{"+ Add"}, prevBtn_{"<"}, nextBtn_{">"},
-                     recallBtn_{"Recall"}, storeBtn_{"Store"}, clearBtn_{"Clear"},
-                     genieBtn_{"Generate..."}, randomBtn_{"Random"}, evolveBtn_{"Evolve"};
+    juce::TextButton addBtn_{tr("presets.add", "+ Add")}, prevBtn_{"<"}, nextBtn_{">"},
+                     recallBtn_{tr("presets.recall", "Recall")}, storeBtn_{tr("presets.store", "Store")},
+                     clearBtn_{tr("presets.clear", "Clear")}, genieBtn_, randomBtn_, evolveBtn_;
     juce::Label curName_;
     juce::Viewport viewport_;
     juce::Component slots_;

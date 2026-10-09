@@ -4,6 +4,7 @@ add_library(hum_core STATIC
   src/core/graph/AudioGraphModulation.cpp
   src/core/graph/AudioGraphTuning.cpp
   src/core/graph/AudioGraphBypass.cpp
+  src/core/graph/AudioGraphCordFades.cpp
   src/core/graph/AudioGraphMidi.cpp
   src/core/net/LicenseCheck.cpp
   src/core/packs/BuiltinOrganisms.cpp
@@ -48,6 +49,7 @@ add_library(hum_core STATIC
   src/io/AutosaveStore.cpp
   src/io/PatchHistory.cpp
   src/io/PatchChanges.cpp
+  src/io/StateChanges.cpp
 )
 target_include_directories(hum_core PUBLIC src)
 target_compile_definitions(hum_core PUBLIC

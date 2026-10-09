@@ -5,7 +5,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 endif()
 
-project(Humus VERSION 0.5.0 LANGUAGES C CXX)
+project(Humus VERSION 0.5.1 LANGUAGES C CXX)
 
 # A single-config generator with no build type is -O0 with live asserts, which
 # xruns in a realtime app; a first-time builder following the README gets Release.

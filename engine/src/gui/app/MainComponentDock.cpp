@@ -14,29 +14,13 @@
 namespace hum {
 
 void MainComponent::buildDock() {
-    tracksPane_ = std::make_unique<TracksPane>(host_);
-    tracksPane_->onOpenClip = [this](const std::string& n, int clip) { openClipEditor(n, clip); };
-    tracksPane_->onPatchChanged = [this] { refreshTimelinePanes(); };
-    tracksPane_->onSelect = [this](const std::string& n) {
-        if (canvas_) canvas_->select(n);
-        if (propsPane_) propsPane_->setSelected(n);
-    };
-    host_.noteCaptureHint = [this] {
-        return tracksPane_ ? tracksPane_->selectedNoteNode() : std::string();
-    };
-    tracksPane_->onOpenAutomation = [this](const std::string& node, const std::string&) {
-        if (tracksPane_) tracksPane_->expandRow(node);
-    };
-    tracksPane_->onOpenBoxDetail = [this](const std::string& organism) {
-        if (tracksPane_) tracksPane_->enterBoxMode(organism);
-    };
+    buildTracksPane();
 
     patcherView_.setViewedComponent(canvas_.get(), false);
     patcherView_.setScrollBarsShown(true, true);
     paneCenter_.setContent(&patcherView_);
     paneRight_.setContent(propsPane_.get());
     paneBottom_.setContent(tracksPane_.get());
-    paneBottom_.setTitle(tr("main-dock.timeline", "Timeline"));
     addAndMakeVisible(paneCenter_);
     addAndMakeVisible(paneRight_);
     addAndMakeVisible(paneBottom_);
@@ -143,7 +127,6 @@ void MainComponent::restoreDock() {
         if (s.getInt("dock." + d.key + ".floated", 0) != 0) detach(d);
     };
     load(center_); load(right_); load(bottom_);
-    paneBottom_.setTitle(tr("main-dock.timeline", "Timeline"));
     updateDock();
 }
 

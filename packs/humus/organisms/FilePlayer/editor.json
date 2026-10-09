@@ -20,6 +20,16 @@
   },
   "controls": [
     {
+      "type": "combo",
+      "label": "Outputs",
+      "x": 8,
+      "y": 2,
+      "w": 108,
+      "h": 20,
+      "options": ["2", "4", "6", "8", "16", "24", "32"],
+      "reclass": "inputs"
+    },
+    {
       "type": "soundfile", "kind": "Samples",
       "param": "File",
       "label": "",

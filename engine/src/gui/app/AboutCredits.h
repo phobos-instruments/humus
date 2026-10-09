@@ -27,7 +27,7 @@ inline constexpr Line kOwners{
     "about.owners",
     "The names and marks above belong to their owners. They are here to say what is "
     "inside Humus and under what terms, not to suggest that anyone endorses it."};
-inline constexpr const char* kSite = "https://humus.phobos-instruments.com";
+inline constexpr const char* kSite = "https://humus.art";
 inline constexpr const char* kSource = "https://github.com/phobos-instruments/humus";
 
 struct Credit {

@@ -171,7 +171,8 @@ public:
         if (const auto lic = LicenseStore::current(); lic.valid) {
             g.setColour(line.withAlpha(alpha::mid));
             g.setFont(juce::Font(juce::FontOptions(11.0f)));
-            g.drawText(tr("about.registered-to", "Registered to") + " " + juce::String(lic.name.empty() ? lic.plan : lic.name),
+            g.drawText(tr("about.registered-to-name", "Registered to {name}",
+                          {{"name", juce::String(lic.name.empty() ? lic.plan : lic.name)}}),
                        0, 258, getWidth(), 14, juce::Justification::centred);
         }
         g.setColour(line.withAlpha(alpha::mid));

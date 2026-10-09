@@ -32,7 +32,7 @@ public:
         viewport_.setScrollBarThickness(10);
 
         search_.setFont(juce::FontOptions(12.0f));
-        search_.setTextToShowWhenEmpty(juce::String::fromUTF8("Search parameters\xe2\x80\xa6"),
+        search_.setTextToShowWhenEmpty(tr("plugin-param-table.search-parameters", "Search parameters..."),
                                        Palette::textDim);
         search_.setColour(juce::TextEditor::backgroundColourId, Palette::panelLight);
         search_.setColour(juce::TextEditor::textColourId, Palette::text);

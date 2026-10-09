@@ -26,6 +26,8 @@ public:
     virtual int  midiSyncMode() const = 0;
     virtual void setMidiSyncMode(int mode) = 0;
     virtual void persistAudioState() = 0;
+    virtual int  previewOutput() const = 0;
+    virtual void setPreviewOutput(int firstChannel) = 0;
 };
 
 }

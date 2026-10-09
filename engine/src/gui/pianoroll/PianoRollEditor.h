@@ -9,6 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/style/Colours.h"
+#include "gui/common/Localisation.h"
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
 #include "gui/pianoroll/NoteEdit.h"
@@ -163,7 +164,7 @@ private:
     void showBars(int bars);
 
     juce::ComboBox bars_, snap_;
-    MenuButton loop_{"Loop"}, record_{"Rec"}, quantize_{"Q"};
+    MenuButton loop_{tr("piano-roll-editor.loop", "Loop")}, record_{tr("piano-roll-editor.rec", "Rec")}, quantize_{"Q"};
     LooperState shownLoop_ = LooperState::Empty;
     struct ToolButton : juce::Button {
         explicit ToolButton(noteedit::Tool t) : juce::Button({}), tool(t) {}
@@ -182,7 +183,7 @@ private:
     };
     ToolButton toolP_{Tool::Pointer}, toolD_{Tool::Draw},
                toolS_{Tool::Scissors}, toolE_{Tool::Eraser};
-    juce::Label barsLabel_{{}, "bars"}, snapLabel_{{}, "snap"};
+    juce::Label barsLabel_{{}, tr("piano-roll-editor.bars", "bars")}, snapLabel_{{}, tr("piano-roll-editor.snap", "snap")};
     MidiKeyboardStrip keyboard_;
     int keyNote_ = -1;
     void soundKey(int pitch);

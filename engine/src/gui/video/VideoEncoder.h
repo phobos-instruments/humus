@@ -30,7 +30,9 @@ public:
     ~VideoThread();
 
 private:
-    [[maybe_unused]] bool joined_ = false;
+#if JUCE_WINDOWS
+    bool joined_ = false;
+#endif
 };
 
 class VideoEncoder {

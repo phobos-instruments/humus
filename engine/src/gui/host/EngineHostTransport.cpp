@@ -32,7 +32,7 @@ void EngineHost::play() {
         }
     }
     if (pendingCountInBars_ > 0 && !playing_ && audioRunning_) {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_) {
             const auto& t = graph_->transport();
             const auto meter = t.meterAt(t.beats());
@@ -50,7 +50,7 @@ void EngineHost::play() {
     playing_ = true;
     clearTouches();
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_) graph_->transport().setPlaying(true);
     }
     record_.onPlay();
@@ -96,7 +96,7 @@ void EngineHost::stop() {
     playing_ = false;
     clearTouches();
     {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         if (graph_) graph_->transport().setPlaying(false);
     }
     syncTransportEvent(false);
@@ -127,7 +127,7 @@ void EngineHost::setPositionBeats(double beat) {
     ++locateStamp_;
     seekBeatsReq_.store(target, std::memory_order_relaxed);
     if (!graphSelfDriven()) {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         takeTransportRequests();
         publishClock();
     }
@@ -140,7 +140,7 @@ void EngineHost::setTempo(double bpm) {
     if (link_ && linkEnabled_.load(std::memory_order_relaxed)) link_->proposeTempo(bpm);
     tempoReq_.store(bpm, std::memory_order_relaxed);
     if (!graphSelfDriven()) {
-        const juce::ScopedLock sl(lock_);
+        const AudioLock::Scope sl(lock_);
         takeTransportRequests();
         publishClock();
     }
@@ -186,7 +186,7 @@ void EngineHost::advanceModulation(double dt) {
     for (const auto& u : mod_.tick(dt)) setParam(u.organism, u.param, u.value);
     if (audioRunning_ || graph_ == nullptr) return;
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     graph_->applyModRoutes(juce::jmax(1, (int) std::lround(dt * sr)));
 }
 

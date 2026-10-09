@@ -12,6 +12,7 @@
 
 #include "core/app/UiWatchdog.h"
 #include "gui/app/AppSettings.h"
+#include "gui/common/Localisation.h"
 
 namespace hum {
 
@@ -86,6 +87,23 @@ inline void rememberFit(const std::string& classRaw) {
 
 }
 
+inline juce::String editorCrashSentence(const juce::String& plugin, const juce::String& op) {
+    const TrArgs who{{"plugin", plugin}};
+    if (op == "opening its editor")
+        return tr("plugin-safe-mode.crashed-opening-editor", "{plugin} crashed while opening its editor last session.", who);
+    if (op == "closing its editor")
+        return tr("plugin-safe-mode.crashed-closing-editor", "{plugin} crashed while closing its editor last session.", who);
+    if (op == "embedding its UI")
+        return tr("plugin-safe-mode.crashed-embedding-ui", "{plugin} crashed while embedding its UI last session.", who);
+    if (op == "zooming its embedded UI")
+        return tr("plugin-safe-mode.crashed-zooming-ui", "{plugin} crashed while zooming its embedded UI last session.", who);
+    if (op == "unwrapping its embedded UI")
+        return tr("plugin-safe-mode.crashed-unwrapping-ui", "{plugin} crashed while unwrapping its embedded UI last session.", who);
+    if (op == "disposing its instance")
+        return tr("plugin-safe-mode.crashed-disposing-instance", "{plugin} crashed while disposing its instance last session.", who);
+    return tr("plugin-safe-mode.crashed", "{plugin} crashed last session.", who);
+}
+
 class EditorOpGuard {
 public:
     EditorOpGuard(const std::string& classRaw, const char* listSetting,
@@ -124,10 +142,10 @@ public:
         list.removeEmptyStrings();
         list.addIfNotAlreadyThere(cls);
         AppSettings::instance().set(setting, list.joinIntoString("\n"));
-        return cls.upToFirstOccurrenceOf("?", false, false)
-             + " crashed while " + op + " last session.\n\n"
-             + "It now uses a safe fallback automatically. To retry the normal "
-               "path, remove it from \"" + setting + "\" in settings.xml.";
+        return editorCrashSentence(cls.upToFirstOccurrenceOf("?", false, false), op) + "\n\n"
+             + tr("plugin-safe-mode.fallback-explained",
+                  "It now uses a safe fallback automatically. To retry the normal path, remove it from \"{setting}\" in settings.xml.",
+                  {{"setting", setting}});
     }
 
 private:

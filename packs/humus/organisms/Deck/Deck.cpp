@@ -3,13 +3,16 @@
 #include "Deck/Deck.h"
 
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
+#include <thread>
 #include <utility>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <vector>
 
+#include "Deck/DeckSummary.h"
 #include "hum/dsp/SoundFileBuffer.h"
 #include "hum/dsp/Interpolation.h"
 
@@ -19,47 +22,16 @@ Deck::Deck() = default;
 Deck::~Deck() = default;
 
 namespace {
-std::vector<float> buildPeaks(const juce::AudioBuffer<float>& buf, int buckets) {
-    const int ch = buf.getNumChannels();
-    const int64_t len = buf.getNumSamples();
-    if (ch == 0 || len == 0) return {};
-    std::vector<float> peaks((size_t) buckets, 0.0f);
-    const double per = (double) len / (double) buckets;
-    for (int b = 0; b < buckets; ++b) {
-        const int64_t s0 = (int64_t) (b * per);
-        const int64_t s1 = std::min(len, (int64_t) ((b + 1) * per));
-        float peak = 0.0f;
-        for (int64_t s = s0; s < s1; ++s)
-            for (int c = 0; c < ch; ++c)
-                peak = std::max(peak, std::abs(buf.getSample(c, (int) s)));
-        peaks[(size_t) b] = std::min(1.0f, peak);
-    }
-    return peaks;
-}
+constexpr auto kSwapWait = std::chrono::milliseconds(250);
+constexpr auto kSwapPoll = std::chrono::milliseconds(2);
 
-struct PeaksMemo {
-    std::string key;
-    std::vector<float> peaks;
-};
-
-constexpr std::size_t kPeaksMemoSlots = 8;
-
-std::vector<float> peaksFor(const std::string& uri, int track, const juce::AudioBuffer<float>& buf,
-                            int buckets) {
-    const auto key = soundFileStamp(juce::File(juce::String(juce::CharPointer_UTF8(uri.c_str()))),
-                                    track);
-    static juce::CriticalSection lock;
-    static std::vector<PeaksMemo> memo;
-    {
-        const juce::ScopedLock sl(lock);
-        for (const auto& m : memo)
-            if (m.key == key) return m.peaks;
-    }
-    auto peaks = buildPeaks(buf, buckets);
-    const juce::ScopedLock sl(lock);
-    if (memo.size() >= kPeaksMemoSlots) memo.erase(memo.begin());
-    memo.push_back({key, peaks});
-    return peaks;
+DeckSummary summarise(const std::string& path, int track, const juce::AudioBuffer<float>& buf,
+                      double sampleRate) {
+    const auto stamp = soundFileStamp(juce::File(juce::String(juce::CharPointer_UTF8(path.c_str()))),
+                                      track);
+    return summaryFor(stamp, {buf.getArrayOfReadPointers(), buf.getNumChannels(), buf.getNumSamples(),
+                              sampleRate},
+                      Deck::kWaveBuckets);
 }
 
 std::string loadFaultFor(const std::string& uri, bool ok) {
@@ -87,13 +59,14 @@ void Deck::prepare(double sampleRate, int maxBlock) {
 
 void Deck::reset() {
     readPos_ = 0.0;
+    beyond_ = 0.0;
     rate_ = 1.0;
     velocity_ = 0.0;
     prevSync_ = false;
     prevKeylock_ = false;
     rollActive_ = false;
     rollPhantom_ = 0.0;
-    blockStartPos_ = 0.0;
+    travel_ = 0.0;
     playSpeed_.store(0.0);
     rollBeginReq_.store(false);
     rollEndReq_.store(false);
@@ -174,12 +147,29 @@ void Deck::adoptStream(const SharedSound& sound, const SoundFill& filled, bool s
     notePicture();
 }
 
+bool Deck::retireReplaced(bool awaitSwap) {
+    if (awaitSwap) {
+        const auto until = std::chrono::steady_clock::now() + kSwapWait;
+        while (hasPending_.load() && std::chrono::steady_clock::now() < until)
+            std::this_thread::sleep_for(kSwapPoll);
+    }
+    SharedAudio retired;
+    bool playing = false;
+    {
+        const juce::ScopedLock sl(loadLock_);
+        playing = file_ != nullptr;
+        if (!hasPending_.load()) retired = std::move(pending_);
+    }
+    return playing;
+}
+
 void Deck::loadFromFile(const std::string& uri) {
     const std::string path = audioPathFor(uri);
     const int track = (int) params.get("AudioTrack", 0.0);
     if (path == loadedUri_ && track == loadedTrack_) { notePicture(); return; }
     const bool sameSound = !playingUri_.empty() && path == playingUri_;
     const double wasSr = fileSr_.load();
+    const bool replacing = retireReplaced(false);
     loadedUri_ = path;
     loadedTrack_ = track;
     silentLen_.store(0);
@@ -188,7 +178,12 @@ void Deck::loadFromFile(const std::string& uri) {
     auto names = soundFileTracks(path);
     SoundFill handed;
     auto sound = loadSharedSoundFile(
-        path, [this](float done) { loadProgress_.store(done * 0.97f); }, 0.0,
+        path,
+        [this](float done) {
+            loadProgress_.store(done * 0.97f);
+            retireReplaced(false);
+        },
+        0.0,
         [this] { return abandon_.load(); }, track,
         [&](const SharedSound& part, const SoundFill& filled) {
             handed = filled;
@@ -212,13 +207,14 @@ void Deck::loadFromFile(const std::string& uri) {
     const bool ok = sound.audio != nullptr && sound.audio->getNumSamples() > 0;
     const double sr = ok ? sound.info.sampleRate : sampleRate_;
     const int64_t len = ok ? sound.audio->getNumSamples() : 0;
-    auto peaks = ok ? peaksFor(path, track, *sound.audio, kWaveBuckets) : std::vector<float>{};
+    auto summary = ok ? summarise(path, track, *sound.audio, sr) : DeckSummary{};
     auto fault = loadFaultFor(path, ok);
     {
         const juce::ScopedLock sl(loadLock_);
         tracks_ = std::move(names);
         fault_ = std::move(fault);
-        peaks_ = std::move(peaks);
+        peaks_ = std::move(summary.peaks);
+        loud_ = std::move(summary.loud);
         if (!streamed) {
             pending_ = ok ? sound.audio : SharedAudio{};
             pendingFill_ = {};
@@ -228,7 +224,10 @@ void Deck::loadFromFile(const std::string& uri) {
     streaming_.store(false);
     playingUri_ = path;
     loadProgress_.store(1.0f);
-    if (streamed) return;
+    if (streamed) {
+        if (replacing) retireReplaced(true);
+        return;
+    }
     if (sameSound && wasSr > 0.0 && sr > 0.0) positionScale_.store(sr / wasSr);
     notePicture();
     fileSr_.store(sr);
@@ -272,6 +271,18 @@ std::vector<float> Deck::wavePeaksBetween(int64_t from, int64_t to, int buckets)
     return out;
 }
 
+float Deck::loudestSample() const {
+    const juce::ScopedLock sl(loadLock_);
+    return loud_.peak;
+}
+
+int Deck::loudSpots(std::int64_t* starts, int maxSpots) const {
+    const juce::ScopedLock sl(loadLock_);
+    const int n = std::min(maxSpots, (int) loud_.spots.size());
+    for (int i = 0; i < n; ++i) starts[i] = loud_.spots[(size_t) i].start;
+    return n;
+}
+
 void Deck::rolled() {
     const int64_t len = fileLen_.load();
     if (len <= 1) return;
@@ -288,10 +299,21 @@ void Deck::rolled() {
     seekReq_.store((int64_t) std::clamp(at, 0.0, (double) (len - 1)));
 }
 
+void Deck::movePlatter(double step, double len, bool followsRecord) {
+    if (!followsRecord) {
+        beyond_ = 0.0;
+        readPos_ = std::min(readPos_ + step, len);
+        return;
+    }
+    const double at = readPos_ + beyond_ + step;
+    readPos_ = std::clamp(at, 0.0, len);
+    beyond_ = at - readPos_;
+}
+
 void Deck::publishPosition(int numSamples, double hostSr) {
     playPos_.store((int64_t) readPos_);
     const double wall = (double) numSamples / std::max(1.0, hostSr);
-    const double media = (readPos_ - blockStartPos_) / std::max(1.0, fileSr_.load());
+    const double media = travel_ / std::max(1.0, fileSr_.load());
     playSpeed_.store(numSamples > 0 ? juce::jlimit(-8.0, 8.0, media / wall) : 0.0);
 }
 
@@ -312,6 +334,7 @@ void Deck::applyPending() {
     } else {
         readPos_ = 0.0;
     }
+    beyond_ = 0.0;
     keepsPosition_.store(false);
     velocity_ = 0.0;
     hasPending_.store(false);
@@ -336,16 +359,17 @@ void Deck::process(const float* const* in, int numIn,
     if (hasPending_.load()) applyPending();
 
     int64_t seek = seekReq_.exchange(-1);
-    if (seek >= 0) { readPos_ = (double) seek; declick_ = 0.0; }
+    if (seek >= 0) { readPos_ = (double) seek; beyond_ = 0.0; declick_ = 0.0; }
 
     if (rollBeginReq_.exchange(false)) { rollActive_ = true; rollPhantom_ = readPos_; }
     if (rollEndReq_.exchange(false)) {
         readPos_ = std::max(0.0, rollPhantom_);
+        beyond_ = 0.0;
         rollActive_ = false;
         declick_ = 0.0;
     }
 
-    blockStartPos_ = readPos_;
+    travel_ = 0.0;
 
     const bool active   = params.get("Active", 1.0) >= 0.5;
     const bool loop     = params.get("Loop", 0.0) >= 0.5;
@@ -369,6 +393,7 @@ void Deck::process(const float* const* in, int numIn,
             const double tgtFrac = transport.beats() - std::floor(transport.beats());
             readPos_ = grid.beatToSample(std::floor(curBeat) + tgtFrac, fileSr);
             if (readPos_ < 0.0) readPos_ = 0.0;
+            beyond_ = 0.0;
             declick_ = 0.0;
             tempoSnap = true;
         } else {
@@ -422,6 +447,7 @@ void Deck::process(const float* const* in, int numIn,
 
     const double dstep = 1.0 / (0.003 * hostSr);
     if (scrubbing) {
+        beyond_ = 0.0;
         const double target = juce::jlimit(0.0, (double) (len - 1), scrubTarget_.load());
         velocity_ = juce::jlimit(-maxV, maxV, (target - readPos_) / (double) numSamples);
         const double gateTarget = std::abs(velocity_) < 1.0e-3 ? 0.0 : vol;
@@ -431,69 +457,18 @@ void Deck::process(const float* const* in, int numIn,
             declick_ = std::min(1.0, declick_ + dstep);
             const float g = (float) (scrubGain_ * declick_);
             for (int c = 0; c < numOut; ++c) out[c][n] = frameAt(readPos_, c) * g;
+            const double was = readPos_;
             readPos_ = juce::jlimit(0.0, (double) (len - 1), readPos_ + velocity_);
+            travel_ += readPos_ - was;
         }
         publishPosition(numSamples, hostSr);
         return;
     }
     scrubGain_ = vol;
 
-    const bool tcOn = params.get("Timecode", 0.0) >= 0.5;
-    double tcTarget = 0.0;
-    bool tcActive = false;
-    if (tcOn && numIn >= 2 && in != nullptr && in[0] != nullptr && in[1] != nullptr) {
-        if (std::abs(hostSr - vinylRate_) > 1.0) {
-            vinylRate_ = hostSr;
-            vinyl_.prepare(vinylRate_, {});
-        }
-        const bool flip = params.get("TimecodeFlip", 0.0) >= 0.5;
-        tcL_.resize((size_t) numSamples);
-        tcR_.resize((size_t) numSamples);
-        double power = 0.0;
-        for (int n = 0; n < numSamples; ++n) {
-            const float l = in[flip ? 1 : 0][n], r = in[flip ? 0 : 1][n];
-            tcL_[(size_t) n] = l;
-            tcR_[(size_t) n] = r;
-            power += (double) l * l + (double) r * r;
-        }
-        {
-            unsigned w = fieldAt_.load(std::memory_order_relaxed);
-            double sll = 0.0, srr = 0.0, slr = 0.0;
-            for (int n = 0; n < numSamples; ++n) {
-                const float l = tcL_[(size_t) n], r = tcR_[(size_t) n];
-                field_[2 * w] = l;
-                field_[2 * w + 1] = r;
-                w = (w + 1) % (unsigned) StereoFieldSource::kFieldPairs;
-                sll += (double) l * l;
-                srr += (double) r * r;
-                slr += (double) l * r;
-            }
-            fieldAt_.store(w, std::memory_order_relaxed);
-            const double denom = std::sqrt(sll * srr);
-            if (denom > 1e-12) fieldCorr_.store((float) (slr / denom), std::memory_order_relaxed);
-            fieldStamp_.fetch_add(1, std::memory_order_relaxed);
-        }
-        vinyl_.push(tcL_.data(), tcR_.data(), numSamples);
-        const auto reading = vinyl_.read();
-        tcActive = true;
-        tcTarget = reading.toneArriving ? reading.speed * baseRate : 0.0;
-        tcLevel_.store((float) std::sqrt(power / std::max(1, 2 * numSamples)));
-        tcPresent_.store(reading.toneArriving);
-        tcSpeed_.store((float) reading.speed);
-        tcCarrier_.store((float) reading.restHz);
-        const auto all = ControlVinyl::formats();
-        const auto settled = vinyl_.format();
-        int index = -1;
-        for (size_t i = 0; i < all.size(); ++i)
-            if (all[i] == settled) index = (int) i;
-        tcFormat_.store(index);
-    }
-    tcOn_.store(tcOn);
-    if (!tcActive) {
-        tcPresent_.store(false);
-        tcLevel_.store(0.0f);
-        tcSpeed_.store(0.0f);
-    }
+    const auto drive = readTimecode(in, numIn, numSamples, hostSr, baseRate, fileSr, len);
+    const bool tcActive = drive.active;
+    const double tcTarget = drive.target;
 
     const double motorTarget = !active ? 0.0 : tcActive ? tcTarget : rate_;
     const bool stopping = !active && !tcActive;
@@ -526,6 +501,7 @@ void Deck::process(const float* const* in, int numIn,
             }
             l = frameAt(readPos_, 0); r = frameAt(readPos_, 1);
             readPos_ += baseRate;
+            travel_ += baseRate;
             if (rollActive_) rollPhantom_ += baseRate;
             return true;
         };
@@ -558,17 +534,18 @@ void Deck::process(const float* const* in, int numIn,
         velocity_ += (motorTarget - velocity_) * accel;
         declick_ = stopping ? std::max(0.0, declick_ - dstep)
                             : std::min(1.0, declick_ + dstep);
-        if (haveLoop && readPos_ >= (double) loopOut) readPos_ = (double) loopIn;
+        if (haveLoop && readPos_ >= (double) loopOut) { readPos_ = (double) loopIn; beyond_ = 0.0; }
         if (readPos_ >= (double) len) {
-            if (loop) readPos_ = haveLoop ? (double) loopIn : 0.0;
+            if (loop) { readPos_ = haveLoop ? (double) loopIn : 0.0; beyond_ = 0.0; }
             else if (!tcActive) { velocity_ = 0.0; silence(n); continue; }
         }
         if (readPos_ < 0.0) readPos_ = 0.0;
-        if (readPos_ >= (double) len) silence(n);
+        if (beyond_ != 0.0 || readPos_ >= (double) len) silence(n);
         else
             for (int c = 0; c < numOut; ++c)
                 out[c][n] = frameAt(readPos_, c) * (float) (vol * declick_);
-        readPos_ = std::min(readPos_ + velocity_, (double) len);
+        movePlatter(velocity_, (double) len, tcActive);
+        travel_ += velocity_;
         if (rollActive_) rollPhantom_ += velocity_;
     }
     publishPosition(numSamples, hostSr);

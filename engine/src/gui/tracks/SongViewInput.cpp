@@ -248,8 +248,8 @@ juce::String SongView::getTooltip() {
     }
     if (!inBox() && p.x < kStripW && p.y >= headerH()) {
         if (const int row = rowAt(p.y); row >= 0) {
-            if (muteBox(row).contains(p)) return "Mute";
-            if (soloBox(row).contains(p)) return "Solo";
+            if (muteBox(row).contains(p)) return tr("tracks-pane.mute", "Mute");
+            if (soloBox(row).contains(p)) return tr("tracks-pane.solo", "Solo");
             if (recBox(row).contains(p) && recordable(rows_[(size_t) row]))
                 return host().nodeRecordsMedia(rows_[(size_t) row])
                            ? tr("tracks-pane.arm-media", "Record this track's input")

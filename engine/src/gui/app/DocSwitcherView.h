@@ -34,13 +34,13 @@ public:
             b.onClick = fn;
             addAndMakeVisible(b);
         };
-        initButton(newBtn_, "New", [this] { newSet(); });
-        initButton(openBtn_, juce::String::fromUTF8("Open\xe2\x80\xa6"), [this] { openSet(); });
-        initButton(saveBtn_, "Save", [this] { saveSet(false); });
-        initButton(saveAsBtn_, juce::String::fromUTF8("Save As\xe2\x80\xa6"),
+        initButton(newBtn_, tr("doc-switcher.new", "New"), [this] { newSet(); });
+        initButton(openBtn_, tr("doc-switcher.open-dots", "Open..."), [this] { openSet(); });
+        initButton(saveBtn_, tr("doc-switcher.save", "Save"), [this] { saveSet(false); });
+        initButton(saveAsBtn_, tr("doc-switcher.save-as-dots", "Save As..."),
                    [this] { saveSet(true); });
-        initButton(insertBtn_, "+ Current", [this] { insertCurrent(); });
-        initButton(removeBtn_, "Remove", [this] { removeSelected(); });
+        initButton(insertBtn_, tr("doc-switcher.add-current", "+ Current"), [this] { insertCurrent(); });
+        initButton(removeBtn_, tr("doc-switcher.remove", "Remove"), [this] { removeSelected(); });
 
         list_.setModel(this);
         list_.setRowHeight(24);
@@ -114,8 +114,8 @@ private:
         if (slots_.empty()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
-            g.drawText(juce::String::fromUTF8(
-                           "drop patches here, or \xe2\x80\x9c+ Current\xe2\x80\x9d"),
+            g.drawText(tr("doc-switcher.drop-patches-here", "drop patches here, or \"{button}\"",
+                          {{"button", tr("doc-switcher.add-current", "+ Current")}}),
                        8, 0, w - 16, h, juce::Justification::centredLeft);
             return;
         }
@@ -157,7 +157,7 @@ private:
         if (row < 0 || row >= (int) slots_.size() || !actions_.openDocument) return;
         const juce::File f(slots_[(size_t) row]);
         if (!f.existsAsFile()) {
-            status_.setText(tr("doc-switcher.missing", "missing: ") + f.getFullPathName(), juce::dontSendNotification);
+            status_.setText(tr("doc-switcher.missing", "missing: {path}", {{"path", f.getFullPathName()}}), juce::dontSendNotification);
             return;
         }
         actions_.openDocument(f);
@@ -166,8 +166,7 @@ private:
     void insertCurrent() {
         const auto p = actions_.currentPath ? actions_.currentPath() : juce::String();
         if (p.isEmpty()) {
-            status_.setText(juce::String::fromUTF8(
-                                "save the patch first - the set stores file paths"),
+            status_.setText(tr("doc-switcher.save-the-patch-first", "save the patch first - the set stores file paths"),
                             juce::dontSendNotification);
             return;
         }
@@ -195,8 +194,8 @@ private:
     }
 
     void openSet() {
-        chooser_ = std::make_unique<juce::FileChooser>("Open document set", juce::File(),
-                                                       kDocumentSetFilter);
+        chooser_ = std::make_unique<juce::FileChooser>(
+            tr("doc-switcher.open-document-set", "Open document set"), juce::File(), kDocumentSetFilter);
         chooser_->launchAsync(juce::FileBrowserComponent::openMode
                                   | juce::FileBrowserComponent::canSelectFiles,
                               [this](const juce::FileChooser& fc) {
@@ -207,8 +206,8 @@ private:
 
     void saveSet(bool as) {
         if (!as && setFile_ != juce::File()) { writeSetFile(setFile_); return; }
-        chooser_ = std::make_unique<juce::FileChooser>("Save document set", juce::File(),
-                                                       kDocumentSetFilter);
+        chooser_ = std::make_unique<juce::FileChooser>(
+            tr("doc-switcher.save-document-set", "Save document set"), juce::File(), kDocumentSetFilter);
         chooser_->launchAsync(juce::FileBrowserComponent::saveMode
                                   | juce::FileBrowserComponent::warnAboutOverwriting,
                               [this](const juce::FileChooser& fc) {
@@ -225,7 +224,7 @@ private:
         auto parsed = parseDocumentSet(xml, f);
         if (parsed.empty() && !xml.contains("humus-document-set")) {
             if (announce)
-                status_.setText(tr("doc-switcher.not-a-document-set", "not a document set: ") + f.getFileName(),
+                status_.setText(tr("doc-switcher.not-a-document-set", "not a document set: {name}", {{"name", f.getFileName()}}),
                                 juce::dontSendNotification);
             return;
         }
@@ -238,7 +237,7 @@ private:
 
     void writeSetFile(const juce::File& f) {
         if (!f.replaceWithText(serializeDocumentSet(slots_, f))) {
-            status_.setText(tr("doc-switcher.could-not-write", "could not write ") + f.getFileName(), juce::dontSendNotification);
+            status_.setText(tr("doc-switcher.could-not-write", "could not write {name}", {{"name", f.getFileName()}}), juce::dontSendNotification);
             return;
         }
         setFile_ = f;
@@ -261,7 +260,7 @@ private:
         refreshStatus();
     }
     void refreshStatus() {
-        const auto name = setFile_ == juce::File() ? juce::String("untitled set")
+        const auto name = setFile_ == juce::File() ? tr("doc-switcher.untitled-set", "untitled set")
                                                    : setFile_.getFileName();
         status_.setText(name + (dirty_ ? "*" : "") + juce::String::fromUTF8("  \xc2\xb7  ")
                             + juce::String((int) slots_.size()) + " / "

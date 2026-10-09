@@ -10,7 +10,7 @@ namespace hum {
 
 void EngineHost::applyGroove() {
     if (graph_ == nullptr) return;
-    const juce::ScopedLock sl(lock_);
+    const AudioLock::Scope sl(lock_);
     graph_->transport().setGroove(swing::grooveFor(model_.groove, model_.grooveUnit));
 }
 

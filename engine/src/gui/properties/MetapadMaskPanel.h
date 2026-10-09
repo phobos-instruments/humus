@@ -9,6 +9,7 @@
 
 #include "core/graph/PodModel.h"
 #include "core/params/MetapadScope.h"
+#include "gui/common/Localisation.h"
 #include "gui/host/PropertiesHost.h"
 #include "gui/style/LookAndFeel.h"
 
@@ -79,23 +80,23 @@ private:
     struct ScopeRow : juce::Component {
         ScopeRow(MetapadMaskPanel& p, std::string podName) : panel(p), pod(std::move(podName)) {
             const auto mask = panel.host_.metapad().maskEntries();
-            lbl.setText(pod.empty() ? juce::String("Whole patch") : juce::String(pod), juce::dontSendNotification);
+            lbl.setText(pod.empty() ? tr("metapad-mask-panel.whole-patch", "Whole patch") : juce::String(pod), juce::dontSendNotification);
             lbl.setColour(juce::Label::textColourId, pod.empty() ? Palette::textDim : Palette::text);
             lbl.setFont(juce::FontOptions(12.0f).withStyle("Bold"));
             addAndMakeVisible(lbl);
             if (pod.empty()) {
                 addAndMakeVisible(only);
                 panel.styleBtn(only);
-                only.setButtonText("everything");
-                only.setTooltip("Let the pad move every knob again");
+                only.setButtonText(tr("metapad-mask-panel.everything", "everything"));
+                only.setTooltip(tr("metapad-mask-panel.everything-tip", "Let the pad move every knob again"));
                 only.onClick = [this] { panel.scope(metascope::Scope::Everything, {}); };
                 return;
             }
             for (auto* b : {&only, &out}) { addAndMakeVisible(*b); panel.styleBtn(*b); }
-            only.setButtonText("only");
-            out.setButtonText("out");
-            only.setTooltip("The pad moves only this pod");
-            out.setTooltip("The pad leaves this pod alone");
+            only.setButtonText(tr("metapad-mask-panel.only", "only"));
+            out.setButtonText(tr("metapad-mask-panel.out", "out"));
+            only.setTooltip(tr("metapad-mask-panel.only-tip", "The pad moves only this pod"));
+            out.setTooltip(tr("metapad-mask-panel.out-tip", "The pad leaves this pod alone"));
             only.setToggleState(metascope::onlyPod(mask, pod), juce::dontSendNotification);
             out.setToggleState(metascope::stateOf(mask, pod) == metascope::PodState::AllOut, juce::dontSendNotification);
             only.onClick = [this] { panel.scope(metascope::Scope::OnlyPod, pod); };
@@ -123,7 +124,8 @@ private:
             lbl.setFont(juce::FontOptions(12.0f).withStyle("Bold"));
             addAndMakeVisible(lbl);
             for (auto* b : {&all, &none}) { addAndMakeVisible(*b); panel.styleBtn(*b); }
-            all.setButtonText("all"); none.setButtonText("none");
+            all.setButtonText(tr("metapad-mask-panel.all", "all"));
+            none.setButtonText(tr("metapad-mask-panel.none", "none"));
             all.onClick  = [this] { panel.setGroup(organism, true); };
             none.onClick = [this] { panel.setGroup(organism, false); };
         }

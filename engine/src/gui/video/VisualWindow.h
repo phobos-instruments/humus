@@ -9,6 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/app/FreeWindow.h"
+#include "gui/common/Localisation.h"
 #include "gui/video/FpsMeter.h"
 #include "gui/video/VisualGlCanvas.h"
 #include "gui/video/VisualPlanBuilder.h"
@@ -193,15 +194,17 @@ private:
 
         juce::String err = builder_.parseError();
         if (err.isEmpty()) err = canvas_->compileError();
-        juce::String title = juce::String(name_);
-        if (isOutput_ && builder_.root().empty())
-            title += " " + juce::String("-") + " no input corded";
+        juce::String title = isOutput_ && builder_.root().empty()
+                                 ? tr("visual-window.no-input-corded", "{name} - no input corded",
+                                      {{"name", juce::String(name_)}})
+                                 : juce::String(name_);
         meter_.note(canvas_->renderCount());
         if (fpsOverlayOn(name_) && meter_.fps() > 0.0)
             title += " " + juce::String("-") + " " + meter_.label();
         setName(err.isEmpty() ? title
-                              : juce::String(name_) + " " + juce::String("-")
-                                    + " scene error: " + err.upToFirstOccurrenceOf("\n", false, false));
+                              : tr("visual-window.scene-error", "{name} - scene error: {error}",
+                                   {{"name", juce::String(name_)},
+                                    {"error", err.upToFirstOccurrenceOf("\n", false, false)}}));
     }
 
     VideoHost& host_;

@@ -6,6 +6,7 @@
 #include <set>
 
 #include "core/json/Json.h"
+#include "gui/editor/Words.h"
 
 namespace hum {
 
@@ -27,6 +28,7 @@ bool getBool(const json::Value& obj, const char* key, bool fallback = false) {
 }
 
 constexpr const char* kSwingType = "swing";
+constexpr Words kSwingFollowTip{"swing-row.take-the-swing-from-the-transport", "Take the swing from the transport."};
 constexpr int kSwingW = 180, kSwingH = 24, kSwingPadW = 58, kSwingGap = 6, kSwingRowMinW = 124;
 
 void addSwing(LayoutSpec& spec, const json::Value& cv) {
@@ -44,7 +46,7 @@ void addSwing(LayoutSpec& spec, const json::Value& cv) {
     pad.y = y;
     pad.w = stacked ? w : kSwingPadW;
     pad.h = h;
-    pad.extra = {{"icon", "none"}, {"tooltip", "Take the swing from the transport."}};
+    pad.extra = {{"icon", "none"}, {"tooltip", kSwingFollowTip.written}, {"tooltip-key", kSwingFollowTip.key}};
     spec.controls.push_back(pad);
     LayoutSpec::Control slider;
     slider.type = CT::HSlider;

@@ -18,7 +18,7 @@ public:
 
     UpdateNotice(const juce::String& version, const juce::String& notes,
                  const juce::String& fileName = {})
-        : title_("Humus " + version + " is ready"),
+        : title_(tr("update-notice.humus-version-is-ready", "Humus {version} is ready", {{"version", version}})),
           notes_(notes.upToFirstOccurrenceOf("\n", false, false)),
           file_(fileName) {
         download_.setButtonText(tr("update-notice.download", "Download"));

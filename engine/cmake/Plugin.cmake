@@ -9,7 +9,7 @@ if(HUM_PLUGIN_EXPORT)
   juce_add_plugin(Humus
     PRODUCT_NAME "Humus"
     COMPANY_NAME "Phobos Instruments"
-    COMPANY_WEBSITE "https://humus.phobos-instruments.com"
+    COMPANY_WEBSITE "https://humus.art"
     BUNDLE_ID "com.phobos-instruments.humus-plugin"
     PLUGIN_MANUFACTURER_CODE Phob
     PLUGIN_CODE Humu
@@ -50,6 +50,8 @@ if(HUM_PLUGIN_EXPORT)
         "${CMAKE_CURRENT_SOURCE_DIR}/../packs/av" "${dest}/av"
       COMMAND ${CMAKE_COMMAND} -DDIR=${dest}
               -P "${CMAKE_CURRENT_SOURCE_DIR}/../tools/strip_pack_sources.cmake"
+      COMMAND ${CMAKE_COMMAND} -DDIR=${dest}
+              -P "${CMAKE_CURRENT_SOURCE_DIR}/../tools/strip_junk.cmake"
       COMMAND ${CMAKE_COMMAND} -E rm -rf "${adest}"
       COMMAND ${CMAKE_COMMAND} -E copy_directory
         "${CMAKE_CURRENT_SOURCE_DIR}/../assets" "${adest}"

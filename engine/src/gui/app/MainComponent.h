@@ -32,6 +32,7 @@
 namespace hum {
 
 class AboutWindow;
+class WhatsNewWindow;
 class AppUpdater;
 class BounceJob;
 struct BounceWants;
@@ -78,6 +79,7 @@ public:
     void openHelpBrowser();
     void promptOpen() { openPatch(); }
     void showAbout();
+    void showWhatsNew();
     void showStartWindow();
     void openBugReport();
     juce::PopupMenu menuForTest(int index) { return getMenuForIndex(index, {}); }
@@ -93,6 +95,7 @@ public:
     void noteBounceForTest(double seconds) { noteBounce(seconds); }
     bool bounceWindowOpenForTest() const { return bounceWindow_ != nullptr; }
     void closeBounceWindowForTest() { closeBounceWindow(); }
+    void changeLanguage();
     PropertiesPane& propsForTest() { return *propsPane_; }
     void setRightWidthForTest(int w) { rightW_ = w; resized(); }
     juce::StringArray menuNamesForTest() { return getMenuBarNames(); }
@@ -113,6 +116,12 @@ private:
 
     void buildTransportRow();
     void buildWorkspaceRail();
+    void buildPatchPanes();
+    void buildTracksPane();
+    void rebuildPanes();
+    void reopenRailWindows();
+    void applyTexts();
+    void installMacMenu();
 
     void toggleAudio();
     void toggleMidi();
@@ -145,6 +154,7 @@ private:
     void locateMissingMedia();
     void offerToLocate(int missing);
     void openSettings(int category = -1);
+    std::unique_ptr<juce::Component> makeSettingsContent(int category);
     void openAudioSettings();
     void openNotes();
     void openLibrary();
@@ -173,6 +183,7 @@ private:
     void refreshTimelinePanes();
     void closePluginUI(const std::string& name);
     void updateDspReadout();
+    void logAudioGlitchesEverySecond();
     void presentCard(std::unique_ptr<juce::Component> card);
     void notify(const juce::String& s) { notices_.say(s); }
     void notifyError(const juce::String& s, const juce::String& details = {}) {
@@ -209,28 +220,21 @@ private:
     juce::Viewport patcherView_;
     std::unique_ptr<PropertiesPane> propsPane_;
 
-    IconButton undoBtn_{IconButton::Glyph::Undo, "Undo (Ctrl+Z)"};
-    IconButton redoBtn_{IconButton::Glyph::Redo, "Redo (Ctrl+Shift+Z)"};
-    Mappable<IconButton> playFromStartBtn_{IconButton::Glyph::PlayFromStart, tr("main.play-from-start", "Play From Start")};
-    Mappable<IconButton> playBtn_{IconButton::Glyph::Play, tr("main.play-space", "Play (Space)")};
-    Mappable<IconButton> stopBtn_{IconButton::Glyph::Stop, "Stop"};
-    Mappable<IconButton> recordBtn_{IconButton::Glyph::Record,
-                                    "Record the performance"};
-    Mappable<IconButton> panicBtn_{IconButton::Glyph::Panic,
-        tr("main.panic", "Panic - stop every hanging note")};
-    IconButton keepBtn_{IconButton::Glyph::Keep,
-                        "Keep the last 8 bars"};
-    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, tr("main.go-to-start", "Go to start")};
-    Mappable<IconButton> goEndBtn_{IconButton::Glyph::GoToEnd,
-                         "Go to end"};
-    Mappable<IconButton> loopBtn_{IconButton::Glyph::Loop, tr("main.enable-automation-loop", "Enable Automation Loop")};
-    IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, tr("main.audio-on-off", "Audio on or off")};
-    IconButton enableMidiBtn_{IconButton::Glyph::EnableMidi,
-                              "MIDI on or off"};
-    IconButton qwertyBtn_{IconButton::Glyph::QwertyPiano,
-                          "Play notes from the computer keyboard"};
-    Mappable<IconButton> globalDiceBtn_{IconButton::Glyph::Dice,
-                                        "Randomise everything"};
+    IconButton undoBtn_{IconButton::Glyph::Undo, {}};
+    IconButton redoBtn_{IconButton::Glyph::Redo, {}};
+    Mappable<IconButton> playFromStartBtn_{IconButton::Glyph::PlayFromStart, {}};
+    Mappable<IconButton> playBtn_{IconButton::Glyph::Play, {}};
+    Mappable<IconButton> stopBtn_{IconButton::Glyph::Stop, {}};
+    Mappable<IconButton> recordBtn_{IconButton::Glyph::Record, {}};
+    Mappable<IconButton> panicBtn_{IconButton::Glyph::Panic, {}};
+    IconButton keepBtn_{IconButton::Glyph::Keep, {}};
+    Mappable<IconButton> goStartBtn_{IconButton::Glyph::GoToStart, {}};
+    Mappable<IconButton> goEndBtn_{IconButton::Glyph::GoToEnd, {}};
+    Mappable<IconButton> loopBtn_{IconButton::Glyph::Loop, {}};
+    IconButton enableAudioBtn_{IconButton::Glyph::EnableAudio, {}};
+    IconButton enableMidiBtn_{IconButton::Glyph::EnableMidi, {}};
+    IconButton qwertyBtn_{IconButton::Glyph::QwertyPiano, {}};
+    Mappable<IconButton> globalDiceBtn_{IconButton::Glyph::Dice, {}};
     TempoSlider tempo_;
     TimeSigChip tsig_;
     juce::TextButton tapBtn_{"Tap"};
@@ -260,7 +264,7 @@ private:
     ClockReadout clock_;
     ParamSlider masterLevel_{juce::Slider::RotaryVerticalDrag, juce::Slider::NoTextBox};
     juce::Label masterCaption_;
-    LitPad limiterBtn_{LitPad::Look{std::nullopt, "LIMIT"}};
+    LitPad limiterBtn_{LitPad::Look{std::nullopt, tr("main-transport.limit", "LIMIT")}};
     GroovePots groove_{host_};
     bool limGlowLit_ = false;
     TransportMeter meter_;
@@ -269,27 +273,23 @@ private:
     juce::Image hypha_[2];
     std::vector<int> sepX_;
     void rebuildChromeTextures();
-    IconButton overflowBtn_{IconButton::Glyph::Overflow,
-                            "Toolbar controls that do not fit at this window width"};
+    IconButton overflowBtn_{IconButton::Glyph::Overflow, {}};
     void showOverflowMenu();
     void showGrooveMenu(const std::string& param, juce::Point<int> screen);
     float dspLoadHold_ = 0.0f;
     unsigned lastDropouts_ = 0;
+    double lastGlitchReportMs_ = 0.0;
     int dropFlashTicks_ = 0;
-    IconButton viewPatcher_{IconButton::Glyph::Patcher, "Patcher"};
-    IconButton viewProperties_{IconButton::Glyph::Properties, "Properties"};
-    IconButton viewAutomation_{IconButton::Glyph::Automation, "Timeline"};
-    IconButton viewMetapad_{IconButton::Glyph::Metapad,
-                                "Metapad (morph the whole patch between snapshots)"};
-    IconButton viewParamControl_{IconButton::Glyph::ParameterControl,
-                                 "Parameter Control (MIDI / OSC / modulation and follow routes, F3)"};
-    IconButton viewNotes_{IconButton::Glyph::Notes, tr("main.notes-free-text-saved-with", "Notes (free text, saved with the patch)")};
-    IconButton viewDocSwitcher_{IconButton::Glyph::DocumentSwitcher,
-                                "Document Switcher (a set of patches for live switching, F9)"};
-    IconButton viewHelp_{IconButton::Glyph::Help, tr("main.help-browse-every-organism-s", "Help (browse every organism's reference)")};
-    IconButton viewLibrary_{IconButton::Glyph::Library,
-                            "Library (your samples and impulses - drag onto file slots)"};
-    IconButton settingsBtn_{IconButton::Glyph::Gear, "Settings"};
+    IconButton viewPatcher_{IconButton::Glyph::Patcher, {}};
+    IconButton viewProperties_{IconButton::Glyph::Properties, {}};
+    IconButton viewAutomation_{IconButton::Glyph::Automation, {}};
+    IconButton viewMetapad_{IconButton::Glyph::Metapad, {}};
+    IconButton viewParamControl_{IconButton::Glyph::ParameterControl, {}};
+    IconButton viewNotes_{IconButton::Glyph::Notes, {}};
+    IconButton viewDocSwitcher_{IconButton::Glyph::DocumentSwitcher, {}};
+    IconButton viewHelp_{IconButton::Glyph::Help, {}};
+    IconButton viewLibrary_{IconButton::Glyph::Library, {}};
+    IconButton settingsBtn_{IconButton::Glyph::Gear, {}};
     NoticeDesk notices_;
     bool loadNoticeShown_ = false;
 
@@ -297,6 +297,7 @@ private:
     std::unique_ptr<MetapadWindow> metaWindow_;
     std::unique_ptr<juce::DocumentWindow> assistantWin_;
     std::unique_ptr<AboutWindow> aboutWin_;
+    std::unique_ptr<WhatsNewWindow> whatsNewWin_;
     std::unique_ptr<StartWindow> startWin_;
     std::unique_ptr<SetupWizard> wizard_;
     std::unique_ptr<GuideView> guide_;

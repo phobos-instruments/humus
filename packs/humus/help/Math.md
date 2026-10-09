@@ -29,9 +29,9 @@ Numbers, parentheses, + - * / %, comparisons that answer 0 or 1, if(c, then, els
 
 ## Recipe
 
-**Playable voice** Auto off, Expression sin(tau*ph(freq)) * vel * env(gate, 0.01, 0.3), and cord a PianoRoll into the MIDI inlet. Replace sin(tau*ph(freq)) with harm(freq, 1 + x*15, y*2) and x counts the harmonics while y shapes them.
+**Playable voice** Auto off, Expression `sin(tau*ph(freq)) * vel * env(gate, 0.01, 0.3)`, and cord a PianoRoll into the MIDI inlet. Replace `sin(tau*ph(freq))` with `harm(freq, 1 + x*15, y*2)` and x counts the harmonics while y shapes them.
 
-**Named controls** Make a Var called x and one called depth, cord both into Vars, and write sin(tau*ph(freq)) * depth * x. Draw a Slider or an LFO onto each Var's Value: the X pot moves with the first, the formula reads the second, up to eight names.
+**Named controls** Make a Var called x and one called depth, cord both into Vars, and write `sin(tau*ph(freq)) * depth * x`. Draw a Slider or an LFO onto each Var's Value: the X pot moves with the first, the formula reads the second, up to eight names.
 
 ## Related Organisms
 

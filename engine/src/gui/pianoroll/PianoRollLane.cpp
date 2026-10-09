@@ -53,7 +53,7 @@ void PianoRollEditor::showLaneMenu() {
     for (int cc : offered) m.addItem(100 + cc, ccLabel(cc), true, model_.laneCC == cc);
     if (model_.laneCC >= 0) {
         m.addSeparator();
-        m.addItem(kClear, tr("piano-roll-lane.clear", "Clear ") + ccLabel(model_.laneCC) + tr("piano-roll-lane.events", " events"));
+        m.addItem(kClear, tr("piano-roll-lane.clear", "Clear {controller} events", {{"controller", ccLabel(model_.laneCC)}}));
     }
     m.showMenuAsync({}, [this](int r) {
         if (r == 0) return;

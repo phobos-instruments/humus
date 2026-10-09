@@ -171,7 +171,7 @@ void RecordHost::beginSession() {
         const auto path = dir.getChildFile(juce::String(name)).getFullPathName().toStdString();
         existing.push_back(name);
         {
-            const juce::ScopedLock sl(audio_.graphLock());
+            const AudioLock::Scope sl(audio_.graphLock());
             if (cr->startTake(path, audio_.sampleRate())) takes_.push_back({node, path});
         }
     }
@@ -400,7 +400,7 @@ void RecordHost::endSession() {
         std::int64_t lapSamples[ClipRecorder::kMaxLaps];
         int nLaps = 0;
         {
-            const juce::ScopedLock sl(audio_.graphLock());
+            const AudioLock::Scope sl(audio_.graphLock());
             cr->stopTake();
             startBeat = cr->takeStartBeat();
             len = cr->takeLengthSamples();

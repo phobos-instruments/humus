@@ -15,7 +15,7 @@ namespace hum {
 
 namespace {
 
-constexpr Words kUnavailable{"layout-editor.unavailable", " (unavailable)"};
+constexpr Words kUnavailable{"layout-editor.unavailable", "{value} (unavailable)"};
 
 }
 
@@ -26,7 +26,9 @@ void Faceplate::buildReclassCombo(const LayoutSpec::Control& s, Control& c, cons
     const size_t d1 = cls.find_first_not_of("0123456789", d0);
     const bool numbered = d0 != std::string::npos;
     const std::string current = key != "inputs" ? cls.substr(0, 1)
-                              : numbered ? cls.substr(d0, d1 - d0) : std::string();
+                              : numbered ? cls.substr(d0, d1 - d0)
+                              : !s.options.empty() && known(s.options.front() + cls) ? std::string()
+                              : !s.options.empty() ? s.options.front() : std::string();
     const bool bare = key == "mode" && known("S" + cls) && [&] {
         for (const auto& o : s.options)
             if (o.substr(0, 1) == current) return false;
@@ -47,7 +49,8 @@ void Faceplate::buildReclassCombo(const LayoutSpec::Control& s, Control& c, cons
     view->setItems(items);
     if (selected > 0) view->showSelectedId(selected);
     auto* vp = view.get();
-    vp->onPick = [this, vp, key, known](int) {
+    const std::string smallest = s.options.empty() ? std::string() : s.options.front();
+    vp->onPick = [this, vp, key, known, smallest](int) {
         const std::string opt = vp->shownText();
         const std::string cur = className();
         if (opt.empty() || cur.empty()) return;
@@ -55,9 +58,11 @@ void Faceplate::buildReclassCombo(const LayoutSpec::Control& s, Control& c, cons
         if (key == "inputs") {
             const size_t a = cur.find_first_of("0123456789");
             const size_t b = cur.find_first_not_of("0123456789", a);
-            next = a == std::string::npos
-                ? cur + opt
-                : cur.substr(0, a) + opt + (b == std::string::npos ? std::string() : cur.substr(b));
+            const std::string rest = b == std::string::npos ? std::string() : cur.substr(b);
+            const std::string bare = a == std::string::npos ? cur : cur.substr(0, a) + rest;
+            next = a == std::string::npos ? cur + opt : cur.substr(0, a) + opt + rest;
+            if (!known(next) && known(opt + bare)) next = opt + bare;
+            if (!known(next) && opt == smallest && known(bare)) next = bare;
             if (!known(next)) return;
         } else {
             next = opt.substr(0, 1) + cur.substr(1);
@@ -94,7 +99,7 @@ void Faceplate::buildCombo(const LayoutSpec::Control& s, Control& c) {
             }
             if (!listed && current > 0)
                 items->push_back(
-                    {current, std::to_string(current) + host_.translated(kUnavailable.key, kUnavailable.written)});
+                    {current, say(host_, kUnavailable, {{"value", std::to_string(current)}})});
             vp->setItems(*items);
             vp->showSelectedId(choice::comboIdForSourceValue(current));
             if (needs > 0) {

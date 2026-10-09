@@ -26,8 +26,10 @@ public:
     ~SettingsComponent() override;
 
     void selectCategory(int index);
+    int category() const { return category_; }
 
     std::function<void()> onPacksChanged;
+    std::function<void()> onLanguageChanged;
     std::function<void()> onPluginsChanged;
 
     void resized() override;

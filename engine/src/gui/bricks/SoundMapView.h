@@ -84,8 +84,8 @@ public:
         if (map_.points().empty()) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(13.0f));
-            g.drawFittedText(juce::String::fromUTF8(
-                                 "Play something in, or load files\n\xe2\x86\x92 then drag to explore"),
+            g.drawFittedText(tr("sound-map.play-something-in", "Play something in, or load files\n{arrow} then drag to explore",
+                                {{"arrow", juce::String::fromUTF8("\xe2\x86\x92")}}),
                              getLocalBounds().reduced(10), juce::Justification::centred, 2, 1.0f);
             return;
         }
