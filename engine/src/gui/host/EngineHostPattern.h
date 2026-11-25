@@ -43,10 +43,19 @@ public:
     void setArpStep(const std::string& name, int index, const ArpStep& s) override;
     std::vector<bool> arpUps(const std::string& name) const override;
     void setArpUp(const std::string& name, int index, bool up) override;
+    std::vector<int> stepChances(const std::string& name, int ordinal) const override;
+    void setStepChances(const std::string& name, int ordinal, const std::vector<int>& chances) override;
+    void copyParamBankTo(const std::string& name, int bank) override;
 
     void ensureNote(const std::string& name) override;
     void ensureAudio(const std::string& name) override;
     std::vector<NoteEvent> noteEvents(const std::string& name) const override;
+    std::vector<NoteEvent> bankNotes(const std::string& name, int bank) const override;
+    std::vector<CCEvent> bankCCs(const std::string& name, int bank) const override;
+    int bankLength(const std::string& name, int bank) const override;
+    void setBankNotes(const std::string& name, int bank, const std::vector<NoteEvent>& notes,
+                      int lengthTicks) override;
+    void setBankCCs(const std::string& name, int bank, const std::vector<CCEvent>& ccs) override;
     void setNoteEvents(const std::string& name, const std::vector<NoteEvent>& notes,
                        int durationTicks) override;
 

@@ -61,6 +61,7 @@ bool SongView::keyPressed(const juce::KeyPress& k) {
         return true;
     }
     if (!sel_.empty()) {
+        if (bankKey(k)) return true;
         if (k == juce::KeyPress('c', cmd, 0)) { copySelectedClips(); return true; }
         if (k == juce::KeyPress('x', cmd, 0)) { copySelectedClips(); return deleteSelection(); }
         if (k == juce::KeyPress('d', cmd, 0)) return duplicateSelection();

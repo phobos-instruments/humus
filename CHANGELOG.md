@@ -2,7 +2,27 @@
 
 User-facing changes to Humus, newest first.
 
-## [Unreleased]
+## [0.6.0] - 2026-11-24
+
+- Added Humus as a plug-in: the whole patcher inside your DAW, VST3 and Audio Unit on the Mac and VST3 on Windows and Linux, with patch editing, Undo and Redo, faceplates, floating plug-in windows, MIDI in and out, offline bounces, video windows, and Settings for theme and language. It starts on Sound In to Sound Out with a MIDI In, loads from your Patches folder, and old sessions open as they were
+- Added eight DAW Macros to the Humus plug-in, each driving several controls of the patch over its own range
+- Added a plug-in download for every platform: one package with both formats on the Mac, an installer of its own on Windows, and a ticked box in the Windows app installer too
+- Added CLAP plug-ins, in the app and inside the Humus plug-in, with MPE so every note bends and swells on its own, and AUv3 plug-ins on the Mac
+- Added songs that switch patterns: automate a sequencer's Bank and the timeline shows A-H blocks you select, cut, move, copy and resize like clips; where the lane is empty, the bank buttons decide
+- Added eight banks to PianoRoll, Steps, Atom and DNA, and chance on every step of Sequence, Riff, Steps and DNA and every ring of Atom: the same on each play and bounce, and mappable from MIDI. A % key sets it, unlikely steps draw fainter, a click on a dot silences that hit on Atom, and presets now keep their steps
+- Added nature to Math: gravity, pendulum, heart, breath, swarm, wind and wander as functions, with rate, phase and presets. Cord a Math or a Wave into the LFO's new FN wave and it plays that shape, and Wave gains an env outlet
+- Added an Organisms pane on the left: every organism and plug-in in one searchable tree, plug-ins sorted by format, kind and maker, each with its own mark, ready to drag onto the patcher
+- Added quicker hands: Auto-arrange Selection, many cords picked at once with Shift-click or Alt-drag, Alt-click on a mute or solo to set them all, Cmd-click on a solo to hear only it, File > Autosave, and a + badge when a box will take the file you drag
+- Added mapping everywhere: Parameter Control learns a plug-in's knob as you move it, Evolve takes MIDI and OSC, MidiIn and MIDI Tracks get a Channel, and Sequence can keep a row, or any velocity, out of Random
+- Added small, useful things: parallel compression with Mix, faders on Mixer and Console, Forward and Ping-pong loops on the Sampler, a length per Leafcutter slice, sound on VideoTrack, and a Pencil and Repair Selection in the clip editor
+- Added video previews, pause, pinned folders and Movies to the file browser, Move to Trash to the Library, and your computer's address and an OSC output to Settings; pH's help now explains loading M-VAVE FM-1 banks as they are
+- Changed Evolve, noise() and MIDI Tracks to be predictable: Evolve keeps to what Random leaves out and the ranges it keeps to, noise() plays the same way every time, and a MIDI Track open in the editor plays only from its own port and channel
+- Changed file previews to sit at the top of the right pane
+- Fixed MIDI and OSC: OSC reads bundles and every value type, shares its port and says when it is taken; MIDI Learn and Parameter Control keep to their channel; a toggle pad catches its first press; the monitors keep up with bursts
+- Fixed sound glitches: warped and transposed clips stop pulsing and doubling, the Harmonizer and Trellis follow bells, high notes and gliding pitch, Sample Lab sounds come through clean and no longer replace a Sampler's sounds, SoundSpace glides under a MIDI fader, and held automation stays held in command-line renders
+- Fixed small snags: Kick's Tune follows its note, Save as User Preset selects the new one, long cords take a click between their bends, previews scrub without restarting and their fader works, a plug-in that changes its sidechain gets the right inlets, a lone pane fills its space, the transport buttons on Deck, FilePlayer and five more faceplates show in their real colour, middle C is C4, and no English is left in translated Settings, the setup wizard or the audio panel
+- Fixed Windows and Linux: on Windows plug-in windows stay in their box and follow your drags, Humus quits cleanly after hosting its own plug-in, and Settings opens at once when an audio driver cannot start; on Linux the AppImage finds everything it carries, so organism windows, demos and examples open on every system, and Humus no longer picks a hidden Aux box for its Sound In or Sound Out
+- Fixed Humus getting heavy: the interface rests when the music stops, and memory stays flat while you resize faceplates
 
 ## [0.5.1] - 2026-10-09
 

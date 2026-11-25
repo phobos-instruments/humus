@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <functional>
 #include <string>
 #include <vector>
@@ -10,12 +11,17 @@
 #include "core/packs/Categories.h"
 #include "core/packs/ClassString.h"
 #include "core/plugins/PluginHost.h"
+#include "gui/common/CallOut.h"
 #include "gui/common/CategoryText.h"
 
 namespace hum {
 
-inline std::vector<std::pair<std::string, CategoryGroups>> classPickerGroups() {
-    return groupByOrigin(PluginHost::allPaletteClasses());
+inline std::vector<std::pair<std::string, CategoryGroups>> classPickerGroups(const ClassFilter& keep = {}) {
+    auto classes = PluginHost::allPaletteClasses();
+    if (keep) classes.erase(std::remove_if(classes.begin(), classes.end(),
+                                           [&](const std::string& c) { return !keep(c); }),
+                            classes.end());
+    return groupByOrigin(classes);
 }
 
 inline juce::PopupMenu classPickerMenu(const std::vector<std::pair<std::string, CategoryGroups>>& groups,

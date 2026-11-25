@@ -41,6 +41,7 @@ void EngineHost::persistAudioState() {
 }
 
 void EngineHost::setPreviewOutput(int firstChannel) {
+    if (!env_.claimsMachineResources) return;
     const int first = firstChannel >= 0 && firstChannel + 1 < kMaxDeviceChannels ? firstChannel : -1;
     previewFirst_.store(first, std::memory_order_relaxed);
     AppSettings::instance().set(kPreviewOutputKey, first);
@@ -73,6 +74,10 @@ void EngineHost::startAudioAsync(std::function<void(bool, std::string)> done) {
     auto finish = [this, alive = hostAlive_, saved, device, done = std::move(done)](DeviceAnswer answer) {
         if (*alive) finishAudioStart(answer, device, saved.get(), done);
     };
+    if (env_.drivenByDaw) {
+        finish(DeviceAnswer::Unknown);
+        return;
+    }
     auto probe = audio_->prober();
     if (!probe || device.empty()) {
         scheduler_.post([finish] { finish(DeviceAnswer::Unknown); });
@@ -225,7 +230,8 @@ void EngineHost::audioDeviceAboutToStart(juce::AudioIODevice* d) {
         physInCount_ = 0;
         for (int p = 0; p < kMaxDeviceChannels; ++p)
             if (inMap_[p] >= 0) physInCount_ = p + 1;
-        dcBuf_.assign((size_t) nIn, std::vector<float>((size_t) juce::jmax(block_, 64)));
+        if (env_.drivenByDaw) dcBuf_.clear();
+        else dcBuf_.assign((size_t) nIn, std::vector<float>((size_t) juce::jmax(block_, 64)));
         for (auto& b : dcBlock_) b.prepare(sampleRate_);
         masterFallback_ = outMap_[0] < 0 && outMap_[1] < 0;
         monoFold_ = d->getActiveOutputChannels().countNumberOfSetBits() == 1;

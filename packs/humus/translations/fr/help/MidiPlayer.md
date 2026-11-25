@@ -22,7 +22,7 @@ Il lit les partitions .mid et .midi, les fichiers karaoké .kar et le .mus, le f
 
 **Program1** L'instrument que joue le canal 1. 0 joue ce que demande le fichier ; toute autre valeur le remplace pour ce canal. La même chose pour Program2 à Program16. Le canal 10 est le canal de batterie et reste de la batterie.
 
-**Mute1** Rend muet le canal 1, sur les sorties audio comme sur la sortie MIDI, et ainsi de suite pour Mute2 à Mute16. Un canal sur lequel le fichier chargé ne joue jamais s'estompe et ne répond plus : ce qui reste allumé, c'est ce que le fichier contient vraiment.
+**Mute1** Rend muet le canal 1, sur les sorties audio comme sur la sortie MIDI, et ainsi de suite pour Mute2 à Mute16. Un canal sur lequel le fichier chargé ne joue jamais s'estompe et ne répond plus : ce qui reste allumé, c'est ce que le fichier contient vraiment. Alt-clic sur n'importe quel Mute coupe ou rétablit tous les canaux d'un coup.
 
 ## Recette
 

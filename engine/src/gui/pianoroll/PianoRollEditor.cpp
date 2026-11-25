@@ -14,6 +14,7 @@
 #include "gui/style/LookAndFeel.h"
 #include "gui/common/Localisation.h"
 
+#include "hum/PatternMatrix.h"
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
@@ -42,7 +43,7 @@ void PianoRollEditor::buildToolbar() {
         if (bars <= 0) return;
         host_.pushUndo();
         host_.setParam(name_, params_.bars, bars);
-        host_.clips().setNotes(name_, clip_, model_.notes(), bars * 4 * Pattern::kTicksPerBeat);
+        writeNotes(model_.notes(), bars * 4 * Pattern::kTicksPerBeat);
         repaint();
     };
     addAndMakeVisible(bars_);
@@ -86,9 +87,20 @@ void PianoRollEditor::fitPitch() {
     repaint();
 }
 
+int PianoRollEditor::bankShown() const {
+    if (params_.bank.empty()) return 0;
+    return juce::jlimit(0, kPatternBanks - 1, (int) std::lround(host_.liveParamValue(name_, params_.bank)));
+}
+
+void PianoRollEditor::writeNotes(const std::vector<NoteEvent>& notes, int durationTicks) {
+    if (const int bank = bankShown(); bank > 0) host_.patterns().setBankNotes(name_, bank, notes, durationTicks);
+    else host_.clips().setNotes(name_, clip_, notes, durationTicks);
+}
+
 void PianoRollEditor::reloadValues() {
     const int count = (int) host_.clips().list(name_).size();
-    if (count > 0 && clip_ >= count) clip_ = count - 1;
+    if (bankShown() > 0) clip_ = 0;
+    else if (count > 0 && clip_ >= count) clip_ = count - 1;
     showBars(juce::jlimit(1, 64,
         (durationTicks() + 2 * Pattern::kTicksPerBeat) / (4 * Pattern::kTicksPerBeat)));
     repaint();
@@ -148,6 +160,10 @@ void PianoRollEditor::resized() {
 }
 
 std::vector<roll::ClipSpan> PianoRollEditor::clipSpans() const {
+    if (const int bank = bankShown(); bank > 0) {
+        const int length = host_.patterns().bankLength(name_, bank);
+        return {{0, length > 0 ? length : 4 * 4 * Pattern::kTicksPerBeat, true}};
+    }
     std::vector<roll::ClipSpan> spans;
     for (const auto& c : host_.clips().list(name_)) spans.push_back({c.startTick, c.lengthTicks, c.looped});
     return spans;

@@ -11,6 +11,7 @@ class AudioLock {
 public:
     static constexpr double kGraphWaitShare = 0.25;
     static constexpr double kTapWaitShare = 0.1;
+    static constexpr double kOfflineWaitMs = 2000.0;
 
     struct Hold {
         double ms = 0.0;

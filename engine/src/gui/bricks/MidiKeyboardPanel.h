@@ -11,6 +11,7 @@
 #include "gui/common/UiTicker.h"
 #include "gui/editor/OrganismEditor.h"
 #include "core/graph/GraphMidi.h"
+#include "core/midi/MidiFormat.h"
 #include "gui/host/BrickHost.h"
 #include "hum/caps/Midi.h"
 
@@ -24,6 +25,7 @@ public:
           kb_(state_, juce::MidiKeyboardComponent::horizontalKeyboard) {
         state_.addListener(this);
         kb_.setLowestVisibleKey(kDefaultLowestKey);
+        kb_.setOctaveForMiddleC(octaveOf(kMiddleC));
         kb_.setKeyWidth(14.0f);
         kb_.setWantsKeyboardFocus(false);
         addAndMakeVisible(kb_);
@@ -48,6 +50,7 @@ public:
         return std::find(r.begin(), r.end(), s) != r.end();
     }
     juce::MidiKeyboardState& state() { return state_; }
+    juce::String keyLabelForTest(int note) { return kb_.getWhiteNoteText(note); }
 
     static bool& qwertyDriving() { static bool driving = false; return driving; }
 

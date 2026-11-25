@@ -41,7 +41,8 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
         return;
     }
     {
-        const AudioLock::AudioThreadTry sl(lock_, AudioLock::kGraphWaitShare * budgetMs);
+        const AudioLock::AudioThreadTry sl(lock_, renderOffline_ ? AudioLock::kOfflineWaitMs
+                                                                  : AudioLock::kGraphWaitShare * budgetMs);
         if (sl.isLocked() && graph_ && numSamples > graph_->preparedBlock()) {
             refusedBlocks_.fetch_add(1, std::memory_order_relaxed);
             if (numSamples > refusedLargest_.load(std::memory_order_relaxed))
@@ -49,6 +50,11 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
         }
         if (sl.isLocked() && graph_ && numSamples <= graph_->preparedBlock()) {
             takeTransportRequests();
+            if (daw_ != nullptr) {
+                daw_->applyClock(graph_->transport(), playIntent_.load(std::memory_order_relaxed), numSamples);
+                daw_->applyControls();
+                daw_->deliverMidi();
+            }
             if (const double punch = punchInBeat_.load(std::memory_order_relaxed);
                 punch >= 0.0 && graph_->transport().playing() && graph_->transport().beats() >= punch) {
                 punchInBeat_.store(-1.0, std::memory_order_relaxed);
@@ -82,6 +88,7 @@ void EngineHost::audioDeviceIOCallbackWithContext(const float* const* in, int nu
             }
             graph_->transport().setLiveInput(physIn_, physInCount_, numSamples);
             graph_->processBlock(numSamples);
+            if (daw_ != nullptr) daw_->collectMidi();
             graph_->transport().setLiveInput(nullptr, 0, 0);
             publishClock();
             for (auto& [tap, node] : masterTaps_) {

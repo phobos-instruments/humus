@@ -63,10 +63,12 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
         m.addItem(3, tr("menu.save-mac", "Save (Cmd+S)"), !currentFile_.isEmpty());
         m.addItem(4, tr("menu.save-as-mac", "Save As... (Cmd+Shift+S)"));
         m.addItem(5, tr("menu.bounce-mac", "Bounce... (Cmd+B)"));
+        m.addItem(63, tr("menu.autosave", "Autosave"), true, autosaveInPlaceOn());
 #else
         m.addItem(3, tr("menu.save-win", "Save (Ctrl+S)"), !currentFile_.isEmpty());
         m.addItem(4, tr("menu.save-as-win", "Save As... (Ctrl+Shift+S)"));
         m.addItem(5, tr("menu.bounce-win", "Bounce... (Ctrl+B)"));
+        m.addItem(63, tr("menu.autosave", "Autosave"), true, autosaveInPlaceOn());
 #endif
         m.addSeparator();
         m.addItem(6, tr("menu.revert", "Revert"), !currentFile_.isEmpty());
@@ -94,7 +96,8 @@ juce::PopupMenu MainComponent::getMenuForIndex(int index, const juce::String&) {
         m.addItem(18, tr("menu.select-all", "Select All"));
         m.addItem(34, tr("menu.rename-organism", "Rename Organism... (F2)"), !canvas_->selected().empty());
         m.addSeparator();
-        m.addItem(33, tr("menu.auto-arrange", "Auto-arrange"));
+        m.addItem(33, canvas_->arrangesSelection() ? tr("menu.auto-arrange-selection", "Auto-arrange Selection")
+                                                   : tr("menu.auto-arrange", "Auto-arrange"));
 #if !JUCE_MAC
         m.addSeparator();
         m.addItem(16, tr("menu.settings", "Settings..."));
@@ -186,6 +189,7 @@ void MainComponent::menuItemSelected(int id, int) {
         case 8: closeProject(); break;
         case 9: locateMissingMedia(); break;
         case 61: openHistory(); break;
+        case 63: toggleAutosaveInPlace(); break;
         case 15: canvas_->undo(); break;
         case 17: canvas_->redo(); break;
         case 16: openSettings(); break;
@@ -205,10 +209,13 @@ void MainComponent::menuItemSelected(int id, int) {
         case 13: canvas_->deleteSelection(); break;
         case 18: canvas_->selectAll(); break;
         case 34: canvas_->renameSelection(); break;
-        case 33:
+        case 33: {
+            const bool part = canvas_->arrangesSelection();
             canvas_->autoArrange();
-            notify(tr("menu.arranged-as-a-top-down", "arranged as a top-down flow (Undo restores the old layout)"));
+            notify(part ? tr("menu.arranged-the-selection", "arranged the selected boxes as a top-down flow (Undo restores the old layout)")
+                        : tr("menu.arranged-as-a-top-down", "arranged as a top-down flow (Undo restores the old layout)"));
             break;
+        }
         case 20: toggleAudio(); break;
         case 27: openAudioSettings(); break;
         case 60: toggleMidi(); break;

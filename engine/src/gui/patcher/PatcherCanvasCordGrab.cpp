@@ -83,9 +83,7 @@ bool PatcherCanvas::landingAt(juce::Point<int> p, PortRef& out) {
 }
 
 bool PatcherCanvas::fitsDrag(const PortRef& t) const {
-    if (drag_ == Drag::Cord)
-        return !t.outlet && t.node != dragNode_ && t.midi == cordMidi_ && t.video == cordVideo_
-               && t.control == cordControl_;
+    if (drag_ == Drag::Cord) return PatchView::fitsDrag(t);
     if (drag_ != Drag::Grab || t.outlet != grabFrom_.outlet || t.midi != grabFrom_.midi
         || t.video != grabFrom_.video || t.control != grabFrom_.control)
         return false;
@@ -95,9 +93,7 @@ bool PatcherCanvas::fitsDrag(const PortRef& t) const {
 }
 
 bool PatcherCanvas::isDragAnchor(const PortRef& t) const {
-    if (drag_ == Drag::Cord)
-        return t.outlet && t.node == dragNode_ && t.port == cordOutlet_ && t.midi == cordMidi_
-               && t.video == cordVideo_ && t.control == cordControl_;
+    if (drag_ == Drag::Cord) return PatchView::isDragAnchor(t);
     if (t.outlet == grabFrom_.outlet || t.midi != grabFrom_.midi || t.video != grabFrom_.video
         || t.control != grabFrom_.control)
         return false;
@@ -129,8 +125,7 @@ void PatcherCanvas::dragGrab(juce::Point<int> p) {
 void PatcherCanvas::dropGrab(juce::Point<int> p, const juce::ModifierKeys& mods) {
     if (carried_.empty()) return;
     if (!grabLifted_) {
-        cordSelected_ = true;
-        selectedCord_ = carried_.front().cord.real;
+        selectedCords_ = {carried_.front().cord.real};
         selection_.clear();
         primary_.clear();
         notifySelection();
@@ -216,8 +211,8 @@ bool PatcherCanvas::isCarried(const Edge& e) const {
     return false;
 }
 
-std::vector<PatcherCanvas::CarriedLine> PatcherCanvas::carriedLines() {
-    std::vector<CarriedLine> out;
+std::vector<PatcherCanvas::CordLine> PatcherCanvas::carriedLines() {
+    std::vector<CordLine> out;
     if (drag_ != Drag::Grab || !grabLifted_) return out;
     for (const auto& c : carried_) {
         PortRef anchor = grabFrom_;
@@ -226,19 +221,10 @@ std::vector<PatcherCanvas::CarriedLine> PatcherCanvas::carriedLines() {
         anchor.port = grabFrom_.outlet ? c.cord.dstPort : c.cord.srcPort;
         const auto fixed = portPos(anchor).toFloat();
         const auto loose = (cordEnd_ + juce::Point<int>((kPort + kPortGap) * c.shift, 0)).toFloat();
-        out.push_back(grabFrom_.outlet ? CarriedLine{loose, fixed, c.cord.real}
-                                       : CarriedLine{fixed, loose, c.cord.real});
+        out.push_back(grabFrom_.outlet ? CordLine{loose, fixed, c.cord.real}
+                                       : CordLine{fixed, loose, c.cord.real});
     }
     return out;
-}
-
-juce::Point<int> PatcherCanvas::portPos(const PortRef& at) {
-    if (at.control) return at.outlet ? controlOutletPos(at.node, at.port) : controlInletPos(at.node, at.port);
-    if (at.midi) return at.outlet ? midiOutletPos(at.node, at.port) : midiInletPos(at.node, at.port);
-    if (at.video) return at.outlet ? videoOutletPos(at.node, at.port) : videoInletPos(at.node, at.port);
-    int ins = 0, outs = 0;
-    portCounts(at.node, ins, outs);
-    return at.outlet ? outletPos(at.node, at.port, outs) : inletPos(at.node, at.port, ins);
 }
 
 void PatcherCanvas::modifierKeysChanged(const juce::ModifierKeys& mods) {

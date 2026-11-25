@@ -30,9 +30,13 @@ It measures the input, decides on a gain and applies it, so loud moments are tur
 
 **SyncMultiplier** How many of that unit make one release.
 
+**Mix** How much of the compressed sound you hear against the untouched input. 1 is all compressed, 0 is the input as it came in, and anything between is parallel compression: the squashed copy thickens the sound while the dry one keeps its hits.
+
 ## Recipe
 
 **Drum bus glue** Threshold 0.4, CompressionRatio 3, KneeWidth 8, AttackTime 20, HoldTime 0, Sync on with SyncUnit 1/8. Cord a Mixer's drum sum in, switch AutoMakeupGain on while setting the threshold, then off once the level sits where you want it.
+
+**Parallel drums** Threshold 0.1, CompressionRatio 10, AttackTime 1, ReleaseTime 80, MakeupGain up until the squashed sound is as loud as the dry one, then bring Mix down to about 0.4. The hits keep their snap and the room and tails come up underneath.
 
 ## Related Organisms
 

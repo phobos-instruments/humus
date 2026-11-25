@@ -34,10 +34,11 @@ public:
     }
     void onTextChanged(const std::string& param, const std::string& text) override;
     void reset() override {
-        rng_ = 0x9e3779b9u;
+        rng_ = formulaSeedFor(name());
         prev_.fill(0.0f);
         t_ = 0.0;
         beat_ = 0.0;
+        phase_ = 0.0;
         for (auto& st : state_) { st.fill(0.0f); seedFormulaState(st.data(), prog_); }
         held_.clear();
         knobsPrimed_ = false;
@@ -84,7 +85,7 @@ private:
     std::uint32_t rng_ = 0x9e3779b9u;
     std::array<std::array<float, FormulaProgram::kStateSlots>, 2> state_{};
     std::array<float, 2> prev_{};
-    double t_ = 0.0, beat_ = 0.0;
+    double t_ = 0.0, beat_ = 0.0, phase_ = 0.0;
 
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> staged_;
     int stagedCount_ = 0;

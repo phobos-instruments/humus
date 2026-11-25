@@ -39,19 +39,25 @@ roll::Geometry PianoRollEditor::geometry() const {
 }
 
 std::vector<NoteEvent> PianoRollEditor::Clip::notes() const {
+    if (const int bank = editor_.bankShown(); bank > 0) return editor_.host_.patterns().bankNotes(editor_.name_, bank);
     return editor_.host_.clips().notes(editor_.name_, editor_.clip_);
 }
 
 void PianoRollEditor::Clip::setNotes(const std::vector<NoteEvent>& n, int durationTicks) {
-    editor_.host_.clips().setNotes(editor_.name_, editor_.clip_, n, durationTicks);
+    editor_.writeNotes(n, durationTicks);
     editor_.repaint();
 }
 
 std::vector<CCEvent> PianoRollEditor::Clip::ccs() const {
+    if (const int bank = editor_.bankShown(); bank > 0) return editor_.host_.patterns().bankCCs(editor_.name_, bank);
     return editor_.host_.clips().ccs(editor_.name_, editor_.clip_);
 }
 
 void PianoRollEditor::Clip::setCCs(const std::vector<CCEvent>& ccs) {
+    if (const int bank = editor_.bankShown(); bank > 0) {
+        editor_.host_.patterns().setBankCCs(editor_.name_, bank, ccs);
+        return;
+    }
     editor_.host_.clips().setCCs(editor_.name_, editor_.clip_, ccs);
 }
 

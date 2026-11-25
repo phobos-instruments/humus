@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/patcher/PatcherCanvas.h"
 
+#include <algorithm>
+#include <climits>
 #include <map>
 #include <vector>
 
@@ -9,9 +11,20 @@
 
 namespace hum {
 
+std::vector<PatcherCanvas::DisplayNode> PatcherCanvas::arrangeTargets() const {
+    auto all = displayNodes();
+    std::vector<DisplayNode> chosen;
+    for (const auto& d : all)
+        if (selection_.count(d.name) != 0) chosen.push_back(d);
+    return chosen.size() >= 2 && chosen.size() < all.size() ? chosen : all;
+}
+
+bool PatcherCanvas::arrangesSelection() const { return arrangeTargets().size() < displayNodes().size(); }
+
 void PatcherCanvas::autoArrange() {
-    const auto disp = displayNodes();
+    const auto disp = arrangeTargets();
     if (disp.empty()) return;
+    const bool part = arrangesSelection();
 
     std::vector<LayoutNode> nodes;
     std::map<std::string, int> index;
@@ -45,19 +58,31 @@ void PatcherCanvas::autoArrange() {
 
     const auto placed = layoutFlowGraph(nodes, edges, metrics);
 
-    int minX = placed[0].first, maxX = placed[0].first + nodes[0].width;
+    int minX = placed[0].first, maxX = placed[0].first + nodes[0].width, minY = placed[0].second;
     for (size_t i = 1; i < placed.size(); ++i) {
         minX = std::min(minX, placed[i].first);
         maxX = std::max(maxX, placed[i].first + nodes[i].width);
+        minY = std::min(minY, placed[i].second);
     }
-    int visW = getLocalBounds().getWidth();
-    if (auto* vp = dynamic_cast<const juce::Viewport*>(getParentComponent()))
-        visW = vp->getViewArea().getWidth();
-    const int dx = std::max(0, (visW - (maxX - minX)) / 2 - minX);
+    int dx = 0, dy = 0;
+    if (part) {
+        juce::Point<int> corner{INT_MAX, INT_MAX};
+        for (const auto& d : disp) {
+            const auto at = host_.position(d.name);
+            corner = {std::min(corner.x, at.x), std::min(corner.y, at.y)};
+        }
+        dx = corner.x - minX;
+        dy = corner.y - minY;
+    } else {
+        int visW = getLocalBounds().getWidth();
+        if (auto* vp = dynamic_cast<const juce::Viewport*>(getParentComponent()))
+            visW = vp->getViewArea().getWidth();
+        dx = std::max(0, (visW - (maxX - minX)) / 2 - minX);
+    }
 
     host_.pushUndo();
     for (size_t i = 0; i < disp.size(); ++i)
-        host_.setPosition(disp[i].name, {placed[i].first + dx, placed[i].second});
+        host_.setPosition(disp[i].name, {placed[i].first + dx, placed[i].second + dy});
     host_.markDirty();
     refresh();
 }

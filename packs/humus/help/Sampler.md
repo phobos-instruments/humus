@@ -26,7 +26,11 @@ In Pitched mode the zones split the keyboard at the midpoints between their root
 
 **Polyphony** The number of voices sounding at once. Past it the oldest voice is stolen.
 
-**Loop** On holds a note on the loop points the file brings, for as long as you keep the key down; a file that carries none plays through either way. Off ignores every loop point and lets each note run to the end of its sample, which is the one to reach for when a library's loops sit badly. The turn is crossfaded, so a loop whose two ends do not line up holds instead of clicking once a cycle.
+**Loop** How a held note carries on past the end of its sound. File holds it on the loop points the file brings, for as long as you keep the key down; a file that carries none plays through. Off ignores every loop point and lets each note run to the end of its sample, which is the one to reach for when a library's loops sit badly. Forward repeats the stretch between Loop in and Loop out, on any sample, loop points or not. Ping-pong runs that stretch forwards, then backwards, then forwards again. The turn of a File or Forward loop is crossfaded, so a loop whose two ends do not line up holds instead of clicking once a cycle; Ping-pong needs none, because it never jumps.
+
+**LoopStart** Shown as Loop in. Where a Forward or Ping-pong loop begins, from the start of the sample to its end. The note still starts from the beginning and plays into the loop.
+
+**LoopEnd** Shown as Loop out. Where a Forward or Ping-pong loop turns back, from the start of the sample to its end. A loop is never shorter than a few milliseconds.
 
 **File1** The sound file in slot 1, and so on for File2 to File8.
 

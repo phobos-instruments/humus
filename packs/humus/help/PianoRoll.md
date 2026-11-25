@@ -30,6 +30,8 @@ Pointer selects and moves, Draw creates, Scissors splits, Eraser sweeps away, on
 
 **Quantize** Snaps recorded notes to the roll's snap grid. Right-click Q to map it.
 
+**Bank** Which of eight loops plays and shows, A to H. A is the roll as it always was; B to H are seven more loops of their own, each with its own length, and Record and Loop write into the one showing. Switching plays the new loop at once.
+
 ## Recipe
 
 **One riff, three voices** Bars 2, draw a two-bar bass figure, and cord the outlet into a Rhizome, a Sampler and a MidiOut at once. VelocityScale 0.8, Follow on so the figure takes the patch groove, and map Mute to a Button to drop the line for a break.

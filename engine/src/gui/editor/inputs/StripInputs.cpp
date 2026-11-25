@@ -35,6 +35,17 @@ bool StepStripModel::sweep(int step) {
     return true;
 }
 
+int StepStripModel::chance(int step) const {
+    if (!hasChances()) return kFullChance;
+    return std::clamp((int) std::lround(host_.liveParamValue(organism_, chanceParam(step))), 0, kFullChance);
+}
+
+void StepStripModel::setChance(int step, int value) {
+    if (!hasChances()) return;
+    const int stepped = std::clamp((int) std::lround(value / (double) kChanceStep) * kChanceStep, 0, kFullChance);
+    if (stepped != chance(step)) host_.editParam(organism_, chanceParam(step), (double) stepped);
+}
+
 std::int64_t StepStripModel::absoluteStep() const {
     auto* strip = source();
     if (!host_.isPlaying() || strip == nullptr) return -1;
@@ -50,10 +61,13 @@ bool StepStripModel::poll() {
     const auto step = absoluteStep();
     const int rested = restsOfLap(step);
     const int mute = mask();
-    if (step == lastStep_ && rested == lastRests_ && mute == lastMute_) return false;
+    unsigned chances = 0;
+    for (int s = 0; hasChances() && s < steps(); ++s) chances = chances * 31u + (unsigned) chance(s);
+    if (step == lastStep_ && rested == lastRests_ && mute == lastMute_ && chances == lastChances_) return false;
     lastStep_ = step;
     lastRests_ = rested;
     lastMute_ = mute;
+    lastChances_ = chances;
     return true;
 }
 

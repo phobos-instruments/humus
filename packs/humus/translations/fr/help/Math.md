@@ -6,7 +6,9 @@ Baisse d'abord le volume : Math envoie tout ce que tu tapes directement à la so
 
 ## Le vocabulaire
 
-Nombres, parenthèses, + - * / %, comparaisons qui répondent 0 ou 1, if(c, then, else) ; des termes côte à côte se multiplient, donc 2a marche. Fonctions : sin cos tan tanh asin exp log log2 sqrt abs floor ceil fract pow min max clamp mix step smoothstep, les formes de phase saw tri sqr pulse, ph(hz), harm(hz, n, tilt), env(gate, attack, release) et noise(). prev est l'échantillon de sortie précédent, dt vaut un échantillon en secondes, et pi, tau et e sont définis. Les instructions se séparent par des points-virgules, et name := value garde une valeur d'un échantillon à l'autre.
+Nombres, parenthèses, + - * / %, comparaisons qui répondent 0 ou 1, if(c, then, else) ; des termes côte à côte se multiplient, donc 2a marche. Fonctions : sin cos tan tanh asin exp log log2 sqrt abs floor ceil fract pow min max clamp mix step smoothstep, les formes de phase saw tri sqr pulse, ph(hz), harm(hz, n, tilt), env(gate, attack, release) et noise(). prev est l'échantillon de sortie précédent, dt vaut un échantillon en secondes, phase est le cycle de freq qui va de 0 à 1, et pi, tau et e sont définis. Les instructions se séparent par des points-virgules, et name := value garde une valeur d'un échantillon à l'autre.
+
+rate est l'allure de ce qui joue la formule : 1 dans un Math, et le Rate du LFO quand la formule joue dans un LFO, donc un mouvement qui avance de rate*dt accélère avec lui. Les presets Nature sont des mouvements écrits ainsi, à lire et à changer : Gravity fait rebondir une balle, Pendulum se balance, Heart bat son double coup, Breath inspire et expire, Swarm clignote comme trois lucioles qui se mettent au pas, Wind souffle en rafales et Wander erre comme une main sur un bouton, chacun de régulier avec X à 0 à sauvage à 1. noise() suit sa propre suite dans chaque boîte, donc deux Math errent différemment tandis qu'un patch joue toujours pareil. Une formule qui avance de dt montre huit secondes dans le tracé.
 
 ## Paramètres
 
@@ -32,6 +34,10 @@ Nombres, parenthèses, + - * / %, comparaisons qui répondent 0 ou 1, if(c, then
 **Voix jouable** Auto désactivé, Expression `sin(tau*ph(freq)) * vel * env(gate, 0.01, 0.3)`, et câble un PianoRoll dans l'entrée MIDI. Remplace `sin(tau*ph(freq))` par `harm(freq, 1 + x*15, y*2)` : x compte les harmoniques et y les façonne.
 
 **Contrôles nommés** Crée un Var appelé x et un autre appelé depth, câble les deux dans Vars, et écris `sin(tau*ph(freq)) * depth * x`. Tire un câble d'un Slider ou d'un LFO vers la Value de chaque Var : le bouton X bouge avec le premier, la formule lit le second, jusqu'à huit noms.
+
+**Mouvement vivant** Charge le preset Nature Gravity et utilise Contrôler avec sur la coupure d'un filtre : la balle rebondit de plus en plus tôt et de plus en plus bas jusqu'à s'arrêter, puis elle est relancée. Monte X pour une balle plus vive, ou charge Heart, Wind ou Breath.
+
+**Une forme pour un LFO** Écris un cycle en fonction de phase, comme `pow(sin(tau*phase), 3)` ou `tri(phase)*x`, et relie le Math à la prise Function d'un LFO. Le LFO passe sur FN et joue la forme à son propre Rate, en suivant chaque modification et chaque bouton tourné ici.
 
 ## Organisms associés
 

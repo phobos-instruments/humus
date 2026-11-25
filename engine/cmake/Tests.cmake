@@ -45,6 +45,8 @@ target_sources(hum_tests PRIVATE
   tests/packs/PackSafetyTests.cpp
   tests/packs/AbiFreezeTests.cpp
   tests/dsp/SmoothedGainTests.cpp
+  tests/dsp/SpliceShifterTests.cpp
+  tests/timeline/SampleRepairTests.cpp
   tests/dsp/WaveTableFileTests.cpp
   tests/dsp/LofiCrushTests.cpp
   tests/dsp/SdkBasicsTests.cpp
@@ -53,16 +55,21 @@ target_sources(hum_tests PRIVATE
   tests/packs/CategoryTests.cpp
   tests/packs/LayoutProviderTests.cpp
   tests/graph/GraphTests.cpp
+  tests/graph/BlockGapPlaybackTests.cpp
   tests/graph/GraphRouteTests.cpp
   tests/graph/BypassTests.cpp
   tests/io/LoaderTests.cpp
   tests/io/LoaderClipTests.cpp
+  tests/io/BlockGapFileTests.cpp
   tests/io/LoaderLegacyTests.cpp
   tests/io/LoaderLaneTests.cpp
   tests/io/Sf2Tests.cpp
   tests/io/NsmpTests.cpp
   tests/gui/GuiEnginePathTests.cpp
   tests/app/UserPathsTests.cpp
+  tests/app/AutosaveInPlaceTests.cpp
+  tests/app/DockLayoutTests.cpp
+  tests/app/BundlePathsTests.cpp
   tests/timeline/AudioTrackTests.cpp
   tests/organisms/ConsoleTests.cpp
   tests/dsp/OversamplingTests.cpp
@@ -101,14 +108,19 @@ target_sources(hum_tests PRIVATE
   tests/organisms/ComberTests.cpp
   tests/organisms/ScopeTests.cpp
   tests/organisms/AtomTests.cpp
+  tests/organisms/AtomBankTests.cpp
+  tests/organisms/DnaBankTests.cpp
   tests/organisms/SoundSpaceLiveTests.cpp
   tests/dsp/DspCoreTests.cpp
   tests/net/ControlShapeTests.cpp
   tests/dsp/FormulaTests.cpp
   tests/io/NumberFormatTests.cpp
   tests/organisms/PrimitivesTests.cpp
+  tests/organisms/LfoFunctionTests.cpp
   tests/organisms/MathTests.cpp
   tests/organisms/MorseTests.cpp
+  tests/browser/AuditionPaneTests.cpp
+  tests/browser/AuditionPictureTests.cpp
   tests/browser/AuditionTests.cpp
   tests/browser/BrowserFolderTests.cpp
   tests/browser/BrowserModelTests.cpp
@@ -130,6 +142,7 @@ target_sources(hum_tests PRIVATE
   tests/organisms/MicrodotTests.cpp
   tests/organisms/SynthTests.cpp
   tests/organisms/SequencerTests.cpp
+  tests/organisms/StepChanceTests.cpp
   tests/organisms/SideChainTests.cpp
   tests/organisms/SpectralTests.cpp
   tests/organisms/ChordDetectTests.cpp
@@ -197,12 +210,20 @@ target_sources(hum_tests PRIVATE
   tests/packs/PackUpdatesTests.cpp
   tests/params/ParamHistoryTests.cpp
   tests/io/PresetLibraryTests.cpp
+  tests/host/PresetPatternTests.cpp
   tests/gui/FaceplateTests.cpp
+  tests/gui/ToggleGroupTests.cpp
   tests/gui/FaceplateSweepTests.cpp
   tests/gui/ReadoutReadingTests.cpp
   tests/gui/ScopeReadingTests.cpp
   tests/gui/InputModelTests.cpp
   tests/gui/BrickInputTests.cpp
+  tests/gui/RingMuteTests.cpp
+  tests/gui/FaderSwitchTests.cpp
+  tests/gui/DragPictureTests.cpp
+  tests/gui/EmbedFitTests.cpp
+  tests/gui/OrganismTreeTests.cpp
+  tests/gui/SizedImageCacheTests.cpp
   tests/gui/MidiKeyLightsTests.cpp
   tests/gui/NoticeCardCopyTests.cpp
   tests/gui/FileSlotModelTests.cpp
@@ -223,10 +244,15 @@ target_sources(hum_tests PRIVATE
   tests/assistant/OllamaWireTests.cpp
   tests/packs/PackSdkTests.cpp
   tests/packs/PackRootsTests.cpp
+  tests/plugins/ClapCoreTests.cpp
+  tests/plugins/ClapNotesTests.cpp
+  tests/plugins/ClapHostingTests.cpp
   tests/plugins/PluginHostTests.cpp
   tests/plugins/PluginInstanceTests.cpp
   tests/plugins/PluginPatchTests.cpp
   tests/plugins/PluginLifetimeTests.cpp
+  tests/plugins/AsyncPluginTests.cpp
+  tests/plugins/PluginTouchTests.cpp
   tests/plugins/PluginDogfoodTests.cpp
   tests/plugins/PluginListStoreTests.cpp
   tests/gui/LooperFlowTests.cpp
@@ -236,6 +262,7 @@ target_sources(hum_tests PRIVATE
   tests/app/PickerModelTests.cpp
   tests/app/PageLanguageTests.cpp
   tests/app/CatalogueTests.cpp
+  tests/app/JuceStringsTests.cpp
   tests/app/WizardFlowTests.cpp
   tests/app/GuideFlowTests.cpp
   tests/app/ReleaseNotesTests.cpp
@@ -257,8 +284,11 @@ target_sources(hum_tests PRIVATE
   tests/midi/ControlModeTests.cpp
   tests/host/ControlModeHostTests.cpp
   tests/host/MathVarsTests.cpp
+  tests/host/HostEnvironmentTests.cpp
+  tests/host/HandOverCordTests.cpp
   tests/packs/CautionTests.cpp
   tests/video/VideoTrackTests.cpp
+  tests/video/VideoTrackSoundTests.cpp
   tests/video/VideoTakeClockTests.cpp
   tests/io/MediaProbeTests.cpp
   tests/organisms/Coupling303Tests.cpp
@@ -292,6 +322,7 @@ target_sources(hum_tests PRIVATE
   tests/midi/MidiSyncTests.cpp
   tests/net/LinkChaseTests.cpp
   tests/timeline/MeterTests.cpp
+  tests/timeline/BlockLaneTests.cpp
   tests/io/MediaRefsTests.cpp
   tests/io/SignalFileTests.cpp
   tests/video/HalogenVideoTests.cpp
@@ -308,12 +339,13 @@ target_sources(hum_tests PRIVATE
   tests/video/IsfParseTests.cpp
   tests/video/SsfShimTests.cpp
   tests/timeline/MixRecorderTests.cpp
-  tests/graph/HumusMacroTests.cpp
-  tests/graph/HumusPodTests.cpp
+  tests/graph/PluginIdentityTests.cpp
+  tests/gui/BrandEmblemTests.cpp
   tests/net/SerialTests.cpp
   tests/net/SerialPortTests.cpp
   tests/net/BoardTests.cpp
   tests/net/OscSerialTests.cpp
+  tests/net/OscUdpTests.cpp
   tests/organisms/PhTests.cpp
   tests/organisms/PhBankTests.cpp
   tests/organisms/PhChipTests.cpp
@@ -342,7 +374,7 @@ target_link_libraries(hum_tests PRIVATE hum_juce_modal)
 # With the GUI, hum_host (cmake/Host.cmake) brings hum_core and hum_assets; naming
 # them here as well puts each on the link line twice and the linker warns.
 if(NOT HUM_GUI)
-  target_link_libraries(hum_tests PRIVATE hum_core hum_assets)
+  target_link_libraries(hum_tests PRIVATE hum_core hum_clap_juce hum_assets)
 endif()
 foreach(addon ${HUM_ADDON_PACKS})
   target_link_libraries(hum_tests PRIVATE hum_pack_${addon})
@@ -385,4 +417,25 @@ if(HUM_HOSTING_TESTS AND HUM_TESTS)
   target_compile_definitions(hum_tests PRIVATE
     HUM_TESTGAIN_VST3_DIR="$<TARGET_FILE_DIR:hum_testgain_VST3>/../../..")
   add_dependencies(hum_tests hum_testgain_VST3)
+
+  # A small CLAP plug-in (a gain effect and a one-note synth in one file) the
+  # CLAP hosting tests load: no outside plug-in is needed on any platform.
+  add_library(hum_testclap MODULE
+    tests/fixtures/testclap/TestClapEntry.cpp
+    tests/fixtures/testclap/TestClapEffect.cpp
+    tests/fixtures/testclap/TestClapEffectExt.cpp
+    tests/fixtures/testclap/TestClapSynth.cpp)
+  target_link_libraries(hum_testclap PRIVATE hum_clap_headers)
+  target_compile_features(hum_testclap PRIVATE cxx_std_17)
+  set_target_properties(hum_testclap PROPERTIES
+    OUTPUT_NAME TestClap PREFIX "" CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON)
+  if(APPLE)
+    set_target_properties(hum_testclap PROPERTIES BUNDLE TRUE BUNDLE_EXTENSION clap)
+    set(HUM_TESTCLAP_PATH "$<TARGET_BUNDLE_DIR:hum_testclap>")
+  else()
+    set_target_properties(hum_testclap PROPERTIES SUFFIX ".clap")
+    set(HUM_TESTCLAP_PATH "$<TARGET_FILE:hum_testclap>")
+  endif()
+  target_compile_definitions(hum_tests PRIVATE HUM_TESTCLAP_PATH="${HUM_TESTCLAP_PATH}")
+  add_dependencies(hum_tests hum_testclap)
 endif()

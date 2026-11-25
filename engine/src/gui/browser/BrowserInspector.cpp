@@ -11,7 +11,7 @@ namespace hum::browser {
 
 namespace {
 
-constexpr int kTitleH = 40, kStarsH = 26, kHeadH = 22, kFactH = 18, kRevealH = 26, kToggleH = 22;
+constexpr int kTitleH = 40, kStarsH = 26, kHeadH = 22, kFactH = 18, kRevealH = 26, kRevealGap = 8, kToggleH = 22;
 constexpr float kBigStar = 16.0f;
 
 void head(juce::Graphics& g, const juce::String& text, int x, int y, int w) {
@@ -34,6 +34,9 @@ BrowserInspector::BrowserInspector() {
     reveal_.setButtonText(paint::revealLabel());
     reveal_.onClick = [this] { if (onReveal) onReveal(); };
     addAndMakeVisible(reveal_);
+    trash_.setButtonText(tr("browser.move-to-trash", "Move to Trash"));
+    trash_.onClick = [this] { if (onTrash) onTrash(); };
+    addAndMakeVisible(trash_);
     setSize(kWidth, 400);
     restyle();
 }
@@ -45,6 +48,7 @@ void BrowserInspector::restyle() {
     tagEdit_.applyColourToAllText(Palette::text);
     reveal_.setColour(juce::TextButton::buttonColourId, Palette::panelLight);
     reveal_.setColour(juce::TextButton::textColourOffId, Palette::text);
+    paint::styleDanger(trash_);
     for (auto& t : toggles_) {
         t->setColour(juce::ToggleButton::textColourId, Palette::text);
         t->setColour(juce::ToggleButton::tickColourId, Palette::accent);
@@ -115,6 +119,11 @@ int BrowserInspector::factsTop() const {
     const int editBottom = chipsBottom + 4 + 24;
     const int collectionsBottom = editBottom + (collections_.empty() ? 0 : kHeadH + 4 + kToggleH * (int) collections_.size());
     return collectionsBottom + 6;
+}
+
+int BrowserInspector::contentHeight() const {
+    if (!has_) return 0;
+    return factsTop() + kHeadH + 4 + (int) facts().size() * kFactH + 2 * kPad + kRevealH;
 }
 
 std::vector<std::pair<juce::String, juce::String>> BrowserInspector::facts() const {
@@ -196,7 +205,10 @@ void BrowserInspector::resized() {
         t->setBounds(kPad - 4, y, getWidth() - 2 * kPad, kToggleH);
         y += kToggleH;
     }
-    reveal_.setBounds(kPad, getHeight() - kPad - kRevealH, getWidth() - 2 * kPad, kRevealH);
+    auto row = juce::Rectangle<int>(kPad, getHeight() - kPad - kRevealH, getWidth() - 2 * kPad, kRevealH);
+    const int half = (row.getWidth() - kRevealGap) / 2;
+    reveal_.setBounds(row.removeFromLeft(half));
+    trash_.setBounds(row.removeFromRight(half));
 }
 
 void BrowserInspector::mouseUp(const juce::MouseEvent& e) {

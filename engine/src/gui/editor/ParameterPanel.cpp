@@ -34,7 +34,7 @@ void ParameterPanel::show(const std::string& name) {
     };
 
     for (const auto& d : schemaFor(cm->classRaw)) {
-        if (d.namedInlet) continue;
+        if (!d.offered()) continue;
         Row row;
         row.param = d.name;
         row.label = std::make_unique<juce::Label>();

@@ -30,6 +30,8 @@ Pointer seleziona e sposta, Draw crea, Scissors divide, Eraser cancella al passa
 
 **Quantize** Aggancia le note registrate alla griglia di snap del roll. Fai clic destro su Q per mapparlo.
 
+**Bank** Quale degli otto loop suona e si vede, da A a H. A è il roll di sempre; da B a H sono altri sette loop tutti suoi, ognuno con la sua lunghezza, e Record e Loop scrivono in quello che si vede. Cambiando suona subito il nuovo loop.
+
 ## Ricetta
 
 **Un riff, tre voci** Bars 2, disegna una figura di basso di due battute e collega l'uscita a un Rhizome, a un Sampler e a un MidiOut insieme. VelocityScale 0.8, Follow attivo così la figura prende il groove della patch, e mappa Mute su un Button per togliere la linea durante un break.

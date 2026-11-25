@@ -19,6 +19,7 @@ public:
     void recall(const std::string& name, const Ref& ref);
     void clear(const std::string& name, const Ref& ref);
     void rename(const std::string& name, const Ref& ref, const std::string& newName);
+    void saveToLibrary(const std::string& name, const std::string& presetName);
     Ref  recallAdjacent(const std::string& name, int dir);
     void copy(const std::string& name, const Ref& ref);
     void cut(const std::string& name, const Ref& ref);
@@ -29,15 +30,18 @@ public:
     Ref current(const std::string& name) const;
     void setCurrent(const std::string& name, const Ref& ref);
 
-    PresetHost(BrickHost& host, HostCore& core) : host_(host), doc_(core), nodes_(core) {}
+    PresetHost(BrickHost& host, HostCore& core) : host_(host), doc_(core), nodes_(core), patterns_(core) {}
 
 private:
     BrickHost& host_;
     HostDocument& doc_;
     HostNodes& nodes_;
+    HostPatterns& patterns_;
     static PresetModel presetClip_;
     static std::string presetClipClass_;
     static bool hasPresetClip_;
+
+    void recallPattern(OrganismModel& c, const std::string& node, const Pattern& pattern);
 };
 
 }

@@ -14,9 +14,59 @@ inline juce::File fileAt(const std::string& utf8Path) {
 
 inline std::string pathOf(const juce::File& file) { return file.getFullPathName().toStdString(); }
 
+inline juce::File runningBinary() {
+#if JUCE_LINUX || JUCE_BSD
+    if (const juce::File self("/proc/self/exe"); self.isSymbolicLink()) return self.getLinkedTarget();
+#endif
+    return {};
+}
+
+inline std::vector<juce::File> binaryDirsFor(const juce::File& reported, const juce::File& running) {
+    std::vector<juce::File> dirs{reported.getParentDirectory()};
+    if (running != juce::File() && running.getParentDirectory() != dirs.front())
+        dirs.push_back(running.getParentDirectory());
+    return dirs;
+}
+
+inline std::vector<juce::File> binaryDirs() {
+    return binaryDirsFor(juce::File::getSpecialLocation(juce::File::currentExecutableFile), runningBinary());
+}
+
+inline juce::File sourceTreePacks() {
+#ifdef HUM_PACKS_DIR
+    if (juce::SystemStats::getEnvironmentVariable("HUMUS_BUNDLE_ONLY", {}).isEmpty())
+        return juce::File(juce::String(HUM_PACKS_DIR));
+#endif
+    return {};
+}
+
+inline std::vector<juce::File> bundleCandidates(const std::vector<juce::File>& dirs, const juce::String& name) {
+    std::vector<juce::File> out;
+    for (const auto& dir : dirs) {
+        out.push_back(dir.getParentDirectory().getChildFile("Resources").getChildFile(name));
+        out.push_back(dir.getChildFile(name));
+        out.push_back(dir.getParentDirectory().getChildFile(name));
+    }
+    return out;
+}
+
 inline juce::File appDataDir() {
     return juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
         .getChildFile("Humus");
+}
+
+inline juce::File installedHumusApp() {
+#if JUCE_MAC
+    for (const auto& apps : {juce::File("/Applications"),
+                             juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Applications")})
+        if (const auto exe = apps.getChildFile("Humus.app/Contents/MacOS/Humus"); exe.existsAsFile()) return exe;
+#elif JUCE_WINDOWS
+    if (const auto exe = juce::File::getSpecialLocation(juce::File::globalApplicationsDirectory)
+                             .getChildFile("Humus/Humus.exe");
+        exe.existsAsFile())
+        return exe;
+#endif
+    return {};
 }
 
 inline juce::File& userRootForTesting() {
@@ -91,13 +141,7 @@ inline juce::File userContentRoot() {
 }
 
 inline juce::File bundledAssetsDir() {
-    const auto exe = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
-    const auto dir = exe.getParentDirectory();
-    const juce::File candidates[] = {
-        dir.getChildFile("assets"),
-        dir.getParentDirectory().getChildFile("Resources").getChildFile("assets"),
-    };
-    for (const auto& c : candidates)
+    for (const auto& c : bundleCandidates(binaryDirs(), "assets"))
         if (c.isDirectory()) return c;
     return {};
 }
@@ -119,16 +163,8 @@ inline std::vector<juce::File> packAssetRoots(const juce::String& kind) {
                     d != juce::File())
                     out.push_back(d);
     };
-    const auto exeDir =
-        juce::File::getSpecialLocation(juce::File::currentExecutableFile)
-            .getParentDirectory();
-    addPacksUnder(
-        exeDir.getParentDirectory().getChildFile("Resources").getChildFile("packs"));
-    addPacksUnder(exeDir.getChildFile("packs"));
-    addPacksUnder(exeDir.getParentDirectory().getChildFile("packs"));
-#ifdef HUM_PACKS_DIR
-    addPacksUnder(juce::File(juce::String(HUM_PACKS_DIR)));
-#endif
+    for (const auto& c : bundleCandidates(binaryDirs(), "packs")) addPacksUnder(c);
+    if (const auto repo = sourceTreePacks(); repo != juce::File()) addPacksUnder(repo);
     addPacksUnder(appDataDir().getChildFile("packs"));
     return out;
 }
@@ -139,12 +175,9 @@ inline std::vector<juce::File> assetSearchPath(const juce::String& kind) {
         out.push_back(mine);
     if (const auto shipped = bundledAssetsDir(); shipped != juce::File())
         if (const auto d = assetKindDir(shipped, kind); d != juce::File()) out.push_back(d);
-#ifdef HUM_PACKS_DIR
-    if (const auto repo = assetKindDir(juce::File(HUM_PACKS_DIR).getParentDirectory()
-                                           .getChildFile("assets"), kind);
-        repo != juce::File())
-        out.push_back(repo);
-#endif
+    if (const auto repo = sourceTreePacks(); repo != juce::File())
+        if (const auto d = assetKindDir(repo.getParentDirectory().getChildFile("assets"), kind); d != juce::File())
+            out.push_back(d);
     for (const auto& d : packAssetRoots(kind)) out.push_back(d);
     return out;
 }

@@ -8,7 +8,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
-#include "gui/bricks/LooperBricks.h"
+#include "gui/bricks/MomentaryButton.h"
 #include "gui/bricks/StrandColours.h"
 #include "gui/editor/Mappable.h"
 #include "gui/editor/MomentaryModel.h"
@@ -144,15 +144,24 @@ public:
     bool shownOn() const override { return this->getToggleState(); }
 
     void wire() {
-        this->onClick = [this] { if (onToggle) onToggle(this->getToggleState()); };
+        this->onClick = [this] {
+            if (onToggle) onToggle(this->getToggleState(), {clickKeys_.isAltDown(), clickKeys_.isCommandDown()});
+        };
         this->onRightClick = [this](juce::Point<int> at) { if (onMenu) onMenu(pointOf(at)); };
     }
 
     using ToggleView::onMenu;
     using ToggleView::onToggle;
 
+protected:
+    void clicked(const juce::ModifierKeys& keys) override {
+        clickKeys_ = keys;
+        Widget::clicked(keys);
+    }
+
 private:
     std::optional<ButtonArt> art_;
+    juce::ModifierKeys clickKeys_;
 };
 
 inline std::unique_ptr<ToggleView> makeJuceToggle(const toggle::Setup& setup) {

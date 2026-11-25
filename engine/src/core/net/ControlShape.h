@@ -110,6 +110,13 @@ inline double advanceControlShape(const ControlShape& s, ControlShapeState& st,
     return out;
 }
 
+inline void seedToggle(const ControlShape& s, ControlShapeState& st, double shapedNow) {
+    if (!s.isButton() || s.button != ButtonMode::Toggle || st.lastOut >= 0.0) return;
+    st.on = shapedNow > 0.5;
+    st.lastOut = st.on ? 1.0 : 0.0;
+    st.wasAbove = s.inverted;
+}
+
 inline bool pressEdge(const ControlShape& s, ControlShapeState& st, double t) {
     const bool pressed = (t > s.threshold) != s.inverted;
     const bool edge = pressed && !(st.seen && st.wasPressed);

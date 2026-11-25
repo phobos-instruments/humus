@@ -13,7 +13,9 @@
       "y": 26,
       "w": 520,
       "h": 184,
-      "rows": 6
+      "rows": 6,
+      "view": "View",
+      "chance-prefix": "Chance_"
     },
     {
       "type": "swing",
@@ -86,6 +88,17 @@
       ],
       "reclass": "inputs",
       "tooltip": "How many rows, and so how many row outlets, this sequencer has."
+    },
+    {
+      "type": "minitoggle",
+      "param": "View",
+      "label": "%",
+      "x": 532,
+      "y": 122,
+      "w": 60,
+      "h": 22,
+      "tooltip": "Step chance: click, then drag a step up or down to set how often it plays",
+      "tooltip-key": "step-grid.chance-key"
     }
   ]
 }

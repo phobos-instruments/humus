@@ -3,6 +3,7 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -14,12 +15,14 @@
 #include "core/params/ParamUnit.h"
 #include "gui/host/BrickHost.h"
 #include "gui/editor/ControlDefaults.h"
+#include "gui/editor/DawMacroMenu.h"
 #include "gui/editor/ParamRanges.h"
 #include "gui/host/EngineHostAutomation.h"
 #include "gui/host/EngineHostMidiControl.h"
 #include "gui/editor/FollowPick.h"
 #include "gui/common/Localisation.h"
 #include "gui/host/ModHost.h"
+#include "gui/host/NodeEvolve.h"
 #include "gui/host/NodeRandomize.h"
 #include "gui/host/OscHost.h"
 #include "gui/editor/ParamLearners.h"
@@ -69,9 +72,10 @@ inline std::vector<std::string> controlTargets(BrickHost& host, const std::strin
         return out;
     }
     for (const auto& d : schemaFor(cm->classRaw))
-        if (!d.isText && !d.namedInlet) out.push_back(d.name);
+        if (!d.isText && d.offered()) out.push_back(d.name);
     out.push_back(kBypassParam);
     if (nodeSupportsRandom(host, organism)) out.push_back(kRandomAction);
+    if (nodeSupportsEvolve(host, organism)) out.push_back(kEvolveAction);
     if (!cm->presets.empty()) {
         out.push_back(kPresetNextAction);
         out.push_back(kPresetPrevAction);
@@ -115,6 +119,7 @@ inline void clearAllControlFor(BrickHost& host, const std::string& organism,
     clearRoutesFor(host, organism, param, -1);
     clearMidiFor(host, organism, param);
     clearOscFor(host, organism, param);
+    host.removeDawControlTarget(organism, param);
     for (const auto& name : controlNames(host, organism, param))
         if (host.automation().isAutomated(organism, name)) host.automation().remove(organism, name);
 }
@@ -147,6 +152,7 @@ public:
 
     void arm(BrickHost& host, std::string organism, std::string param,
              double lo, double hi, std::function<void()> onChanged) {
+        armedHost_ = &host;
         const auto target = juce::String(organism) + " / " + juce::String(param);
         if (onStatus) onStatus(tr("organism-editor.follow-click-the-control",
                                   "Follow: click the control that should move {target}", {{"target", target}}));
@@ -193,12 +199,16 @@ public:
         close();
     }
 
+    bool armedOn(const BrickHost& host) const { return armedHost_ == &host && followpick::armed(); }
+
 private:
     void close() {
         followpick::cancel();
         window_.reset();
+        armedHost_ = nullptr;
     }
     std::unique_ptr<QuickMapWindow> window_;
+    const BrickHost* armedHost_ = nullptr;
 };
 
 void quickMapMidi(BrickHost& host, const std::string& organism, const std::string& param);
@@ -244,6 +254,7 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
         m.addItem(1, automated ? tr("organism-editor.unautomate", "Unautomate") : tr("organism-editor.automate", "Automate"));
         m.addSeparator();
     }
+    const int dawMacro = addDawMacroMenu(m, host, organism, param);
     m.addItem(3, tr("organism-editor.midi-learn", "MIDI Learn"));
     m.addItem(4, tr("organism-editor.clear-midi", "Clear MIDI"), mapped);
     if (host.osc().enabled() || oscMapped) {
@@ -300,16 +311,20 @@ inline void showAutomateMenu(BrickHost& host, const std::string& organism,
     }
     m.addSeparator();
     m.addItem(9, tr("organism-editor.clear-all-control", "Clear all control"),
-              automated || mapped || oscMapped || modMapped || followMapped);
+              automated || mapped || oscMapped || modMapped || followMapped || dawMacro >= 0);
     if (host.canShowParameterControl()) {
         m.addSeparator();
         m.addItem(7, tr("organism-editor.parameter-control", "Parameter Control..."));
     }
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screen.x, screen.y, 1, 1}),
-                    [&host, organism, param, automated, locked, lo, hi, onChanged, sources,
+                    [&host, organism, param, automated, locked, lo, hi, onChanged, sources, dawMacro,
                      automateOverride, screen, onHeadPick](int r) {
         if (r >= kAutomateMenuFirstOwnId) {
             if (onHeadPick) onHeadPick(r);
+            return;
+        }
+        if (pickDawMacro(host, organism, param, dawMacro, r, screen, lo, hi, paramUnit(host, organism, param))) {
+            if (onChanged) onChanged();
             return;
         }
         if (r == 1) {

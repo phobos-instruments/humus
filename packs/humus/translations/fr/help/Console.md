@@ -26,11 +26,13 @@ Le menu déroulant Inputs règle combien de canaux stéréo la console additionn
 
 **Pan_1-2** Balance du canal 1. Au centre, les deux côtés passent à plein niveau ; s'écarter du centre ne fait que baisser le côté opposé. Et ainsi de suite pour 3-4 à 11-12.
 
-**Mute_1-2** Rend le canal 1 muet, ce qui soulage aussi le rail pour les autres. Et ainsi de suite pour 3-4 à 11-12.
+**Mute_1-2** Rend le canal 1 muet, ce qui soulage aussi le rail pour les autres. Et ainsi de suite pour 3-4 à 11-12. Alt-clic sur n'importe quel M coupe ou rétablit tous les canaux d'un coup.
 
-**Solo_1-2** Rend muets tous les canaux sauf celui-ci. Le Mute propre à un canal l'emporte toujours. Et ainsi de suite pour 3-4 à 11-12.
+**Solo_1-2** Rend muets tous les canaux sauf celui-ci. Le Mute propre à un canal l'emporte toujours. Et ainsi de suite pour 3-4 à 11-12. Alt-clic sur n'importe quel S met tous les solos dans le même état, donc un Alt-clic sur un solo allumé les éteint tous ; Cmd-clic (Ctrl-clic) sur l'un d'eux ne fait entendre que ce canal.
 
 **Name_1-2** Le ruban au-dessus du canal 1. Vide tant que rien n'est branché, puis il montre le nom de l'organism branché. Double-clique pour écrire le tien ; efface-le pour revenir au nom de ce qui est branché. Et ainsi de suite pour 3-4 à 11-12.
+
+**Faders** Montre chaque niveau sous forme de fader plutôt que de bouton. Le choix reste avec la boîte.
 
 ## Recette
 

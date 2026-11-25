@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <map>
@@ -25,6 +26,7 @@
 #include "gui/tracks/TracksGeometry.h"
 #include "gui/pianoroll/NoteEdit.h"
 #include "gui/tracks/TimelineChips.h"
+#include "gui/tracks/BlockLaneGesture.h"
 #include "gui/tracks/TimelineItems.h"
 #include "gui/tracks/TracksLayout.h"
 #include "gui/tracks/ZoomBar.h"
@@ -83,6 +85,8 @@ public:
     void setDropHot(bool hot);
 
     int rowCount() const { return (int) rows_.size(); }
+    void muteClick(const std::string& node, bool muted, bool everyTrack);
+    void soloClick(const std::string& node, bool soloed, bool everyTrack, bool only);
     std::string rowNameForTest(int row) const {
         return row >= 0 && row < (int) rows_.size() ? rows_[(size_t) row] : std::string();
     }
@@ -117,6 +121,13 @@ public:
 
     const std::vector<trackslayout::Slot>& slotsForTest() const { return slots_; }
     int slotCountForTest() const { return (int) slots_.size(); }
+    std::vector<double> selectedBlockStartsForTest() const {
+        std::vector<double> out;
+        for (const auto& r : sel_)
+            if (r.kind == timeline::ItemRef::Kind::Block) out.push_back(blockStartOf(r));
+        std::sort(out.begin(), out.end());
+        return out;
+    }
     int foldedLaneCountForTest(int row) const;
     int rowOfForTest(const std::string& node) const;
     void placeRowBelow(const std::string& node, const std::string& anchor);
@@ -135,6 +146,7 @@ public:
     bool nodeMutedForTest(const std::string& n) const { return nodeMuted(n); }
     void setNodeMutedForTest(const std::string& n, bool m) { setNodeMuted(n, m); }
     juce::Rectangle<int> muteBoxForTest(int row) const { return muteBox(row); }
+    juce::Rectangle<int> soloBoxForTest(int row) const { return soloBox(row); }
     juce::Rectangle<int> chipBoundsForTest(int row, const ClipEditor::ClipInfo& ci) const {
         return clipChipBounds(row, ci);
     }
@@ -217,8 +229,9 @@ private:
     int chipX(int row) const { return hasLanes(row) && !wantsBoxRow(row) ? 32 : 18; }
     juce::Rectangle<int> inputBox(int row) const {
         if (rowH_ < kInputChipBottom) return {};
+        const auto& node = rows_[(size_t) row];
         return timelinechrome::midiInputChipRect({chipX(row), rowTop(row) + 20, kStripW - 30 - chipX(row), 15},
-                                                 host().midi().trackInput(rows_[(size_t) row]));
+                                                 host().midi().trackInput(node), host().midi().trackChannel(node));
     }
     juce::Rectangle<int> destRect(int row, const std::string& node) const {
         if (rowH_ < kDestChipBottom) return {};
@@ -296,6 +309,17 @@ private:
     int autoPointAt(const trackslayout::Slot& s, const std::string& node,
                     const std::string& param, juce::Point<int> p) const;
     enum class AutoGrip { Value, RangeLo, RangeHi, RangeBoth, TriggerTime };
+    bool isBlockLane(const std::string& node, const std::string& param) const;
+    const std::vector<std::string>& blockLabels(const std::string& node, const std::string& param) const;
+    void paintBlockLane(juce::Graphics&, const trackslayout::Slot&, const AutomationLane&);
+    bool mouseDownBlockLane(const juce::MouseEvent&, int slot, juce::Point<int>);
+    void dragBlockLane(const juce::MouseEvent&);
+    void endBlockLane(const juce::MouseEvent&);
+    void startBlockDrag();
+    void blockMenuAt(int slot, juce::Point<int> p, juce::Point<int> screen);
+    void showBlockMenu(juce::Point<int> screen, int slot, int block);
+    std::vector<std::string> blockLaneCandidates(const std::string& node) const;
+    juce::MouseCursor blockLaneCursor(const trackslayout::Slot&, juce::Point<int>) const;
     int segmentAt(const trackslayout::Slot&, const std::string& node,
                   const std::string& param, juce::Point<int>) const;
     AutoGrip nearerRangeEdge(const trackslayout::Slot&, const std::string& node,
@@ -368,7 +392,37 @@ private:
     private:
         SongView& song_;
     };
-    std::array<timeline::ItemKind*, 2> kinds() { return {&clipItems_, &boxItems_}; }
+    class BlockItems : public timeline::ItemKind {
+    public:
+        explicit BlockItems(SongView& s) : song_(s) {}
+        timeline::ItemRef::Kind kind() const override { return timeline::ItemRef::Kind::Block; }
+        std::vector<timeline::ItemRef> all(int row) const override;
+        juce::Rectangle<int> bounds(const timeline::ItemRef&) const override;
+        bool alive(const timeline::ItemRef&) const override;
+        void remove(const std::vector<timeline::ItemRef>&) override;
+        void duplicateAfter(const std::vector<timeline::ItemRef>&) override;
+        int merge(const std::vector<timeline::ItemRef>&) override;
+    private:
+        SongView& song_;
+    };
+    struct BlockRide {
+        int row = -1;
+        std::string node, param;
+        std::vector<AutomationBreakpoint> before;
+        std::vector<double> starts;
+    };
+    std::array<timeline::ItemKind*, 3> kinds() { return {&clipItems_, &boxItems_, &blockItems_}; }
+    timeline::ItemRef blockRef(int row, const std::string& lane, double start) const;
+    int faceplateOf(const std::string& node, const std::string& param) const;
+    static bool samePoints(const std::vector<AutomationBreakpoint>& a, const std::vector<AutomationBreakpoint>& b);
+    static double blockStartOf(const timeline::ItemRef& r);
+    std::vector<BlockRide> selectedBlockLanes() const;
+    void rideSelectedBlocks(double deltaBeats, bool copy);
+    void endBlockRide();
+    bool setSelectedBlocksBank(const std::string& label, int value);
+    bool bankKey(const juce::KeyPress& k);
+    void pruneBlockSelection();
+    void pickBlock(int slot, double start, const juce::ModifierKeys& mods);
     timeline::ItemRef clipRef(int row, int clipOrdinal) const;
     timeline::ItemRef boxRef(int row, int box) const { return {timeline::ItemRef::Kind::Box, row, box}; }
     bool selected(const timeline::ItemRef& r) const { return sel_.count(r) != 0; }
@@ -476,6 +530,7 @@ private:
     int dragAutoSlot_ = -1, dragAutoPoint_ = -1;
     std::string dragAutoNode_, dragAutoParam_;
     AutoGrip dragAutoGrip_ = AutoGrip::Value;
+    BlockGesture block_;
     int dragCurveIndex_ = -1;
     double dragCurve0_ = 0.0;
     int dragCurveY0_ = 0;
@@ -484,6 +539,10 @@ private:
     std::set<timeline::ItemRef> sel_;
     ClipItems clipItems_{*this};
     BoxItems boxItems_{*this};
+    BlockItems blockItems_{*this};
+    std::vector<BlockRide> blockRides_;
+    double blockRideDelta_ = 0.0;
+    bool blockRideCopy_ = false;
     juce::Rectangle<int> clipMarquee_;
     struct ClipCopy { int row = 0; int startTick = 0; PatternChannel data; };
     std::vector<ClipCopy> clipboard_;

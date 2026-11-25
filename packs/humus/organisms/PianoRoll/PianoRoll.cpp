@@ -31,9 +31,25 @@ void PianoRoll::loadFrom(const OrganismState& state) {
     setPattern(state.pattern);
 }
 
+Pattern PianoRoll::bankView() const {
+    Pattern view = pattern_;
+    view.channels.clear();
+    for (const auto& ch : pattern_.channels)
+        if (ch.type != "note-events") view.channels.push_back(ch);
+    if (const auto* bank = noteBankChannel(pattern_, bank_)) {
+        PatternChannel loop = *bank;
+        loop.type = "note-events";
+        loop.startTick = 0;
+        loop.lengthTicks = bank->lengthTicks > 0 ? bank->lengthTicks : durationTicks();
+        loop.loopClip = true;
+        view.channels.push_back(loop);
+    }
+    return view;
+}
+
 void PianoRoll::refreshClips() {
     if (!clipsDirty_) return;
-    clips_ = noteschedule::prepare(pattern_, durationTicks());
+    clips_ = noteschedule::prepare(bank_ == 0 ? pattern_ : bankView(), durationTicks());
     clipsDirty_ = false;
 }
 
@@ -75,6 +91,12 @@ void PianoRoll::flushHeldNotes(int offset) {
 void PianoRoll::process(const float* const*, int, float* const*, int,
                         int numSamples, const Transport& transport) {
     outCount_ = 0;
+    const int bank = std::clamp((int) params.get("Bank", 0.0), 0, kPatternBanks - 1);
+    if (bank != bank_) {
+        bank_ = bank;
+        clipsDirty_ = true;
+        patternEdited_ = true;
+    }
     refreshClips();
 
     const bool muted = params.get("Mute", 0.0) >= 0.5;

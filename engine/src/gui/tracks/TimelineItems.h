@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -9,15 +10,16 @@
 namespace hum::timeline {
 
 struct ItemRef {
-    enum class Kind { Clip, Box };
+    enum class Kind { Clip, Box, Block };
     Kind kind = Kind::Clip;
     int row = -1;
     int key = 0;
+    std::string lane;
     bool operator<(const ItemRef& o) const {
-        return std::tie(kind, row, key) < std::tie(o.kind, o.row, o.key);
+        return std::tie(kind, row, key, lane) < std::tie(o.kind, o.row, o.key, o.lane);
     }
     bool operator==(const ItemRef& o) const {
-        return kind == o.kind && row == o.row && key == o.key;
+        return kind == o.kind && row == o.row && key == o.key && lane == o.lane;
     }
 };
 

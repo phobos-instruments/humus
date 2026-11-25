@@ -51,6 +51,7 @@ public:
     const MidiControlMap& map() const override;
     int  lastCC() const override;
     int  lastPort() const override;
+    int  lastChannel() const override;
     std::string deviceForPort(int port) const override;
     int portForDevice(const std::string& device) const override;
     std::vector<std::string> inputDevices() const override;
@@ -58,7 +59,8 @@ public:
     int  sourceValue(int source) const override;
     std::vector<int> heldNotes(int except) const override;
     std::vector<int> recentValues(int source, double sinceMs) const override;
-    double lastSeenMs(int source) const override;
+    int laneValue(const MidiSource& src) const override;
+    double lastSeenMs(const MidiSource& src) const override;
 
     void setReceiveMode(const std::string& name, int mode, int channel) override;
 
@@ -72,6 +74,8 @@ public:
     bool anyInletArmed() const override;
     void setTrackInput(const std::string& name, int input) override;
     int trackInput(const std::string& name) const override;
+    void setTrackChannel(const std::string& name, int channel) override;
+    int trackChannel(const std::string& name) const override;
     unsigned inputActivity(const std::string& name) const override;
     bool loopTakeOpen(const std::string& name) const override;
     void clearLoop(const std::string& name) override;
@@ -91,6 +95,8 @@ private:
     };
     NoteRecorder* recorderOf(const std::string& name);
     int rollClip(const std::string& name);
+    int rollBank(const std::string& name);
+    void armRoll(const std::string& name);
     std::vector<NoteEvent> rollNotes(const std::string& name);
     void writeRoll(const std::string& name, const std::vector<NoteEvent>& notes, int durationTicks);
     int recordQuantize(const std::string& name);

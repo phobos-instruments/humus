@@ -6,6 +6,7 @@
 #include "io/XmlText.h"
 
 #include <algorithm>
+#include <cmath>
 
 namespace hum {
 
@@ -145,6 +146,15 @@ void parseModulationSources(xml::Element& mod, OrganismModel& c) {
                 break;
             }
         if (lane.kind == "double" && ac->intAttribute("hold", 0) != 0) lane.kind = "step";
+        if (auto* rv = ac->child("release-timepoints"))
+            for (const auto& tok : xmltext::tokens(rv->allSubText(), " \t\n\r")) {
+                const double beat = xml::doubleValue(tok);
+                for (auto& p : lane.points)
+                    if (!p.release && std::abs(p.beat - beat) < 1e-6) {
+                        p.release = true;
+                        break;
+                    }
+            }
         if (auto* cv = ac->child("curve-timepoints")) {
             const auto toks = xmltext::tokens(cv->allSubText(), " \t\n\r");
             for (size_t k = 0; k < toks.size() && k < lane.points.size(); ++k)

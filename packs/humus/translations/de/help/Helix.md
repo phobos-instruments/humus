@@ -26,9 +26,9 @@ Der Ring jedes Strands zeigt, was dort aufgenommen ist: die eigene Wellenform de
 
 **Level1** Der Pegel des Strands im Hauptmix und an seinem Direktausgang.
 
-**Mute1** M: schaltet den Strand stumm. Er läuft darunter weiter und kommt deshalb phasengleich zurück.
+**Mute1** M: schaltet den Strand stumm. Er läuft darunter weiter und kommt deshalb phasengleich zurück. Alt-Klick auf ein beliebiges M schaltet alle Strands auf einmal stumm oder wieder ein.
 
-**Solo1** S: nur dieser Strand ist zu hören.
+**Solo1** S: nur dieser Strand ist zu hören. Alt-Klick auf ein beliebiges S bringt alle Solos in denselben Zustand, ein Alt-Klick auf ein leuchtendes löscht also alle; Cmd-Klick (Strg-Klick) auf eines lässt nur diesen Strand hören.
 
 **Sync1** Free, Beat, Bar oder Follow: worauf Tastendrücke, Rev und Half einrasten. Follow nutzt die Nahtstelle des spielenden Strands mit der niedrigsten Nummer, sodass sein Loop zum Raster wird; leerst du diesen Strand, übernimmt der nächste spielende. Ein neues Helix startet Strand 1 auf Bar und die Strands 2 bis 4 auf Follow, damit der erste Loop die Länge festlegt, an die sich die anderen koppeln.
 

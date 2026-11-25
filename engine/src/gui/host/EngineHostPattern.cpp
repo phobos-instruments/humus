@@ -22,12 +22,7 @@ void PatternHost::ensure(const std::string& name, int laneCount) {
     PatternChannel ts; ts.type = "time-signatures"; ts.timeSignatures = {{0, 4, 4}};
     p.channels.push_back(ts);
     for (int i = 0; i < laneCount; ++i) p.channels.push_back(PatternChannel{});
-    bool hasProp = false;
-    for (auto& pr : cm->properties) if (pr.name == "Pattern") { hasProp = true; break; }
-    if (!hasProp) {
-        Parameter pr; pr.name = "Pattern"; pr.type = "pattern"; pr.userEdited = true;
-        cm->properties.push_back(pr);
-    }
+    ensurePatternProperty(*cm);
     patternSync_.markPatternEdited();
     patternSync_.syncPattern(name);
 }
@@ -36,7 +31,7 @@ namespace {
 PatternChannel* triggerChannel(Pattern& p, int channel) {
     int idx = 0;
     for (auto& ch : p.channels) {
-        if (ch.type == "time-signatures") continue;
+        if (ch.type == "time-signatures" || ch.type == kChanceRowChannel) continue;
         if (idx == channel) return &ch;
         ++idx;
     }
@@ -48,6 +43,17 @@ int rowCountOf(const std::string& classRaw) {
     for (const auto& d : schemaFor(classRaw))
         if (d.name.rfind("Note_", 0) == 0) ++rows;
     return rows;
+}
+
+int banksOf(const std::string& classRaw) {
+    for (const auto& d : schemaFor(classRaw))
+        if (d.name == "Bank") return std::clamp((int) d.max + 1, 1, kPatternBanks);
+    return 1;
+}
+
+std::vector<ArpStep> stepsOfBank(const Pattern& p, int bank) {
+    if (auto* ch = matrixChannel(p, "trigger-tie-matrix", bank)) return decodeArp(ch->matrix);
+    return {};
 }
 }
 
@@ -237,22 +243,21 @@ void PatternHost::ensureMatrix(const std::string& name, const std::string& type,
             ch.matrix = encodeBassline(std::vector<BasslineStep>((size_t) steps));
             p.channels.push_back(ch);
         }
-    } else if (!matrixChannelMut(p, type)) {
-        PatternChannel ch; ch.type = type;
-        std::vector<ArpStep> st((size_t) steps);
-        for (size_t i = 0; !seed.empty() && i < st.size(); ++i) {
-            const char c = seed[i % seed.size()];
-            st[i].trigger = c == '1' || c == 'x';
+    } else {
+        const int banks = type == "trigger-tie-matrix" ? banksOf(cm->classRaw) : 1;
+        while (matrixChannelCount(p, type) < banks) {
+            const bool first = matrixChannelCount(p, type) == 0;
+            PatternChannel ch; ch.type = type;
+            std::vector<ArpStep> st((size_t) steps);
+            for (size_t i = 0; first && !seed.empty() && i < st.size(); ++i) {
+                const char c = seed[i % seed.size()];
+                st[i].trigger = c == '1' || c == 'x';
+            }
+            ch.matrix = encodeArp(st);
+            p.channels.push_back(ch);
         }
-        ch.matrix = encodeArp(st);
-        p.channels.push_back(ch);
     }
-    bool hasProp = false;
-    for (auto& pr : cm->properties) if (pr.name == "Pattern") { hasProp = true; break; }
-    if (!hasProp) {
-        Parameter pr; pr.name = "Pattern"; pr.type = "pattern"; pr.userEdited = true;
-        cm->properties.push_back(pr);
-    }
+    ensurePatternProperty(*cm);
     patternSync_.markPatternEdited();
     patternSync_.syncPattern(name);
 }
@@ -294,9 +299,7 @@ void PatternHost::setBasslineSteps(const std::string& name, int bank,
 }
 
 std::vector<ArpStep> PatternHost::arpSteps(const std::string& name) const {
-    if (auto* cm = doc_.document().byName(name))
-        if (auto* ch = matrixChannel(cm->pattern, "trigger-tie-matrix"))
-            return decodeArp(ch->matrix);
+    if (auto* cm = doc_.document().byName(name)) return stepsOfBank(cm->pattern, bank(name));
     return {};
 }
 
@@ -304,7 +307,7 @@ void PatternHost::setArpStep(const std::string& name, int index, const ArpStep& 
     patternSync_.recordPatternRevert(name);
     auto* cm = doc_.mutableByName(name);
     if (!cm || index < 0) return;
-    auto* ch = matrixChannelMut(cm->pattern, "trigger-tie-matrix");
+    auto* ch = matrixChannelMut(cm->pattern, "trigger-tie-matrix", bank(name));
     if (!ch) return;
     auto steps = decodeArp(ch->matrix);
     if (index >= (int) steps.size()) steps.resize((size_t) index + 1);
@@ -316,10 +319,9 @@ void PatternHost::setArpStep(const std::string& name, int index, const ArpStep& 
 
 std::vector<bool> PatternHost::arpUps(const std::string& name) const {
     if (auto* cm = doc_.document().byName(name)) {
-        if (auto* ch = matrixChannel(cm->pattern, "octave-row"))
-            return decodeOctaveRow(ch->matrix);
-        if (auto* tt = matrixChannel(cm->pattern, "trigger-tie-matrix"))
-            return std::vector<bool>(decodeArp(tt->matrix).size(), false);
+        const int b = bank(name);
+        if (auto* ch = matrixChannel(cm->pattern, "octave-row", b)) return decodeOctaveRow(ch->matrix);
+        return std::vector<bool>(stepsOfBank(cm->pattern, b).size(), false);
     }
     return {};
 }
@@ -328,15 +330,15 @@ void PatternHost::setArpUp(const std::string& name, int index, bool up) {
     patternSync_.recordPatternRevert(name);
     auto* cm = doc_.mutableByName(name);
     if (!cm || index < 0) return;
-    auto* ch = matrixChannelMut(cm->pattern, "octave-row");
-    if (!ch) {
-        auto* tt = matrixChannelMut(cm->pattern, "trigger-tie-matrix");
-        if (!tt) return;
+    const int b = bank(name);
+    if (!matrixChannel(cm->pattern, "trigger-tie-matrix", b)) return;
+    while (matrixChannelCount(cm->pattern, "octave-row") <= b) {
         PatternChannel oc; oc.type = "octave-row";
-        oc.matrix = encodeOctaveRow(std::vector<bool>(decodeArp(tt->matrix).size(), false));
+        const int row = matrixChannelCount(cm->pattern, "octave-row");
+        oc.matrix = encodeOctaveRow(std::vector<bool>(stepsOfBank(cm->pattern, row).size(), false));
         cm->pattern.channels.push_back(oc);
-        ch = matrixChannelMut(cm->pattern, "octave-row");
     }
+    auto* ch = matrixChannelMut(cm->pattern, "octave-row", b);
     auto ups = decodeOctaveRow(ch->matrix);
     if (index >= (int) ups.size()) ups.resize((size_t) index + 1, false);
     ups[(size_t) index] = up;
@@ -359,12 +361,7 @@ void PatternHost::ensureNote(const std::string& name) {
     }
     PatternChannel notes; notes.type = "note-events";
     p.channels.push_back(std::move(notes));
-    bool hasProp = false;
-    for (auto& pr : cm->properties) if (pr.name == "Pattern") { hasProp = true; break; }
-    if (!hasProp) {
-        Parameter pr; pr.name = "Pattern"; pr.type = "pattern"; pr.userEdited = true;
-        cm->properties.push_back(pr);
-    }
+    ensurePatternProperty(*cm);
     patternSync_.markPatternEdited();
     patternSync_.syncPattern(name);
 }
@@ -381,12 +378,7 @@ void PatternHost::ensureAudio(const std::string& name) {
         PatternChannel ts; ts.type = "time-signatures"; ts.timeSignatures = {{0, 4, 4}};
         p.channels.push_back(ts);
     }
-    bool hasProp = false;
-    for (auto& pr : cm->properties) if (pr.name == "Pattern") { hasProp = true; break; }
-    if (!hasProp) {
-        Parameter pr; pr.name = "Pattern"; pr.type = "pattern"; pr.userEdited = true;
-        cm->properties.push_back(pr);
-    }
+    ensurePatternProperty(*cm);
     patternSync_.markPatternEdited();
 }
 

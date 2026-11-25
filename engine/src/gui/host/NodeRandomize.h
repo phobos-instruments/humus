@@ -43,6 +43,7 @@ inline void rollPattern(BrickHost& host, const std::string& name, std::string_vi
     } else if (kind == roll::kDrumRows) {
         patterns.ensureBanks(name, 8, kPatternBanks);
         for (int row = 0; row < 8; ++row) {
+            if (host.rollLocked(name, rollscope::laneKey(row))) continue;
             patterns.clearChannel(name, row);
             const auto cells = randomTriggerRow(16, 0.10 + r.nextDouble() * 0.35, dice);
             for (int s = 0; s < 16; ++s)

@@ -7,12 +7,17 @@
 
 namespace hum {
 
+struct ToggleClick {
+    bool alt = false;
+    bool command = false;
+};
+
 class ToggleView : public virtual BrickView {
 public:
     virtual void showOn(bool on) = 0;
     virtual bool shownOn() const = 0;
 
-    std::function<void(bool on)> onToggle;
+    std::function<void(bool on, ToggleClick click)> onToggle;
 };
 
 class MomentaryView : public virtual BrickView {

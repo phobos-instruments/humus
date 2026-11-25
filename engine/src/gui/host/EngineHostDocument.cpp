@@ -52,6 +52,28 @@ bool EngineHost::loadFileAs(const std::string& path, const std::string& document
     PatchDocumentModel m;
     std::unique_ptr<xml::Element> raw;
     if (!parsePatchFile(path, m, error, &raw)) return false;
+    adoptDocument(std::move(m), std::move(raw), documentPath);
+    return true;
+}
+
+bool EngineHost::loadDocumentText(const std::string& text, const std::string& documentPath, std::string& error) {
+    PatchDocumentModel m;
+    std::unique_ptr<xml::Element> raw;
+    const auto folder = documentPath.empty() ? std::string() : pathOf(fileAt(documentPath).getParentDirectory());
+    if (!parsePatchTextBeside(text, folder, m, error, &raw)) return false;
+    if (!env_.drivenByDaw) stopAudio();
+    adoptDocument(std::move(m), std::move(raw), documentPath);
+    return true;
+}
+
+std::string EngineHost::documentText() {
+    prepareSnapshot();
+    const auto folder = docPath_.empty() ? std::string() : pathOf(fileAt(docPath_).getParentDirectory());
+    return writePatchTextBeside(model_, folder, original_.get());
+}
+
+void EngineHost::adoptDocument(PatchDocumentModel m, std::unique_ptr<xml::Element> raw,
+                               const std::string& documentPath) {
     discardLiveGraph();
     model_ = std::move(m);
     reconcilePropertyTypes(model_);
@@ -75,7 +97,6 @@ bool EngineHost::loadFileAs(const std::string& path, const std::string& document
     dirty_ = false;
     if (link_ && linkEnabled_.load(std::memory_order_relaxed) && link_->numPeers() == 0)
         link_->proposeTempo(model_.clock.tempo);
-    return true;
 }
 
 void EngineHost::applyLoadedLayout() {
@@ -243,12 +264,16 @@ bool EngineHost::saveFile(const std::string& path, std::string& error) {
     return true;
 }
 
-bool EngineHost::writeSnapshot(const std::string& path, std::string& error) {
+void EngineHost::prepareSnapshot() {
     syncViewsFromPositions();
     midi().syncMapToModel();
     osc().syncMapToModel();
     mod().syncMapToModel();
-    if (!(audioRunning_ && playing_)) syncPluginStateToModel();
+    if (env_.drivenByDaw || !(audioRunning_ && playing_)) syncPluginStateToModel();
+}
+
+bool EngineHost::writeSnapshot(const std::string& path, std::string& error) {
+    prepareSnapshot();
     return writePatchFile(path, model_, error, original_.get());
 }
 

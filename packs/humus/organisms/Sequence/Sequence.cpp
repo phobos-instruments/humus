@@ -61,11 +61,16 @@ void Sequence::process(const float* const*, int, float* const*, int,
         const int note =
             std::clamp((int) row.note.get(params, kGmDefault[(size_t) r]), 0, kMidiMax);
         const int vel = std::clamp((int) std::lround(row.vel.get(params, 0.8) * kMidiMaxD), 1, kMidiMax);
+        const int rowChance = std::clamp((int) std::lround(row.chance.get(params, (double) kFullChance)), 0, kFullChance);
+        static const std::vector<int> kSure;
+        const auto& chances = base + r < (int) chances_.size() ? chances_[(size_t) (base + r)] : kSure;
         for (int p : rows[(size_t) (base + r)]->triggers) {
             const double fireBase = (double) p + swing::delayTicks((double) p, groove);
             double k = std::ceil((tickStart - fireBase) / duration);
             for (double fire = fireBase + k * duration; fire < tickEnd; fire += duration) {
                 if (fire < tickStart) continue;
+                if (!stepPlays(seed_, r, (long) std::floor(fire / stepTicks), chanceAt(chances, p / stepTicks) * rowChance / kFullChance))
+                    continue;
                 const int at = std::clamp((int) std::lround((fire - tickStart) * samplesPerTick),
                                           0, numSamples - 1);
                 emit(r, at, true, note, vel);

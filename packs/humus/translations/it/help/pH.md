@@ -4,6 +4,8 @@ Un sintetizzatore FM con quattro motori: un motore a sei operatori che legge i b
 
 È il banco a decidere il motore. Un .syx contiene voci a sei operatori; un .wopn, .tfi o .dmp contiene strumenti OPN2 per il core [Nuked-OPN2](https://github.com/nukeykt/Nuked-OPN2); un .opm contiene voci OPM per [Nuked-OPM](https://github.com/nukeykt/Nuked-OPM); un .wopl contiene strumenti OPL3 per [Nuked-OPL3](https://github.com/nukeykt/Nuked-OPL3). Caricane uno e lo suona il motore giusto: otto voci sul motore a sei operatori, sei canali sull'OPN2, otto sull'OPM e diciotto sull'OPL3. Il pitch arriva dal Tuning della patch, così una scala microtonale suona anche sulle voci dei chip. Una patch nomina il suo banco invece di contenerlo, quindi condividi il banco insieme alla patch. Collegaci un PianoRoll, un DNA o un MidiIn.
 
+I banchi dell'M-VAVE FM-1 si caricano così come sono: le sue voci sono voci DX7 a sei operatori, quindi i banchi di fabbrica che la community ha recuperato come dump .syx suonano in pH con ogni voce e il suo nome. Alcuni firmware personalizzati per l'FM-1 mantengono o aggiungono lo stesso motore e i suoi banchi. Humus non installa firmware sull'FM-1 e non dialoga con il suo firmware; per suonare lo strumento vero e proprio, collegagli un MidiOut come a qualsiasi synth MIDI.
+
 ## Parametri
 
 **Patch** Quale voce del banco suona, per nome. Quando scegli un banco si riparte dalla sua prima voce.

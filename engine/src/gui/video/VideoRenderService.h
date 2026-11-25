@@ -62,7 +62,10 @@ public:
 
     void tick() {
         std::vector<VisualPlanBuilder::Want> wants;
-        for (const auto& n : VideoPreviewStore::instance().wantedNodes()) {
+        const auto scope = host_.videoScope();
+        for (const auto& key : VideoPreviewStore::instance().wantedNodes()) {
+            if (key.rfind(scope, 0) != 0) continue;
+            const auto n = key.substr(scope.size());
             if (suppressed_ && suppressed_(n)) continue;
             if (!previewable(host_, n)) continue;
             const auto shape = previewShape(n);
@@ -71,7 +74,8 @@ public:
         for (const auto& [node, e] : extra_)
             wants.push_back({node, true, e.w, e.h, false});
         for (const auto& e : VideoTakeStore::instance().entries())
-            wants.push_back({e.node, true, e.w, e.h, false, e.sink});
+            if (e.node.rfind(scope, 0) == 0)
+                wants.push_back({e.node.substr(scope.size()), true, e.w, e.h, false, e.sink});
         lastTapCount_ = (int) wants.size();
         if (wants.empty()) {
             stage_.reset();
@@ -85,6 +89,7 @@ public:
         if (stage_ == nullptr || stage_->canvas.getWidth() != w
             || stage_->canvas.getHeight() != h)
             stage_ = std::make_unique<Stage>(w, h);
+        stage_->canvas.setStoreScope(scope);
         last_ = builder_.buildAll(wants);
         noteSourceShapes();
         stage_->canvas.setPlan(last_);

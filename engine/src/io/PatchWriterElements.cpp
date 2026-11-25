@@ -100,11 +100,12 @@ void writePresets(xml::Element& presets, const OrganismModel& c) {
         pe->setAttribute("number", pr.number);
         pe->setAttribute("name", pr.name);
         for (const auto& p : pr.properties) writeProperty(*pe, p);
+        if (pr.pattern.present) writePattern(*pe, pr.pattern);
     }
 }
 
 namespace {
-void writeAutomationLane(xml::Element& mod, const AutomationLane& lane) {
+void writeAutomationLane(xml::Element& mod, const AutomationLane& lane, double faceplate) {
     auto* ps = mod.addChild("property-sources");
     ps->setAttribute("property-name", lane.propertyName);
     ps->setAttribute("property-index", lane.propertyIndex);
@@ -122,9 +123,13 @@ void writeAutomationLane(xml::Element& mod, const AutomationLane& lane) {
         else if (lane.kind == "trigger")
             text += xmltext::plainNumber(p.beat) + "\n";
         else
-            text += xmltext::plainNumber(p.beat) + "\t" + xmltext::plainNumber(p.value) + "\n";
+            text += xmltext::plainNumber(p.beat) + "\t" + xmltext::plainNumber(p.release ? faceplate : p.value) + "\n";
     }
     ac->addChild(tag)->addText(text);
+    std::string releases;
+    for (const auto& p : lane.points)
+        if (p.release) releases += xmltext::plainNumber(p.beat) + "\n";
+    if (!releases.empty()) ac->addChild("release-timepoints")->addText(releases);
     bool anyCurve = false;
     for (const auto& p : lane.points) anyCurve = anyCurve || p.curve != 0.0;
     if (anyCurve) {
@@ -136,7 +141,12 @@ void writeAutomationLane(xml::Element& mod, const AutomationLane& lane) {
 }
 
 void writeAutomationLanes(xml::Element& mod, const OrganismModel& c) {
-    for (const auto& lane : c.automation) writeAutomationLane(mod, lane);
+    for (const auto& lane : c.automation) {
+        double faceplate = 0.0;
+        for (const auto& p : c.properties)
+            if (p.name == lane.propertyName) faceplate = p.value;
+        writeAutomationLane(mod, lane, faceplate);
+    }
 }
 
 void writeMidiSources(xml::Element& mod, const OrganismModel& c) {
@@ -213,6 +223,7 @@ void writeAutomationView(xml::Element& e, const AutomationView& v) {
 std::string pluginStateTag(const std::string& kind) {
     if (kind == "vst3") return "vst3-class-info";
     if (kind == "lv2") return "lv2-class-info";
+    if (kind == "clap") return "clap-state";
     if (kind == "au") return "au-state";
     return {};
 }
@@ -259,11 +270,12 @@ void writeOrganism(xml::Element& ce, const OrganismModel& c) {
 }
 
 void writeTrackInput(xml::Element& ce, const OrganismModel& c) {
-    if (c.trackInput == OrganismModel::kTrackInputAuto) return;
+    if (c.trackInput == OrganismModel::kTrackInputAuto && c.trackInputChannel == 0) return;
     auto* ti = ce.addChild("track-input");
     if (c.trackInput == OrganismModel::kTrackInputAll) ti->setAttribute("port", "all");
     else if (c.trackInput == OrganismModel::kTrackInputNone) ti->setAttribute("port", "none");
-    else ti->setAttribute("port", c.trackInput + 1);
+    else if (c.trackInput >= 0) ti->setAttribute("port", c.trackInput + 1);
+    if (c.trackInputChannel != 0) ti->setAttribute("channel", c.trackInputChannel);
 }
 
 void writeTimelineRow(xml::Element& ce, const OrganismModel& c) {

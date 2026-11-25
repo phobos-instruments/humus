@@ -109,6 +109,7 @@ void MathNode::process(const float* const* in, int numIn, float* const* out, int
     env.dt = (float) (1.0 / sampleRate_);
     env.v[fvBpm] = (float) transport.tempo();
     env.v[fvSr] = (float) sampleRate_;
+    env.v[fvRate] = 1.0f;
     for (int k = 0; k < FormulaInlets::kMax; ++k)
         env.v[fvIn0 + k] = inletValues_[(size_t) k].load(std::memory_order_relaxed);
 
@@ -140,6 +141,7 @@ void MathNode::process(const float* const* in, int numIn, float* const* out, int
         env.v[fvW] = knobs_[3];
         env.v[fvT] = (float) t;
         env.v[fvBeat] = (float) beats;
+        env.v[fvPhase] = (float) phase_;
         if (autoPlay && !keyed) {
             env.v[fvFreq] = knobs_[4];
             env.v[fvNote] = (float) transport.tuning().midiNote(knobs_[4]);
@@ -169,6 +171,8 @@ void MathNode::process(const float* const* in, int numIn, float* const* out, int
         last = o;
         t += dt;
         beats += beatsPerSample;
+        phase_ += (double) env.v[fvFreq] * dt;
+        phase_ -= std::floor(phase_);
     }
     stagedCount_ = 0;
     t_ = t; beat_ = beats;

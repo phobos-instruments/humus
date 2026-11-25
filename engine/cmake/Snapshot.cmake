@@ -32,6 +32,9 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksSampler.cpp
     src/gui/snapshot/ChecksRack.cpp
     src/gui/snapshot/ChecksBoxBench.cpp
+    src/gui/snapshot/ChecksSettingsBench.cpp
+    src/gui/snapshot/ChecksOrganismTree.cpp
+    src/gui/snapshot/ChecksBlockLane.cpp
     src/gui/snapshot/ChecksEdit.cpp
     src/gui/snapshot/ChecksSaves.cpp
     src/gui/snapshot/ChecksParamEdit.cpp
@@ -47,6 +50,11 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksGraphBench.cpp
     src/gui/snapshot/ChecksAudioStress.cpp
     src/gui/snapshot/ChecksCordGrab.cpp
+    src/gui/snapshot/ChecksCordSelect.cpp
+    src/gui/snapshot/ChecksDropBadge.cpp
+    src/gui/snapshot/ChecksAutosave.cpp
+    src/gui/snapshot/ChecksBrowserTrash.cpp
+    src/gui/snapshot/ChecksLfoFunction.cpp
     src/gui/snapshot/AllocationTally.cpp
     src/gui/snapshot/ChecksText.cpp
     src/gui/snapshot/ChecksRebuild.cpp
@@ -73,6 +81,10 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksTheme.cpp
     src/gui/snapshot/ChecksGenie.cpp
     src/gui/snapshot/ChecksCanvas.cpp
+    src/gui/snapshot/ChecksArrange.cpp
+    src/gui/snapshot/ChecksNoteBox.cpp
+    src/gui/snapshot/ChecksRollBank.cpp
+    src/gui/snapshot/CanvasRenders.cpp
     src/gui/snapshot/ChecksClipModifiers.cpp
     src/gui/snapshot/ChecksTapeLabel.cpp
     src/gui/snapshot/ChecksPortSpots.cpp
@@ -104,9 +116,9 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     src/gui/snapshot/ChecksAsioGuard.cpp
     src/gui/snapshot/ExportPose.cpp
     src/gui/snapshot/DiagProbes.cpp
+    src/gui/snapshot/DiagClap.cpp
     src/gui/snapshot/DiagPlugins.cpp
     src/gui/snapshot/DiagEmbed.cpp
-    ${HUM_GUI_SOURCES}
   )
   target_include_directories(hum_snapshot PRIVATE src ${HUM_GENERATED_DIR}
                              ../packs/humus/organisms tests)
@@ -114,6 +126,7 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
   # First, so every JUCE module is taken from the modal archive (cmake/JuceShared.cmake).
   target_link_libraries(hum_snapshot PRIVATE
     hum_juce_modal
+    hum_shell
     hum_host
     hum_core
     hum_assets
@@ -126,16 +139,6 @@ if(HUM_GUI AND HUM_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/gui/snapshot
     foreach(addon ${HUM_ADDON_PACKS})
       add_dependencies(hum_snapshot humpack_${addon})
     endforeach()
-  endif()
-
-  if(UNIX AND NOT APPLE)
-    find_package(X11 COMPONENTS Xcomposite Xext)
-    if(X11_FOUND AND X11_Xcomposite_FOUND)
-      foreach(tgt hum_gui hum_snapshot)
-        target_link_libraries(${tgt} PRIVATE X11::X11 X11::Xcomposite X11::Xext)
-        target_compile_definitions(${tgt} PRIVATE HUM_X11_MIRROR=1)
-      endforeach()
-    endif()
   endif()
 
   # runDispatchLoopUntil() for the organism exporter: runDispatchLoop() cannot

@@ -22,7 +22,7 @@ Legge partiture .mid e .midi, file karaoke .kar e .mus, il formato di partitura 
 
 **Program1** Lo strumento che suona il canale 1. 0 suona quello che chiede il file; qualsiasi altro valore lo sostituisce per quel canale. Lo stesso vale da Program2 a Program16. Il canale 10 è quello della batteria e resta batteria.
 
-**Mute1** Silenzia il canale 1, sia sulle uscite audio sia sull'uscita MIDI, e così via da Mute2 a Mute16. Un canale su cui il file caricato non suona mai diventa sbiadito e smette di rispondere, così quello che resta illuminato è ciò che il file contiene davvero.
+**Mute1** Silenzia il canale 1, sia sulle uscite audio sia sull'uscita MIDI, e così via da Mute2 a Mute16. Un canale su cui il file caricato non suona mai diventa sbiadito e smette di rispondere, così quello che resta illuminato è ciò che il file contiene davvero. Alt-clic su un Mute qualsiasi mette o toglie il mute a tutti i canali insieme.
 
 ## Ricetta
 

@@ -16,13 +16,15 @@ public:
     int numAudioInputs() const override { return ch_; }
     int numAudioOutputs() const override { return ch_; }
     void prepare(double sampleRate, int) override { sampleRate_ = sampleRate; reset(); }
-    void reset() override { core_.reset(); }
+    void reset() override { core_.reset(); mixPrimed_ = false; }
     void process(const float* const* in, int numIn, float* const* out, int numOut,
                  int numSamples, const Transport&) override;
 private:
     int ch_;
     CompressorCore core_;
     std::atomic<float> gr_{0.0f};
+    double mix_ = 1.0;
+    bool mixPrimed_ = false;
 };
 
 class Limiter : public Organism, public GainReductionSource {

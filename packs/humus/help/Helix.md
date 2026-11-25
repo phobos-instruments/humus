@@ -26,9 +26,9 @@ The ring on each strand draws what is recorded there: the loop's own waveform, b
 
 **Level1** The strand's level in the main mix and on its direct out.
 
-**Mute1** M: silences the strand. It keeps running underneath, so it comes back in phase.
+**Mute1** M: silences the strand. It keeps running underneath, so it comes back in phase. Alt-click any M to mute or unmute every strand at once.
 
-**Solo1** S: hears this strand alone.
+**Solo1** S: hears this strand alone. Alt-click any S to set every solo the same way, so Alt-clicking a lit one clears them all; Cmd-click (Ctrl-click) one to hear only that strand.
 
 **Sync1** Free, Beat, Bar or Follow: what presses, Rev and Half snap to. Follow uses the seam of the lowest-numbered strand that is playing, so its loop becomes the grid; clear that strand and the next playing one takes over. A new Helix starts strand 1 on Bar and strands 2 to 4 on Follow, so the first loop sets the length the others lock to.
 

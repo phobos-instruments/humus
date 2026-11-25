@@ -1,7 +1,7 @@
 add_executable(hum src/app/main.cpp)
 target_include_directories(hum PRIVATE ${HUM_GENERATED_DIR})
 add_dependencies(hum hum_build_id)
-target_link_libraries(hum PRIVATE hum_core)
+target_link_libraries(hum PRIVATE hum_core hum_clap_juce hum_media)
 # The add-on list is generated so no source file names a pack.
 set(HUM_ADDON_DECLS "")
 set(HUM_ADDON_CALLS "")

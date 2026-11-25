@@ -34,6 +34,9 @@ struct OrganismClassManifest {
     std::vector<std::string> roles;
     std::string roll;
     int fixedTailOutlets = 0;
+    bool presetKeepsPattern = false;
+    std::string bankSelect;
+    std::vector<std::string> bankedPrefixes;
 };
 
 struct OrganismManifest {

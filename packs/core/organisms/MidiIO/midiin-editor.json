@@ -3,6 +3,8 @@
   "height": 124,
   "controls": [
     { "type": "combo", "param": "Port", "label": "Port", "source": "midi-in-ports", "x": 26, "y": 6, "w": 300, "h": 22 },
+    { "type": "combo", "param": "Channel", "label": "Channel", "x": 344, "y": 6, "w": 230, "h": 22,
+      "options": ["All", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"] },
     { "type": "midi-keyboard", "x": 26, "y": 34, "w": 548, "h": 84 }
   ]
 }

@@ -30,9 +30,13 @@ Il mesure l'entrée, décide d'un gain et l'applique : les moments forts sont ba
 
 **SyncMultiplier** Combien de ces unités font un relâchement.
 
+**Mix** La part de son compressé que tu entends face à l'entrée intacte. 1, c'est tout compressé, 0, c'est l'entrée telle qu'elle arrive, et tout ce qui est entre les deux est de la compression parallèle : la copie écrasée épaissit le son pendant que la copie sèche garde ses attaques.
+
 ## Recette
 
 **Cohésion du bus batterie** Threshold 0.4, CompressionRatio 3, KneeWidth 8, AttackTime 20, HoldTime 0, Sync activé avec SyncUnit 1/8. Branche la somme batterie d'un Mixer, active AutoMakeupGain pendant que tu règles le seuil, puis désactive-le une fois le niveau là où tu le veux.
+
+**Batterie en parallèle** Threshold 0.1, CompressionRatio 10, AttackTime 1, ReleaseTime 80, monte MakeupGain jusqu'à ce que le son écrasé soit aussi fort que le son sec, puis descends Mix vers 0.4. Les attaques gardent leur mordant et la pièce et les queues remontent en dessous.
 
 ## Organisms associés
 

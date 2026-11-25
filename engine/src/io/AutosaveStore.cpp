@@ -13,6 +13,7 @@ namespace hum {
 AutosaveStore::AutosaveStore(juce::File dir, int pid) : dir_(std::move(dir)), pid_(pid) {}
 
 juce::File AutosaveStore::defaultDir() {
+    if (const auto& t = userRootForTesting(); t != juce::File()) return t.getChildFile("autosave");
     return appDataDir().getChildFile("autosave");
 }
 

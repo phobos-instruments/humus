@@ -8,6 +8,8 @@ Jeder Schritt trägt eine Note, ein Gate, einen Akzent und einen Slide, die Patt
 
 Zieh in der Notenspur, um die Tonhöhe eines Schritts zu setzen, das schaltet auch sein Gate; klick mit rechts auf einen Schritt, um daraus eine Pause zu machen. Die Reihen A und S schalten Akzent und Slide. Ein Slide in dieselbe Note bindet sie, statt sie neu anzuschlagen. Ein Rechtsklick auf die Reihen A oder S bietet Zufall, Löschen, Verschieben, Riffs laden und das Kopieren in eine andere Bank. Riffs laden öffnet einen Browser über deinem Bibliotheksordner Riffs, mit den zuvor geladenen unter Zuletzt verwendet und Datei öffnen für alles andere. Das gewählte Riff oder eine aufs Raster gezogene Datei liest MIDI-Dateien und Pattern-Dumps von Acid-Boxen in die angezeigte Bank und die folgenden ein.
 
+**Schritt-Wahrscheinlichkeit** Klicke auf die %-Taste oben rechts am Raster, um die Wahrscheinlichkeit jedes Schritts als Balken zu sehen, und ziehe dann auf einem Schritt nach oben oder unten, um festzulegen, wie oft er spielt, von nie bis immer in 5-%-Schritten. Cmd-Ziehen (Strg-Ziehen unter Windows und Linux) macht dasselbe, ohne umzuschalten. Die %-Taste ist der Schalter View, also schaltet ihn auch ein zugewiesener Knopf oder ein Pad. Die Wahrscheinlichkeit jedes Schritts ist auch ein Parameter, Chance_1 bis Chance_16, sodass sich Fader darauf legen lassen. Rechtsklicke in der Chance-Ansicht einen Schritt, um ihn zuzuweisen. Ein Schritt unter 100 % erscheint blasser und zeigt seine Wahrscheinlichkeit über sich, und Nudge verschiebt die Wahrscheinlichkeiten mit den Schritten. Die Würfel gehören der Box: Ein Patch spielt bei jedem Abspielen und jedem Bounce dieselben Schritte, und zwei Boxen würfeln jeweils ihre eigenen. Jede Bank behält ihre Wahrscheinlichkeiten, In Bank kopieren nimmt sie mit und Löschen setzt sie wieder auf sicher.
+
 ## Parameter
 
 **Transpose** Verschiebt das ganze Pattern in Halbtönen.
@@ -21,6 +23,10 @@ Zieh in der Notenspur, um die Tonhöhe eines Schritts zu setzen, das schaltet au
 **Velocity** Velocity der normalen Noten ohne Akzent.
 
 **Bank** Welches der acht Patterns spielt, A bis H.
+
+**View** Steps oder Chance: was das Raster zeigt und bearbeitet. Die %-Taste schaltet es um.
+
+**Chance_1 bis Chance_16** Wie oft jeder Schritt spielt, von 0 bis 100 %. Jede Bank behält ihre eigenen.
 
 **Nudge** Spielt das Riff um so viele Schritte später, oder unter null früher, und springt dabei vom Ende wieder an den Anfang. Das Pattern selbst bleibt, wie es geschrieben ist; so verschiebst du, wo eine Linie gegenüber dem Kick landet, ohne sie neu zu zeichnen.
 

@@ -39,11 +39,12 @@ add_library(hum_core STATIC
   src/io/PatchDocument.cpp
   src/io/PatchFiles.cpp
   src/io/PatchDocumentPattern.cpp
+  src/io/PatternText.cpp
+  src/io/NewOrganism.cpp
   src/io/PatchWriter.cpp
   src/io/PatchWriterElements.cpp
   src/io/PatchLoader.cpp
   src/io/SignalFile.cpp
-  src/io/FfmpegAudioFormat.cpp
   src/io/WavWriter.cpp
   src/io/Mp3Writer.cpp
   src/io/AutosaveStore.cpp
@@ -55,8 +56,8 @@ target_include_directories(hum_core PUBLIC src)
 target_compile_definitions(hum_core PUBLIC
   HUM_PACKS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../packs")
 target_link_libraries(hum_core PUBLIC
-  hum_ffmpeg
   hum_models
+  hum_clap
   monocypher
   mp3lame
   ableton_link
@@ -66,8 +67,5 @@ target_link_libraries(hum_core PUBLIC
   hum_pack_av
 )
 if(APPLE)
-  target_link_libraries(hum_core PUBLIC
-  hum_ffmpeg "-framework CoreAudioKit")
-  target_link_libraries(hum_core PUBLIC
-  hum_ffmpeg "-framework GameController")
+  target_link_libraries(hum_core PUBLIC "-framework CoreAudioKit" "-framework GameController")
 endif()

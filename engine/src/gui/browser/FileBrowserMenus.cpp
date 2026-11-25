@@ -7,6 +7,7 @@
 
 #include "core/app/AppPaths.h"
 #include "core/browser/FolderScan.h"
+#include "core/library/ExamplesTree.h"
 #include "core/library/UserLibrary.h"
 #include "gui/browser/LibraryActions.h"
 #include "core/packs/Catalogue.h"
@@ -29,6 +30,8 @@ enum MenuId {
     kImport,
     kRemoveFromLibrary,
     kRemoveFromRecent,
+    kPin,
+    kUnpin,
     kRateBase = 100,
     kCollectionBase = 200,
 };
@@ -79,17 +82,18 @@ void FileBrowserView::showRowMenu(int row, juce::Point<int> at) {
     menu.addSeparator();
     const auto root = model_.roots().library;
     const bool canImport = std::any_of(paths.begin(), paths.end(), [&](const std::string& p) { return importable(p, root); });
-    const bool inLibrary = std::any_of(paths.begin(), paths.end(), [&](const std::string& p) { return isUnder(p, root); });
     menu.addItem(kImport, tr("browser.import", "Import to Library"), canImport);
-    menu.addItem(kRemoveFromLibrary, tr("browser.remove-from-library", "Remove from Library..."), inLibrary);
+    menu.addItem(kRemoveFromLibrary, tr("browser.move-to-trash-dots", "Move to Trash..."), !trashable(paths, trashGuard()).empty());
     if (model_.place().type == Place::Type::Recent)
         menu.addItem(kRemoveFromRecent, tr("browser.remove-from-recent", "Remove from Recent"));
     menu.addSeparator();
+    if (paths.size() == 1 && entry->kind == Kind::Folder) menu.addItem(kPin, tr("browser.pin", "Pin to Sidebar"));
     menu.addItem(kReveal, paint::revealLabel(), paths.size() == 1);
     menu.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({at.x, at.y, 1, 1}),
                        [this, paths, collections, entry = *entry](int r) {
         const auto now = index_.now();
         if (r == kReveal) fileAt(paths.front()).revealToUser();
+        else if (r == kPin) pinFolders(paths);
         else if (r == kFavourite)
             index_.edit([&](FileIndex& i) { for (const auto& p : paths) i.setFavourite(p, !entry.favourite, now); });
         else if (r >= kRateBase && r <= kRateBase + kMaxRating)
@@ -108,7 +112,7 @@ void FileBrowserView::showRowMenu(int row, juce::Point<int> at) {
         } else if (r == kImport) {
             importToLibrary(paths, model_.roots().library, index_);
         } else if (r == kRemoveFromLibrary) {
-            confirmRemove(paths);
+            confirmTrash(paths);
         } else if (r == kRemoveFromRecent) {
             index_.edit([&](FileIndex& i) { for (const auto& p : paths) i.forgetUse(p); });
             if (onForgetRecent) for (const auto& p : paths) onForgetRecent(p);
@@ -132,12 +136,14 @@ void FileBrowserView::showPlaceMenu(const Place& place, juce::Point<int> at) {
         menu.addItem(kReveal, paint::revealLabel());
         if (place.type == Place::Type::Shelf)
             menu.addItem(kMoveLibrary, tr("browser.move-library", "Move Library Folder..."));
+        if (pinned(place.path)) menu.addItem(kUnpin, tr("browser.unpin", "Remove from Sidebar"));
     } else {
         return;
     }
     menu.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({at.x, at.y, 1, 1}), [this, place](int r) {
         if (r == kReveal) fileAt(place.path).revealToUser();
         else if (r == kMoveLibrary) moveLibrary();
+        else if (r == kUnpin) index_.edit([&](FileIndex& i) { i.unpin(place.path); });
         else if (r == kStopWatching) {
             index_.edit([&](FileIndex& i) { i.unwatch(place.path); });
             index_.pruneOutsidePlaces();
@@ -188,19 +194,41 @@ void FileBrowserView::addWatchedFolder() {
     });
 }
 
-void FileBrowserView::confirmRemove(const std::vector<std::string>& paths) {
-    const auto root = model_.roots().library;
-    const int n = (int) std::count_if(paths.begin(), paths.end(), [&](const std::string& p) { return isUnder(p, root); });
-    if (n == 0) return;
-    const auto question = trn("browser.remove", "Move this file from the Library to the Trash?",
-                              "Move these {n} files from the Library to the Trash?", n);
-    juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::QuestionIcon, tr("browser.remove-from-library-title", "Remove from Library"),
+void FileBrowserView::confirmTrash(const std::vector<std::string>& paths) {
+    const auto going = trashable(paths, trashGuard());
+    if (going.empty()) return;
+    const auto name = juce::String::fromUTF8(fileName(going.front()).c_str());
+    const auto question = going.size() > 1
+        ? trn("browser.trash-many", "Move {n} item to the Trash?", "Move these {n} items to the Trash?", (long long) going.size())
+        : fileAt(going.front()).isDirectory()
+            ? tr("browser.trash-folder", "Move \"{name}\" and everything in it to the Trash?", {{"name", name}})
+            : tr("browser.trash-one", "Move \"{name}\" to the Trash?", {{"name", name}});
+    trashQuestion_ = question;
+    juce::AlertWindow::showOkCancelBox(juce::MessageBoxIconType::WarningIcon, tr("browser.move-to-trash", "Move to Trash"),
                                        question, tr("browser.move-to-trash", "Move to Trash"), tr("browser.cancel", "Cancel"), this,
-                                       juce::ModalCallbackFunction::create([safe = juce::Component::SafePointer<FileBrowserView>(this), paths](int ok) {
+                                       juce::ModalCallbackFunction::create([safe = juce::Component::SafePointer<FileBrowserView>(this), going](int ok) {
         if (ok == 0 || safe == nullptr) return;
-        removeFromLibrary(paths, safe->model_.roots().library, safe->index_);
+        for (const auto& path : moveToTrash(going, safe->trashGuard(), safe->index_, safe->discard_))
+            if (safe->onForgetRecent) safe->onForgetRecent(path);
         safe->refreshNow();
     }));
+}
+
+TrashGuard FileBrowserView::trashGuard() const {
+    const auto& roots = model_.roots();
+    TrashGuard guard;
+    guard.libraryRoot = roots.library;
+    guard.places = {roots.library, roots.patches, roots.recordings, roots.presets, roots.home};
+    for (const auto& folder : roots.computer) guard.places.push_back(folder.path);
+    index_.read([&](const FileIndex& i) {
+        guard.places.insert(guard.places.end(), i.watched().begin(), i.watched().end());
+        guard.places.insert(guard.places.end(), i.pinned().begin(), i.pinned().end());
+        return 0;
+    });
+    for (const auto& root : examples::roots()) guard.shipped.push_back(pathOf(root));
+    guard.shipped.push_back(pathOf(juce::File::getSpecialLocation(juce::File::currentApplicationFile)));
+    guard.openDocument = openDocument ? openDocument() : std::string();
+    return guard;
 }
 
 void FileBrowserView::tagSelection() {

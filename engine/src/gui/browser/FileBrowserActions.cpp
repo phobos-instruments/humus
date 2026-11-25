@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/browser/FileBrowserView.h"
 
+#include <algorithm>
 #include <string>
 #include <vector>
 
@@ -24,10 +25,15 @@ bool FileBrowserView::keyPressed(const juce::KeyPress& key) {
         return true;
     }
     if (key == juce::KeyPress::spaceKey && audition_ != nullptr) {
-        if (const auto* sound = focusedSound()) {
+        if (const auto* sound = focusedPreview()) {
             if (audition_->current() == sound->path) audition_->toggle();
             else audition_->play(sound->path, sound->facts.bpm);
         }
+        return true;
+    }
+    if (key == juce::KeyPress(juce::KeyPress::backspaceKey, juce::ModifierKeys::commandModifier, 0)
+        || key == juce::KeyPress::deleteKey) {
+        confirmTrash(model_.selection());
         return true;
     }
     const bool up = key == juce::KeyPress::backspaceKey
@@ -129,6 +135,23 @@ void FileBrowserView::filesDropped(const juce::StringArray& files, int, int) {
         table_.refresh();
         table_.scrollToSelection();
     }
+}
+
+void FileBrowserView::pinFolders(const std::vector<std::string>& folders) {
+    const auto& computer = model_.roots().computer;
+    index_.edit([&](FileIndex& i) {
+        for (const auto& dir : folders)
+            if (std::none_of(computer.begin(), computer.end(), [&](const NamedFolder& f) { return f.path == dir; }))
+                i.pin(dir);
+    });
+    refreshNow();
+}
+
+bool FileBrowserView::pinned(const std::string& dir) const {
+    return index_.read([&](const FileIndex& i) {
+        const auto& pins = i.pinned();
+        return std::find(pins.begin(), pins.end(), dir) != pins.end();
+    });
 }
 
 void FileBrowserView::dragOut(const juce::StringArray& paths) {

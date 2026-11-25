@@ -31,13 +31,17 @@ public:
     const juce::StringArray& hiddenDrivers() const { return verdicts_.unsafe; }
 
 private:
-    void audioDeviceListChanged() override { callDeviceChangeListeners(); }
+    void audioDeviceListChanged() override {
+        refusedThisRun_.clear();
+        callDeviceChangeListeners();
+    }
     juce::StringArray allDrivers() const;
 
     std::unique_ptr<juce::AudioIODeviceType> inner_;
     Probe probe_;
     Verdicts verdicts_;
     juce::StringArray trusted_;
+    juce::StringArray refusedThisRun_;
 };
 
 bool isGenericDriver(const juce::String& name);

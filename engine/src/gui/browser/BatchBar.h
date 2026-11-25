@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <functional>
 
 #include <juce_gui_basics/juce_gui_basics.h>
@@ -15,10 +16,12 @@ public:
     static constexpr int kHeight = 36, kPad = 10, kStarsX = 120;
 
     std::function<void(int stars)> onRate;
-    std::function<void()> onTag, onCollect, onClear;
+    static constexpr int kTagW = 70, kCollectW = 140, kClearW = 64, kTrashW = 120, kGap = 6, kTrashGap = 16, kStarsGap = 8;
+
+    std::function<void()> onTag, onCollect, onClear, onTrash;
 
     BatchBar() {
-        for (auto* b : {&tag_, &collect_, &clear_}) addAndMakeVisible(*b);
+        for (auto* b : {&tag_, &collect_, &clear_, &trash_}) addAndMakeVisible(*b);
         restyle();
         tag_.setButtonText(tr("browser.batch-tag", "Tag..."));
         collect_.setButtonText(tr("browser.add-to-collection", "Add to Collection"));
@@ -26,13 +29,19 @@ public:
         tag_.onClick = [this] { if (onTag) onTag(); };
         collect_.onClick = [this] { if (onCollect) onCollect(); };
         clear_.onClick = [this] { if (onClear) onClear(); };
+        trash_.setButtonText(tr("browser.move-to-trash", "Move to Trash"));
+        trash_.onClick = [this] { if (onTrash) onTrash(); };
     }
+
+    void setTrashable(bool can) { trash_.setEnabled(can); }
+    juce::TextButton& trashButton() { return trash_; }
 
     void restyle() {
         for (auto* b : {&tag_, &collect_, &clear_}) {
             b->setColour(juce::TextButton::buttonColourId, Palette::panel);
             b->setColour(juce::TextButton::textColourOffId, Palette::text);
         }
+        paint::styleDanger(trash_);
         repaint();
     }
     void lookAndFeelChanged() override { restyle(); }
@@ -56,11 +65,16 @@ public:
 
     void resized() override {
         auto r = getLocalBounds().reduced(kPad, 6);
-        clear_.setBounds(r.removeFromRight(64));
-        r.removeFromRight(6);
-        collect_.setBounds(r.removeFromRight(140));
-        r.removeFromRight(6);
-        tag_.setBounds(r.removeFromRight(70));
+        r.setLeft(std::max(r.getX(), kStarsX + (int) (paint::kStarPitch * (float) kMaxRating) + kStarsGap));
+        const int wanted = kTagW + kCollectW + kClearW + kTrashW + 2 * kGap + kTrashGap;
+        const int squeeze = std::max(0, wanted - r.getWidth());
+        trash_.setBounds(r.removeFromRight(kTrashW - squeeze / 2));
+        r.removeFromRight(kTrashGap);
+        clear_.setBounds(r.removeFromRight(kClearW));
+        r.removeFromRight(kGap);
+        collect_.setBounds(r.removeFromRight(kCollectW - (squeeze - squeeze / 2)));
+        r.removeFromRight(kGap);
+        tag_.setBounds(r.removeFromRight(kTagW));
     }
 
     void mouseUp(const juce::MouseEvent& e) override {
@@ -70,7 +84,7 @@ public:
     }
 
 private:
-    juce::TextButton tag_, collect_, clear_;
+    juce::TextButton tag_, collect_, clear_, trash_;
     int count_ = 0;
 };
 

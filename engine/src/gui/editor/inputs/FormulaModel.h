@@ -18,8 +18,11 @@ namespace hum::input {
 class FormulaModel {
 public:
     static constexpr int kPlotN = 256;
+    static constexpr double kSteppedSpanSeconds = 8.0;
+    static constexpr int kSteppedSubSteps = 8;
 
     static double plotSpanSeconds(const FormulaProgram& p, double freq, double bpm) {
+        if (formulaSteps(p)) return kSteppedSpanSeconds;
         const auto sh = formulaShape(p);
         const bool cycles = sh.role == FormulaRole::Voice || (sh.role == FormulaRole::Effect && !sh.timed);
         return cycles ? 4.0 / std::max(20.0, freq) : kSecondsPerMinute / std::max(1.0, bpm);
@@ -93,14 +96,16 @@ public:
 
     void plot() {
         FormulaEnv env;
-        std::uint32_t rng = 0x9e3779b9u;
+        std::uint32_t rng = formulaSeedFor(organism_);
         float phase[FormulaProgram::kStateSlots] = {};
         env.rng = &rng;
         env.state = phase;
+        env.v[fvRate] = 1.0f;
         seedFormulaState(phase, prog_);
         const double bpm = host_.tempo();
         const double span = plotSpanSeconds(prog_, kx_[4], bpm);
-        env.dt = (float) (span / kPlotN);
+        const int steps = formulaSteps(prog_) ? kSteppedSubSteps : 1;
+        env.dt = (float) (span / kPlotN / steps);
         const auto sh = formulaShape(prog_);
         const double probeHz = sh.role == FormulaRole::Effect && sh.timed ? 8.0 / span : 2.5 * kx_[4];
         env.v[fvNote] = (float) hzToMidi(std::max(20.0, kx_[4]));
@@ -121,14 +126,18 @@ public:
             const float t = (float) (span * i / (kPlotN - 1));
             env.v[fvT] = t;
             env.v[fvBeat] = t * (float) (std::max(1.0, bpm) / kSecondsPerMinute);
+            env.v[fvPhase] = (float) std::fmod(kx_[4] * (double) t, 1.0);
             if (sh.role == FormulaRole::Effect) {
                 inSlots_[i] = 0.8f * std::sin((float) (kTwoPi * probeHz * t));
                 env.v[fvA] = inSlots_[i];
                 env.v[fvB] = 0.8f * std::sin((float) (kTwoPi * probeHz * 0.5 * t));
             }
-            const float o = evalFormula(prog_, env);
+            float o = 0.0f;
+            for (int s = 0; s < steps; ++s) {
+                o = evalFormula(prog_, env);
+                env.v[fvPrev] = o;
+            }
             slots_[i] = o;
-            env.v[fvPrev] = o;
         }
     }
 

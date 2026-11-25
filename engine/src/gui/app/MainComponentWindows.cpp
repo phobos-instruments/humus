@@ -19,7 +19,7 @@
 namespace hum {
 
 void MainComponent::buildWorkspaceRail() {
-    IconButton* paneButtons[] = {&viewPatcher_, &viewProperties_, &viewAutomation_};
+    IconButton* paneButtons[] = {&viewOrganisms_, &viewPatcher_, &viewProperties_, &viewAutomation_};
     IconButton* windowButtons[] = {&viewMetapad_, &viewParamControl_, &viewNotes_,
                                    &viewDocSwitcher_, &viewHelp_, &viewLibrary_};
     for (auto* b : paneButtons) b->setRail(IconButton::Rail::Pane);
@@ -44,6 +44,7 @@ void MainComponent::buildWorkspaceRail() {
     viewPatcher_.onClick = [this] { updateDock(); persistDock(); };
     viewProperties_.onClick = [this] { updateDock(); persistDock(); };
     viewAutomation_.onClick = [this] { updateDock(); persistDock(); };
+    viewOrganisms_.onClick = [this] { updateDock(); persistDock(); };
     viewMetapad_.onClick = [this] { toggleMetapad(); };
     viewParamControl_.onClick = [this] {
         if (viewParamControl_.getToggleState()) openParameterControl();

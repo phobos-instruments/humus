@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include <juce_events/juce_events.h>
+
 #include "core/params/ParamSchema.h"
 #include "gui/properties/PresetLibrary.h"
 #include "io/PatchDocument.h"
@@ -28,6 +30,7 @@ struct Entry {
     std::string name;
     std::string group;
     std::vector<Parameter> properties;
+    Pattern pattern;
 };
 
 inline std::vector<Entry> stack(const OrganismModel* c) {
@@ -38,14 +41,14 @@ inline std::vector<Entry> stack(const OrganismModel* c) {
     auto add = [&](Source src, const PresetDef& def) {
         Ref r; r.source = src; r.name = def.name;
         auto pm = presetlib::toModel(def, schema, 0);
-        out.push_back({r, def.name, def.group, std::move(pm.properties)});
+        out.push_back({r, def.name, def.group, std::move(pm.properties), std::move(pm.pattern)});
     };
     for (const auto& def : factoryPresetsFor(c->classRaw)) add(Source::Shipped, def);
     if (juce::JUCEApplicationBase::getInstance() != nullptr)
         for (const auto& def : presetlib::list(c->classRaw)) add(Source::Library, def);
     for (const auto& pm : c->presets) {
         Ref r; r.source = Source::Patch; r.number = pm.number; r.name = pm.name;
-        out.push_back({r, pm.name, {}, pm.properties});
+        out.push_back({r, pm.name, {}, pm.properties, pm.pattern});
     }
 
     return out;

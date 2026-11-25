@@ -45,6 +45,7 @@ public:
 
 private:
     void chooseTargets(bool voiced, int rounded);
+    void fitWindow(double hz);
 
     PitchTracker tracker_;
     std::array<PitchShifter, kVoices> shift_;
@@ -58,9 +59,9 @@ private:
     HeldNotes held_;
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> staged_;
     int stagedCount_ = 0;
+
     int refNote_ = -1;
     int voicedHold_ = 0;
-    int window_ = 0;
 
     std::atomic<float> hz_{0.0f};
     std::atomic<float> clarity_{0.0f};

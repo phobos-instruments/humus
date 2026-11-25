@@ -16,7 +16,8 @@
       "y": 0,
       "w": 600,
       "h": 290,
-      "fill-v": true
+      "fill-v": true,
+      "bank": "Bank"
     },
     {
       "type": "swing",
@@ -37,6 +38,33 @@
       "options": [
         "1/8",
         "1/16"
+      ]
+    },
+    {
+      "type": "label",
+      "label": "Bank",
+      "x": 388,
+      "y": 297,
+      "w": 34,
+      "h": 13
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Bank",
+      "label": "",
+      "x": 424,
+      "y": 294,
+      "w": 168,
+      "h": 20,
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
       ]
     }
   ]

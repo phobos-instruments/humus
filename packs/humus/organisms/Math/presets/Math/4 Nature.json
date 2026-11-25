@@ -1,0 +1,58 @@
+[
+ {
+  "name": "Gravity",
+  "values": {
+   "Expression": "v := if(h <= 0, if(v > -1.2*rate, 4*rate, -v*(0.3 + 0.55*x)), v - 8*rate*rate*dt); h := max(0, h + v*dt); min(1, 2*h - 1)",
+   "X": 0.6,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Pendulum",
+  "values": {
+   "Expression": "spin := if(go < 0.5, 0, spin - 39.48*rate*rate*sin(ang)*dt); ang := if(go < 0.5, 0.25 + 2.65*x, ang + spin*dt); go := 1; clamp(ang/(0.25 + 2.65*x), -1, 1)",
+   "X": 0.4,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Heart",
+  "values": {
+   "Expression": "p := fract(p + rate*dt*(1 + 0.2*x*sin(0.25*tau*t))); 2*(exp(-40*p) + 0.6*exp(-40*abs(p - 0.3))) - 1",
+   "X": 0.3,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Breath",
+  "values": {
+   "Expression": "p := fract(p + 0.25*rate*dt*(1 + 0.4*x*sin(0.37*t))); if(p < 0.35, -cos(pi*p/0.35), if(p < 0.85, cos(pi*(p - 0.35)/0.5), -1))",
+   "X": 0.3,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Swarm",
+  "values": {
+   "Expression": "f1 := fract(f1 + rate*dt*(1 + 0.6*(1 - x)*(sin(tau*(f2 - f1)) + sin(tau*(f3 - f1))))); f2 := fract(f2 + rate*dt*(1.13 + 0.6*(1 - x)*(sin(tau*(f1 - f2)) + sin(tau*(f3 - f2))))); f3 := fract(f3 + rate*dt*(0.89 + 0.6*(1 - x)*(sin(tau*(f1 - f3)) + sin(tau*(f2 - f3))))); (exp(-30*f1) + exp(-30*f2) + exp(-30*f3))*2/3 - 1",
+   "X": 0.5,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Wind",
+  "values": {
+   "Expression": "s := s*(1 - 0.2*rate*dt) + sqrt(1.2*rate*dt)*noise(); g := g*(1 - 1.4*rate*dt) + sqrt(8.4*rate*dt)*noise(); air := air + ((0.15 + 0.35*x)*s + 0.7*x*g*(0.6 + 0.4*tanh(s)) - air)*8*rate*dt; tanh(1.2*air)",
+   "X": 0.6,
+   "Auto": 1.0
+  }
+ },
+ {
+  "name": "Wander",
+  "values": {
+   "Expression": "walk := walk*(1 - (1 + x)*rate*dt/2) + sqrt(3*(1 + x)*rate*dt)*noise(); soft := soft + (walk - soft)*20*rate*dt; tanh((0.5 + 0.7*x)*soft)",
+   "X": 0.5,
+   "Auto": 1.0
+  }
+ }
+]

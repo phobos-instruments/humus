@@ -2,8 +2,13 @@
   "classes": [
     {
       "class": "Steps",
+      "preset-keeps-pattern": true,
       "roll": "trigger-steps",
       "category": "Sequencers",
+      "param-banks": {
+        "select": "Bank",
+        "prefixes": ["Chance_"]
+      },
       "editor": "layout:steps-editor.json",
       "params": [
         {
@@ -39,6 +44,150 @@
           "max": 127.0,
           "def": 100.0,
           "int": true
+        },
+        {
+          "name": "Bank",
+          "min": 0.0,
+          "max": 7.0,
+          "def": 0.0,
+          "int": true,
+          "enum": true
+        },
+        {
+          "name": "View",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "int": true,
+          "enum": true
+        },
+        {
+          "name": "Chance_1",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_2",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_3",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_4",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_5",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_6",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_7",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_8",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_9",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_10",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_11",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_12",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_13",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_14",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_15",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
+        },
+        {
+          "name": "Chance_16",
+          "min": 0.0,
+          "max": 100.0,
+          "def": 100.0,
+          "int": true,
+          "unit": "pct"
         }
       ]
     }

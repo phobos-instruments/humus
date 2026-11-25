@@ -112,6 +112,19 @@ juce::String PluginScanner::probeFileXml(const juce::String& format, const juce:
     return probeFilesXml(format, one);
 }
 
+bool PluginScanner::needsMessageLoop(const juce::String& format, const juce::StringArray& files) {
+    for (auto* fmt : PluginHost::instance().formats().getFormats()) {
+        if (fmt->getName() != format) continue;
+        for (const auto& file : files) {
+            juce::PluginDescription d;
+            d.pluginFormatName = format;
+            d.fileOrIdentifier = file;
+            if (fmt->requiresUnblockedMessageThreadDuringCreation(d)) return true;
+        }
+    }
+    return false;
+}
+
 juce::String PluginScanner::probeFilesXml(const juce::String& format,
                                           const juce::StringArray& files) {
     juce::XmlElement root("plugins");
@@ -179,8 +192,7 @@ bool PluginScanner::childToFile(const juce::String& flag, const juce::StringArra
 juce::String PluginScanner::enumerateLines(const juce::String& format) {
     for (auto* fmt : PluginHost::instance().formats().getFormats())
         if (fmt->getName() == format)
-            return fmt->searchPathsForPlugins(fmt->getDefaultLocationsToSearch(),
- true)
+            return fmt->searchPathsForPlugins(fmt->getDefaultLocationsToSearch(), true, true)
                 .joinIntoString("\n");
     return {};
 }

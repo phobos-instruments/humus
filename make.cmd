@@ -49,6 +49,7 @@ if /i "%TARGET%"=="/?"           goto usage
 if /i "%TARGET%"=="configure"    goto configure
 if /i "%TARGET%"=="build"        goto build
 if /i "%TARGET%"=="run"          goto run
+if /i "%TARGET%"=="plugin"       goto plugin
 if /i "%TARGET%"=="pack"         goto pack
 if /i "%TARGET%"=="install-pack" goto installpack
 if /i "%TARGET%"=="clean"        goto clean
@@ -76,6 +77,14 @@ echo.
 echo the command-line tool is built alongside the app:
 echo   "%CLI%" info    patch.hum
 echo   "%CLI%" render  patch.hum out.wav --seconds 10
+exit /b 0
+
+:plugin
+call :ensure || exit /b 1
+"%CMAKE%" --build "%BUILD_DIR%" --config %BUILD_TYPE% --target Humus_VST3
+if !ERRORLEVEL! neq 0 (echo. & echo ERROR: build failed. & exit /b 1)
+echo the plug-in is "%BUILD_DIR%\Humus_artefacts\%BUILD_TYPE%\VST3\Humus.vst3"
+echo copy it into C:\Program Files\Common Files\VST3 and rescan in your DAW
 exit /b 0
 
 rem hum_gui_bundle, not hum_gui: linking leaves the executable unstaged, so the
@@ -154,7 +163,8 @@ exit /b 1
 echo Humus - make targets:
 echo.
 echo   configure      configure the build ^(fetches JUCE on first run^)
-echo   build          build the app and the command-line tool
+echo   build          build the app, the command-line tool and the Humus plug-in
+echo   plugin         build the Humus plug-in ^(VST3^) on its own
 echo   run            build it, then launch it in this window
 echo   pack           build the .humpack bundles
 echo   install-pack   install one built pack: make install-pack ^<id^>

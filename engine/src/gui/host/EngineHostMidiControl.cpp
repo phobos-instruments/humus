@@ -12,6 +12,7 @@
 namespace hum {
 
 bool MidiHost::setEnabled(bool on) {
+    if (on && !host_.environment().claimsMachineResources) return false;
     auto& midiInputs = state_.inputs;
     if (on == state_.enabled && (!on || !midiInputs.empty())) return !midiInputs.empty();
     for (auto& in : midiInputs) in->stop();
@@ -100,6 +101,7 @@ bool MidiHost::enabled() const { return state_.enabled; }
 const MidiControlMap& MidiHost::map() const { return state_.map; }
 int  MidiHost::lastCC() const { return state_.lastCc.load(); }
 int  MidiHost::lastPort() const { return state_.lastPort.load(); }
+int  MidiHost::lastChannel() const { return state_.lastChannel.load(); }
 void MidiHost::clearLastCC() { state_.lastCc.store(-1); }
 int  MidiHost::sourceValue(int source) const {
     return isMidiSource(source) ? state_.ccValue[kAnyMidiPortRow][source].load() : -1;
@@ -117,10 +119,13 @@ std::vector<int> MidiHost::recentValues(int source, double sinceMs) const {
         if (e.source == source && e.atMs >= sinceMs) out.push_back(e.value);
     return out;
 }
-double MidiHost::lastSeenMs(int source) const {
+int MidiHost::laneValue(const MidiSource& src) const {
+    return isMidiSource(src.cc) ? state_.feed.frame().value(src.lane(), src.cc) : -1;
+}
+double MidiHost::lastSeenMs(const MidiSource& src) const {
     const auto& trail = state_.feed.trail();
     for (auto it = trail.rbegin(); it != trail.rend(); ++it)
-        if (it->source == source) return it->atMs;
+        if (it->source == src.cc && src.hears(it->port, it->channel)) return it->atMs;
     return -1.0;
 }
 void MidiHost::setModifier(int source, bool latching, bool ownAction) {
@@ -345,6 +350,21 @@ void MidiHost::setTrackInput(const std::string& name, int input) {
 int MidiHost::trackInput(const std::string& name) const {
     const auto* cm = doc_.document().byName(name);
     return cm != nullptr ? cm->trackInput : OrganismModel::kTrackInputAuto;
+}
+
+void MidiHost::setTrackChannel(const std::string& name, int channel) {
+    auto* cm = doc_.document().byName(name);
+    const int ch = channel >= 1 && channel <= 16 ? channel : kAllMidiChannels;
+    if (cm == nullptr || cm->trackInputChannel == ch) return;
+    host_.pushUndo();
+    cm->trackInputChannel = ch;
+    doc_.flagDirty();
+    nodes_.refreshArmedInputs();
+}
+
+int MidiHost::trackChannel(const std::string& name) const {
+    const auto* cm = doc_.document().byName(name);
+    return cm != nullptr ? cm->trackInputChannel : kAllMidiChannels;
 }
 
 unsigned MidiHost::inputActivity(const std::string& name) const {

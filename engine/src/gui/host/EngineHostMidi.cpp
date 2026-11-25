@@ -23,8 +23,8 @@ void EngineHost::sendMidiOut(const std::string& organism, const std::string& par
     for (auto& pr : cm->properties)
         if (pr.name == "Port") { portVal = pr.value; break; }
     const int port = juce::jlimit(0, kMidiPorts - 1, (int) portVal - 1);
-    auto* out = midiState_.outForPort(port);
-    if (out == nullptr) return;
+    auto* out = env_.drivenByDaw ? nullptr : midiState_.outForPort(port);
+    if (out == nullptr && !env_.drivenByDaw) return;
     auto pv = [&](const char* n, double def) {
         for (auto& pr : cm->properties) if (pr.name == n) return pr.value;
         return def;
@@ -32,7 +32,8 @@ void EngineHost::sendMidiOut(const std::string& organism, const std::string& par
     for (const auto& msg : midiOutMessages(param, (int) pv("Channel", 1), (int) pv("Controller", 1),
                                            (int) pv("Value", 0), (int) pv("Note", 60),
                                            (int) pv("Velocity", 100), pv("Gate", 0)))
-        out->sendMessageNow(juce::MidiMessage(msg.status, msg.data1, msg.data2));
+        if (out != nullptr) out->sendMessageNow(juce::MidiMessage(msg.status, msg.data1, msg.data2));
+        else if (daw_ != nullptr) daw_->send(juce::MidiMessage(msg.status, msg.data1, msg.data2));
 }
 
 void EngineHost::handleIncomingMidiMessage(juce::MidiInput* source, const juce::MidiMessage& m) {
@@ -45,6 +46,11 @@ void EngineHost::handleIncomingMidiMessage(juce::MidiInput* source, const juce::
             break;
         }
     pushToMonitors(m, port);
+    noteMidiControl(m, port);
+    routeLiveMidi(m, port);
+}
+
+void EngineHost::noteMidiControl(const juce::MidiMessage& m, int port) {
     const int row = midiPortRow(port);
     const int channel = m.getChannel();
     auto control = [&](int src, int value, bool learnable) {
@@ -68,7 +74,6 @@ void EngineHost::handleIncomingMidiMessage(juce::MidiInput* source, const juce::
     } else if (m.isChannelPressure()) {
         control(kPressureSource, m.getChannelPressureValue(), false);
     }
-    routeLiveMidi(m, port);
 }
 
 void EngineHost::pollMidiControl() {

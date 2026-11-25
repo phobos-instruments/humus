@@ -15,6 +15,7 @@
 #include "gui/editor/juce/JuceMediaLibrary.h"
 #include "gui/host/BrickHost.h"
 #include "gui/host/EngineHostClips.h"
+#include "gui/style/DropBadge.h"
 #include "gui/style/IconButton.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/common/UiTicker.h"
@@ -134,7 +135,16 @@ public:
     bool isInterestedInFileDrag(const juce::StringArray& files) override {
         return files.size() == 1 && slot_.accepts(files[0].toStdString());
     }
+    void fileDragEnter(const juce::StringArray&, int, int) override { setDropHot(true); }
+    void fileDragExit(const juce::StringArray&) override { setDropHot(false); }
+    void itemDragEnter(const SourceDetails&) override { setDropHot(true); }
+    void itemDragExit(const SourceDetails&) override { setDropHot(false); }
+    bool dropHotForTest() const { return dropHot_; }
+    void paintOverChildren(juce::Graphics& g) override {
+        if (dropHot_) drop::paintTarget(g, getLocalBounds().toFloat());
+    }
     void filesDropped(const juce::StringArray& files, int, int) override {
+        setDropHot(false);
         if (files.isEmpty()) return;
         slot_.take(juce::File(files[0]).getFullPathName().toStdString());
         refresh();
@@ -144,6 +154,7 @@ public:
         return draggedClipFile(d).existsAsFile();
     }
     void itemDropped(const SourceDetails& d) override {
+        setDropHot(false);
         const auto f = draggedClipFile(d);
         if (!f.existsAsFile()) return;
         slot_.take(f.getFullPathName().toStdString());
@@ -158,6 +169,12 @@ public:
         if (r.file.empty()) return {};
         const auto f = fileAt(r.file);
         return isInterestedInFileDrag({f.getFullPathName()}) ? f : juce::File();
+    }
+
+    void setDropHot(bool on) {
+        if (on == dropHot_) return;
+        dropHot_ = on;
+        repaint();
     }
 
     void setStacked(bool on) {
@@ -279,6 +296,7 @@ private:
     juce::String shown_;
     bool dragging_ = false;
     bool stacked_ = false;
+    bool dropHot_ = false;
     IconButton chooseBtn_;
     IconButton revealBtn_{IconButton::Glyph::Reveal,
                           juce::String(tr("sound-file-slot.show-the-file-in-its-folder",

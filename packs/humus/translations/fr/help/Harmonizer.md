@@ -2,7 +2,7 @@
 
 Un harmoniseur à suivi de hauteur qui ajoute jusqu'à quatre copies transposées d'une seule ligne mélodique.
 
-Il écoute la hauteur à son entrée et construit des harmonies autour, chacune étant la même interprétation transposée sur une nouvelle note. Les harmonies ne sonnent que quand une hauteur claire est entendue, donc les respirations et les consonnes passent proprement. En mode MIDI, les notes tenues à l'entrée MIDI fixent les cibles : chante une note et l'accord suit ta main. En mode SCALE, Key, Scale et les quatre intervalles Voice les fixent, donc les harmonies restent dans la tonalité où que la mélodie aille. Branche-y un SoundIn ou un FilePlayer, et un PianoRoll ou un clavier sur l'entrée MIDI pour le mode MIDI.
+Il écoute la hauteur à son entrée et construit des harmonies autour, chacune étant la même interprétation transposée sur une nouvelle note. Les harmonies ne sonnent que quand une hauteur claire est entendue, donc les respirations et les consonnes passent proprement. Les cloches et les autres sons dont les harmoniques ne sont pas des multiples entiers de la note, comme Mineral, sont entendus à leur partiel le plus grave, c'est-à-dire la note sur laquelle ils sont joués. En mode MIDI, les notes tenues à l'entrée MIDI fixent les cibles : chante une note et l'accord suit ta main. En mode SCALE, Key, Scale et les quatre intervalles Voice les fixent, donc les harmonies restent dans la tonalité où que la mélodie aille. Branche-y un SoundIn ou un FilePlayer, et un PianoRoll ou un clavier sur l'entrée MIDI pour le mode MIDI.
 
 ## Paramètres
 

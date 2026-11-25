@@ -44,8 +44,13 @@ juce::StringArray GuardedDeviceType::allDrivers() const {
 
 void GuardedDeviceType::scanForDevices() {
     inner_->scanForDevices();
-    const auto unproven = without(allDrivers(), trusted_);
-    verdicts_ = probe_ ? probe_(getTypeName(), unproven) : Verdicts{};
+    const auto drivers = allDrivers();
+    const auto unproven = without(without(drivers, trusted_), refusedThisRun_);
+    auto found = probe_ ? probe_(getTypeName(), unproven) : Verdicts{};
+    for (const auto& name : refusedThisRun_)
+        if (drivers.contains(name)) found.refused.addIfNotAlreadyThere(name);
+    refusedThisRun_ = found.refused;
+    verdicts_ = std::move(found);
 }
 
 juce::StringArray GuardedDeviceType::getDeviceNames(bool wantInputNames) const {

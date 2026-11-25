@@ -14,6 +14,7 @@
 #include "gui/host/BrickHost.h"
 #include "gui/host/PatternEdits.h"
 #include "hum/PatternMatrix.h"
+#include "hum/StepChance.h"
 #include "hum/dsp/DspMath.h"
 #include "io/PatchDocument.h"
 
@@ -32,7 +33,8 @@ public:
     static constexpr int kRowH = 16;
 
 
-    StepGridModel(BrickHost& host, PatternEdits& patterns, std::string organism, Mode mode, std::string nudgeParam, std::string transposeParam);
+    StepGridModel(BrickHost& host, PatternEdits& patterns, std::string organism, Mode mode, std::string nudgeParam,
+                  std::string transposeParam, std::string chancePrefix = {});
 
     Mode mode() const { return mode_; }
 
@@ -79,12 +81,22 @@ public:
     int playheadStep() const;
     bool followBank();
 
+    static constexpr int kChanceStep = 5;
+    int chanceAtColumn(int col) const;
+    bool setChanceAt(int x, int y, int width, int height);
+    void resetChances();
+    bool hasChances() const { return chanceSlots_ > 0; }
+    std::string chanceParamAtColumn(int col) const;
+    static int chanceFromHeight(int y, int height);
+
 private:
     BrickHost& host_;
     PatternEdits& patterns_;
     std::string organism_;
     Mode mode_;
-    std::string nudgeParam_, transposeParam_;
+    std::string nudgeParam_, transposeParam_, chancePrefix_;
+    int chanceSlots_ = 0;
+    std::string chanceParam(int i) const { return chancePrefix_ + std::to_string(i + 1); }
     int bank_ = -1;
     int shownNudge_ = 0;
     int dragCol_ = -1;

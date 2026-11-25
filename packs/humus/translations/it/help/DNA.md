@@ -4,6 +4,8 @@ Un sequencer generativo che suona un genoma di sedici basi come note MIDI.
 
 Sedici basi, A, C, G e T, girano in loop a Rate rispetto al transport, e ogni base suona il suo intervallo sopra Root: quello del voicing di Chord, o uno tuo, impostato sui tasti delle basi in fondo all'editor. A ogni battuta c'è una probabilità Mutate che una base muti, così la linea si evolve piano mentre suona, mentre lo stesso Seed fa crescere sempre lo stesso strand di partenza. La striscia sopra le righe delle basi mostra lo step in riproduzione e le pause del giro attuale; clicca una cella per silenziare del tutto quello step, trascina per coprirne diversi, fai clic destro per tutto lo strand. Collega l'uscita MIDI a un Acid, a un Mineral o a un Substrate.
 
+**Probabilità dello step** Cmd-trascina una cella della striscia su o giù (Ctrl-trascina su Windows e Linux) per decidere quanto spesso suona quello step, da mai a sempre, a scatti del 5%, oltre a Rest. Uno step sotto il 100% appare più sbiadito e mostra la sua probabilità. Fai clic destro su una cella per le probabilità rapide, le azioni della striscia e l'apprendimento MIDI della probabilità di quello step. I dadi sono del box: una patch suona gli stessi step a ogni riproduzione e a ogni export.
+
 ## Parametri
 
 **Root** La tonica, come nota MIDI.
@@ -37,6 +39,10 @@ Sedici basi, A, C, G e T, girano in loop a Rate rispetto al transport, e ogni ba
 **SwingFollow** Follow fa prendere al pattern il groove della patch dal transport invece che dalla manopola Swing.
 
 **Swing** Ritarda ogni secondo step verso un andamento terzinato. Conta solo quando SwingFollow è disattivato.
+
+**Chance_1 a Chance_16** Quanto spesso suona ogni step, da 0 a 100%.
+
+**Bank** Quale degli otto filamenti suona, da A a H. Ogni banco tiene i suoi Seed, Mute, intervalli delle basi e probabilità degli step; Root, Chord, Rate e le manopole sono condivisi. Un banco che non hai ancora usato parte come copia di quello mostrato.
 
 ## Ricetta
 

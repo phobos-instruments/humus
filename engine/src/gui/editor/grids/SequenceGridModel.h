@@ -8,11 +8,13 @@
 #include <vector>
 
 #include "core/params/PatternRolls.h"
+#include "core/params/RollScope.h"
 #include "gui/host/BrickHost.h"
 #include "gui/editor/Words.h"
 #include "gui/host/PatternEdits.h"
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
+#include "hum/StepChance.h"
 #include "hum/dsp/DspMath.h"
 #include "io/PatchDocument.h"
 
@@ -56,6 +58,15 @@ public:
 
     double velocity(int row) const { return host_.liveParamValue(organism_, param(p_.velocityPrefix, row)); }
     void setVelocity(int row, double v) { host_.editParam(organism_, param(p_.velocityPrefix, row), v); }
+    std::string velocityParam(int row) const { return param(p_.velocityPrefix, row); }
+
+    bool rowLocked(int row) const { return host_.rollLocked(organism_, rollscope::laneKey(row)); }
+    void setRowLocked(int row, bool locked) {
+        host_.beginUndoGroup();
+        host_.setRollLocked(organism_, rollscope::laneKey(row), locked);
+        host_.setRollLocked(organism_, velocityParam(row), locked);
+        host_.endUndoGroup();
+    }
 
     std::vector<int> triggers(int row) const {
         const auto lanes = patterns_.triggerLanes(organism_);
@@ -95,6 +106,7 @@ public:
         host_.pushUndo();
         PatternSyncHold batch(host_);
         for (int row = 0; row < rows_; ++row) {
+            if (action == BankAction::Random && rowLocked(row)) continue;
             std::vector<int> ticks;
             if (action == BankAction::Random) {
                 const auto cells = randomTriggerRow(kSteps, 0.10 + dice.nextDouble() * 0.35, dice);
@@ -104,7 +116,24 @@ public:
                 ticks = triggers(row);
             }
             patterns_.setLaneTriggers(organism_, action == BankAction::CopyTo ? targetBank : cur, row, ticks);
+            if (action == BankAction::CopyTo)
+                patterns_.setStepChances(organism_, chanceOrdinal(targetBank, row), chances(row));
+            if (action == BankAction::Clear) patterns_.setStepChances(organism_, chanceOrdinal(cur, row), {});
         }
+    }
+
+    static int chanceOrdinal(int bank, int row) { return bank * kRows + row; }
+    std::vector<int> chances(int row) const { return patterns_.stepChances(organism_, chanceOrdinal(bank(), row)); }
+    int chance(int row, int step) const { return chanceAt(chances(row), step); }
+
+    bool setChance(int row, int step, int percent) {
+        auto updated = chances(row);
+        updated.resize((size_t) kSteps, kFullChance);
+        const int value = std::clamp(percent, 0, kFullChance);
+        if (step < 0 || step >= kSteps || updated[(size_t) step] == value) return false;
+        updated[(size_t) step] = value;
+        patterns_.setStepChances(organism_, chanceOrdinal(bank(), row), updated);
+        return true;
     }
 
     std::string targetName(int row) const {

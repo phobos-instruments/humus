@@ -124,7 +124,43 @@ struct Reader {
         pos += 4;
         return true;
     }
+    bool u64(std::uint64_t& v) {
+        std::uint32_t hi = 0, lo = 0;
+        if (!u32(hi) || !u32(lo)) return false;
+        v = ((std::uint64_t) hi << 32) | lo;
+        return true;
+    }
 };
+
+enum class ArgRead { Kept, Skipped, Broken, Unknown };
+
+inline ArgRead readArg(Reader& r, Arg& a) {
+    std::uint32_t bits = 0;
+    std::uint64_t wide = 0;
+    switch (a.tag) {
+        case 'f': if (!r.u32(bits)) return ArgRead::Broken; std::memcpy(&a.f, &bits, 4); return ArgRead::Kept;
+        case 'i': if (!r.u32(bits)) return ArgRead::Broken; a.i = (std::int32_t) bits; return ArgRead::Kept;
+        case 's': case 'S': a.tag = 's'; return r.string(a.s) ? ArgRead::Kept : ArgRead::Broken;
+        case 'T': a.tag = 'i'; a.i = 1; return ArgRead::Kept;
+        case 'F': a.tag = 'i'; a.i = 0; return ArgRead::Kept;
+        case 'c': if (!r.u32(bits)) return ArgRead::Broken; a.tag = 'i'; a.i = (std::int32_t) bits; return ArgRead::Kept;
+        case 'd': { if (!r.u64(wide)) return ArgRead::Broken;
+                    double d; std::memcpy(&d, &wide, 8); a.tag = 'f'; a.f = (float) d; return ArgRead::Kept; }
+        case 'h': { if (!r.u64(wide)) return ArgRead::Broken;
+                    const auto v = (std::int64_t) wide;
+                    a.tag = 'i';
+                    a.i = v > INT32_MAX ? INT32_MAX : v < INT32_MIN ? INT32_MIN : (std::int32_t) v;
+                    return ArgRead::Kept; }
+        case 't': return r.u64(wide) ? ArgRead::Skipped : ArgRead::Broken;
+        case 'r': case 'm': return r.u32(bits) ? ArgRead::Skipped : ArgRead::Broken;
+        case 'b': { if (!r.u32(bits) || bits > r.len - r.pos) return ArgRead::Broken;
+                    r.pos += bits;
+                    while (r.pos % 4 != 0) ++r.pos;
+                    return r.pos <= r.len ? ArgRead::Skipped : ArgRead::Broken; }
+        case 'N': case 'I': case '[': case ']': return ArgRead::Skipped;
+        default: return ArgRead::Unknown;
+    }
+}
 
 inline bool decodeMessage(const std::uint8_t* data, size_t len, Message& m) {
     Reader r{data, len};
@@ -136,22 +172,10 @@ inline bool decodeMessage(const std::uint8_t* data, size_t len, Message& m) {
     for (size_t k = 1; k < tags.size(); ++k) {
         Arg a;
         a.tag = tags[k];
-        std::uint32_t bits = 0;
-        switch (a.tag) {
-            case 'f': if (!r.u32(bits)) return false; std::memcpy(&a.f, &bits, 4); break;
-            case 'i': if (!r.u32(bits)) return false; a.i = (std::int32_t) bits; break;
-            case 's': if (!r.string(a.s)) return false; break;
-            case 'T': a.tag = 'i'; a.i = 1; break;
-            case 'F': a.tag = 'i'; a.i = 0; break;
-            case 'd': { std::uint32_t hi, lo; if (!r.u32(hi) || !r.u32(lo)) return false;
-                        const std::uint64_t w = ((std::uint64_t) hi << 32) | lo; double d; std::memcpy(&d, &w, 8);
-                        a.tag = 'f'; a.f = (float) d; break; }
-            case 'b': { if (!r.u32(bits)) return false; r.pos += bits; while (r.pos % 4 != 0) ++r.pos;
-                        if (r.pos > len) return false;
-                        continue; }
-            default: continue;
-        }
-        m.args.push_back(a);
+        const auto read = readArg(r, a);
+        if (read == ArgRead::Broken) return false;
+        if (read == ArgRead::Unknown) break;
+        if (read == ArgRead::Kept) m.args.push_back(a);
     }
     return true;
 }

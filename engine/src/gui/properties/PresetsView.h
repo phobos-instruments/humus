@@ -272,7 +272,7 @@ private:
     }
 
     void randomize(bool evolve) {
-        if (evolve) { presets::evolve(host_, name_); changed(); return; }
+        if (evolve) { evolveNode(host_, name_); changed(); return; }
         if (nodeSupportsRandom(host_, name_)) {
             auto& hist = host_.paramHistory();
             hist.commit(name_, host_.captureNodeState(name_));

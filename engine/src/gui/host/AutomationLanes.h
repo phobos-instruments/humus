@@ -14,6 +14,14 @@ inline AutomationLane* findLane(OrganismModel& c, const std::string& param) {
     for (auto& l : c.automation) if (l.propertyName == param) return &l;
     return nullptr;
 }
+inline bool lanePlaysFaceplate(const OrganismModel& c, const std::string& param) {
+    for (const auto& l : c.automation)
+        if (l.propertyName == param && l.kind == "step")
+            for (const auto& p : l.points)
+                if (p.release) return true;
+    return false;
+}
+
 inline const Parameter* paramByName(const OrganismModel& c, const std::string& param) {
     for (auto& p : c.properties) if (p.name == param) return &p;
     return nullptr;

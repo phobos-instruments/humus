@@ -183,7 +183,8 @@ void SongView::paintRowHeader(juce::Graphics& g, int row, int y) {
     const bool rowHeld = host().automation().anyHeld(node);
     if (ncm != nullptr && classHasRole(ncm->classRaw, role::kMidiTrack)) {
         if (const auto in = inputBox(row); !in.isEmpty())
-            timelinechrome::paintMidiInputChip(g, in, host().midi().trackInput(node), inputLitAt_.count(node) != 0);
+            timelinechrome::paintMidiInputChip(g, in, host().midi().trackInput(node), host().midi().trackChannel(node),
+                                               inputLitAt_.count(node) != 0);
         if (const auto out = destRect(row, node); !out.isEmpty())
             timelinechrome::paintMidiDestChip(g, out, host().model(), node);
     } else
@@ -245,6 +246,10 @@ void SongView::paintAutoLane(juce::Graphics& g, const trackslayout::Slot& slot) 
     if (held) timelinechrome::paintHeldBadge(g, heldLaneBox(slot));
 
     if (!lane || lane->points.empty()) return;
+    if (isBlockLane(node, slot.param)) {
+        paintBlockLane(g, slot, *lane);
+        return;
+    }
     const auto range = envpaint::laneRange(cm, slot.param,
                                            (int) host().model().metapad.snapshots.size());
     const double lo = range.first, hi = range.second;

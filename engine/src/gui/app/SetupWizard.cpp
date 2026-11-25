@@ -13,6 +13,7 @@
 #include "gui/app/Telemetry.h"
 #include "gui/app/TelemetryEvents.h"
 #include "gui/common/Localisation.h"
+#include "gui/app/WizardText.h"
 
 namespace hum {
 
@@ -255,7 +256,7 @@ void SetupWizard::paint(juce::Graphics& g) {
     g.drawText(tr("setup-wizard.setup", "Setup"), 150, 0, 200, kHeaderH, juce::Justification::centredLeft);
     g.setColour(ink::brand::line.withAlpha(alpha::strong));
     g.setFont(juce::FontOptions(13.0f));
-    g.drawText(wizard::pageTitle(page_), 0, 0, getWidth() - 24, kHeaderH,
+    g.drawText(wizard::pageName(page_), 0, 0, getWidth() - 24, kHeaderH,
                juce::Justification::centredRight);
 
     const int n = wizard::kNumPages, dot = 8, gap = 14;
@@ -300,7 +301,7 @@ void SetupWizard::paint(juce::Graphics& g) {
         g.setFont(juce::FontOptions(14.5f));
         for (const auto& line : summary()) {
             g.setColour(Palette::text);
-            g.drawText(juce::String::fromUTF8(line.c_str()), r.removeFromTop(24),
+            g.drawText(line, r.removeFromTop(24),
                        juce::Justification::centredLeft);
             r.removeFromTop(4);
         }
@@ -312,7 +313,7 @@ void SetupWizard::paint(juce::Graphics& g) {
     }
 }
 
-std::vector<std::string> SetupWizard::summary() const {
+std::vector<juce::String> SetupWizard::summary() const {
     std::string device;
     if (auto* d = host_.audioDevices().getCurrentAudioDevice())
         device = d->getName().toStdString();
@@ -329,7 +330,7 @@ std::vector<std::string> SetupWizard::summary() const {
         theme = AppSettings::instance().getString("themeName").toStdString();
     else
         theme = tr("setup-wizard.custom-theme", "Custom").toStdString();
-    return wizard::summaryLines(device, midiIns, theme, modernMenusEnabled(),
+    return wizard::summaryText(device, midiIns, theme, modernMenusEnabled(),
                                 telemetryToggle_.getToggleState(),
                                 updatesToggle_.getToggleState());
 }

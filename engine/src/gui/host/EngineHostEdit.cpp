@@ -13,6 +13,7 @@
 #include "core/graph/PodModel.h"
 #include "core/packs/StripFamily.h"
 #include "core/params/Randomize.h"
+#include "io/NewOrganism.h"
 
 #include <algorithm>
 #include <map>
@@ -62,43 +63,12 @@ int EngineHost::reconcilePropertyTypes(PatchDocumentModel& doc) {
 std::string EngineHost::addOrganism(const std::string& className, juce::Point<int> at,
                                        const std::string& podScope) {
     pushUndo();
-    const std::string canonical = canonicalClass(className);
     const std::string plain = (podScope.empty() ? std::string() : podScope + "/")
                             + parseClassString(className).display;
-    std::string name = plain;
-    for (int n = 2; model_.byName(name) != nullptr; ++n)
-        name = plain + "_" + std::to_string(n);
-
-    OrganismModel cm;
-    cm.name = name;
-    cm.classRaw = canonical;
-    const auto classId = parseClassString(canonical);
-    cm.displayClass = classId.display;
-    cm.kind = classId.kind;
-    int idx = 0;
-    for (const auto& d : schemaFor(canonical)) {
-        Parameter p;
-        p.index = idx++;
-        p.name = d.name;
-        if (d.isText) {
-            p.type = d.isPlainText ? "text" : "soundfile";
-            p.text = d.text;
-        } else if (d.isRange) {
-            p.type = "range";
-            p.isRange = true;
-            p.value = d.def;
-            p.rangeMin = d.def;
-            p.rangeMax = d.defMax;
-        } else if (!d.text.empty()) {
-            p.type = "rhythmic-unit";
-            p.value = d.def;
-            p.text = d.text;
-        } else {
-            p.type = d.isBool ? "bool" : d.isEnum ? "enum" : d.isInt ? "int" : "double";
-            p.value = rollDefaultValue(d, juce::Random::getSystemRandom());
-        }
-        cm.properties.push_back(p);
-    }
+    const std::string name = freeOrganismName(model_, plain);
+    auto cm = newOrganismModel(className, name, [](const ParamDesc& d) {
+        return rollDefaultValue(d, juce::Random::getSystemRandom());
+    });
     model_.organisms.push_back(std::move(cm));
     positions_[name] = at;
     requestRebuild();
@@ -239,36 +209,9 @@ std::string EngineHost::replaceOrganism(const std::string& nameIn, const std::st
     pushUndo();
     const std::string oldDisplay = old->displayClass;
 
-    std::map<std::string, Parameter> kept;
-    for (auto& p : old->properties) kept[p.name] = p;
-
-    OrganismModel cm;
-    cm.name = name;
-    cm.classRaw = newClass;
-    const auto classId = parseClassString(newClass);
-    cm.displayClass = classId.display;
-    cm.kind = classId.kind;
-    int idx = 0;
-    const auto keptAs = [&kept](const ParamDesc& d) {
-        auto it = kept.find(d.name);
-        if (it != kept.end() || !d.isText) return it;
-        const bool numbered = d.name.size() > 2 && d.name.compare(d.name.size() - 2, 2, "_1") == 0;
-        return numbered ? kept.find(d.name.substr(0, d.name.size() - 2)) : kept.find(d.name + "_1");
-    };
-    for (const auto& d : schemaFor(newClass)) {
-        const auto it = keptAs(d);
-        Parameter p = it != kept.end() ? it->second : Parameter{};
-        p.index = idx++;
-        p.name = d.name;
-        if (d.isText) p.type = d.isPlainText ? "text" : "soundfile";
-        else if (it == kept.end() || !it->second.isRange)
-            p.type = d.isBool ? "bool" : d.isEnum ? "enum" : d.isInt ? "int" : "double";
-        if (it == kept.end()) {
-            if (d.isText) p.text = d.text;
-            else p.value = rollDefaultValue(d, juce::Random::getSystemRandom());
-        }
-        cm.properties.push_back(p);
-    }
+    auto cm = reclassedOrganismModel(*old, newClass, [](const ParamDesc& d) {
+        return rollDefaultValue(d, juce::Random::getSystemRandom());
+    });
     for (auto& c : model_.organisms) if (c.name == name) { c = std::move(cm); break; }
 
     OrganismPtr probe;

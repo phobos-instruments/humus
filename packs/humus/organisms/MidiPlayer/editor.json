@@ -110,6 +110,7 @@
     {
       "type": "minitoggle",
       "param": "Mute1",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 226,
@@ -138,6 +139,7 @@
     {
       "type": "minitoggle",
       "param": "Mute2",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 252,
@@ -166,6 +168,7 @@
     {
       "type": "minitoggle",
       "param": "Mute3",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 278,
@@ -194,6 +197,7 @@
     {
       "type": "minitoggle",
       "param": "Mute4",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 304,
@@ -222,6 +226,7 @@
     {
       "type": "minitoggle",
       "param": "Mute5",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 330,
@@ -250,6 +255,7 @@
     {
       "type": "minitoggle",
       "param": "Mute6",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 356,
@@ -278,6 +284,7 @@
     {
       "type": "minitoggle",
       "param": "Mute7",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 382,
@@ -306,6 +313,7 @@
     {
       "type": "minitoggle",
       "param": "Mute8",
+      "group": "mute",
       "label": "Mute",
       "x": 202,
       "y": 408,
@@ -334,6 +342,7 @@
     {
       "type": "minitoggle",
       "param": "Mute9",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 226,
@@ -362,6 +371,7 @@
     {
       "type": "minitoggle",
       "param": "Mute10",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 252,
@@ -390,6 +400,7 @@
     {
       "type": "minitoggle",
       "param": "Mute11",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 278,
@@ -418,6 +429,7 @@
     {
       "type": "minitoggle",
       "param": "Mute12",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 304,
@@ -446,6 +458,7 @@
     {
       "type": "minitoggle",
       "param": "Mute13",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 330,
@@ -474,6 +487,7 @@
     {
       "type": "minitoggle",
       "param": "Mute14",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 356,
@@ -502,6 +516,7 @@
     {
       "type": "minitoggle",
       "param": "Mute15",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 382,
@@ -530,6 +545,7 @@
     {
       "type": "minitoggle",
       "param": "Mute16",
+      "group": "mute",
       "label": "Mute",
       "x": 498,
       "y": 408,

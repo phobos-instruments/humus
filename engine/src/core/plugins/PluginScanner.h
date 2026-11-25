@@ -40,6 +40,7 @@ public:
 
     static juce::String probeFileXml(const juce::String& format, const juce::String& file);
     static juce::String probeFilesXml(const juce::String& format, const juce::StringArray& files);
+    static bool needsMessageLoop(const juce::String& format, const juce::StringArray& files);
     static juce::String enumerateLines(const juce::String& format);
 
 private:

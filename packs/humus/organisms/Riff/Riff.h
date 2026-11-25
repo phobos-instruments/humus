@@ -2,12 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
 #include <array>
+#include <cstdint>
 #include <vector>
 
 #include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/Pattern.h"
 #include "hum/PatternMatrix.h"
+#include "hum/BankedChances.h"
+#include "hum/StepChance.h"
 
 namespace hum {
 
@@ -20,6 +23,7 @@ public:
 
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
+        seed_ = stepSeedFor(name());
         reset();
     }
     void reset() override {
@@ -29,6 +33,7 @@ public:
 
     void setPattern(const Pattern& p) override {
         pattern_ = p;
+        chances_.read(p);
         stepsDirty_ = true;
     }
 
@@ -60,6 +65,8 @@ private:
     bool stepsDirty_ = true;
     int bank_ = 0;
     std::vector<BasslineStep> steps_;
+    BankedChances chances_{"Chance_"};
+    std::uint32_t seed_ = 0;
     double stepsPerBeat_ = 4.0;
 
     std::array<MidiEvent, MidiNode::kMaxMidiEventsPerBlock> outEvents_;

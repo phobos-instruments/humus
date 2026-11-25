@@ -9,7 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/browser/BrowserModel.h"
-#include "gui/browser/AuditionStrip.h"
+#include "gui/browser/AuditionPane.h"
 #include "gui/browser/BatchBar.h"
 #include "gui/browser/BrowserInspector.h"
 #include "core/browser/BrowserIndex.h"
@@ -17,6 +17,7 @@
 #include "gui/browser/BrowserSearchField.h"
 #include "gui/browser/BrowserSidebar.h"
 #include "gui/browser/BrowserTable.h"
+#include "gui/browser/LibraryActions.h"
 #include "gui/browser/LoadingVeil.h"
 #include "gui/browser/ProjectCards.h"
 #include "gui/style/IconButton.h"
@@ -33,11 +34,13 @@ public:
     std::function<void(const std::string& path)> onForgetRecent;
     std::function<bool()> engineRunning;
     std::function<void()> turnEngineOn;
-    AuditionStrip* stripForTest() { return strip_.get(); }
+    std::function<std::string()> openDocument;
+    AuditionPane* paneForTest() { return pane_.get(); }
+    BrowserSidebar& sidebarForTest() { return sidebar_; }
 
     static constexpr int kSidebarW = 190, kSearchH = 34, kFooterH = 40, kStatusH = 26, kGap = 10;
     static constexpr int kIconW = 30, kSearchMaxW = 520;
-    static constexpr int kDefaultW = 1000, kDefaultH = 620;
+    static constexpr int kDefaultW = 1100, kDefaultH = 620;
     static constexpr double kRefreshGapMs = 300.0;
     static constexpr double kFlashMs = 4000.0;
 
@@ -57,7 +60,11 @@ public:
     bool keyPressed(const juce::KeyPress& key) override;
     bool isInterestedInFileDrag(const juce::StringArray& files) override;
     void filesDropped(const juce::StringArray& files, int x, int y) override;
-    void confirmRemove(const std::vector<std::string>& paths);
+    void confirmTrash(const std::vector<std::string>& paths);
+    TrashGuard trashGuard() const;
+    void setDiscardForTest(Discard discard) { discard_ = std::move(discard); }
+    const juce::String& trashQuestionForTest() const { return trashQuestion_; }
+    void pinFolders(const std::vector<std::string>& folders);
     void setInspectorOpen(bool open);
     void refreshFromDisk();
     bool forgetIfGone(const std::string& path);
@@ -78,13 +85,14 @@ private:
     void tagSelection();
     void collectSelection();
     void selectionMoved();
-    const Entry* focusedSound() const;
-    bool stripShown() const;
+    const Entry* focusedPreview() const;
+    void layoutSide();
     void open(int row);
     void rateSelection(int stars);
     void favouriteSelection();
     void showRowMenu(int row, juce::Point<int> at);
     void showPlaceMenu(const Place& place, juce::Point<int> at);
+    bool pinned(const std::string& dir) const;
     void addWatchedFolder();
     void moveLibrary();
     void newCollection(const std::vector<std::string>& adding = {});
@@ -114,7 +122,9 @@ private:
     int projectsView_ = 0;
     Breadcrumbs crumbs_;
     bool inspectorOpen_ = false;
-    std::unique_ptr<AuditionStrip> strip_;
+    std::unique_ptr<AuditionPane> pane_;
+    juce::Viewport side_;
+    juce::Component sideColumn_;
     bool autoplay_ = true;
     juce::Label title_;
     juce::TextButton open_, cancel_, other_;
@@ -123,6 +133,8 @@ private:
     unsigned seen_ = 0;
     double lastRefresh_ = 0.0;
     bool dragging_ = false;
+    Discard discard_ = toTrash();
+    juce::String trashQuestion_;
 };
 
 }

@@ -82,13 +82,21 @@ public:
 
     void invalidate() { generation_ = ~0u; }
 
+    bool fitChanged() {
+        const bool fit = !fit_.empty() && host_.liveParamValue(organism_, fit_) >= 0.5;
+        const bool changed = fit != fitSeen_;
+        fitSeen_ = fit;
+        return changed;
+    }
+
     bool refreshPoints(bool force) {
         auto* src = live::source<SoundMapSource>(host_, organism_);
         const unsigned gen = src ? src->mapGeneration() : 0;
         if (!force && gen == generation_) return false;
         generation_ = gen;
         points_ = src ? src->mapPoints() : std::vector<SoundMapSource::MapPoint>{};
-        window_ = mapWindow(points_, !fit_.empty() && host_.liveParamValue(organism_, fit_) >= 0.5);
+        fitSeen_ = !fit_.empty() && host_.liveParamValue(organism_, fit_) >= 0.5;
+        window_ = mapWindow(points_, fitSeen_);
         return true;
     }
 
@@ -129,6 +137,7 @@ private:
     std::string organism_, px_, py_, spray_, filePrefix_, fit_;
     std::vector<SoundMapSource::MapPoint> points_;
     unsigned generation_ = ~0u;
+    bool fitSeen_ = false;
     GrainTrail trail_;
 };
 

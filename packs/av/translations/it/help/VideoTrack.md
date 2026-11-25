@@ -2,7 +2,9 @@
 
 Una traccia video sulla timeline che riproduce le sue clip a tempo con il transport e registra quello che arriva al suo ingresso.
 
-Aggiungine una dal menu di aggiunta tracce della timeline, oppure trascina un video sull'arrangiamento e comparirà una traccia apposta. Le clip si tagliano, si accorciano, si spostano, vanno in loop e hanno i fade come le clip audio, e l'uscita mostra quello che sta sotto la testina: se fermi il transport resta su quel fotogramma, se sposti la posizione salta lì, se metti il brano in loop va in loop anche lei. Warp adatta una clip al tempo del brano rispetto al tempo originale, Inverti la riproduce al contrario e i fade sono fade al nero. Ogni clip mostra una striscia di fotogrammi presi dal suo nastro, e con un clic destro su una clip trovi Info media, per leggere codec, dimensioni e frequenza fotogrammi. Collega l'uscita a un VideoOut, a un VideoFX o a un livello di un Lumen; due tracce sono due livelli.
+Aggiungine una dal menu di aggiunta tracce della timeline, oppure trascina un video sull'arrangiamento e comparirà una traccia apposta. Le clip si tagliano, si accorciano, si spostano, vanno in loop e hanno i fade come le clip audio, e l'uscita mostra quello che sta sotto la testina: se fermi il transport resta su quel fotogramma, se sposti la posizione salta lì, se metti il brano in loop va in loop anche lei. Warp adatta una clip al tempo del brano rispetto al tempo originale, Inverti la riproduce al contrario e i fade sono fade al nero e al silenzio. Ogni clip mostra una striscia di fotogrammi presi dal suo nastro, e con un clic destro su una clip trovi Info media, per leggere codec, dimensioni e frequenza fotogrammi. Collega l'uscita a un VideoOut, a un VideoFX o a un livello di un Lumen; due tracce sono due livelli.
+
+Le due uscite audio suonano l'audio delle clip, a tempo con l'immagine: tutto quello che taglia, mette in loop, adatta col warp, inverte o sfuma una clip fa lo stesso al suo suono. Collegale a un SoundOut o a un canale del mixer per sentirlo.
 
 ## Registrazione
 
@@ -17,6 +19,8 @@ Collega all'ingresso un CameraIn, una catena di VideoFX, un VideoPad o un'altra 
 **Opacity** Quanto si vede l'immagine della traccia. Sopra i livelli sottostanti in un Lumen, o sopra un'altra sorgente che condivide lo stesso ingresso, sfuma tra le due; senza niente sotto, sfuma l'immagine verso il nero. In ogni caso viene applicata una volta sola, ovunque arrivi.
 
 **Blend** Come si combina con i livelli sottostanti: Normal, Add, Multiply o Screen. A differenza di Opacity, ha bisogno di qualcosa sotto con cui combinarsi, quindi non fa niente su una traccia collegata direttamente a un VideoOut o a un lato di un VideoMix.
+
+**Gain** Il volume con cui l'audio delle clip esce dalle uscite audio, dal silenzio al doppio.
 
 ## Ricetta
 

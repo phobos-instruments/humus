@@ -71,7 +71,7 @@ std::unique_ptr<RichView> makeJucePickerBrick(juce::Component& parent, EditorHos
             for (const auto& d : schemaFor(owner.className()))
                 if (d.name == pn) declared = d.unit;
             auto knob = std::make_unique<RangeKnob>(host, setup.organism, setup.param, setup.lo, setup.hi,
-                                                    s.decimalPlaces, setup.logarithmic,
+                                                    setup.logarithmic,
                                                     (int) familyOf(owner.className()),
                                                     unitResolve(pn, declared, setup.lo, setup.hi));
             knob->onAutomationChanged = changedHook(owner);

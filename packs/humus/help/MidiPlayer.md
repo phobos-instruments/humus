@@ -22,7 +22,7 @@ It reads .mid and .midi score files, .kar karaoke files and .mus, the compact sc
 
 **Program1** The instrument channel 1 plays. 0 plays what the file asks for; anything else overrides it for that channel. The same for Program2 to Program16. Channel 10 is the drum channel and stays drums.
 
-**Mute1** Silences channel 1, on the audio outlets and the MIDI outlet alike, and so on for Mute2 to Mute16. A channel the loaded file never plays on fades out and stops responding, so what is left lit is what the file actually contains.
+**Mute1** Silences channel 1, on the audio outlets and the MIDI outlet alike, and so on for Mute2 to Mute16. A channel the loaded file never plays on fades out and stops responding, so what is left lit is what the file actually contains. Alt-click any Mute to mute or unmute every channel at once.
 
 ## Recipe
 

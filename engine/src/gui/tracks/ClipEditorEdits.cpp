@@ -191,7 +191,7 @@ void ClipEditorView::setClipPitch(double semitones) {
 
 void ClipEditorView::showClipDetailMenu(juce::Point<int> screenPos) {
     enum { kSplit = 1, kDelete, kRipple, kTrim, kFadeIn, kFadeOut, kLoop, kZoomClip, kZoomSel,
-           kSplitTransients, kReverse, kNormalize, kDouble, kHalf,
+           kSplitTransients, kReverse, kNormalize, kDouble, kHalf, kRepair, kRestore,
            kGain0 = 100, kSense0 = 200, kPitch0 = 300 };
     int from = 0, to = 0;
     const bool sel = clipSelectionTicks(from, to);
@@ -225,6 +225,9 @@ void ClipEditorView::showClipDetailMenu(juce::Point<int> screenPos) {
                      std::abs(curDb - dbs[i]) < 0.05);
     m.addSubMenu(tr("tracks-pane-clip.gain", "Gain"), gain);
     m.addItem(kNormalize, tr("tracks-pane-clip.normalize", "Normalize"));
+    m.addItem(kRepair, tr("tracks-pane-clip.repair-selection", "Repair Selection"), canRepairSelection());
+    m.addItem(kRestore, tr("tracks-pane-clip.restore-original-audio", "Restore Original Audio"),
+              host().samples().canRestore(node_, clipOrdinal()));
     m.addItem(kReverse, tr("tracks-pane-clip.reverse", "Reverse"), true, ci.audioReverse);
     m.addItem(kDouble, tr("tracks-pane-clip.stretch-to-double-length", "Stretch to Double Length"));
     m.addItem(kHalf, tr("tracks-pane-clip.stretch-to-half-length", "Stretch to Half Length"));
@@ -248,6 +251,8 @@ void ClipEditorView::showClipDetailMenu(juce::Point<int> screenPos) {
             case kSplitTransients: splitAtTransients(); break;
             case kReverse: toggleClipReverse(); break;
             case kNormalize: normalizeClip(); break;
+            case kRepair: repairSelection(); break;
+            case kRestore: restoreOriginalAudio(); break;
             case kDouble: stretchClipBy(2.0); break;
             case kHalf: stretchClipBy(0.5); break;
             case kDelete: deleteClipSelection(false); break;

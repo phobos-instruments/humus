@@ -13,6 +13,7 @@
 #include "core/midi/MidiControl.h"
 #include "core/midi/MidiControlFeed.h"
 #include "hum/caps/Midi.h"
+#include "core/midi/MidiReach.h"
 #include "core/midi/MidiRecord.h"
 #include "core/midi/MidiSource.h"
 
@@ -35,21 +36,22 @@ struct MidiState {
         bool thru = false;
         bool grow = false;
         bool fromInput = false;
-        std::vector<int> ports;
+        std::vector<MidiReach> reaches;
         bool inlet = false;
         int takeColour = kNoColour;
+        int bank = 0;
 
-        bool hearsPort(int port) const {
+        bool hears(int port, int channel) const {
             if (!fromInput) return !inlet;
-            if (port < 0) return !ports.empty();
-            for (int p : ports)
-                if (p == kLiveMidiAllPorts || p == port) return true;
+            if (port < 0) return !reaches.empty();
+            for (const auto& r : reaches)
+                if (r.hears(port, channel)) return true;
             return false;
         }
 
         bool hears(const TimedMidi& e, int graphIndex) const {
             if (e.node >= 0) return inlet && e.node == graphIndex;
-            return hearsPort(e.port);
+            return hears(e.port, (e.status & 0x0F) + 1);
         }
     };
 

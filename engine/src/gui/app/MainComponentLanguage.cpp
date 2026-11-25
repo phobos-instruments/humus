@@ -3,6 +3,7 @@
 #include "gui/app/MainComponent.h"
 
 #include "gui/app/FreeWindow.h"
+#include "gui/patcher/OrganismTreePanel.h"
 #include "gui/properties/MetapadView.h"
 #include "gui/settings/SettingsComponent.h"
 #include "gui/common/Localisation.h"
@@ -38,6 +39,7 @@ void MainComponent::applyTexts() {
     name(viewPatcher_, tr("main-dock.patcher", "Patcher"));
     name(viewProperties_, tr("main-dock.properties", "Properties"));
     name(viewAutomation_, tr("main-dock.timeline", "Timeline"));
+    name(viewOrganisms_, tr("main-dock.organisms-rail", "Organisms and plug-ins (drag one onto the patcher)"));
     name(viewMetapad_, tr("main.metapad-rail", "Metapad (morph the whole patch between snapshots)"));
     name(viewParamControl_, tr("main.parameter-control-rail", "Parameter Control (MIDI / OSC / modulation and follow routes, F3)"));
     name(viewNotes_, tr("main.notes-free-text-saved-with", "Notes (free text, saved with the patch)"));
@@ -64,7 +66,9 @@ void MainComponent::applyTexts() {
     paneCenter_.setTitle(tr("main-dock.patcher", "Patcher"));
     paneRight_.setTitle(tr("main-dock.properties", "Properties"));
     paneBottom_.setTitle(tr("main-dock.timeline", "Timeline"));
-    for (auto* pane : {&paneCenter_, &paneRight_, &paneBottom_}) pane->applyTexts();
+    paneLeft_.setTitle(tr("main-dock.organisms", "Organisms"));
+    for (auto* pane : {&paneCenter_, &paneRight_, &paneBottom_, &paneLeft_}) pane->applyTexts();
+    if (organismTree_) organismTree_->applyTexts();
 }
 
 void MainComponent::installMacMenu() {

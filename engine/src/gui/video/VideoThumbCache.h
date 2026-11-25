@@ -15,6 +15,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/app/AppPaths.h"
+#include "gui/common/ShutdownSingleton.h"
 #include "gui/video/FrameImage.h"
 #include "gui/video/VideoThumbStore.h"
 #include "gui/video/VideoLayer.h"
@@ -22,12 +23,11 @@
 
 namespace hum {
 
-class VideoThumbCache {
+class VideoThumbCache : public ShutdownSingleton<VideoThumbCache> {
 public:
     static constexpr int kThumbH = 36;
     static constexpr int kMaxThumbs = 240;
 
-    static VideoThumbCache& instance() { static VideoThumbCache c; return c; }
 
     struct Strip {
         std::vector<juce::Image> frames;
@@ -74,7 +74,7 @@ public:
 
     void forget() { cache_.clear(); }
 
-    ~VideoThumbCache() { worker_.stopThread(4000); }
+    ~VideoThumbCache() override { worker_.stopThread(4000); }
 
 private:
     struct Entry {

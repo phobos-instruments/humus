@@ -16,10 +16,12 @@
     {
      "name": "Waveform",
      "min": 0.0,
-     "max": 5.0,
+     "max": 6.0,
      "def": 0.0,
      "enum": true,
-     "random": true
+     "random": true,
+     "random-min": 0.0,
+     "random-max": 5.0
     },
     {
      "name": "Amplitude",
@@ -50,6 +52,86 @@
      "max": 16.0,
      "def": 1.0,
      "random": true
+    },
+    {
+     "name": "Function",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "socket": true,
+     "hand-over-inlet": true
+    },
+    {
+     "name": "FunctionKind",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "enum": true,
+     "hidden": true
+    },
+    {
+     "name": "Formula",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "plainText": true,
+     "hidden": true,
+     "takes": "formula",
+     "picks": "Waveform=6, FunctionKind=0",
+     "text": "sin(tau*phase)"
+    },
+    {
+     "name": "Table",
+     "min": 0.0,
+     "max": 0.0,
+     "def": 0.0,
+     "isText": true,
+     "plainText": true,
+     "hidden": true,
+     "takes": "wave-table",
+     "picks": "Waveform=6, FunctionKind=1",
+     "text": ""
+    },
+    {
+     "name": "X",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "shared-var": true,
+     "hidden": true
+    },
+    {
+     "name": "Y",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "shared-var": true,
+     "hidden": true
+    },
+    {
+     "name": "Z",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "shared-var": true,
+     "hidden": true
+    },
+    {
+     "name": "W",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.5,
+     "shared-var": true,
+     "hidden": true
+    },
+    {
+     "name": "Position",
+     "min": 0.0,
+     "max": 1.0,
+     "def": 0.0,
+     "shared-var": true,
+     "hidden": true
     }
    ]
   }

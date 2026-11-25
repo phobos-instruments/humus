@@ -4,6 +4,7 @@
 
 #include "gui/browser/Loaders.h"
 #include "gui/common/Localisation.h"
+#include "gui/patcher/OrganismTreeModel.h"
 
 namespace hum {
 
@@ -15,6 +16,15 @@ std::vector<std::string> pathsOf(const juce::StringArray& files) {
     return out;
 }
 
+}
+
+bool PatcherCanvas::isInterestedInDragSource(const SourceDetails& details) {
+    return details.description.toString().startsWith(kClassDragPrefix);
+}
+
+void PatcherCanvas::itemDropped(const SourceDetails& details) {
+    const auto cls = details.description.toString().fromFirstOccurrenceOf(kClassDragPrefix, false, false);
+    if (cls.isNotEmpty() && onAddRequest) onAddRequest(cls.toStdString(), details.localPosition);
 }
 
 bool PatcherCanvas::isInterestedInFileDrag(const juce::StringArray& files) {
@@ -29,7 +39,24 @@ void PatcherCanvas::dropNewOrganisms(const std::string& className, const std::ve
     if (!made.empty()) select(made.back());
 }
 
+void PatcherCanvas::fileDragMove(const juce::StringArray& files, int x, int y) {
+    const auto node = hitNode(modelPos(juce::Point<int>(x, y)));
+    auto into = !node.empty() && !files.isEmpty() && browser::canLoadInto(host_, node, files[0].toStdString())
+                    ? node : std::string();
+    if (into == dropInto_) return;
+    dropInto_ = std::move(into);
+    repaint();
+}
+
+void PatcherCanvas::fileDragExit(const juce::StringArray&) {
+    if (dropInto_.empty()) return;
+    dropInto_.clear();
+    repaint();
+}
+
 void PatcherCanvas::filesDropped(const juce::StringArray& files, int x, int y) {
+    dropInto_.clear();
+    repaint();
     const auto paths = pathsOf(files);
     const auto at = modelPos(juce::Point<int>(x, y));
     if (const auto node = hitNode(at); !node.empty() && !browser::loadInto(host_, node, paths.front()).empty()) {

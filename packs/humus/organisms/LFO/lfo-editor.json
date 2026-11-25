@@ -2,7 +2,7 @@
   "width": 293,
   "height": 216,
   "controls": [
-    { "type": "enum-buttons", "param": "Waveform", "label": "", "x": 8, "y": 6, "w": 277, "h": 20, "options": ["SIN", "TRI", "SQR", "SAW", "DSAW", "S&H"], "icons": "waves" },
+    { "type": "enum-buttons", "param": "Waveform", "label": "", "x": 8, "y": 6, "w": 277, "h": 20, "options": ["SIN", "TRI", "SQR", "SAW", "DSAW", "S&H", "FN"], "icons": "waves" },
 
     { "type": "knob", "param": "Rate", "label": "Rate (Hz)", "x": 8, "y": 34, "w": 60, "h": 84, "log": true, "dim-when": "Sync" },
     { "type": "knob", "param": "Amplitude", "label": "Amp", "x": 72, "y": 34, "w": 60, "h": 84 },

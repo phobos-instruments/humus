@@ -3,7 +3,10 @@
 #include "gui/host/OscHost.h"
 #include "hum/Organism.h"
 
+#include <cstdint>
+
 #include "gui/app/AppSettings.h"
+#include "gui/common/Localisation.h"
 #include "gui/host/ControlApply.h"
 #include "gui/editor/ControlDefaults.h"
 #include "hum/caps/Osc.h"
@@ -12,17 +15,21 @@ namespace hum {
 
 OscHost::OscHost(BrickHost& host, HostCore& core, HostScheduler& scheduler)
     : host_(host), doc_(core), scheduler_(scheduler) {
-    receiver_.addListener(this);
     serial_.onMessage = [this, alive = alive_](const osc::Message& m) {
         scheduler_.post([this, alive, m] {
-            if (*alive) takeSerialMessage(m);
+            if (*alive) takeMessage(m);
+        });
+    };
+    udp_.onPacket = [this, alive = alive_](OscUdpListener::Packet packet, std::string from) {
+        scheduler_.post([this, alive, packet = std::move(packet), from = std::move(from)] {
+            if (*alive) takePacket(packet.data(), packet.size(), from);
         });
     };
 }
 
 OscHost::~OscHost() {
     *alive_ = false;
-    receiver_.removeListener(this);
+    udp_.close();
 }
 
 void OscHost::applySerialSettings() {
@@ -32,17 +39,35 @@ void OscHost::applySerialSettings() {
                       s.getInt("osc.serial.baud", 115200));
 }
 
-void OscHost::takeSerialMessage(const osc::Message& m) {
-    try {
-        juce::OSCMessage msg{juce::OSCAddressPattern(juce::String(m.address))};
-        for (const auto& a : m.args) {
-            if (a.tag == 'f') msg.addFloat32(a.f);
-            else if (a.tag == 'i') msg.addInt32(a.i);
-            else if (a.tag == 's') msg.addString(juce::String(a.s));
-        }
-        oscMessageReceived(msg);
-    } catch (const juce::OSCFormatError&) {
+void OscHost::takeMessage(const osc::Message& m) {
+    juce::String args;
+    for (const auto& a : m.args) {
+        if (args.isNotEmpty()) args << " ";
+        if (a.tag == 'f')      args << juce::String(a.f, 3);
+        else if (a.tag == 'i') args << juce::String(a.i);
+        else                   args << juce::String(a.s);
     }
+    logToMonitors(false, juce::String(m.address), args);
+
+    double v = 1.0;
+    bool numeric = m.args.empty();
+    for (const auto& a : m.args) {
+        if (a.tag == 'f') { v = a.f; numeric = true; break; }
+        if (a.tag == 'i') { v = a.i; numeric = true; break; }
+    }
+    if (numeric) inject(m.address, v);
+}
+
+void OscHost::takePacket(const std::uint8_t* data, size_t size, const std::string& from) {
+    bool any = false;
+    osc::decodePacket(data, size, [this, &any](const osc::Message& m) {
+        any = true;
+        takeMessage(m);
+    });
+    if (!any)
+        logToMonitors(false, tr("osc-monitor.not-osc", "(not OSC)"),
+                      trn("osc-monitor.bytes-from", "{n} byte from {sender}", "{n} bytes from {sender}",
+                          (long long) size, {{"sender", juce::String(from)}}));
 }
 
 int OscHost::port() const {
@@ -51,34 +76,11 @@ int OscHost::port() const {
 }
 
 bool OscHost::setEnabled(bool on) {
-    receiver_.disconnect();
+    udp_.close();
     enabled_ = false;
-    if (!on) return false;
-    enabled_ = receiver_.connect(port());
+    if (!on || !host_.environment().claimsMachineResources) return false;
+    enabled_ = udp_.open(port());
     return enabled_;
-}
-
-void OscHost::oscMessageReceived(const juce::OSCMessage& m) {
-    {
-        juce::String args;
-        for (const auto& arg : m) {
-            if (args.isNotEmpty()) args << " ";
-            if (arg.isFloat32())     args << juce::String(arg.getFloat32(), 3);
-            else if (arg.isInt32())  args << juce::String(arg.getInt32());
-            else if (arg.isString()) args << arg.getString();
-            else                     args << "?";
-        }
-        logToMonitors(false, m.getAddressPattern().toString(), args);
-    }
-
-    double v = 1.0;
-    bool numeric = m.isEmpty();
-    for (const auto& arg : m) {
-        if (arg.isFloat32()) { v = arg.getFloat32(); numeric = true; break; }
-        if (arg.isInt32()) { v = arg.getInt32(); numeric = true; break; }
-    }
-    if (!numeric) return;
-    inject(m.getAddressPattern().toString().toStdString(), v);
 }
 
 void OscHost::logToMonitors(bool out, const juce::String& address, const juce::String& args) {

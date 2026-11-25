@@ -29,12 +29,14 @@ void anchorSoundFile(Parameter& p, const juce::File& docDir) {
 
 }
 
-bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::string& error,
-                    std::unique_ptr<xml::Element>* rawOut) {
-    juce::File f(juce::String::fromUTF8(path.c_str()));
-    if (!f.existsAsFile()) { error = "file not found: " + path; return false; }
-    if (!parsePatchText(f.loadFileAsString().toStdString(), out, error, rawOut)) return false;
-    const auto dir = f.getParentDirectory();
+bool parsePatchTextBeside(const std::string& text, const std::string& folder, PatchDocumentModel& out,
+                          std::string& error, std::unique_ptr<xml::Element>* rawOut) {
+    if (!parsePatchText(text, out, error, rawOut)) return false;
+    if (folder.empty()) {
+        migrateLegacyControl(out);
+        return true;
+    }
+    const juce::File dir(juce::String::fromUTF8(folder.c_str()));
     for (auto& c : out.organisms)
         for (auto& ch : c.pattern.channels) {
             const auto stored = juce::String::fromUTF8(ch.audioFile.c_str());
@@ -48,6 +50,14 @@ bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::strin
     }
     migrateLegacyControl(out);
     return true;
+}
+
+bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::string& error,
+                    std::unique_ptr<xml::Element>* rawOut) {
+    juce::File f(juce::String::fromUTF8(path.c_str()));
+    if (!f.existsAsFile()) { error = "file not found: " + path; return false; }
+    return parsePatchTextBeside(f.loadFileAsString().toStdString(),
+                                f.getParentDirectory().getFullPathName().toStdString(), out, error, rawOut);
 }
 
 namespace {
@@ -77,12 +87,17 @@ void relativizeMediaPaths(xml::Element& el, const juce::File& docDir) {
 
 }
 
+std::string writePatchTextBeside(const PatchDocumentModel& doc, const std::string& folder,
+                                 const xml::Element* original) {
+    auto root = buildPatchTree(doc, original);
+    if (!folder.empty()) relativizeMediaPaths(*root, juce::File(juce::String::fromUTF8(folder.c_str())));
+    return xml::write(*root);
+}
+
 bool writePatchFile(const std::string& path, const PatchDocumentModel& doc, std::string& error,
                     const xml::Element* original) {
-    auto root = buildPatchTree(doc, original);
     const juce::File f(juce::String::fromUTF8(path.c_str()));
-    relativizeMediaPaths(*root, f.getParentDirectory());
-    const auto text = xml::write(*root);
+    const auto text = writePatchTextBeside(doc, f.getParentDirectory().getFullPathName().toStdString(), original);
     juce::TemporaryFile staging(f);
     bool written = false;
     {

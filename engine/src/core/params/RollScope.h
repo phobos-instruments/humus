@@ -10,6 +10,9 @@ namespace hum::rollscope {
 inline constexpr const char* kWholeOrganism = "*";
 inline constexpr const char* kPodActionPrefix = "Random:";
 inline constexpr char kPodSep = '/';
+inline constexpr const char* kLanePrefix = "*lane ";
+
+inline std::string laneKey(int lane) { return kLanePrefix + std::to_string(lane + 1); }
 
 inline bool isProtected(const std::set<std::string>& rollLocked) {
     return rollLocked.count(kWholeOrganism) > 0;

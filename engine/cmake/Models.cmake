@@ -60,6 +60,7 @@ add_library(hum_models STATIC
   src/gui/editor/video/ClipPadsModel.cpp
   src/gui/editor/video/VideoModels.cpp
   src/gui/pianoroll/RollEdits.cpp
+  src/gui/plugins/EmbedFit.cpp
   src/gui/pianoroll/RollGestures.cpp
   src/gui/pianoroll/RollTransport.cpp
 )

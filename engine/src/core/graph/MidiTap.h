@@ -27,6 +27,17 @@ public:
         return true;
     }
 
+    template <class Each>
+    void drainEach(Each&& each) {
+        auto tail = tail_.load(std::memory_order_relaxed);
+        const auto head = head_.load(std::memory_order_acquire);
+        while (tail != head) {
+            each(slots_[tail]);
+            tail = (tail + 1) % kCapacity;
+        }
+        tail_.store(tail, std::memory_order_release);
+    }
+
     void drainInto(std::vector<TappedMidi>& out) {
         auto tail = tail_.load(std::memory_order_relaxed);
         const auto head = head_.load(std::memory_order_acquire);

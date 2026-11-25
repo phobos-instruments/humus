@@ -7,19 +7,26 @@
 
 namespace hum {
 
+namespace {
+constexpr double kWindowSeconds = 0.04;
+constexpr double kLongestWindowMs = 100.0;
+}
+
 void Trellis::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     tracker_.prepare(sampleRate);
-    shifter_.prepare(sampleRate);
+    tracker_.setBellCheck(true);
+    shifter_.prepare(sampleRate, kLongestWindowMs);
+    shifter_.setBlend(PitchShifter::Blend::Level);
     reset();
 }
 
 void Trellis::reset() {
     tracker_.reset();
     shifter_.reset();
+    shifter_.setWindow((int) (kWindowSeconds * sampleRate_));
     targetCents_ = 0.0;
     smoothCents_ = 0.0;
-    window_ = 0;
 }
 
 double Trellis::snapMidi(double midi, const Tuning& tuning) const {
@@ -62,11 +69,8 @@ void Trellis::process(const float* const* in, int numIn, float* const* out, int 
             const double midi = tuning.midiNote(hz);
             const double target = snapMidi(midi, tuning);
             targetCents_ = 1200.0 * std::log2(tuning.hz(target) / hz) * strength;
-            const int period = (int) (sampleRate_ / hz);
-            if (std::abs(2 * period - window_) > window_ / 8) {
-                window_ = 2 * period;
-                shifter_.setWindow(window_);
-            }
+            const int wanted = PitchShifter::wholeCycleWindow(sampleRate_ / hz, sampleRate_, kWindowSeconds);
+            if (wanted != shifter_.window()) shifter_.glideToWindow(wanted);
         } else {
             targetCents_ = 0.0;
         }

@@ -37,6 +37,7 @@ struct PresetModel {
     int number = 0;
     std::string name;
     std::vector<Parameter> properties;
+    Pattern pattern;
 };
 
 struct AutomationBreakpoint {
@@ -44,6 +45,7 @@ struct AutomationBreakpoint {
     double value = 0.0;
     double valueMax = 0.0;
     double curve = 0.0;
+    bool release = false;
 };
 
 struct AutomationLane {
@@ -131,6 +133,7 @@ struct OrganismModel {
     int midiReceivePort = 0;
     enum TrackInput { kTrackInputAuto = -1, kTrackInputAll = -2, kTrackInputNone = -3 };
     int trackInput = kTrackInputAuto;
+    int trackInputChannel = 0;
     int timelineRow = -1;
     std::set<std::string> rollLocked;
     std::map<std::string, std::string> rangeModes;
@@ -138,6 +141,16 @@ struct OrganismModel {
     std::string currentPresetName;
     std::string currentPresetSource;
 };
+
+inline void ensurePatternProperty(OrganismModel& c) {
+    for (const auto& p : c.properties)
+        if (p.name == "Pattern") return;
+    Parameter p;
+    p.name = "Pattern";
+    p.type = "pattern";
+    p.userEdited = true;
+    c.properties.push_back(p);
+}
 
 inline constexpr const char* kBypassParam = "Bypass";
 
@@ -147,6 +160,7 @@ inline constexpr const char* kSoloParam = "Solo";
 inline constexpr const char* kArmParam = "Arm";
 
 inline constexpr const char* kRandomAction = "Random";
+inline constexpr const char* kEvolveAction = "Evolve";
 
 inline constexpr const char* kPresetNextAction = "Preset Next";
 inline constexpr const char* kPresetPrevAction = "Preset Prev";
@@ -237,7 +251,7 @@ inline bool isMetapadAction(const std::string& param) {
 inline bool isHostSwitchTarget(const std::string& param) {
     return param == kBypassParam || param == kTrackMuteParam
         || param == kSoloParam || param == kArmParam
-        || param == kRandomAction || rollscope::isPodAction(param) || isPresetStepAction(param)
+        || param == kRandomAction || param == kEvolveAction || rollscope::isPodAction(param) || isPresetStepAction(param)
         || isTransportAction(param);
 }
 
@@ -257,7 +271,7 @@ inline std::vector<Parameter> settingsOnly(const std::vector<Parameter>& props) 
     std::vector<Parameter> out;
     out.reserve(props.size());
     for (const auto& p : props)
-        if (p.name != kBypassParam && p.name != kTrackMuteParam) out.push_back(p);
+        if (p.name != kBypassParam && p.name != kTrackMuteParam && p.type != "pattern") out.push_back(p);
     return out;
 }
 
@@ -431,6 +445,8 @@ struct PatchDocumentModel {
     bool masterLimiter = false;
     double groove = 0.0;
     std::string grooveUnit = "1/16";
+    std::map<std::string, std::string> editedAudio;
+    std::map<std::string, int> audioRevisions;
 
     const OrganismModel* byName(const std::string& n) const {
         for (auto& c : organisms)
@@ -455,6 +471,8 @@ inline double markerBeatIn(const PatchDocumentModel& model, int slot) {
     return -1.0;
 }
 
+bool parsePatchTextBeside(const std::string& text, const std::string& folder, PatchDocumentModel& out,
+                          std::string& error, std::unique_ptr<xml::Element>* rawOut = nullptr);
 bool parsePatchFile(const std::string& path, PatchDocumentModel& out, std::string& error,
                   std::unique_ptr<xml::Element>* rawOut = nullptr);
 bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::string& error,

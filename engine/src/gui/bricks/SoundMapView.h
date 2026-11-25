@@ -34,7 +34,11 @@ public:
         setMouseCursor(juce::MouseCursor::CrosshairCursor);
     }
 
-    void reloadValues() override { map_.invalidate(); repaint(); }
+    void reloadValues() override {
+        if (map_.fitChanged()) map_.invalidate();
+        repaint();
+    }
+    int dotRedrawsForTest() const { return dotRedraws_; }
     void refreshAutomatedValues() override { repaint(); }
     int preferredContentWidth() const override { return 368; }
     int preferredContentHeight(int) const override { return 368; }
@@ -244,16 +248,14 @@ private:
         auto& learner = MidiLearner::instance();
         const auto rx = paramRange(host_, name_, map_.paramX());
         learner.arm(host_, name_, map_.paramX(), rx.first, rx.second);
-        learner.onCaptured = [&host = host_, cn = name_, py = map_.paramY()] {
-            const auto ry = paramRange(host, cn, py);
-            quickMapMidi(host, cn, py);
-        };
+        learner.onCaptured = [&host = host_, cn = name_, py = map_.paramY()] { quickMapMidi(host, cn, py); };
     }
 
     void pullPoints(float scale) {
         const int iw = juce::jmax(1, (int) std::lround(getWidth() * scale));
         const int ih = juce::jmax(1, (int) std::lround(getHeight() * scale));
         if (!map_.refreshPoints(dots_.getWidth() != iw || dots_.getHeight() != ih)) return;
+        ++dotRedraws_;
 
         dots_ = juce::Image(juce::Image::ARGB, iw, ih, true);
         juce::Graphics dg(dots_);
@@ -287,6 +289,7 @@ private:
     files::SoundMapModel map_;
     std::string sizeParam_, spreadParam_, pitchParam_;
     juce::Image dots_;
+    int dotRedraws_ = 0;
 };
 
 }

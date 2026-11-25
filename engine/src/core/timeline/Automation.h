@@ -12,6 +12,7 @@ struct AutoPoint {
     double value = 0.0;
     double valueMax = 0.0;
     double curve = 0.0;
+    bool release = false;
 };
 
 enum class AutoKind { Double, Range, Trigger, Step };
@@ -46,6 +47,17 @@ inline double evaluateHeld(const std::vector<AutoPoint>& pts, double beat) {
         v = p.value;
     }
     return v;
+}
+
+template <typename P>
+const P* heldPointAt(const std::vector<P>& pts, double beat) {
+    if (pts.empty()) return nullptr;
+    const P* at = &pts.front();
+    for (const auto& p : pts) {
+        if (p.beat > beat) break;
+        at = &p;
+    }
+    return at;
 }
 
 inline double evaluateEnvelopeMax(const std::vector<AutoPoint>& pts, double beat) {
@@ -83,6 +95,8 @@ struct AutoLane {
     bool suspended = false;
     double rest = 0.0;
     double pulse = 1.0;
+    double base = 0.0;
+    bool letGo = false;
     std::vector<AutoPoint> points;
 };
 

@@ -109,6 +109,23 @@ void MainComponent::rebuildChromeTextures() {
     }
 }
 
+void MainComponent::layDock(juce::Rectangle<int> area) {
+    const docklayout::Shown shown{paneCenter_.isVisible(), paneRight_.isVisible(), paneBottom_.isVisible(),
+                                  paneLeft_.isVisible()};
+    const auto areas = docklayout::lay(area, shown, {rightW_, 180, 200}, {bottomH_, 80, 120}, SplitterBar::kThick,
+                                       {leftW_, 160, 400});
+    splitL_.setVisible(paneLeft_.isVisible() && (paneCenter_.isVisible() || paneRight_.isVisible()));
+    if (paneLeft_.isVisible()) paneLeft_.setBounds(areas.left);
+    if (splitL_.isVisible()) splitL_.setBounds(areas.splitL);
+    splitV_.setVisible(paneCenter_.isVisible() && paneRight_.isVisible());
+    splitH_.setVisible(paneBottom_.isVisible() && (paneCenter_.isVisible() || paneRight_.isVisible()));
+    if (paneCenter_.isVisible()) paneCenter_.setBounds(areas.center);
+    if (paneRight_.isVisible()) paneRight_.setBounds(areas.right);
+    if (paneBottom_.isVisible()) paneBottom_.setBounds(areas.bottom);
+    if (splitV_.isVisible()) splitV_.setBounds(areas.splitV);
+    if (splitH_.isVisible()) splitH_.setBounds(areas.splitH);
+}
+
 void MainComponent::resized() {
     perf::Scope scope("main.resized");
     auto area = getLocalBounds();
@@ -212,26 +229,13 @@ void MainComponent::resized() {
         auto railIn = [&col](IconButton& b, int h) {
             b.setBounds(col.removeFromTop(h)); col.removeFromTop(2);
         };
-        railIn(viewPatcher_, 30); railIn(viewProperties_, 30); railIn(viewAutomation_, 30);
+        railIn(viewOrganisms_, 30); railIn(viewPatcher_, 30); railIn(viewProperties_, 30); railIn(viewAutomation_, 30);
         col.removeFromTop(10);
         railIn(viewMetapad_, 28); railIn(viewParamControl_, 28); railIn(viewNotes_, 28);
         railIn(viewDocSwitcher_, 28); railIn(viewHelp_, 28); railIn(viewLibrary_, 28);
     }
 
-    splitV_.setVisible(paneCenter_.isVisible() && paneRight_.isVisible());
-    splitH_.setVisible(paneBottom_.isVisible() && (paneCenter_.isVisible() || paneRight_.isVisible()));
-
-    if (paneBottom_.isVisible()) {
-        int h = juce::jlimit(80, juce::jmax(100, area.getHeight() - 120), bottomH_);
-        paneBottom_.setBounds(area.removeFromBottom(h));
-        if (splitH_.isVisible()) splitH_.setBounds(area.removeFromBottom(SplitterBar::kThick));
-    }
-    if (paneRight_.isVisible()) {
-        int w = juce::jlimit(180, juce::jmax(200, area.getWidth() - 200), rightW_);
-        paneRight_.setBounds(area.removeFromRight(w));
-        if (splitV_.isVisible()) splitV_.setBounds(area.removeFromRight(SplitterBar::kThick));
-    }
-    if (paneCenter_.isVisible()) paneCenter_.setBounds(area);
+    layDock(area);
     if (canvas_) canvas_->refresh();
 
     if (!startupOutCentered_ && canvas_ && canvas_->getWidth() > 0) {

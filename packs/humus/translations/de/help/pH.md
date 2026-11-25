@@ -4,6 +4,8 @@ Ein FM-Synthesizer mit vier Engines: einer Sechs-Operator-Engine, die DX7-.syx-B
 
 Die Bank bestimmt die Engine. Eine .syx enthält Sechs-Operator-Klänge; eine .wopn, .tfi oder .dmp enthält OPN2-Instrumente für den Kern [Nuked-OPN2](https://github.com/nukeykt/Nuked-OPN2); eine .opm enthält OPM-Klänge für [Nuked-OPM](https://github.com/nukeykt/Nuked-OPM); eine .wopl enthält OPL3-Instrumente für [Nuked-OPL3](https://github.com/nukeykt/Nuked-OPL3). Lade eine, und die passende Engine spielt sie: acht Stimmen auf der Sechs-Operator-Engine, sechs Kanäle auf dem OPN2, acht auf dem OPM und achtzehn auf dem OPL3. Die Tonhöhe kommt aus der Stimmung des Patches, sodass eine mikrotonale Tonleiter auch auf Chip-Stimmen spielt. Ein Patch nennt seine Bank nur beim Namen, statt sie mitzuführen, also gib die Bank zusammen mit dem Patch weiter. Schließ eine PianoRoll, ein DNA oder ein MidiIn an.
 
+Bänke des M-VAVE FM-1 laden so, wie sie sind: Seine Klänge sind DX7-Klänge mit sechs Operatoren, deshalb spielen die Werksbänke, die die Community als .syx-Dumps gerettet hat, in pH mit jedem Klang und seinem Namen. Manche eigenen Firmwares für das FM-1 behalten dieselbe Engine samt ihren Bänken oder fügen sie hinzu. Humus installiert keine Firmware auf dem FM-1 und spricht nicht mit seiner Firmware; um das Gerät selbst zu spielen, schließ ein MidiOut daran an wie an jeden MIDI-Synth.
+
 ## Parameter
 
 **Patch** Welcher Klang der Bank spielt, nach Name. Wählst du eine Bank, geht es wieder bei ihrem ersten Klang los.

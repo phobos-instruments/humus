@@ -22,7 +22,7 @@ Er liest Partiturdateien im Format .mid und .midi, Karaoke-Dateien im Format .ka
 
 **Program1** Das Instrument, das Kanal 1 spielt. 0 spielt, was die Datei verlangt; jeder andere Wert überschreibt es für diesen Kanal. Dasselbe gilt für Program2 bis Program16. Kanal 10 ist der Drumkanal und bleibt Drums.
 
-**Mute1** Schaltet Kanal 1 stumm, an den Audioausgängen wie am MIDI-Ausgang, und so weiter für Mute2 bis Mute16. Ein Kanal, auf dem die geladene Datei nie spielt, verblasst und reagiert nicht mehr, sodass alles, was noch leuchtet, tatsächlich in der Datei steckt.
+**Mute1** Schaltet Kanal 1 stumm, an den Audioausgängen wie am MIDI-Ausgang, und so weiter für Mute2 bis Mute16. Ein Kanal, auf dem die geladene Datei nie spielt, verblasst und reagiert nicht mehr, sodass alles, was noch leuchtet, tatsächlich in der Datei steckt. Alt-Klick auf ein beliebiges Mute schaltet alle Kanäle auf einmal stumm oder wieder ein.
 
 ## Rezept
 

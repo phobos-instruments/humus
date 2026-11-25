@@ -14,15 +14,17 @@ namespace hum::clipdetail {
 
 class SampleWindow {
 public:
-    const std::vector<float>& read(const std::string& path, std::int64_t from, std::int64_t to) {
-        if (path != path_) open(path);
+    const std::vector<float>& read(const std::string& path, std::int64_t from, std::int64_t to, unsigned stamp = 0) {
+        if (path != path_ || stamp != stamp_) open(path, stamp);
         from = std::max<std::int64_t>(0, from);
         to = std::min(to, length_);
-        if (!reader_ || to <= from) { mono_.clear(); from_ = 0; return mono_; }
+        if (length_ <= 0 || to <= from) { mono_.clear(); from_ = 0; return mono_; }
         if (from == from_ && (std::int64_t) mono_.size() == to - from) return mono_;
+        const auto reader = readerFor(path_);
+        if (!reader) { mono_.clear(); from_ = 0; return mono_; }
         const int n = (int) std::min<std::int64_t>(to - from, kMaxWindow);
-        juce::AudioBuffer<float> buf((int) reader_->numChannels, n);
-        reader_->read(&buf, 0, n, from, true, true);
+        juce::AudioBuffer<float> buf((int) reader->numChannels, n);
+        reader->read(&buf, 0, n, from, true, true);
         mono_.assign((size_t) n, 0.0f);
         for (int c = 0; c < buf.getNumChannels(); ++c) {
             const float* s = buf.getReadPointer(c);
@@ -34,30 +36,35 @@ public:
         return mono_;
     }
     std::int64_t from() const { return from_; }
-    double sampleRate() const { return reader_ ? reader_->sampleRate : 0.0; }
+    double sampleRate() const { return rate_; }
     std::int64_t length() const { return length_; }
 
 private:
     static constexpr std::int64_t kMaxWindow = 1 << 20;
 
-    void open(const std::string& path) {
-        path_ = path;
-        reader_.reset();
-        mono_.clear();
-        length_ = 0;
+    static std::unique_ptr<juce::AudioFormatReader> readerFor(const std::string& path) {
         std::string uri = path;
         if (uri.rfind("file://", 0) == 0) uri = uri.substr(7);
         juce::AudioFormatManager fm;
         fm.registerBasicFormats();
-        reader_.reset(fm.createReaderFor(
-            fileAt(uri)));
-        if (reader_) length_ = reader_->lengthInSamples;
+        return std::unique_ptr<juce::AudioFormatReader>(fm.createReaderFor(fileAt(uri)));
+    }
+
+    void open(const std::string& path, unsigned stamp) {
+        path_ = path;
+        stamp_ = stamp;
+        mono_.clear();
+        from_ = 0;
+        const auto reader = readerFor(path);
+        length_ = reader ? reader->lengthInSamples : 0;
+        rate_ = reader ? reader->sampleRate : 0.0;
     }
 
     std::string path_;
-    std::unique_ptr<juce::AudioFormatReader> reader_;
+    unsigned stamp_ = 0;
     std::vector<float> mono_;
     std::int64_t from_ = 0, length_ = 0;
+    double rate_ = 0.0;
 };
 
 inline juce::String gainDb(double gain) {

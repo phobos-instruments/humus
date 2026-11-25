@@ -13,6 +13,7 @@
 #include "gui/editor/LiveControls.h"
 #include "gui/host/BrickHost.h"
 #include "hum/Chord.h"
+#include "hum/StepChance.h"
 #include "hum/caps/Midi.h"
 
 namespace hum::input {
@@ -20,9 +21,11 @@ namespace hum::input {
 class StepStripModel {
 public:
     static constexpr int kDefaultSteps = 16;
+    static constexpr int kChanceStep = 5;
 
-    StepStripModel(BrickHost& host, std::string organism, std::string muteParam)
-        : host_(host), organism_(std::move(organism)), muteParam_(std::move(muteParam)) {}
+    StepStripModel(BrickHost& host, std::string organism, std::string muteParam, std::string chancePrefix = {})
+        : host_(host), organism_(std::move(organism)), muteParam_(std::move(muteParam)),
+          chancePrefix_(std::move(chancePrefix)) {}
 
     int steps() const;
 
@@ -32,6 +35,11 @@ public:
     int cellAt(float x, int width) const;
     void press(int step);
     bool sweep(int step);
+
+    bool hasChances() const { return !chancePrefix_.empty(); }
+    std::string chanceParam(int step) const { return chancePrefix_ + std::to_string(step + 1); }
+    int chance(int step) const;
+    void setChance(int step, int value);
 
     void playEvery() { setMask(0); }
     void invert() { setMask(~mask()); }
@@ -49,7 +57,8 @@ private:
     int restsOfLap(std::int64_t absolute) const;
 
     BrickHost& host_;
-    std::string organism_, muteParam_;
+    std::string organism_, muteParam_, chancePrefix_;
+    unsigned lastChances_ = 0;
     std::int64_t lastStep_ = -2;
     int lastRests_ = -1;
     int lastMute_ = -1;

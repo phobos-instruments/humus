@@ -9,6 +9,7 @@
 #include "core/app/WindowGeometry.h"
 #include "core/plugins/BridgeClient.h"
 #include "core/plugins/BridgeWorker.h"
+#include "gui/plugins/clap/ClapFormat.h"
 #include "core/plugins/HelperLaunch.h"
 #include "gui/plugins/BridgeWorkerEditor.h"
 #include "core/plugins/PluginHost.h"
@@ -53,6 +54,13 @@ public:
     }
 
     void initialise(const juce::String&) override {
+        claphost::enableClapHosting();
+        if (getCommandLineParameterArray().contains("--bundle-check")) {
+            hideEverything();
+            setApplicationReturnValue(appcli::run(getCommandLineParameterArray()).returnValue);
+            quit();
+            return;
+        }
         EngineHost::allowLink();
         appsignals::installCrashHandlers();
         {
@@ -83,7 +91,7 @@ public:
 
         if (const auto cli = appcli::run(args); cli.handled) {
             setApplicationReturnValue(cli.returnValue);
-            quit();
+            if (!cli.pending) quit();
             return;
         }
 

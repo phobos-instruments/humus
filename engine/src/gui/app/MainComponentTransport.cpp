@@ -60,7 +60,7 @@ void MainComponent::buildTransportRow() {
         const auto mode = host_.beforeRecord();
         const int bars = host_.beforeRecordBars();
         auto barsText = [](int n) { return trn("main-transport.bars", "{n} bar", "{n} bars", n); };
-        const int first = kAutomateMenuFirstOwnId;
+        constexpr int first = kAutomateMenuFirstOwnId;
         juce::PopupMenu countIn, preRoll;
         for (int n : {1, 2, 4}) {
             countIn.addItem(first + 10 + n, barsText(n), true,
@@ -85,8 +85,8 @@ void MainComponent::buildTransportRow() {
         head.addSubMenu(tr("main-transport.automation-write", "Automation write"), write);
         showAutomateMenu(host_, host_.clockNodeName(), kCaptureAction, at,
                          [this] { refreshTimelinePanes(); }, false, {}, std::move(head),
-                         [this, first](int r) {
-            const int pick = r - first;
+                         [this](int r) {
+            const int pick = r - kAutomateMenuFirstOwnId;
             if (pick == 1 || pick == 2) {
                 host_.setLatchMode(pick == 2);
                 AppSettings::instance().set("automation.latch", pick == 2 ? 1 : 0);

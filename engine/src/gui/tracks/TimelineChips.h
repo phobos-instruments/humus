@@ -113,22 +113,26 @@ inline void paintGummyShine(juce::Graphics& g, juce::Rectangle<float> r, float r
     g.drawHorizontalLine((int) r.getBottom() - 2, r.getX() + radius, r.getRight() - radius);
 }
 
-inline juce::String midiInputLabel(int input) {
+inline juce::String midiInputLabel(int input, int channel) {
     const juce::String name = input == OrganismModel::kTrackInputAuto   ? tr("tracks-pane.input-chip-auto", "Auto")
                             : input == OrganismModel::kTrackInputAll    ? tr("tracks-pane.input-chip-all", "All")
                             : input == OrganismModel::kTrackInputNone   ? tr("tracks-pane.input-chip-none", "None")
                                                                         : tr("tracks-pane.input-chip-in", "In {n}",
                                                                              {{"n", juce::String(input + 1)}});
-    return name + juce::String::fromUTF8(" \xe2\x96\xbe");
+    const bool oneChannel = channel >= 1 && channel <= 16 && input != OrganismModel::kTrackInputNone;
+    const auto shown = oneChannel ? tr("tracks-pane.input-chip-channel", "{input}, ch {n}",
+                                       {{"input", name}, {"n", juce::String(channel)}})
+                                  : name;
+    return shown + juce::String::fromUTF8(" \xe2\x96\xbe");
 }
 
-inline juce::Rectangle<int> midiInputChipRect(juce::Rectangle<int> r, int input) {
+inline juce::Rectangle<int> midiInputChipRect(juce::Rectangle<int> r, int input, int channel) {
     const juce::Font f{juce::FontOptions(11.0f)};
-    const int wanted = (int) textWidth(f, midiInputLabel(input)) + 21;
+    const int wanted = (int) textWidth(f, midiInputLabel(input, channel)) + 21;
     return r.withWidth(juce::jmin(r.getWidth(), juce::jmax(40, wanted)));
 }
 
-inline void paintMidiInputChip(juce::Graphics& g, juce::Rectangle<int> r, int input, bool lit) {
+inline void paintMidiInputChip(juce::Graphics& g, juce::Rectangle<int> r, int input, int channel, bool lit) {
     g.setColour(Palette::panelLight);
     g.fillRoundedRectangle(r.toFloat(), 2.0f);
     g.setColour(Palette::border);
@@ -138,7 +142,7 @@ inline void paintMidiInputChip(juce::Graphics& g, juce::Rectangle<int> r, int in
     g.fillEllipse(led);
     g.setColour(input == OrganismModel::kTrackInputNone ? Palette::textDim : Palette::text);
     g.setFont(juce::FontOptions(11.0f));
-    g.drawText(midiInputLabel(input), r.withTrimmedLeft(13).reduced(2, 0), juce::Justification::centredLeft, true);
+    g.drawText(midiInputLabel(input, channel), r.withTrimmedLeft(13).reduced(2, 0), juce::Justification::centredLeft, true);
 }
 
 inline void paintHeldBadge(juce::Graphics& g, juce::Rectangle<int> r, bool on = true) {

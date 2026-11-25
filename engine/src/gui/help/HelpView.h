@@ -6,6 +6,7 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/common/CallOut.h"
 #include "gui/help/HelpBody.h"
 #include "gui/help/HelpDocs.h"
 #include "gui/style/LookAndFeel.h"
@@ -40,11 +41,12 @@ public:
         body_.layoutTo(viewport_.getMaximumVisibleWidth());
     }
 
-    static void show(const std::string& displayClass, juce::Rectangle<int> anchorScreen) {
+    static void show(const std::string& displayClass, juce::Rectangle<int> anchorScreen,
+                     juce::Component* parent = nullptr) {
         auto v = std::make_unique<HelpView>(
             tr("help.page-title", "{organism} - Help").replace("{organism}", juce::String(displayClass)),
             loadOrganismDoc(displayClass), displayClass);
-        juce::CallOutBox::launchAsynchronously(std::move(v), anchorScreen, nullptr);
+        launchCallOut(std::move(v), anchorScreen, parent);
     }
 
 private:

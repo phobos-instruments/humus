@@ -1,16 +1,21 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/app/MainComponent.h"
+
+#include <cstdint>
+
 #include "gui/patcher/PatcherCanvas.h"
 #include "gui/properties/PropertiesPane.h"
 
 #include "gui/app/AppSettings.h"
+#include "core/library/ExamplesTree.h"
 #include "gui/common/Localisation.h"
 
 namespace hum {
 
-void MainComponent::autosaveTick() {
-    history_.tick(currentFile_, nowMs());
+void MainComponent::autosaveTick(std::int64_t now) {
+    history_.tick(currentFile_, now);
+    autosaveInPlaceTick(now);
     if (--autosaveTicks_ > 0) return;
     const int intervalSec = AppSettings::instance().getInt("autosave.intervalSec", 60);
     constexpr int kTicksPerSec = 30;
@@ -18,6 +23,37 @@ void MainComponent::autosaveTick() {
     if (intervalSec <= 0) return;
     if (!host_.isDirty() || host_.changeStamp() == lastAutosaveStamp_) return;
     performAutosave();
+}
+
+bool MainComponent::autosaveInPlaceOn() const {
+    return AppSettings::instance().getInt(AutosaveInPlace::kSettingKey, 0) != 0;
+}
+
+void MainComponent::toggleAutosaveInPlace() {
+    AppSettings::instance().set(AutosaveInPlace::kSettingKey, autosaveInPlaceOn() ? 0 : 1);
+    menuItemsChanged();
+}
+
+void MainComponent::autosaveInPlaceTick(std::int64_t now) {
+    if (!autosaveInPlaceOn()) return;
+    const AutosaveInPlace::Moment moment{
+        currentFile_.isNotEmpty(), host_.isDirty(),
+        host_.isPlaying() || host_.isMixRecording() || host_.record().armed(), host_.changeStamp()};
+    if (!inPlace_.due(moment, now)) return;
+    const juce::File patch(currentFile_);
+    if (!AutosaveInPlace::canWrite(patch, examples::roots(),
+                                   juce::File::getSpecialLocation(juce::File::currentApplicationFile))) {
+        inPlace_.failed(moment.stamp);
+        return;
+    }
+    UiWatchdog::Suspend noStall(UiWatchdog::active());
+    std::string err;
+    if (host_.saveFile(currentFile_.toStdString(), err)) {
+        clearAutosave();
+        return;
+    }
+    inPlace_.failed(moment.stamp);
+    notifyError(tr("main-autosave.autosave-failed", "autosave failed: {reason}", {{"reason", juce::String(err)}}));
 }
 
 void MainComponent::performAutosave() {

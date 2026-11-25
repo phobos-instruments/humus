@@ -221,7 +221,10 @@ void AudioGraph::applyAutomation() {
                 break;
             }
             case AutoKind::Step: {
-                const double v = evaluateHeld(lane.points, beat);
+                const auto* at = heldPointAt(lane.points, beat);
+                if (at->release && lane.letGo) break;
+                lane.letGo = at->release;
+                const double v = at->release ? lane.base : at->value;
                 rtStoreWord(p->value, v);
                 rtStoreWord(p->rangeMin, v);
                 rtStoreWord(p->rangeMax, v);

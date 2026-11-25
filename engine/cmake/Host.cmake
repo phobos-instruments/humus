@@ -4,10 +4,11 @@ if(HUM_GUI)
   target_include_directories(hum_host PUBLIC src ${HUM_GENERATED_DIR})
   add_dependencies(hum_host hum_build_id)
   target_link_libraries(hum_host PUBLIC
+    hum_ui
+    hum_clap_juce
     hum_core
     hum_assets
   )
-  hum_link_video(hum_host)
   target_compile_definitions(hum_host PRIVATE JUCE_WEB_BROWSER=0)
   hum_warnings(hum_host)
 
@@ -45,14 +46,25 @@ if(HUM_GUI)
       tests/host/DevicePathTests.cpp
       tests/host/WideDeviceTests.cpp
       tests/host/ParamEditTests.cpp
+      tests/plugins/ClapLiveTests.cpp
+      tests/plugins/Auv3LiveTests.cpp
       tests/host/MapTests.cpp
+      tests/host/EvolveActionTests.cpp
       tests/host/RangeEndTests.cpp
       tests/host/MidiInputTests.cpp
+      tests/host/MidiChannelTests.cpp
+      tests/host/SequenceRollTests.cpp
+      tests/host/SampleEditTests.cpp
       tests/host/WarpedClipTests.cpp
       tests/host/PresetLayerTests.cpp
       tests/host/DeclaredRollTests.cpp
       tests/host/AssistantLevelTests.cpp
+      tests/host/SampleLabLandingTests.cpp
       tests/host/BankTests.cpp
+      tests/host/StepChanceHostTests.cpp
+      tests/host/ParamBankHostTests.cpp
+      tests/host/BlockLaneHostTests.cpp
+      tests/host/DnaChanceHostTests.cpp
       tests/host/SequenceRowsTests.cpp
       tests/host/GrooveTests.cpp
       tests/host/WaveMorphTests.cpp

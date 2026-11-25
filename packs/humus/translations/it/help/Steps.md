@@ -8,6 +8,8 @@ Una riga è una voce: imposta Note e collega la sua uscita MIDI a un Kick, a un 
 
 Clicca uno step per mettere un colpo e cliccalo di nuovo per toglierlo. La riga ^ sopra alza quel colpo di un'ottava. La riga di tenuta sotto lega un colpo oltre il confine con lo step successivo, e una serie di tenute fa una nota lunga.
 
+**Probabilità dello step** Clicca il tasto % in alto a destra della griglia per vedere la probabilità di ogni step come una barra, poi trascina su o giù su uno step per decidere quanto spesso suona, da mai a sempre, a scatti del 5%. Cmd-trascina (Ctrl-trascina su Windows e Linux) fa lo stesso senza cambiare modalità. Il tasto % è l'interruttore View, quindi anche un pulsante o un pad mappato lo commuta. La probabilità di ogni step è anche un parametro, da Chance_1 a Chance_16, così puoi mapparci dei fader. Nella vista Chance, fai clic destro su uno step per mapparlo. Un colpo sotto il 100% appare più sbiadito e mostra la sua probabilità sopra di sé. I dadi sono del box: una patch suona gli stessi colpi a ogni riproduzione e a ogni bounce, e due box tirano ciascuno i propri. Ogni banco tiene le sue probabilità, Copia nel banco le porta con sé e Cancella le riporta al sicuro.
+
 ## Parametri
 
 **Note** La nota MIDI che manda ogni colpo. 36 è C1, la solita cassa.
@@ -19,6 +21,12 @@ Clicca uno step per mettere un colpo e cliccalo di nuovo per toglierlo. La riga 
 **Gate** La lunghezza del colpo come frazione dello step. Le legature vanno oltre.
 
 **Velocity** La velocity di ogni colpo. Automatizzala per i crescendo.
+
+**Bank** Quale degli otto pattern suona, da A a H. Ogni bank tiene i suoi step e la sua riga ^, e cambiando suona subito il nuovo.
+
+**View** Steps o Chance: cosa mostra e modifica la griglia. Il tasto % lo cambia.
+
+**Chance_1 a Chance_16** Quanto spesso suona ogni step, da 0 a 100%. Ogni banco tiene le sue.
 
 ## Ricetta
 

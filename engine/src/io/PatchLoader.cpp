@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "io/AutoLaneOf.h"
 #include "io/PatchLoader.h"
 
 #include <cstdlib>
@@ -135,24 +136,7 @@ bool buildGraph(const PatchDocumentModel& doc, AudioGraph& graph, std::string& e
     for (const auto& cm : doc.organisms) {
         auto it = nodeIndex.find(cm.name);
         if (it == nodeIndex.end()) continue;
-        for (const auto& ml : cm.automation) {
-            AutoLane lane;
-            lane.node = it->second;
-            lane.param = ml.propertyName;
-            lane.mute = ml.mute;
-            lane.kind = ml.kind == "range" ? AutoKind::Range
-                      : ml.kind == "trigger" ? AutoKind::Trigger : AutoKind::Double;
-            if (lane.kind == AutoKind::Trigger)
-                for (const auto& d : schemaFor(cm.classRaw))
-                    if (d.name == ml.propertyName) {
-                        lane.rest = d.min;
-                        lane.pulse = d.max;
-                        break;
-                    }
-            for (const auto& bp : ml.points)
-                lane.points.push_back({bp.beat, bp.value, bp.valueMax, bp.curve});
-            lanes.push_back(std::move(lane));
-        }
+        for (const auto& ml : cm.automation) lanes.push_back(autoLaneOf(cm, ml, it->second));
     }
     graph.setAutomation(std::move(lanes));
     graph.setModRoutes(modRoutesFor(doc.organisms, [&](const std::string& n) {

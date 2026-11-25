@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <string>
+#include <vector>
 
 #include "gui/editor/ControlArt.h"
 #include "gui/editor/ControlModel.h"
@@ -69,6 +71,30 @@ inline State stateOf(ModelHost& host, const Setup& setup, const LayoutCondition&
 
 inline void apply(ModelHost& host, const Setup& setup, bool on) {
     host.editParam(setup.organism, setup.param, on ? 1.0 : 0.0);
+}
+
+inline constexpr const char* kGroupKey = "group";
+inline constexpr const char* kSoloGroup = "solo";
+
+struct Edit {
+    std::string param;
+    double value = 0.0;
+};
+
+inline std::vector<Edit> groupEdits(const LayoutSpec& spec, const std::string& param, bool on, bool alt, bool command) {
+    std::string group;
+    for (const auto& c : spec.controls)
+        if (c.param == param && handles(c.type)) group = c.extraOr(kGroupKey, "");
+    const bool only = command && group == kSoloGroup;
+    if (group.empty() || (!alt && !only)) return {{param, on ? 1.0 : 0.0}};
+    std::vector<Edit> out;
+    for (const auto& c : spec.controls) {
+        if (!handles(c.type) || c.extraOr(kGroupKey, "") != group) continue;
+        if (std::any_of(out.begin(), out.end(), [&](const Edit& e) { return e.param == c.param; })) continue;
+        const bool lit = only ? c.param == param : on;
+        out.push_back({c.param, lit ? 1.0 : 0.0});
+    }
+    return out;
 }
 
 }

@@ -20,7 +20,7 @@ the performance.
 ## What is in here
 
 ```
-engine/     the C++/JUCE application: audio graph, transport, GUI
+engine/     the C++/JUCE application: audio graph, transport, GUI, and the Humus plug-in
 sdk/        the organism SDK - one Organism type, capabilities, DSP helpers
 packs/      organism packs: core, humus, av, and a fully commented sample pack
 assets/     what ships to be used rather than compiled: patches, scales, shaders

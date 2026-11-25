@@ -98,7 +98,7 @@ std::unique_ptr<RichView> makeJuceReadoutBrick(juce::Component& parent, EditorHo
             return editorView(parent, std::move(ss));
         }
         case CT::RingFace: {
-            auto rf = std::make_unique<RingFaceView>(host, cn);
+            auto rf = std::make_unique<RingFaceView>(host, cn, bound);
             return editorView(parent, std::move(rf));
         }
         case CT::TraceScope: {

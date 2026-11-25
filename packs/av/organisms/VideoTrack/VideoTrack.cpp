@@ -4,21 +4,32 @@
 
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
+#include <system_error>
 
 #include "hum/ClipStack.h"
 #include "hum/dsp/FadeLaw.h"
+#include "hum/FileBytes.h"
+#include "hum/dsp/SoundFileBuffer.h"
 
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
+
+namespace {
+
+bool playsFilm(const PatternChannel& ch) {
+    return (ch.type == "video-clip" || ch.type == "compound-clip") && ch.startTick >= 0 && !ch.audioFile.empty();
+}
+
+}
 
 std::vector<VideoClipPlay> videoClipPlays(const Pattern& pattern, double sampleRate) {
     std::vector<VideoClipPlay> out;
     const double tpb = Pattern::kTicksPerBeat;
     for (int i = 0; i < (int) pattern.channels.size(); ++i) {
         const auto& ch = pattern.channels[(size_t) i];
-        if ((ch.type != "video-clip" && ch.type != "compound-clip")
-            || ch.startTick < 0 || ch.audioFile.empty()) continue;
+        if (!playsFilm(ch)) continue;
         for (const auto& span : clipstack::soundingSpans(pattern, i)) {
             VideoClipPlay cp;
             cp.id = ch.id;
@@ -105,24 +116,54 @@ void VideoTrack::loadFrom(const OrganismState& state) {
     setPattern(state.pattern);
 }
 
+void VideoTrack::prepare(double sampleRate, int) {
+    if (sampleRate != sampleRate_) sounds_.clear();
+    sampleRate_ = sampleRate;
+    setPattern(pattern_);
+}
+
+std::shared_ptr<const ClipPcm> VideoTrack::soundOf(const std::string& file) {
+    if (const auto it = sounds_.find(file); it != sounds_.end()) return it->second;
+    auto pcm = loadClipPcm(file, sampleRate_);
+    if (std::error_code ec; pcm != nullptr || std::filesystem::exists(utf8Path(file), ec)) sounds_.emplace(file, pcm);
+    return pcm;
+}
+
+std::vector<ClipVoice> VideoTrack::soundVoices() {
+    std::vector<ClipVoice> voices;
+    for (int i = 0; i < (int) pattern_.channels.size(); ++i)
+        if (const auto& ch = pattern_.channels[(size_t) i]; playsFilm(ch))
+            if (const auto pcm = soundOf(ch.audioFile)) appendClipVoices(voices, pattern_, i, pcm, sampleRate_);
+    return voices;
+}
+
 void VideoTrack::setPattern(const Pattern& pattern) {
     pattern_ = pattern;
     auto next = videoClipPlays(pattern_, sampleRate_);
+    auto voices = soundVoices();
     const juce::ScopedLock sl(loadLock_);
     table_ = next;
     pending_.swap(next);
+    pendingVoices_.swap(voices);
     hasPending_.store(true, std::memory_order_release);
 }
 
-void VideoTrack::process(const float* const*, int, float* const*, int, int,
+void VideoTrack::process(const float* const*, int, float* const* out, int numOut, int numSamples,
                          const Transport& transport) {
     if (hasPending_.exchange(false, std::memory_order_acq_rel)) {
         const juce::ScopedLock sl(loadLock_);
         clips_.swap(pending_);
+        player_.voices().swap(pendingVoices_);
     }
     const double beat = transport.beats();
     const double tempo = transport.tempo();
     const bool rolling = transport.playing();
+    for (int c = 0; c < numOut; ++c) std::fill(out[c], out[c] + numSamples, 0.0f);
+    if (rolling) player_.render(out, numOut, numSamples, beat, transport.samplesPerBeat(), tempo);
+    else player_.rest();
+    if (const auto gain = (float) params.get("Gain", 1.0); gain != 1.0f)
+        for (int c = 0; c < numOut; ++c)
+            for (int n = 0; n < numSamples; ++n) out[c][n] *= gain;
     publish(cueClip_, cueSeconds_, cueRate_, cueLevel_, videoCueAt(clips_, beat, tempo, rolling));
     publish(nextClip_, nextSeconds_, nextRate_, nextLevel_,
             videoUpcomingAt(clips_, beat, tempo, kPrerollSeconds));

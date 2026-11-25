@@ -165,6 +165,8 @@ void ParameterWindow::buildContentImpl() {
                               && pn->responding() && cls == builtClass_
                               && host_.missingClassNote(name_).empty();
     builtClass_ = cls;
+    builtAsPlugin_ = cm != nullptr && isPluginKind(cm->kind);
+    builtLive_ = pn != nullptr;
 
     if (editor_) { removeChildComponent(editor_.get()); editor_.reset(); }
     if (embedded_ && !keepEmbedded) { removeChildComponent(embedded_.get()); embedded_.reset(); }

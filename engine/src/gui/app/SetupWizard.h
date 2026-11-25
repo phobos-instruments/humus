@@ -40,7 +40,7 @@ private:
     void setPage(wizard::Page p);
     void finish();
     juce::Rectangle<int> contentArea() const;
-    std::vector<std::string> summary() const;
+    std::vector<juce::String> summary() const;
 
     EngineHost& host_;
     Callbacks cbs_;

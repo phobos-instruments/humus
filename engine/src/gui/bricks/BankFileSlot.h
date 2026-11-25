@@ -123,7 +123,7 @@ class BankFileSlot : public juce::Component {
 public:
     BankFileSlot(BrickHost& host, std::string organism, std::string param,
                  banks::Slot slot = {}, std::pair<std::string, double> select = {})
-        : host_(host), name_(organism), slot_(std::move(slot)), shelf_(slot_),
+        : name_(organism), slot_(std::move(slot)), shelf_(slot_),
           bank_(host, shelf_, organism, std::move(param), std::move(select)) {
         nameLabel_.onClick = [this] { browse(); };
         addAndMakeVisible(nameLabel_);
@@ -198,7 +198,6 @@ private:
         });
     }
 
-    BrickHost& host_;
     std::string name_;
     banks::Slot slot_;
     JuceBankShelf shelf_;

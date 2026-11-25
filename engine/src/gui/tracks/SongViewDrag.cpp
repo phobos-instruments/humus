@@ -20,6 +20,7 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
     if (!dragSync_ && drag_ != Drag::None)
         dragSync_.emplace(host());
     if (rowDrag_.armed) { dragRows(e.getPosition()); return; }
+    if (block_.active()) { dragBlockLane(e); return; }
     ctx_.edgeScroll(e.getPosition());
     const auto p = e.getPosition();
     const double beat = std::max(0.0, xToBeat((float) p.x));
@@ -77,6 +78,7 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
                 boxDragDelta_ = std::max(boxDragDelta_, -groupMoveFloorBeats());
             if (groupMove_ && !moveBase_.empty())
                 moveSelection((int) std::llround(boxDragDelta_ * Pattern::kTicksPerBeat), 0);
+            rideSelectedBlocks(boxDragDelta_, false);
             repaintAll();
             return;
         case Drag::BoxTrimL:
@@ -118,6 +120,7 @@ void SongView::mouseDragAt(const juce::MouseEvent& e) {
                 boxDragDelta_ = (double) byTicks / Pattern::kTicksPerBeat;
             }
             moveSelection(byTicks, groupMove_ || overRow < 0 ? 0 : overRow - moveGrabRow_);
+            rideSelectedBlocks((double) byTicks / Pattern::kTicksPerBeat, dragDuplicated_);
             break;
         }
         case Drag::ClipCreate:

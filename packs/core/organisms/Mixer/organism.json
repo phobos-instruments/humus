@@ -8,6 +8,13 @@
       "canonical": "S4Mixer",
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -109,6 +116,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -170,6 +184,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -230,6 +251,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -303,6 +331,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -385,6 +420,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -465,6 +507,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -564,6 +613,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -666,6 +722,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -766,6 +829,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -892,6 +962,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -1013,6 +1090,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -1133,6 +1217,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -1285,6 +1376,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -1426,6 +1524,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -1566,6 +1671,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -1744,6 +1856,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -1905,6 +2024,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -2065,6 +2191,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,
@@ -2269,6 +2402,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -2450,6 +2590,13 @@
       "hidden": true,
       "params": [
         {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
+        {
           "name": "MasterGain",
           "min": 0.0,
           "max": 2.0,
@@ -2630,6 +2777,13 @@
       "category": "Mixers",
       "hidden": true,
       "params": [
+        {
+          "name": "Faders",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 0.0,
+          "bool": true
+        },
         {
           "name": "MasterGain",
           "min": 0.0,

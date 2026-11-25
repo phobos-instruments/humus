@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/packs/PackRegistry.h"
+#include "core/timeline/ClipOps.h"
 
 namespace hum {
 
@@ -80,6 +81,7 @@ int PresetHost::store(const std::string& name, const Ref& ref) {
         if (!pm) pm = &c->presets.back();
     }
     pm->properties = settingsOnly(c->properties);
+    pm->pattern = presetlib::patternFor(*c);
     setCurrent(name, {Source::Patch, pm->number, pm->name});
     c->presetDirty = false;
     return pm->number;
@@ -119,16 +121,27 @@ void PresetHost::recall(const std::string& name, const Ref& ref) {
     const auto* e = presets::find(all, ref);
     if (e == nullptr) return;
     if (!reshaped) host_.pushParamStep();
+    const RestoringStateHold restoring(doc_);
     for (auto& pr : e->properties) {
-        if (pr.name == "Bands") continue;
+        if (pr.name == "Bands" || pr.name == "Pattern") continue;
         if (pr.type == "text" || pr.type == "soundfile" || pr.type == "rhythmic-unit")
             host_.setParamText(node, pr.name, pr.text);
         else
             host_.setParam(node, pr.name, pr.value);
     }
+    if (e->pattern.present && presetlib::keepsPattern(*cn)) recallPattern(*cn, node, e->pattern);
     setCurrent(node, ref);
     cn->presetDirty = false;
     if (reshaped) doc_.noteTopologyChanged();
+}
+
+void PresetHost::recallPattern(OrganismModel& c, const std::string& node, const Pattern& pattern) {
+    patterns_.recordPatternRevert(node);
+    c.pattern = pattern;
+    clipops::ensureClipIds(c.pattern);
+    ensurePatternProperty(c);
+    patterns_.markPatternEdited();
+    patterns_.syncPattern(node);
 }
 
 void PresetHost::clear(const std::string& name, const Ref& ref) {
@@ -169,6 +182,14 @@ void PresetHost::rename(const std::string& name, const Ref& ref, const std::stri
     if (auto* pm = findPreset(*c, ref.number)) { host_.pushUndo(); pm->name = newName; }
 }
 
+void PresetHost::saveToLibrary(const std::string& name, const std::string& presetName) {
+    auto* c = doc_.document().byName(name);
+    if (c == nullptr || presetName.empty()) return;
+    presetlib::save(c->classRaw, presetlib::capture(*c, presetName));
+    setCurrent(name, {Source::Library, 0, presetName});
+    c->presetDirty = false;
+}
+
 Ref PresetHost::recallAdjacent(const std::string& name, int dir) {
     const auto all = presets::stack(doc_.document().byName(name));
     if (all.empty()) return {};
@@ -202,6 +223,7 @@ void PresetHost::copy(const std::string& name, const Ref& ref) {
     presetClip_ = PresetModel{};
     presetClip_.name = e->name;
     presetClip_.properties = e->properties;
+    presetClip_.pattern = e->pattern;
     presetClipClass_ = c->displayClass;
     hasPresetClip_ = true;
 }

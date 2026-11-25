@@ -14,6 +14,9 @@ struct PatternTimeSig {
     int denominator = 4;
 };
 
+inline constexpr const char* kNoteBankChannel = "note-bank";
+inline constexpr const char* kChanceRowChannel = "chance-row";
+
 struct PatternChannel {
     std::string type = "trigger-timepoints";
     std::vector<int> triggers;
@@ -59,7 +62,7 @@ struct Pattern {
     std::vector<const PatternChannel*> triggerChannels() const {
         std::vector<const PatternChannel*> out;
         for (auto& ch : channels)
-            if (ch.type != "time-signatures") out.push_back(&ch);
+            if (ch.type != "time-signatures" && ch.type != kChanceRowChannel) out.push_back(&ch);
         return out;
     }
 };

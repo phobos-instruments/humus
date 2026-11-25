@@ -96,6 +96,17 @@ void AudioGraph::adoptMatchingNodes(AudioGraph& old) {
     resolveTunings();
 }
 
+bool AudioGraph::pluginLayoutsChanged() const {
+    for (const auto& nd : nodes_)
+        if (nd.plugin != nullptr && nd.plugin->layoutChanged()) return true;
+    return false;
+}
+
+void AudioGraph::adoptPluginLayouts() {
+    for (auto& nd : nodes_)
+        if (nd.plugin != nullptr && nd.plugin->layoutChanged()) nd.plugin->adoptLayout();
+}
+
 bool AudioGraph::takeLatencyChanges() {
     bool any = false;
     for (auto& nd : nodes_)

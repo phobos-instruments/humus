@@ -11,7 +11,7 @@ constexpr int kStripW = 200, kLoopH = 14, kRulerH = 24;
 constexpr int kLoopGrip = 7, kLoopHit = 8;
 constexpr int kToolCount = 5;
 constexpr int kChipH = 22, kFadeGrip = 9, kClipEdgeGrab = 6, kClipRibbonH = 18;
-constexpr double kClipMaxPpb = 40000.0;
+constexpr double kClipMaxPpb = 2.4e6;
 
 constexpr int headerH() { return kTopH + kLoopH + kRulerH; }
 constexpr int loopTop() { return kTopH; }

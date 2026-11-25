@@ -2,7 +2,7 @@
 
 Ein Log der OSC-Nachrichten, die durch die App laufen, in beide Richtungen, als lesbare Zeilen.
 
-Er hat keine Pins: Leg ihn irgendwo ab, und er listet jede Nachricht, die am OSC-Eingangsport ankommt, ob einem Parameter zugewiesen oder nicht, und jeden Wert, den ein OSC sendendes Organism wie Hands überträgt, mit der Adresse, an die er ging. Nutze ihn, um zu prüfen, ob ein Handy-Controller oder eine Sensor-Bridge den Rechner wirklich erreicht, um die Adresse zu finden, die ein Fader sendet, bevor du ihn zuweist, und um zu bestätigen, was ein Empfänger erwarten sollte. Der OSC-Eingang muss in den Einstellungen an sein, damit empfangene Zeilen erscheinen; die Kopfzeile zeigt an, wenn er aus ist. Pause hält die Liste an, und Leeren leert sie.
+Er hat keine Pins: Leg ihn irgendwo ab, und er listet jede Nachricht, die am OSC-Eingangsport ankommt, ob einem Parameter zugewiesen oder nicht, und jeden Wert, den ein OSC sendendes Organism wie Hands überträgt, mit der Adresse, an die er ging. Nutze ihn, um zu prüfen, ob ein Handy-Controller oder eine Sensor-Bridge den Rechner wirklich erreicht, um die Adresse zu finden, die ein Fader sendet, bevor du ihn zuweist, und um zu bestätigen, was ein Empfänger erwarten sollte. Ein Paket, das gar kein OSC ist, erscheint als (kein OSC), mit seiner Größe und der Adresse, von der es kam, sodass ein Gerät, das eine andere Sprache spricht, sofort auffällt. Der OSC-Eingang muss in den Einstellungen an sein, damit empfangene Zeilen erscheinen; die Kopfzeile zeigt an, wenn er aus ist. Pause hält die Liste an, und Leeren leert sie.
 
 ## Parameter
 

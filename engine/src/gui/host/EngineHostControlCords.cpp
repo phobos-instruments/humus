@@ -144,6 +144,12 @@ void EngineHost::connectControl(const std::string& srcIn, int outletIn, const st
             if (!d->carry) socketDefaultRange(*d, lo, hi);
     pushUndo();
     mod_.mapRoute(src, value, dst, param, lo, hi);
+    if (!handingOver_) {
+        handingOver_ = true;
+        const DerivedControlScope derived(*this);
+        handOverRoute(src, dst, param, true, true);
+        handingOver_ = false;
+    }
     if (onTopologyChanged) onTopologyChanged();
 }
 

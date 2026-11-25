@@ -68,6 +68,7 @@ public:
         juce::ignoreUnused(mainComponent);
         setUsingNativeTitleBar(true);
         canvas_ = std::make_unique<GlCanvas>();
+        canvas_->setStoreScope(host_.videoScope());
         if (isOutput_) canvas_->setPreviewNode(name_);
         sizeCanvas(width, height);
         stage_.hold(*canvas_);

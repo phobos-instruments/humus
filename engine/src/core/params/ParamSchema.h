@@ -23,6 +23,12 @@ struct ParamDesc {
     bool isTrigger = false;
     bool socket = false;
     bool namedInlet = false;
+    bool handOverInlet = false;
+    std::string handsOver;
+    std::string takes;
+    std::string picks;
+    bool sharedVar = false;
+    bool hidden = false;
     bool carry = false;
     bool randomize = false;
     std::string randomText;
@@ -33,6 +39,7 @@ struct ParamDesc {
 
     double rollLow() const { return rollSpanned ? std::clamp(rollMin, min, max) : min; }
     double rollHigh() const { return rollSpanned ? std::clamp(rollMax, rollLow(), max) : max; }
+    bool offered() const { return !namedInlet && !handOverInlet && !hidden; }
     std::string unit;
 };
 

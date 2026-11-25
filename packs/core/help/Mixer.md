@@ -12,9 +12,11 @@ Cord your sources into the numbered inlets and the outlet on to a SoundOut or a 
 
 **Gain_1-2** Level of input pair 1-2, and so on for 3-4 up to 7-8. Unity at the top; the strip's meter shows what arrives before it.
 
-**Mute_1-2** Silences input 1-2 without a click, and so on for the other pairs. A muted input stays silent even when soloed.
+**Mute_1-2** Silences input 1-2 without a click, and so on for the other pairs. A muted input stays silent even when soloed. Alt-click any M to mute or unmute every input at once.
 
-**Solo_1-2** Hears input 1-2 on its own, and so on for the other pairs. While any input is soloed, only soloed inputs are heard.
+**Solo_1-2** Hears input 1-2 on its own, and so on for the other pairs. While any input is soloed, only soloed inputs are heard. Alt-click any S to set every solo the same way, so Alt-clicking a lit one clears them all; Cmd-click (Ctrl-click) one to hear only that input.
+
+**Faders** Shows every level as a fader instead of a knob. The choice is kept with the box.
 
 ## Recipe
 

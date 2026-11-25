@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include "gui/common/ShutdownSingleton.h"
 #include "gui/common/PerfLog.h"
 #include <algorithm>
 #include <functional>
@@ -11,12 +12,8 @@
 
 namespace hum {
 
-class UiTicker : private juce::Timer {
+class UiTicker : public ShutdownSingleton<UiTicker>, private juce::Timer {
 public:
-    static UiTicker& instance() {
-        static UiTicker t;
-        return t;
-    }
 
     int add(std::function<void()> fn) {
         callbacks_.emplace_back(++lastId_, std::move(fn));
@@ -49,7 +46,12 @@ public:
             startTimerHz(rateHz(foreground_, false));
     }
 
-    void setBusy(bool busy) { busy ? hold() : release(); }
+    void setBusy(bool busy) {
+        if (busy == busy_) return;
+        busy_ = busy;
+        busy ? hold() : release();
+    }
+    int holdsForTest() const { return holds_; }
 
     bool busy() const { return holds_ > 0; }
 
@@ -81,6 +83,7 @@ private:
     int lastId_ = 0;
     bool foreground_ = true;
     int holds_ = 0;
+    bool busy_ = false;
 };
 
 }

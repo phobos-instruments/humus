@@ -26,7 +26,11 @@ In modalità Pitched le zone si dividono la tastiera a metà strada tra le loro 
 
 **Polyphony** Il numero di voci che suonano insieme. Oltre, la voce più vecchia viene tagliata.
 
-**Loop** Attivo, tiene la nota sui punti di loop che porta il file, finché tieni giù il tasto; un file che non ne ha suona comunque fino in fondo. Disattivato, ignora ogni punto di loop e lascia andare ogni nota fino alla fine del suo campione: è la scelta giusta quando i loop di una libreria sono fatti male. Il giro del loop è in crossfade, così un loop i cui estremi non combaciano tiene invece di fare un clic a ogni ciclo.
+**Loop** Come una nota tenuta continua oltre la fine del suo suono. File la tiene sui punti di loop che porta il file, finché tieni giù il tasto; un file che non ne ha suona fino in fondo. Off ignora ogni punto di loop e lascia andare ogni nota fino alla fine del suo campione: è la scelta giusta quando i loop di una libreria sono fatti male. Forward ripete il tratto tra Loop in e Loop out, su qualsiasi campione, con o senza punti di loop. Ping-pong percorre quel tratto in avanti, poi all'indietro, poi di nuovo in avanti. Il giro di un loop File o Forward è in crossfade, così un loop i cui estremi non combaciano tiene invece di fare un clic a ogni giro; Ping-pong non ne ha bisogno, perché non salta mai.
+
+**LoopStart** Si vede come Loop in. Dove comincia un loop Forward o Ping-pong, dall'inizio del campione alla sua fine. La nota parte comunque dall'inizio ed entra nel loop suonando.
+
+**LoopEnd** Si vede come Loop out. Dove un loop Forward o Ping-pong torna indietro, dall'inizio del campione alla sua fine. Un loop non è mai più corto di qualche millisecondo.
 
 **File1** Il file audio nello slot 1, e così via da File2 a File8.
 

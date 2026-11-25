@@ -2,7 +2,7 @@
 
 A wavetable oscillator whose cycles are drawn, grown from a seed file or rolled at random.
 
-The display is the sound: draw on it, start from the sine, triangle, saw or square tile, or seed the table from any file. A table holds up to sixteen frames and Position morphs between the two nearest; Warp reshapes the cycle, Unison stacks detuned copies, and a sub sine, drive and a lowpass finish the voice. Playback is band-limited per frame, so high notes lose only the harmonics that cannot fit. It is an eight-voice MIDI instrument that follows the patch Tuning; cord a PianoRoll, DNA or Steps in and send the output to a Filter or a Fern.
+The display is the sound: draw on it, start from the sine, triangle, saw or square tile, or seed the table from any file. A table holds up to sixteen frames and Position morphs between the two nearest; Warp reshapes the cycle, Unison stacks detuned copies, and a sub sine, drive and a lowpass finish the voice. Playback is band-limited per frame, so high notes lose only the harmonics that cannot fit. It is an eight-voice MIDI instrument that follows the patch Tuning; cord a PianoRoll, DNA or Steps in and send the output to a Filter or a Fern. Its env outlet carries the level of its loudest voice, so a filter or a Gain can follow the notes without a Follower. Corded into an LFO's Function, it hands over its table, and the LFO plays it as its wave at the Wave's Position.
 
 ## The display
 

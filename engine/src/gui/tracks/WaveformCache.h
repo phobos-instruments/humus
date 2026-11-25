@@ -42,16 +42,26 @@ public:
         const auto f = fileAt(path);
         const std::int64_t mtime = f.getLastModificationTime().toMilliseconds();
         auto& e = cache_[path];
-        if (e.peaks && e.peaks->ready && e.mtime == mtime) return e.peaks.get();
-        if (!e.loading || e.mtime != mtime) {
+        const bool current = e.mtime == mtime && !e.stale;
+        if (e.peaks && e.peaks->ready && current) return e.peaks.get();
+        if (!e.loading || !current) {
             e.mtime = mtime;
+            e.stale = false;
             e.loading = true;
             if (onReady) readyCbs_.push_back(std::move(onReady));
-            launch(path, mtime);
+            launch(path, mtime, e.generation);
         } else if (onReady) {
             readyCbs_.push_back(std::move(onReady));
         }
-        return nullptr;
+        return e.peaks && e.peaks->ready ? e.peaks.get() : nullptr;
+    }
+
+    void forget(const std::string& path) {
+        const auto it = cache_.find(path);
+        if (it == cache_.end()) return;
+        ++it->second.generation;
+        it->second.stale = true;
+        it->second.loading = false;
     }
 
     const Peaks* prime(const std::string& path) {
@@ -67,19 +77,24 @@ public:
     }
 
 private:
-    struct Entry { std::int64_t mtime = 0; std::shared_ptr<Peaks> peaks; bool loading = false; };
+    struct Entry {
+        std::int64_t mtime = 0;
+        std::shared_ptr<Peaks> peaks;
+        bool loading = false, stale = false;
+        std::uint64_t generation = 0;
+    };
 
     static constexpr int kBinSamples = 512;
     static constexpr int kMaxBins = 300000;
 
-    void launch(const std::string& path, std::int64_t mtime) {
-        juce::Thread::launch([path, mtime] {
+    void launch(const std::string& path, std::int64_t mtime, std::uint64_t generation) {
+        juce::Thread::launch([path, mtime, generation] {
             auto peaks = std::make_shared<Peaks>();
             compute(path, *peaks);
-            juce::MessageManager::callAsync([path, mtime, peaks] {
+            juce::MessageManager::callAsync([path, mtime, generation, peaks] {
                 auto& self = instance();
                 auto& e = self.cache_[path];
-                if (e.mtime != mtime) return;
+                if (e.mtime != mtime || e.generation != generation) return;
                 e.peaks = peaks;
                 e.loading = false;
                 auto cbs = std::move(self.readyCbs_);

@@ -11,10 +11,13 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/properties/PaneRefresher.h"
 #include "gui/app/DeviceWatch.h"
 #include "core/app/UiWatchdog.h"
 #include "io/AutosaveStore.h"
+#include "gui/app/AutosaveInPlace.h"
 #include "gui/app/Dock.h"
+#include "gui/app/DockLayout.h"
 #include "gui/editor/ParamSlider.h"
 #include "gui/host/EngineHost.h"
 #include "gui/style/IconButton.h"
@@ -53,6 +56,7 @@ class VideoTrackerFeed;
 class VisualWindow;
 
 namespace examples { struct Node; }
+class OrganismTreePanel;
 namespace browser { class BrowserIndex; class Audition; class FileBrowserView; struct PickRequest; struct PlaceRoots; }
 
 class MainComponent : public juce::Component,
@@ -84,6 +88,12 @@ public:
     void openBugReport();
     juce::PopupMenu menuForTest(int index) { return getMenuForIndex(index, {}); }
     EngineHost& hostForTest() { return host_; }
+    IconButton& organismsButtonForTest() { return viewOrganisms_; }
+    juce::Rectangle<int> organismsPaneForTest() const { return paneLeft_.isVisible() ? paneLeft_.getBounds() : juce::Rectangle<int>{}; }
+    juce::Rectangle<int> patcherPaneForTest() const { return paneCenter_.getBounds(); }
+    void autosaveTickForTest(std::int64_t now) { autosaveTick(now); }
+    void menuItemForTest(int id) { menuItemSelected(id, 0); }
+    const juce::String& currentFileForTest() const { return currentFile_; }
     void routeFilePicksToBrowser();
     browser::FileBrowserView* libraryViewForTest() { return libraryView_; }
     bool libraryOpenForTest() const { return libraryWindow_ != nullptr; }
@@ -200,9 +210,12 @@ private:
     void refreshAfterLoad();
     static std::int64_t nowMs() { return juce::Time::currentTimeMillis(); }
 
-    void autosaveTick();
+    void autosaveTick(std::int64_t now);
     void performAutosave();
     void clearAutosave();
+    bool autosaveInPlaceOn() const;
+    void toggleAutosaveInPlace();
+    void autosaveInPlaceTick(std::int64_t now);
 
     juce::File lastDir(bool forSave) const;
     void rememberDir(const juce::File& chosen, bool forSave);
@@ -280,6 +293,7 @@ private:
     unsigned lastDropouts_ = 0;
     double lastGlitchReportMs_ = 0.0;
     int dropFlashTicks_ = 0;
+    IconButton viewOrganisms_{IconButton::Glyph::DockLeft, {}};
     IconButton viewPatcher_{IconButton::Glyph::Patcher, {}};
     IconButton viewProperties_{IconButton::Glyph::Properties, {}};
     IconButton viewAutomation_{IconButton::Glyph::Automation, {}};
@@ -320,11 +334,13 @@ private:
     juce::int64 lastTelemetrySaveMs_ = 0;
     juce::int64 sessionStartMs_ = 0;
 
-    DockPane paneCenter_{"Patcher"}, paneRight_{"Properties"}, paneBottom_{"Automation"};
-    SplitterBar splitV_{SplitterBar::Vertical}, splitH_{SplitterBar::Horizontal};
-    int rightW_ = 636, bottomH_ = 150;
+    DockPane paneCenter_{"Patcher"}, paneRight_{"Properties"}, paneBottom_{"Automation"}, paneLeft_{"Organisms"};
+    SplitterBar splitV_{SplitterBar::Vertical}, splitH_{SplitterBar::Horizontal}, splitL_{SplitterBar::Vertical};
+    int rightW_ = 636, bottomH_ = 150, leftW_ = 230;
+    std::unique_ptr<OrganismTreePanel> organismTree_;
     bool dockRelayoutQueued_ = false;
     void queueDockRelayout();
+    void layDock(juce::Rectangle<int> area);
 
     struct Dockable {
         DockPane* pane = nullptr;
@@ -337,7 +353,7 @@ private:
         bool wantsTransport = false;
         juce::Rectangle<int> floatBounds;
     };
-    Dockable center_, right_, bottom_;
+    Dockable center_, right_, bottom_, left_;
 
     void buildDock();
     void updateDock();
@@ -351,6 +367,7 @@ private:
     AutosaveStore autosave_;
     int autosaveTicks_ = 0;
     juce::uint64 lastAutosaveStamp_ = 0;
+    AutosaveInPlace inPlace_;
     HostHistory history_{host_};
     std::unique_ptr<browser::BrowserIndex> browserIndex_;
     std::unique_ptr<browser::Audition> audition_;
@@ -358,7 +375,7 @@ private:
     UiWatchdog watchdog_;
     int tickerId_ = 0;
     juce::String lastTitle_;
-    unsigned lastLiveGen_ = 0;
+    PaneRefresher paneRefresher_;
     unsigned lastLaneStamp_ = 0;
     unsigned recBlink_ = 0;
     std::unique_ptr<juce::FileChooser> chooser_;

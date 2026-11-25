@@ -69,8 +69,7 @@ void PatcherCanvas::copySelection() {
 }
 
 void PatcherCanvas::cutSelection() {
-    if (cordSelected_) { deleteSelection(); return; }
-    if (selection_.empty()) return;
+    if (selection_.empty()) { deleteSelection(); return; }
     copySelection();
     deleteSelection();
 }
@@ -170,16 +169,18 @@ void PatcherCanvas::instantiateClones(const std::vector<OrganismModel>& items,
 }
 
 void PatcherCanvas::deleteSelection() {
-    if (cordSelected_) {
-        removeCord(selectedCord_);
-        cordSelected_ = false;
+    const auto cords = liveSelectedCords();
+    auto sel = selection_;
+    selectedCords_.clear();
+    if (sel.empty()) {
+        removeCords(cords);
         refresh();
         return;
     }
-    auto sel = selection_;
     selection_.clear();
     primary_.clear();
     host_.beginTransaction();
+    for (const auto& c : cords) removeCord(c);
     for (auto& s : sel) {
         if (host_.model().byName(s)) host_.removeOrganism(s);
         else if (pods::isPod(host_.model(), s)) host_.deletePod(s);
@@ -190,7 +191,7 @@ void PatcherCanvas::deleteSelection() {
 }
 
 void PatcherCanvas::selectAll() {
-    cordSelected_ = false;
+    selectedCords_.clear();
     selection_.clear();
     for (auto& d : displayNodes()) selection_.insert(d.name);
     primary_ = selection_.size() == 1 ? *selection_.begin() : std::string();
@@ -200,7 +201,7 @@ void PatcherCanvas::selectAll() {
 
 void PatcherCanvas::undo() {
     if (!host_.canUndo()) return;
-    cordSelected_ = false;
+    selectedCords_.clear();
     selection_.clear();
     primary_.clear();
     host_.undo();
@@ -212,7 +213,7 @@ void PatcherCanvas::undo() {
 
 void PatcherCanvas::redo() {
     if (!host_.canRedo()) return;
-    cordSelected_ = false;
+    selectedCords_.clear();
     selection_.clear();
     primary_.clear();
     host_.redo();

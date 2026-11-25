@@ -52,12 +52,17 @@ public:
     static constexpr int kMinW = 180;
     static constexpr int kProtectItem = kAutomateMenuFirstOwnId;
     void refreshLiveValues() {
+        if (waitsForPlugin() && host_.pluginNodeFor(name_) != nullptr) {
+            reloadValues();
+            return;
+        }
         if (editor_) editor_->refreshAutomatedValues();
         const bool off = host_.bypassed(name_);
         if (off != bypass_.isOn()) { bypass_.setOn(off); repaint(); }
         syncVeil();
     }
     bool cautionShowing() const { return veil_ != nullptr; }
+    bool waitsForPlugin() const { return builtAsPlugin_ && !builtLive_; }
     void reloadTextValues() {
         if (editor_) editor_->reloadTextValues();
     }
@@ -131,6 +136,7 @@ private:
     std::string name_;
     bool pluginHasUi_ = false;
     std::string builtClass_;
+    bool builtAsPlugin_ = false, builtLive_ = false;
     std::unique_ptr<OrganismEditor> editor_;
     std::unique_ptr<EmbeddedPluginView> embedded_;
     std::unique_ptr<DeviceStripView> strip_;

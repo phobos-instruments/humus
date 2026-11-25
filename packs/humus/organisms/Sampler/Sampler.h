@@ -119,6 +119,8 @@ private:
         float panL = 1.0f, panR = 1.0f;
         int endIdx = 0, loopLen = 0;
         float fadeLen = 0.0f, loopFade = 0.0f;
+        bool bounce = false;
+        int direction = 1;
     };
 
     void applyPending();
@@ -131,6 +133,8 @@ private:
     void startVoice(const Zone& zone, int zoneIndex, int note, float velocity);
     void refreshVoiceEnvelopes();
     void updateVoice(Voice& v);
+    bool loopRegion(Voice& v, int len, double srcRate) const;
+    static void wrap(Voice& v);
     bool bankLoaded() const { return !kit_.presetNames.empty(); }
     void noteOn(int note, float velocity);
     void noteOff(int note);

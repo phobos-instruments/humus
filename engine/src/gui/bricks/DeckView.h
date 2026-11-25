@@ -9,6 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "gui/style/Colours.h"
+#include "gui/style/DropBadge.h"
 #include "gui/style/StatusDot.h"
 #include "hum/dsp/BeatGrid.h"
 #include "gui/editor/BrickBindings.h"
@@ -83,7 +84,9 @@ public:
         if (len <= 0) {
             g.setColour(Palette::textDim);
             g.setFont(juce::FontOptions(12.0f));
-            g.drawText(tr("deck.drop-media-files-here", "Drop media files here"), getLocalBounds(), juce::Justification::centred);
+            const auto words = dropHot_ ? getLocalBounds().withTop(getHeight() / 2 + (int) drop::kWideBadgeSize / 2 + 4).withHeight(18)
+                                       : getLocalBounds();
+            g.drawText(tr("deck.drop-media-files-here", "Drop media files here"), words, juce::Justification::centred);
             return;
         }
 
@@ -161,7 +164,14 @@ public:
         for (auto& f : files) if (playable(f)) return true;
         return false;
     }
+    void fileDragEnter(const juce::StringArray&, int, int) override { dropHot_ = true; repaint(); }
+    void fileDragExit(const juce::StringArray&) override { dropHot_ = false; repaint(); }
+    bool dropHotForTest() const { return dropHot_; }
+    void paintOverChildren(juce::Graphics& g) override {
+        if (dropHot_) drop::paintWideTarget(g, getLocalBounds().toFloat());
+    }
     void filesDropped(const juce::StringArray& files, int, int) override {
+        dropHot_ = false;
         for (auto& f : files) if (playable(f)) { deck_.load(f.toStdString()); break; }
         repaint();
     }
@@ -257,6 +267,7 @@ private:
     juce::TextButton grid_, x2_, half_, closer_, wider_;
     juce::Rectangle<int> overview_, main_;
     enum class Drag { None, Overview, Loop, Scrub } drag_ = Drag::None;
+    bool dropHot_ = false;
 };
 
 }

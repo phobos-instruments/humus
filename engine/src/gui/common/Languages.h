@@ -12,6 +12,7 @@
 #include "core/app/LanguageCatalogue.h"
 #include "core/app/PageLanguage.h"
 #include "gui/app/AppSettings.h"
+#include "gui/common/JuceStrings.h"
 #include "gui/common/Localisation.h"
 
 namespace hum::i18n {
@@ -76,9 +77,11 @@ inline bool apply(const juce::String code) {
     pageLanguage().clear();
     appliedCode() = {};
     install(nullptr);
+    installJuceStrings();
     if (code.isEmpty() || code == kSystem) return true;
     if (interfaceText(code).empty()) return false;
     install(std::make_shared<const Catalogue>(catalogueFor(code)));
+    installJuceStrings();
     pageLanguage() = code.toStdString();
     appliedCode() = code;
     return true;

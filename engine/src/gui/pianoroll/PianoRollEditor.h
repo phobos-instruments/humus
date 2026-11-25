@@ -29,7 +29,7 @@ public:
     using Playhead = roll::Playhead;
     Playhead playheadForTest() const { return playhead(); }
     juce::String barsTextForTest() const { return bars_.getText(); }
-    struct Params { std::string bars, swing, swingFollow, swingUnit, record, loop, quantize; };
+    struct Params { std::string bars, swing, swingFollow, swingUnit, record, loop, quantize, bank; };
 
     PianoRollEditor(BrickHost& host, std::string organism, Params params);
     ~PianoRollEditor() override;
@@ -90,6 +90,8 @@ private:
     int gridBottom() const { return getHeight() - kKbH - kVelH; }
     int gridLeft() const { return kKeyW; }
     int durationTicks() const;
+    int bankShown() const;
+    void writeNotes(const std::vector<NoteEvent>& notes, int durationTicks);
     static constexpr int kSnapFreeId = 5;
     int snapTicks() const;
     bool snapFree() const { return snap_.getSelectedId() == kSnapFreeId; }

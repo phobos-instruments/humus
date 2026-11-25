@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "io/AutoLaneOf.h"
 #include "gui/host/EngineHost.h"
 #include "io/ModRouteBuild.h"
 #include <algorithm>
@@ -37,6 +38,7 @@ void EngineHost::syncRoutes() {
         graph_->setModRoutes(std::move(routes));
     }
     pushSocketSources();
+    handOver();
 }
 
 void EngineHost::pushSocketSources() {
@@ -71,23 +73,8 @@ void EngineHost::syncAutomation() {
             const bool live = !ml.mute && !ml.points.empty();
             amountLane = amountLane || (live && laneNode == AutoLane::kGrooveNode);
             gridLane = gridLane || (live && laneNode == AutoLane::kGrooveGridNode);
-            AutoLane lane;
-            lane.node = laneNode;
-            lane.param = ml.propertyName;
-            lane.mute = ml.mute;
+            AutoLane lane = autoLaneOf(cm, ml, laneNode);
             lane.suspended = playing_ && touched_.count({cm.name, ml.propertyName}) > 0;
-            lane.kind = ml.kind == "range" ? AutoKind::Range
-                      : ml.kind == "trigger" ? AutoKind::Trigger
-                      : ml.kind == "step" ? AutoKind::Step : AutoKind::Double;
-            if (lane.kind == AutoKind::Trigger)
-                for (const auto& d : schemaFor(cm.classRaw))
-                    if (d.name == ml.propertyName) {
-                        lane.rest = d.min;
-                        lane.pulse = d.max;
-                        break;
-                    }
-            for (auto& bp : ml.points)
-                lane.points.push_back({bp.beat, bp.value, bp.valueMax, bp.curve});
             lanes.push_back(std::move(lane));
         }
     }

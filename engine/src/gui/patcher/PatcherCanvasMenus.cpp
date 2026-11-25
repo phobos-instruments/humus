@@ -48,7 +48,8 @@ void PatcherCanvas::showAddMenu(juce::Point<int> at, juce::Point<int> screenPos)
         menu.addItem(kAddControlOutlet, tr("patcher-canvas-menus.add-pod-control-outlet", "Add Pod Control Outlet"));
     }
     menu.addSeparator();
-    menu.addItem(kArrange, tr("patcher-canvas-menus.auto-arrange", "Auto-arrange"));
+    menu.addItem(kArrange, arrangesSelection() ? tr("patcher-canvas-menus.auto-arrange-selection", "Auto-arrange Selection")
+                                               : tr("patcher-canvas-menus.auto-arrange", "Auto-arrange"));
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
                        [this, ids, at, screenPos](int result) {
@@ -93,7 +94,8 @@ void PatcherCanvas::focusNewNode(const std::string& name) {
 }
 
 void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> screenPos) {
-    enum Id { Edit = 1, Rename, Cut, Copy, Delete_, Swap, Bypass, Disconnect, Help, ParamControl, PluginUI, RestartPlugin, RecordOut, VisualUI, MakePod, Print };
+    enum Id { Edit = 1, Rename, Cut, Copy, Delete_, Swap, Bypass, Disconnect, Help, ParamControl, PluginUI, RestartPlugin, RecordOut, VisualUI, MakePod, Print,
+              ArrangeSelection };
     static constexpr int kReplace = 1000000, kSubstitute = 2000000,
                   kInsBefore = 3000000, kInsAfter = 4000000;
 
@@ -150,6 +152,7 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
     menu.addSeparator();
     menu.addItem(Swap, canSwap ? tr("patcher-canvas-menus.swap", "Swap") : tr("patcher-canvas-menus.swap-select-two-nodes", "Swap (select two nodes)"), canSwap);
     menu.addItem(MakePod, tr("patcher-canvas-menus.make-pod", "Make Pod"));
+    if (arrangesSelection()) menu.addItem(ArrangeSelection, tr("patcher-canvas-menus.auto-arrange-selection", "Auto-arrange Selection"));
     menu.addItem(Bypass, tr("patcher-canvas-menus.bypass", "Bypass"), true, host_.bypassed(node));
     menu.addItem(Disconnect, tr("patcher-canvas-menus.disconnect", "Disconnect"));
     const auto printTargets = host_.midiOutletsOf(node) > 0 ? host_.noteTargets(node)
@@ -247,6 +250,10 @@ void PatcherCanvas::showNodeMenu(const std::string& node, juce::Point<int> scree
             if (canSwap) { host_.swapOrganisms(two[0], two[1]); refresh(); }
             return;
         }
+        if (r == ArrangeSelection) {
+            autoArrange();
+            return;
+        }
         if (r == MakePod) {
             juce::Point<int> at = host_.position(node);
             for (const auto& n : two) {
@@ -323,11 +330,16 @@ void PatcherCanvas::showCordMenu(const Edge& cord, juce::Point<int> at, juce::Po
         menu.addSubMenu(tr("patcher-canvas-menus.midi-channel", "MIDI Channel"), chan);
         menu.addSeparator();
     }
-    menu.addItem(Delete_, tr("patcher-canvas-menus.delete", "Delete"));
+    const auto chosen = liveSelectedCords();
+    const bool group = chosen.size() > 1 && isCordSelected(cord);
+    const auto doomed = group ? chosen : std::vector<Edge>{cord};
+    menu.addItem(Delete_, group ? trn("patcher-canvas-menus.delete-cords", "Delete {n} Cord", "Delete {n} Cords",
+                                      (long long) doomed.size())
+                                : tr("patcher-canvas-menus.delete", "Delete"));
 
     menu.showMenuAsync(juce::PopupMenu::Options()
                            .withTargetScreenArea({screenPos.x, screenPos.y, 1, 1}),
-                       [this, cord, at, classOrder, screenPos](int r) {
+                       [this, cord, at, classOrder, screenPos, doomed](int r) {
         if (r == 0) return;
         if (!cord.midi && !cord.video && r == SearchInsert) {
             showCreatePicker({screenPos.x, screenPos.y, 1, 1},
@@ -338,15 +350,7 @@ void PatcherCanvas::showCordMenu(const Edge& cord, juce::Point<int> at, juce::Po
             return;
         }
         if (r == Delete_) {
-            if (cord.control)
-                host_.disconnectControl(cord.src, cord.srcOutlet, cord.dst, cord.dstInlet);
-            else if (cord.midi)
-                host_.removeMidiConnection(cord.src, cord.srcOutlet, cord.dst, cord.dstInlet);
-            else if (cord.video)
-                host_.removeVideoConnection(cord.src, cord.srcOutlet, cord.dst, cord.dstInlet);
-            else
-                host_.removeConnection(cord.src, cord.srcOutlet, cord.dst, cord.dstInlet);
-            cordSelected_ = false;
+            removeCords(doomed);
             refresh();
             return;
         }

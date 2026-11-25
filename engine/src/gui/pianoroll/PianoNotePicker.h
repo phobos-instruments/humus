@@ -53,7 +53,7 @@ public:
         int x = 0;
         for (int n = vLo_; n <= vHi_; ++n) {
             if (!isWhite(n)) continue;
-            const auto r = juce::Rectangle<float>((float) x, 0.0f, (float) kWhiteW, (float) kHeight);
+            const auto r = juce::Rectangle<float>((float) x, 0.0f, (float) whiteW_, (float) kHeight);
             g.setColour(n == current_ ? Palette::accent
                         : n == hover_ ? Palette::accent.withAlpha(alpha::muted)
                                       : ink::keyboard::whiteKey);
@@ -63,18 +63,18 @@ public:
             if (n % 12 == 0) {
                 g.setColour(n == current_ ? Palette::background : Palette::textDim);
                 g.setFont(juce::FontOptions(8.5f));
-                g.drawText("C" + juce::String(n / 12 - 1),
+                g.drawText("C" + juce::String(octaveOf(n)),
                            r.withTrimmedTop(kHeight - 13.0f).reduced(1.0f),
                            juce::Justification::centred);
             }
-            x += kWhiteW;
+            x += whiteW_;
         }
         x = 0;
         for (int n = vLo_; n <= vHi_; ++n) {
             if (!isWhite(n)) continue;
             if (n + 1 <= vHi_ && !isWhite(n + 1)) {
-                const auto r = juce::Rectangle<float>((float) (x + kWhiteW - kBlackW / 2), 0.0f,
-                                                      (float) kBlackW, kHeight * 0.62f);
+                const auto r = juce::Rectangle<float>((float) (x + whiteW_ - blackW_ / 2), 0.0f,
+                                                      (float) blackW_, kHeight * 0.62f);
                 g.setColour((n + 1) == current_ ? Palette::accent
                             : (n + 1) == hover_ ? Palette::accent.brighter(0.2f)
                                                 : ink::keyboard::blackKey);
@@ -82,7 +82,7 @@ public:
                 g.setColour(Palette::border);
                 g.drawRect(r, 1.0f);
             }
-            x += kWhiteW;
+            x += whiteW_;
         }
     }
 
@@ -111,6 +111,7 @@ public:
 
 private:
     static constexpr int kWhiteW = 16, kBlackW = 11, kHeight = 74, kLabelH = 18;
+    static constexpr int kWidestWhite = 36, kLeastWidth = 432;
     static constexpr int kLearnHz = 60;
 
     void pick(int n) {
@@ -127,6 +128,7 @@ private:
         if (n >= 0) pick(n);
     }
     static constexpr int kSpan = 60;
+    int whiteW_ = kWhiteW, blackW_ = kBlackW;
     static constexpr int kArrowW = 22;
 
     bool scrollable() const { return hi_ - lo_ > kSpan; }
@@ -144,7 +146,9 @@ private:
     void layout() {
         int whites = 0;
         for (int n = vLo_; n <= vHi_; ++n) if (isWhite(n)) ++whites;
-        setSize(juce::jmax(scrollable() ? 2 * kArrowW + 60 : 1, whites * kWhiteW + 1),
+        whiteW_ = juce::jlimit(kWhiteW, kWidestWhite, kLeastWidth / juce::jmax(1, whites));
+        blackW_ = whiteW_ * kBlackW / kWhiteW;
+        setSize(juce::jmax(scrollable() ? 2 * kArrowW + 60 : 1, whites * whiteW_ + 1),
                 kHeight + kLabelH);
     }
 
@@ -159,17 +163,17 @@ private:
             for (int n = vLo_; n <= vHi_; ++n) {
                 if (!isWhite(n)) continue;
                 if (n + 1 <= vHi_ && !isWhite(n + 1)
-                    && juce::Rectangle<int>(x + kWhiteW - kBlackW / 2, 0, kBlackW,
+                    && juce::Rectangle<int>(x + whiteW_ - blackW_ / 2, 0, blackW_,
                                             (int) (kHeight * 0.62f)).contains(p))
                     return n + 1;
-                x += kWhiteW;
+                x += whiteW_;
             }
         }
         int x = 0;
         for (int n = vLo_; n <= vHi_; ++n) {
             if (!isWhite(n)) continue;
-            if (juce::Rectangle<int>(x, 0, kWhiteW, kHeight).contains(p)) return n;
-            x += kWhiteW;
+            if (juce::Rectangle<int>(x, 0, whiteW_, kHeight).contains(p)) return n;
+            x += whiteW_;
         }
         return -1;
     }

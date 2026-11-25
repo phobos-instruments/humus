@@ -4,12 +4,15 @@
 #include <array>
 #include <atomic>
 #include <cmath>
+#include <cstddef>
 #include <cstdint>
 
+#include "hum/BankedParams.h"
 #include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/Chord.h"
 #include "hum/Scale.h"
+#include "hum/StepChance.h"
 
 namespace hum {
 
@@ -32,8 +35,11 @@ public:
         return (std::int64_t) std::floor(beats * stripStepsPerBeat_.load(std::memory_order_relaxed));
     }
     bool stripStepRests(std::int64_t step) const override {
+        const auto slot = (std::size_t) (((step % kBases) + kBases) % kBases);
         return (stepHash(step, stripSeed_.load(std::memory_order_relaxed)) & 0xFFFF) / 65536.0
-               < stripRest_.load(std::memory_order_relaxed);
+                   < stripRest_.load(std::memory_order_relaxed)
+               || !stepPlays(chanceSeed_.load(std::memory_order_relaxed), 0, (long) step,
+                             kFullChance - stripMiss_[slot].load(std::memory_order_relaxed));
     }
 
     int numAudioInputs() const override { return 0; }
@@ -43,7 +49,13 @@ public:
 
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
+        chanceSeed_.store(stepSeedFor(name()), std::memory_order_relaxed);
         reset();
+    }
+    void setPattern(const Pattern& p) override { banked_.read(p); }
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        setPattern(state.pattern);
     }
     void reset() override {
         outCount_ = 0;
@@ -72,6 +84,21 @@ private:
         return rng_;
     }
     void grow(int seed);
+
+    static constexpr std::size_t kSeedSlot = 0, kMuteSlot = 1, kBaseSlot = 2, kChanceSlot = 6;
+    static std::array<ParamRef, kChanceSlot + kBases> bankedRefs() {
+        std::array<ParamRef, kChanceSlot + kBases> refs;
+        refs[kSeedSlot] = ParamRef("Seed");
+        refs[kMuteSlot] = ParamRef("Mute");
+        const char* bases[4] = {"Base A", "Base C", "Base G", "Base T"};
+        for (std::size_t b = 0; b < 4; ++b) refs[kBaseSlot + b] = ParamRef(bases[b]);
+        for (int s = 0; s < kBases; ++s) refs[kChanceSlot + (std::size_t) s] = ParamRef::numbered("Chance_", s + 1);
+        return refs;
+    }
+    BankedParams<kChanceSlot + kBases> banked_{bankedRefs()};
+    ParamRef bankRef_{"Bank"};
+    std::atomic<std::uint32_t> chanceSeed_{0};
+    std::array<std::atomic<int>, kBases> stripMiss_{};
 
     std::atomic<double> stripStepsPerBeat_{4.0};
     std::atomic<int> stripSeed_{1};

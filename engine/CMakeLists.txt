@@ -5,7 +5,7 @@ if(APPLE AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0")
 endif()
 
-project(Humus VERSION 0.5.1 LANGUAGES C CXX)
+project(Humus VERSION 0.6.0 LANGUAGES C CXX)
 
 # A single-config generator with no build type is -O0 with live asserts, which
 # xruns in a realtime app; a first-time builder following the README gets Release.
@@ -47,6 +47,9 @@ endif()
 # Pack static libs also link into .humpack shared libs.
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Declared here, before Media.cmake reads it: an option first declared later is
+# unset on a fresh configure, and the app then links without its video code.
+option(HUM_GUI "Build the JUCE GUI app" ON)
 option(HUM_DYN_PACKS "Also build packs as dynamic .humpack payloads" ON)
 
 set(HUM_CODESIGN_IDENTITY "-" CACHE STRING
@@ -74,11 +77,11 @@ include(cmake/Sdk.cmake)
 include(cmake/Vendored.cmake)
 include(cmake/Packs.cmake)
 include(cmake/Models.cmake)
+include(cmake/Clap.cmake)
 include(cmake/Ffmpeg.cmake)
 include(cmake/Core.cmake)
 include(cmake/Cli.cmake)
 include(cmake/Tests.cmake)
-include(cmake/Plugin.cmake)
 include(cmake/Warnings.cmake)
 foreach(t hum_sdk hum_models hum_core hum hum_tests hum_snapshot hum_gui Humus
           hum_pack_core hum_pack_humus hum_pack_av hum_pack_audiomulch hum_pack_sample)
@@ -90,8 +93,12 @@ if(HUM_TESTS)
   add_test(NAME hum_tests COMMAND hum_tests)
 endif()
 include(cmake/GuiSources.cmake)
+include(cmake/Media.cmake)
+include(cmake/Ui.cmake)
 include(cmake/Gui.cmake)
 include(cmake/Host.cmake)
+include(cmake/Interface.cmake)
+include(cmake/Plugin.cmake)
 include(cmake/Snapshot.cmake)
 
 option(HUM_STUDIO "Build the Organism Studio runner from a sibling checkout" OFF)
@@ -105,4 +112,5 @@ if(HUM_STUDIO)
     message(FATAL_ERROR "HUM_STUDIO_DIR does not hold Studio.cmake: ${HUM_STUDIO_DIR}")
   endif()
   include(${HUM_STUDIO_DIR}/Studio.cmake)
+  hum_link_video(hum_studio)
 endif()

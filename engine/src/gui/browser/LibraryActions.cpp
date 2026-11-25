@@ -54,17 +54,35 @@ Discard toTrash() {
     return [](const juce::File& f) { return f.moveToTrash(); };
 }
 
-int removeFromLibrary(const std::vector<std::string>& paths, const std::string& libraryRoot, BrowserIndex& index,
-                      const Discard& discard) {
-    int removed = 0;
-    for (const auto& path : paths) {
-        if (!isUnder(path, libraryRoot)) continue;
-        const auto f = fileAt(path);
-        if (f.exists() && !discard(f)) continue;
+bool canTrash(const std::string& path, const TrashGuard& guard) {
+    const auto f = fileAt(path);
+    if (!f.exists()) return false;
+    const auto kind = kindOf(f);
+    if (!isUnder(path, guard.libraryRoot) && kind != Kind::Project && kind != Kind::Patch) return false;
+    if (f.isDirectory() && f.getParentDirectory() == fileAt(guard.libraryRoot)) return false;
+    for (const auto& place : guard.places)
+        if (path == place || isUnder(place, path)) return false;
+    for (const auto& root : guard.shipped)
+        if (path == root || isUnder(path, root)) return false;
+    return guard.openDocument.empty() || (guard.openDocument != path && !isUnder(guard.openDocument, path));
+}
+
+std::vector<std::string> trashable(const std::vector<std::string>& paths, const TrashGuard& guard) {
+    std::vector<std::string> out;
+    for (const auto& path : paths)
+        if (canTrash(path, guard)) out.push_back(path);
+    return out;
+}
+
+std::vector<std::string> moveToTrash(const std::vector<std::string>& paths, const TrashGuard& guard, BrowserIndex& index,
+                                     const Discard& discard) {
+    std::vector<std::string> gone;
+    for (const auto& path : trashable(paths, guard)) {
+        if (!discard(fileAt(path))) continue;
         index.edit([&](FileIndex& i) { i.forget(path); });
-        ++removed;
+        gone.push_back(path);
     }
-    return removed;
+    return gone;
 }
 
 }

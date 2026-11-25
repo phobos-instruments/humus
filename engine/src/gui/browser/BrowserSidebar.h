@@ -9,6 +9,7 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/browser/BrowserPlaces.h"
+#include "core/app/AppPaths.h"
 #include "core/browser/FolderScan.h"
 #include "gui/common/Localisation.h"
 #include "gui/style/Colours.h"
@@ -16,11 +17,12 @@
 
 namespace hum::browser {
 
-class BrowserSidebar : public juce::Component {
+class BrowserSidebar : public juce::Component, public juce::FileDragAndDropTarget {
 public:
     std::function<void(const Place&)> onChoose;
     std::function<void()> onAddFolder, onNewCollection;
     std::function<void(const Place&, juce::Point<int>)> onMenu;
+    std::function<void(const std::vector<std::string>& folders)> onPin;
 
     static constexpr int kRowH = 22, kHeadH = 24, kPad = 10;
 
@@ -42,7 +44,19 @@ public:
             }
             paintItem(g, row);
         }
+        if (dropping_) paintDropMark(g);
     }
+
+    bool isInterestedInFileDrag(const juce::StringArray& files) override {
+        return onPin && !foldersIn(files).empty();
+    }
+    void fileDragEnter(const juce::StringArray&, int, int) override { setDropping(true); }
+    void fileDragExit(const juce::StringArray&) override { setDropping(false); }
+    void filesDropped(const juce::StringArray& files, int, int) override {
+        setDropping(false);
+        if (const auto folders = foldersIn(files); !folders.empty() && onPin) onPin(folders);
+    }
+    bool showsDropMark() const { return dropping_; }
 
     void mouseMove(const juce::MouseEvent& e) override {
         const int over = rowAt(e.getPosition());
@@ -138,6 +152,30 @@ private:
         return rows;
     }
 
+    static std::vector<std::string> foldersIn(const juce::StringArray& files) {
+        std::vector<std::string> out;
+        for (const auto& f : files)
+            if (juce::File(f).isDirectory()) out.push_back(pathOf(juce::File(f)));
+        return out;
+    }
+
+    void setDropping(bool on) {
+        if (on == dropping_) return;
+        dropping_ = on;
+        repaint();
+    }
+
+    void paintDropMark(juce::Graphics& g) const {
+        int y = -1;
+        for (const auto& row : layout())
+            if (row.section == SidebarItem::Section::Computer) y = row.bounds.getBottom();
+        g.setColour(Palette::accent.withAlpha(alpha::mid));
+        g.drawRect(getLocalBounds().withTrimmedRight(1), 2);
+        if (y < 0) return;
+        g.setColour(Palette::accent);
+        g.fillRoundedRectangle(juce::Rectangle<float>((float) kPad, (float) y - 1.0f, (float) (getWidth() - 2 * kPad), 2.0f), 1.0f);
+    }
+
     const SidebarItem* nearestFolder() const {
         if (current_.type != Place::Type::Folder) return nullptr;
         const SidebarItem* best = nullptr;
@@ -194,6 +232,7 @@ private:
     Place current_;
     std::string scanning_;
     int hover_ = -1;
+    bool dropping_ = false;
 };
 
 }

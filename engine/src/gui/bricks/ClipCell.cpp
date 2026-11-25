@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/bricks/ClipCell.h"
 
+#include "gui/style/DropBadge.h"
+
 #include <cmath>
 
 namespace hum {
@@ -115,6 +117,7 @@ void ClipCell::paint(juce::Graphics& g) {
                             : Palette::border);
     g.drawRoundedRectangle(thumb.toFloat().reduced(0.5f), 4.0f,
                            active_ || dragOver_ ? 2.0f : 1.0f);
+    if (dragOver_) drop::paintBadge(g, thumb.toFloat());
     g.setColour(Palette::textDim);
     g.setFont(juce::FontOptions(10.0f));
     g.drawText(rangeText(), juce::Rectangle<int>(0, kThumbH + 28, kWidth, 12),

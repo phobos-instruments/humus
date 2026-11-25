@@ -20,7 +20,7 @@ PresetRail::PresetRail(PropertiesHost& host, std::string node)
     store_.setTooltip(tr("preset.store-tip",
                          "Store - keep the current settings in this preset (hold Alt to store a new one)"));
     evolve_.setTooltip(tr("preset.evolve-tip",
-                          "Evolve - nudge the settings; press again to wander further (one undo step)"));
+                          "Evolve - nudge the settings; press again to wander further (one undo step). Right-click to map it."));
     more_.setTooltip(tr("preset.more-preset-actions", "More preset actions"));
     prev_.setTooltip(tr("preset.previous-preset", "Previous preset"));
     next_.setTooltip(tr("preset.next-preset", "Next preset"));
@@ -33,7 +33,10 @@ PresetRail::PresetRail(PropertiesHost& host, std::string node)
         changed();
     };
     store_.onClick = [this] { store(juce::ModifierKeys::currentModifiers.isAltDown()); };
-    evolve_.onClick = [this] { presets::evolve(host_, node_); changed(); };
+    evolve_.onClick = [this] { evolveNode(host_, node_); changed(); };
+    evolve_.onRightClick = [this](juce::Point<int> at) {
+        showAutomateMenu(host_, node_, kEvolveAction, at, nullptr, false);
+    };
     more_.onClick = [this] { actMenu(more_.getScreenBounds().getBottomLeft()); };
     prev_.onClick = [this] { step(-1); };
     next_.onClick = [this] { step(+1); };
@@ -237,6 +240,7 @@ void PresetRail::pinCurrent() {
     PresetModel pm;
     pm.name = e->name;
     pm.properties = e->properties;
+    pm.pattern = e->pattern;
     const int n = host_.presets().adopt(node_, std::move(pm));
     if (n > 0) host_.presets().setCurrent(node_, {presets::Source::Patch, n, e->name});
     changed();
@@ -334,9 +338,8 @@ void PresetRail::promptSaveToLibrary() {
         [aw, sp = juce::Component::SafePointer<PresetRail>(this)](int r) {
             const juce::String name = aw->getTextEditorContents("name").trim();
             if (r != 1 || name.isEmpty() || sp == nullptr) return;
-            if (const auto* c = sp->host_.model().byName(sp->node_)) {
-                presetlib::save(c->classRaw, presetlib::capture(*c, name.toStdString()));
-            }
+            sp->host_.presets().saveToLibrary(sp->node_, name.toStdString());
+            sp->changed();
         }), true);
 }
 
@@ -371,7 +374,7 @@ void PresetRail::actMenu(juce::Point<int> at) {
         auto& h = sp->host_;
         const auto& n = sp->node_;
         switch (r) {
-            case kEvolve:   presets::evolve(h, n); sp->changed(); break;
+            case kEvolve:   evolveNode(h, n); sp->changed(); break;
             case kGenerate: presets::showGenie(h, n,
                                 [sp] { if (sp) sp->changed(); }); break;
             case kRecall:   presets::recallBracketed(h, n,

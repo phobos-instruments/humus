@@ -34,14 +34,24 @@ void Compressor::process(const float* const* in, int numIn, float* const* out, i
     const double makeup = params.get("AutoMakeupGain", 0.0) >= 0.5
                               ? core_.autoMakeup()
                               : params.get("MakeupGain", 1.0);
+    const double mixTarget = std::clamp(params.get("Mix", 1.0), 0.0, 1.0);
+    if (!mixPrimed_) {
+        mix_ = mixTarget;
+        mixPrimed_ = true;
+    }
+    const double mixStep = (mixTarget - mix_) / std::max(1, numSamples);
 
     for (int n = 0; n < numSamples; ++n) {
         if (bypass) { copyThrough(in, numIn, out, numOut, n); continue; }
         const float g =
             (float) (core_.process(inGain * linkedPeak(in, numIn, 0, ch_, n)) * makeup);
+        mix_ += mixStep;
+        const float wet = (float) mix_;
+        const float blend = (1.0f - wet) + inGain * g * wet;
         for (int c = 0; c < numOut; ++c)
-            out[c][n] = ((c < numIn && in[c]) ? in[c][n] : 0.0f) * inGain * g;
+            out[c][n] = ((c < numIn && in[c]) ? in[c][n] : 0.0f) * blend;
     }
+    mix_ = mixTarget;
     gr_.store(bypass ? 0.0f : (float) std::min(60.0, -core_.reductionDb()), std::memory_order_relaxed);
 }
 

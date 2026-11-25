@@ -21,6 +21,7 @@
 #include "gui/video/VisualWindow.h"
 #include "gui/app/FloatingWindows.h"
 #include "gui/app/FreeWindow.h"
+#include "gui/patcher/OrganismTreePanel.h"
 #include "gui/patcher/PatcherCanvas.h"
 #include "gui/properties/PropertiesPane.h"
 #include "gui/common/UiTicker.h"
@@ -33,6 +34,7 @@
 #include "core/packs/Categories.h"
 #include "hum/Registry.h"
 #include "core/packs/PackLoader.h"
+#include "gui/host/UserExtensions.h"
 #include "core/packs/ClassString.h"
 #include "core/plugins/BridgeRing.h"
 #include "core/plugins/HostedPlugin.h"
@@ -48,6 +50,7 @@
 #include "gui/app/DefaultPatchHandler.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/plugins/PluginBridgePolicy.h"
+#include "gui/plugins/PluginHostingSetup.h"
 #include "gui/plugins/PluginEditorTeardown.h"
 #include "gui/host/NodeRandomize.h"
 #include "gui/app/QwertyPiano.h"
@@ -78,27 +81,9 @@ MainComponent::MainComponent()
     if (const auto msg = EditorOpGuard::sweepAtStartup(); msg.isNotEmpty())
         juce::AlertWindow::showMessageBoxAsync(juce::MessageBoxIconType::InfoIcon,
                                                tr("main.plugin-safe-mode", "Plugin safe mode"), msg);
-    PackLoader::instance().loadInstalledPacks();
+    loadUserExtensions();
     i18n::refresh();
-    PluginHost::instance().restoreKnownListFromXml(pluginListStore::load());
-    {
-        juce::StringArray disabled;
-        disabled.addTokens(AppSettings::instance().getString("packs.disabled"), ",", "");
-        for (auto& id : disabled)
-            if (id.isNotEmpty()) PackRegistry::instance().setPackEnabled(id.toStdString(), false);
-    }
-    BridgeRing::sweepStale();
-    PluginHost::instance().setBridgeExe(
-        juce::File::getSpecialLocation(juce::File::currentExecutableFile));
-    PluginHost::instance().setBridgePolicy(
-        [](const std::string& classRaw) { return bridgePolicy::shouldBridge(classRaw); });
-    HostedPlugin::shouldLeakInstance = [](const std::string& classRaw) {
-        return matchesPluginList(classRaw, "plugins.leakInstance", "Synplant");
-    };
-    HostedPlugin::disposeGuard = [](const std::string& classRaw) -> std::shared_ptr<void> {
-        return std::make_shared<EditorOpGuard>(classRaw, "plugins.leakInstance",
-                                               "disposing its instance");
-    };
+    setUpPluginHosting(juce::File::getSpecialLocation(juce::File::currentExecutableFile));
 
     buildPatchPanes();
     host_.onBeforeRebuild = [this](const std::function<bool(const std::string&)>& survives) {
@@ -332,13 +317,7 @@ void MainComponent::timerCallback() {
         if (linkBtn_.getButtonText() != label) linkBtn_.setButtonText(label);
     }
     UiTicker::instance().setBusy(host_.audioRunning());
-    host_.pollMidiControl();
-    host_.pollBridges();
-    host_.pumpPluginTunings();
-    host_.pollTuningProbes();
-    host_.serviceCountIn();
-    host_.pumpOscOut();
-    host_.files().pollRecorders();
+    host_.serviceTick();
     if (juce::Time::currentTimeMillis() - openSinceMs_ >= 60'000) noteOpenTime();
     if (sessionStartMs_ > 0 && telemetrySpool().enabled()) {
         const auto now = juce::Time::currentTimeMillis();
@@ -372,12 +351,9 @@ void MainComponent::timerCallback() {
         lastLaneStamp_ = ls;
         refreshTimelinePanes();
     }
-    const unsigned liveGen = host_.liveControlGeneration();
-    if (host_.isPlaying() || host_.routesAlive() || liveGen != lastLiveGen_) propsPane_->refreshLiveValues();
-    lastLiveGen_ = liveGen;
     meter_.push(host_.outputLevel(0), host_.outputLevel(1));
     updateDspReadout();
-    propsPane_->prune();
+    paneRefresher_.tick(*propsPane_, host_);
     if (const char* flip = std::getenv("HUM_DEBUG_FLIP")) {
         static int flipTicks = 0;
         ++flipTicks;
@@ -425,15 +401,13 @@ void MainComponent::timerCallback() {
         }
     }
     serviceTrackerFeeds();
-    propsPane_->refreshPresetState();
-    propsPane_->refreshTextEdits();
     if (const double bpm = host_.liveTempo();
         !tempo_.userDragging() && std::abs(tempo_.getValue() - bpm) > 0.01)
         tempo_.setValue(bpm, juce::dontSendNotification);
     if (const auto clock = host_.clockNodeNameIfAny(); !clock.empty())
         tempo_.setExternallyControlled(host_.isExternallyControlled(clock, kTempoParam));
     updateWindowTitle();
-    autosaveTick();
+    autosaveTick(nowMs());
     watchdog_.heartbeat();
 }
 

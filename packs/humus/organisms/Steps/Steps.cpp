@@ -25,13 +25,16 @@ void Steps::emit(int offset, bool on, int note, int vel) {
 void Steps::process(const float* const*, int, float* const*, int,
                     int numSamples, const Transport& transport) {
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
+    const int bank = std::clamp((int) params.get("Bank", 0.0), 0, kPatternBanks - 1);
+    if (bank != bank_) {
+        bank_ = bank;
+        stepsDirty_ = true;
+    }
     if (stepsDirty_) {
         steps_.clear();
         ups_.clear();
-        for (const auto& ch : pattern_.channels) {
-            if (ch.type == "trigger-tie-matrix" && steps_.empty()) steps_ = decodeArp(ch.matrix);
-            if (ch.type == "octave-row" && ups_.empty()) ups_ = decodeOctaveRow(ch.matrix);
-        }
+        if (const auto* ch = matrixChannel(pattern_, "trigger-tie-matrix", bank_)) steps_ = decodeArp(ch->matrix);
+        if (const auto* ch = matrixChannel(pattern_, "octave-row", bank_)) ups_ = decodeOctaveRow(ch->matrix);
         stepsPerBeat_ = (double) Pattern::kTicksPerBeat
                       / (double) stepTicksFor(pattern_.matrixResolution);
         stepsDirty_ = false;
@@ -66,7 +69,7 @@ void Steps::process(const float* const*, int, float* const*, int,
         const double pos = (double) k + swing::delaySteps((double) k, ticksPerStep, groove);
         if (pos < step0 || pos >= stepEnd || k < 0) continue;
         const size_t idx = (size_t) (k % (long) steps_.size());
-        if (!steps_[idx].trigger) continue;
+        if (!steps_[idx].trigger || !stepPlays(seed_, 0, k, chances_.at(params, bank_, (long) idx))) continue;
         const int at = std::min(numSamples - 1, (int) ((pos - step0) / stepsPerSec * sr));
         long len = (long) (gate * (double) stepLen);
         for (size_t t = 1; t < steps_.size(); ++t) {

@@ -2,7 +2,7 @@
 
 Un correttore di pitch monofonico che porta una voce o un lead sulle note di una tonalità e di una scala.
 
-Segue la fondamentale in ingresso, la aggancia alla nota consentita più vicina della Key e della Scale scelte, e sposta lì l'audio con un pitch shifter a linea di ritardo con crossfade, una voce alla volta. Speed decide quanto è veloce lo scivolamento verso la nota bersaglio: lento conserva la deriva naturale, veloce è l'effetto hard-tune. La griglia delle note viene dall'accordatura della patch, quindi un organism Tuning impostato su 19-EDO mette le maschere di scala su 19 gradi invece che su 12. Il segnale effettato porta con sé un breve ritardo. Collega in ingresso una voce mono da un SoundIn, o un Decomposer.
+Segue la fondamentale in ingresso, la aggancia alla nota consentita più vicina della Key e della Scale scelte, e sposta lì l'audio con un pitch shifter a linea di ritardo con crossfade, una voce alla volta. Le campane e gli altri suoni i cui armonici non sono multipli interi della nota, come Mineral, vengono seguiti dalla loro parziale più bassa, cioè la nota su cui sono suonati. Speed decide quanto è veloce lo scivolamento verso la nota bersaglio: lento conserva la deriva naturale, veloce è l'effetto hard-tune. La griglia delle note viene dall'accordatura della patch, quindi un organism Tuning impostato su 19-EDO mette le maschere di scala su 19 gradi invece che su 12. Il segnale effettato porta con sé un breve ritardo. Collega in ingresso una voce mono da un SoundIn, o un Decomposer.
 
 ## Parametri
 

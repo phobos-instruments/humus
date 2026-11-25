@@ -23,6 +23,7 @@
 #include "hum_addon_packs.h"
 #include "core/plugins/PluginHost.h"
 #include "core/plugins/PluginListStore.h"
+#include "gui/plugins/clap/ClapFormat.h"
 #include "core/tuning/TuningProbe.h"
 #include "core/tuning/TuningProbeStore.h"
 #include "hum/caps/Audio.h"
@@ -84,6 +85,7 @@ void applyOverrides(AudioGraph& g, const std::vector<Override>& sets) {
 }
 
 void restoreKnownPlugins() {
+    hum::claphost::enableClapHosting();
     hum::PluginHost::instance().restoreKnownListFromXml(hum::pluginListStore::load());
 }
 

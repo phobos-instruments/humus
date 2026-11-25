@@ -59,6 +59,17 @@ void writeGroove(xml::Element& root, const PatchDocumentModel& doc) {
     g->setAttribute("unit", doc.grooveUnit);
 }
 
+void writeEditedAudio(xml::Element& root, const PatchDocumentModel& doc) {
+    if (auto* old = root.child("edited-audio")) root.removeChild(old);
+    if (doc.editedAudio.empty()) return;
+    auto* edited = root.addChild("edited-audio");
+    for (const auto& [copy, original] : doc.editedAudio) {
+        auto* f = edited->addChild("file");
+        f->setAttribute("copy", copy);
+        f->setAttribute("original", original);
+    }
+}
+
 void writeClock(xml::Element& clk, const ClockModel& c) {
     clk.setAttribute("tempo", c.tempo);
     clk.setAttribute("loop-start", c.loopStart);
@@ -73,43 +84,159 @@ void writeClock(xml::Element& clk, const ClockModel& c) {
             ->addText(c.timeSignature);
 }
 
-void buildFresh(xml::Element& root, const PatchDocumentModel& doc) {
-    root.setAttribute("version", doc.version.empty() ? std::string("1") : doc.version);
-
-    auto* patch = root.addChild("patch");
-    writeClock(*patch->addChild("clock"), doc.clock);
-
-    for (const auto& c : doc.organisms)
-        writeOrganism(*patch->addChild("contraption"), c);
+void writeConnections(xml::Element& patch, const PatchDocumentModel& doc) {
     for (const auto& conn : doc.connections)
-        writeConnection(*patch->addChild("audio-connection"), conn);
+        writeConnection(*patch.addChild("audio-connection"), conn);
     for (const auto& conn : doc.midiConnections)
-        writeConnection(*patch->addChild("midi-connection"), conn);
+        writeConnection(*patch.addChild("midi-connection"), conn);
     for (const auto& conn : doc.videoConnections)
-        writeConnection(*patch->addChild("video-connection"), conn);
+        writeConnection(*patch.addChild("video-connection"), conn);
+}
 
-    auto* cviews = root.addChild("contraption-views");
+std::unique_ptr<xml::Element> contraptionViews(const PatchDocumentModel& doc) {
+    auto views = std::make_unique<xml::Element>("contraption-views");
     for (const auto& v : doc.views)
-        writeView(*cviews->addChild("contraption-view"), v);
+        writeView(*views->addChild("contraption-view"), v);
+    return views;
+}
 
-    auto* aviews = root.addChild("automation-views");
+std::unique_ptr<xml::Element> automationViews(const PatchDocumentModel& doc) {
+    auto views = std::make_unique<xml::Element>("automation-views");
     for (const auto& v : doc.automationViews)
-        writeAutomationView(*aviews->addChild("automation-view"), v);
+        writeAutomationView(*views->addChild("automation-view"), v);
+    return views;
+}
 
-    auto* boxes = root.addChild("performance-boxes");
+std::unique_ptr<xml::Element> performanceBoxes(const PatchDocumentModel& doc) {
+    auto boxes = std::make_unique<xml::Element>("performance-boxes");
     for (const auto& b : doc.perfBoxes) {
         auto* be = boxes->addChild("performance-box");
         be->setAttribute("contraption", b.organism);
         be->setAttribute("start", b.startBeat);
         be->setAttribute("end", b.endBeat);
     }
+    return boxes;
+}
 
+void writeDocumentSections(xml::Element& root, const PatchDocumentModel& doc) {
     writeMetapad(root, doc.metapad);
     writeNotes(root, doc);
     writeMasterLevel(root, doc);
     writeMasterLimiter(root, doc);
     writeGroove(root, doc);
+    writeEditedAudio(root, doc);
     writeMidiModifiers(root, doc);
+}
+
+void buildFresh(xml::Element& root, const PatchDocumentModel& doc) {
+    root.setAttribute("version", doc.version.empty() ? std::string("1") : doc.version);
+
+    auto* patch = root.addChild("patch");
+    writeClock(*patch->addChild("clock"), doc.clock);
+    for (const auto& c : doc.organisms)
+        writeOrganism(*patch->addChild("contraption"), c);
+    writeConnections(*patch, doc);
+
+    root.addChild(contraptionViews(doc));
+    root.addChild(automationViews(doc));
+    root.addChild(performanceBoxes(doc));
+    writeDocumentSections(root, doc);
+}
+
+void refreshStoredOrganism(xml::Element& ce, const OrganismModel& cm) {
+    if (auto* props = ce.child("properties"))
+        for (auto* pe : props->children()) {
+            if (!pe->hasTag("property")) continue;
+            const auto pn = pe->attribute("name");
+            const Parameter* mp = nullptr;
+            for (const auto& q : cm.properties)
+                if (q.name == pn) { mp = &q; break; }
+            if ((mp != nullptr && mp->type == "pattern")
+                || pe->child("pattern") != nullptr) {
+                if (!cm.pattern.present) continue;
+                pe->deleteChildren();
+                writePattern(*pe, cm.pattern);
+                continue;
+            }
+            if (mp != nullptr && mp->userEdited) {
+                pe->deleteChildren();
+                addValue(*pe, *mp);
+            }
+        }
+    if (auto* props = ce.child("properties"))
+        for (const auto& mp : cm.properties) {
+            if (!mp.userEdited) continue;
+            bool present = false;
+            for (auto* pe : props->children())
+                if (pe->hasTag("property")
+                    && pe->attribute("name") == mp.name) {
+                    present = true;
+                    break;
+                }
+            if (present) continue;
+            if (mp.type == "pattern") {
+                if (!cm.pattern.present) continue;
+                auto* pe = props->addChild("property");
+                pe->setAttribute("index", mp.index);
+                pe->setAttribute("name", mp.name);
+                writePattern(*pe, cm.pattern);
+                continue;
+            }
+            writeProperty(*props, mp);
+        }
+    if (auto* oldLocks = ce.child("no-random"))
+        ce.removeChild(oldLocks);
+    writeRollLocks(ce, cm);
+    if (auto* oldEnds = ce.child("range-ends"))
+        ce.removeChild(oldEnds);
+    if (auto* oldModes = ce.child("range-mode"))
+        ce.removeChild(oldModes);
+    writeRangeModes(ce, cm);
+    if (auto* oldInput = ce.child("track-input"))
+        ce.removeChild(oldInput);
+    writeTrackInput(ce, cm);
+    if (auto* oldRow = ce.child("timeline-row"))
+        ce.removeChild(oldRow);
+    writeTimelineRow(ce, cm);
+    if (auto* oldPresets = ce.child("presets")) ce.removeChild(oldPresets);
+    auto pres = std::make_unique<xml::Element>("presets");
+    writePresets(*pres, cm);
+    int propIdx = -1;
+    if (auto* props = ce.child("properties")) propIdx = indexOfChild(ce, props);
+    if (propIdx >= 0) ce.insertChild(std::move(pres), propIdx + 1);
+    else              ce.addChild(std::move(pres));
+
+    auto* mod = ce.child("modulation-sources");
+    if (!mod) mod = ce.addChild("modulation-sources");
+    std::vector<xml::Element*> oldSources;
+    for (auto* ps : mod->children())
+        if (ps->hasTag("property-sources") &&
+            (ps->child("automation-controller") || ps->child("midi-controller")
+             || ps->child("osc-controller") || ps->child("mod-controller")))
+            oldSources.push_back(ps);
+    for (auto* e : oldSources) mod->removeChild(e);
+    writeAutomationLanes(*mod, cm);
+    writeMidiSources(*mod, cm);
+    writeOscSources(*mod, cm);
+    writeModSources(*mod, cm);
+
+    if (const auto tag = pluginStateTag(cm.kind); !tag.empty())
+        if (auto* props = ce.child("properties")) {
+            if (auto* oldState = props->child(tag))
+                props->removeChild(oldState);
+            if (!cm.pluginState.empty())
+                props->addChild(tag)->addText(cm.pluginState);
+        }
+
+    OrganismModel asStored;
+    parseMidiSettings(ce, asStored);
+    if (asStored.midiReceiveMode != cm.midiReceiveMode ||
+        asStored.midiReceiveChannel != cm.midiReceiveChannel ||
+        asStored.midiReceivePort != cm.midiReceivePort) {
+        if (auto* old = ce.child("vst-midi-settings"))
+            ce.removeChild(old);
+        writeMidiSettings(ce, cm);
+    }
 }
 
 void patchExisting(xml::Element& root, const PatchDocumentModel& doc) {
@@ -143,101 +270,7 @@ void patchExisting(xml::Element& root, const PatchDocumentModel& doc) {
         }
         seen.insert(nm);
 
-        if (cm) {
-            if (auto* props = ce->child("properties"))
-                for (auto* pe : props->children()) {
-                    if (!pe->hasTag("property")) continue;
-                    const auto pn = pe->attribute("name");
-                    const Parameter* mp = nullptr;
-                    for (const auto& q : cm->properties)
-                        if (q.name == pn) { mp = &q; break; }
-                    if ((mp != nullptr && mp->type == "pattern")
-                        || pe->child("pattern") != nullptr) {
-                        if (!cm->pattern.present) continue;
-                        pe->deleteChildren();
-                        writePattern(*pe, cm->pattern);
-                        continue;
-                    }
-                    if (mp != nullptr && mp->userEdited) {
-                        pe->deleteChildren();
-                        addValue(*pe, *mp);
-                    }
-                }
-            if (auto* props = ce->child("properties"))
-                for (const auto& mp : cm->properties) {
-                    if (!mp.userEdited) continue;
-                    bool present = false;
-                    for (auto* pe : props->children())
-                        if (pe->hasTag("property")
-                            && pe->attribute("name") == mp.name) {
-                            present = true;
-                            break;
-                        }
-                    if (present) continue;
-                    if (mp.type == "pattern") {
-                        if (!cm->pattern.present) continue;
-                        auto* pe = props->addChild("property");
-                        pe->setAttribute("index", mp.index);
-                        pe->setAttribute("name", mp.name);
-                        writePattern(*pe, cm->pattern);
-                        continue;
-                    }
-                    writeProperty(*props, mp);
-                }
-            if (auto* oldLocks = ce->child("no-random"))
-                ce->removeChild(oldLocks);
-            writeRollLocks(*ce, *cm);
-            if (auto* oldEnds = ce->child("range-ends"))
-                ce->removeChild(oldEnds);
-            if (auto* oldModes = ce->child("range-mode"))
-                ce->removeChild(oldModes);
-            writeRangeModes(*ce, *cm);
-            if (auto* oldInput = ce->child("track-input"))
-                ce->removeChild(oldInput);
-            writeTrackInput(*ce, *cm);
-            if (auto* oldRow = ce->child("timeline-row"))
-                ce->removeChild(oldRow);
-            writeTimelineRow(*ce, *cm);
-            if (auto* oldPresets = ce->child("presets")) ce->removeChild(oldPresets);
-            auto pres = std::make_unique<xml::Element>("presets");
-            writePresets(*pres, *cm);
-            int propIdx = -1;
-            if (auto* props = ce->child("properties")) propIdx = indexOfChild(*ce, props);
-            if (propIdx >= 0) ce->insertChild(std::move(pres), propIdx + 1);
-            else              ce->addChild(std::move(pres));
-
-            auto* mod = ce->child("modulation-sources");
-            if (!mod) mod = ce->addChild("modulation-sources");
-            std::vector<xml::Element*> oldSources;
-            for (auto* ps : mod->children())
-                if (ps->hasTag("property-sources") &&
-                    (ps->child("automation-controller") || ps->child("midi-controller")
-                     || ps->child("osc-controller") || ps->child("mod-controller")))
-                    oldSources.push_back(ps);
-            for (auto* e : oldSources) mod->removeChild(e);
-            writeAutomationLanes(*mod, *cm);
-            writeMidiSources(*mod, *cm);
-            writeOscSources(*mod, *cm);
-            writeModSources(*mod, *cm);
-
-            if (const auto tag = pluginStateTag(cm->kind); !tag.empty())
-                if (auto* props = ce->child("properties")) {
-                    if (auto* oldState = props->child(tag))
-                        props->removeChild(oldState);
-                    if (!cm->pluginState.empty())
-                        props->addChild(tag)->addText(cm->pluginState);
-                }
-
-            OrganismModel asStored;
-            parseMidiSettings(*ce, asStored);
-            if (asStored.midiReceiveMode != cm->midiReceiveMode ||
-                asStored.midiReceiveChannel != cm->midiReceiveChannel ||
-                asStored.midiReceivePort != cm->midiReceivePort) {
-                if (auto* old = ce->child("vst-midi-settings"))
-                    ce->removeChild(old);
-                writeMidiSettings(*ce, *cm);
-            }
-        }
+        if (cm != nullptr) refreshStoredOrganism(*ce, *cm);
     }
     for (auto* e : staleOrganisms) patch->removeChild(e);
     for (auto* e : oldConnections)    patch->removeChild(e);
@@ -246,45 +279,21 @@ void patchExisting(xml::Element& root, const PatchDocumentModel& doc) {
         if (!seen.count(c.name))
             writeOrganism(*patch->addChild("contraption"), c);
 
-    for (const auto& conn : doc.connections)
-        writeConnection(*patch->addChild("audio-connection"), conn);
-    for (const auto& conn : doc.midiConnections)
-        writeConnection(*patch->addChild("midi-connection"), conn);
-    for (const auto& conn : doc.videoConnections)
-        writeConnection(*patch->addChild("video-connection"), conn);
+    writeConnections(*patch, doc);
 
     if (auto* old = root.child("contraption-views")) root.removeChild(old);
-    auto cviewsOwned = std::make_unique<xml::Element>("contraption-views");
-    for (const auto& v : doc.views)
-        writeView(*cviewsOwned->addChild("contraption-view"), v);
     int after = -1;
     if (auto* appView = root.child("application-view")) after = indexOfChild(root, appView);
     else if (auto* p = root.child("patch"))            after = indexOfChild(root, p);
-    auto* cviews = after >= 0 ? root.insertChild(std::move(cviewsOwned), after + 1) : root.addChild(std::move(cviewsOwned));
+    auto* cviews = after >= 0 ? root.insertChild(contraptionViews(doc), after + 1) : root.addChild(contraptionViews(doc));
 
     if (auto* old = root.child("automation-views")) root.removeChild(old);
-    auto aviewsOwned = std::make_unique<xml::Element>("automation-views");
-    for (const auto& v : doc.automationViews)
-        writeAutomationView(*aviewsOwned->addChild("automation-view"), v);
-    auto* aviews = root.insertChild(std::move(aviewsOwned), indexOfChild(root, cviews) + 1);
+    auto* aviews = root.insertChild(automationViews(doc), indexOfChild(root, cviews) + 1);
 
     if (auto* old = root.child("performance-boxes")) root.removeChild(old);
-    auto boxes = std::make_unique<xml::Element>("performance-boxes");
-    for (const auto& b : doc.perfBoxes) {
-        auto* be = boxes->addChild("performance-box");
-        be->setAttribute("contraption", b.organism);
-        be->setAttribute("start", b.startBeat);
-        be->setAttribute("end", b.endBeat);
-    }
-    root.insertChild(std::move(boxes), indexOfChild(root, aviews) + 1);
+    root.insertChild(performanceBoxes(doc), indexOfChild(root, aviews) + 1);
 
-    writeMetapad(root, doc.metapad);
-
-    writeNotes(root, doc);
-    writeMasterLevel(root, doc);
-    writeMasterLimiter(root, doc);
-    writeGroove(root, doc);
-    writeMidiModifiers(root, doc);
+    writeDocumentSections(root, doc);
 }
 
 

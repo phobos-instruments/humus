@@ -26,7 +26,11 @@ Im Modus Pitched teilen die Zonen die Tastatur an den Mittelpunkten zwischen ihr
 
 **Polyphony** Die Anzahl gleichzeitig klingender Stimmen. Darüber hinaus übernimmt eine neue Note die älteste Stimme.
 
-**Loop** An hält eine Note auf den Loop-Punkten, die die Datei mitbringt, solange du die Taste gedrückt hältst; eine Datei ohne Loop-Punkte spielt so oder so durch. Aus ignoriert alle Loop-Punkte und lässt jede Note bis zum Ende ihres Samples laufen; das ist die richtige Wahl, wenn die Loops einer Bibliothek schlecht sitzen. Der Übergang wird überblendet, sodass ein Loop, dessen Enden nicht zusammenpassen, sauber hält, statt einmal pro Durchlauf zu klicken.
+**Loop** Wie eine gehaltene Note über das Ende ihres Klangs hinaus weitergeht. File hält sie auf den Loop-Punkten, die die Datei mitbringt, solange du die Taste gedrückt hältst; eine Datei ohne Loop-Punkte spielt durch. Off ignoriert alle Loop-Punkte und lässt jede Note bis zum Ende ihres Samples laufen; das ist die richtige Wahl, wenn die Loops einer Bibliothek schlecht sitzen. Forward wiederholt den Abschnitt zwischen Loop in und Loop out, bei jedem Sample, mit oder ohne Loop-Punkte. Ping-pong spielt diesen Abschnitt vorwärts, dann rückwärts, dann wieder vorwärts. Der Übergang eines File- oder Forward-Loops wird überblendet, sodass ein Loop, dessen Enden nicht zusammenpassen, hält, statt einmal pro Durchlauf zu knacken; Ping-pong braucht das nicht, weil er nie springt.
+
+**LoopStart** Als Loop in angezeigt. Wo ein Forward- oder Ping-pong-Loop beginnt, vom Anfang des Samples bis zu seinem Ende. Die Note startet trotzdem am Anfang und spielt in den Loop hinein.
+
+**LoopEnd** Als Loop out angezeigt. Wo ein Forward- oder Ping-pong-Loop umkehrt, vom Anfang des Samples bis zu seinem Ende. Ein Loop ist nie kürzer als ein paar Millisekunden.
 
 **File1** Die Audiodatei in Slot 1, ebenso für File2 bis File8.
 

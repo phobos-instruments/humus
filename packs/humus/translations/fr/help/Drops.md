@@ -2,7 +2,7 @@
 
 Des gouttes d'eau comme instrument : une pluie aléatoire de petits événements physiques pendant que le transport joue.
 
-Chaque goutte est une sinusoïde amortie à la résonance d'une bulle, dont la hauteur monte pendant qu'elle s'éteint, et c'est ce qui donne à un goutte-à-goutte son côté mouillé. Les gouttes tombent au hasard tant que le transport tourne et s'arrêtent quand il s'arrête, et un même patch rend la même pluie à chaque fois, donc un bounce ne réserve aucune surprise. Size règle la bulle, Spread à quel point chaque goutte s'en écarte, et Pool ajoute une petite queue résonante sous la pluie. Branche-le dans un Fern pour des gouttes qui se répondent, ou dans un SoundSpace pour une grotte.
+Chaque goutte est une sinusoïde amortie à la résonance d'une bulle, dont la hauteur monte pendant qu'elle s'éteint, et c'est ce qui donne à un goutte-à-goutte son côté mouillé. Les gouttes tombent au hasard tant que le transport tourne et s'arrêtent quand il s'arrête, et un même patch rend la même pluie à chaque fois, donc un export ne réserve aucune surprise. Size règle la bulle, Spread à quel point chaque goutte s'en écarte, et Pool ajoute une petite queue résonante sous la pluie. Branche-le dans un Fern pour des gouttes qui se répondent, ou dans un SoundSpace pour une grotte.
 
 ## Paramètres
 

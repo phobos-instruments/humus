@@ -4,7 +4,9 @@
 
 #include <cmath>
 
+#include "core/params/ParamSchema.h"
 #include "core/params/ParamUnit.h"
+#include "core/plugins/PluginNode.h"
 
 namespace hum {
 
@@ -152,7 +154,7 @@ void ParameterControlView::updateLive() {
     const double now = juce::Time::getMillisecondCounterHiRes();
     for (auto& r : rows_)
         if (!r.isOsc && !r.isMod && !r.isWaiting) {
-            const double seen = host_.midi().lastSeenMs(r.source.cc);
+            const double seen = host_.midi().lastSeenMs(r.source);
             r.tile->setActive(seen >= 0.0 && now - seen < kActivityMs);
         }
     if (selectedSource_ < 0 || selectedSource_ >= (int) rows_.size()) return;
@@ -166,7 +168,7 @@ void ParameterControlView::updateLive() {
     double input01 = -1.0;
     juce::String readout = tr("parameter-control.now", "now") + " " + out;
     if (!r.isOsc && !r.isMod && !r.shape.isEncoder()) {
-        const int raw = host_.midi().sourceValue(r.source.cc);
+        const int raw = host_.midi().laneValue(r.source);
         if (raw >= 0) {
             input01 = raw / (double) sourceMaxValue(r.source.cc);
             readout = tr("parameter-control.in", "in") + " " + juce::String(raw)
@@ -201,6 +203,25 @@ std::pair<int, int> ParameterControlView::focusedField() const {
         ++which;
     }
     return {-1, -1};
+}
+
+void ParameterControlView::followPluginTouch() {
+    const auto organism = selectedOrganism();
+    auto* node = organism.empty() ? nullptr : host_.pluginNodeFor(organism);
+    unsigned stamp = 0;
+    const int index = node != nullptr ? node->touchedParam(stamp) : -1;
+    if (organism != touchOrganism_) {
+        touchOrganism_ = organism;
+        touchSeen_ = stamp;
+        return;
+    }
+    if (node == nullptr || stamp == touchSeen_) return;
+    touchSeen_ = stamp;
+    const auto* cm = host_.model().byName(organism);
+    if (cm == nullptr || index < 0) return;
+    const auto& schema = schemaFor(cm->classRaw);
+    if (index < (int) schema.size() && schema[(size_t) index].name != selectedParam())
+        selectParam(organism, schema[(size_t) index].name);
 }
 
 }

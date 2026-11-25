@@ -8,6 +8,7 @@
 
 #include "core/app/AppPaths.h"
 #include "hum/FileBytes.h"
+#include "gui/style/DropBadge.h"
 #include "hum/dsp/WaveTableFile.h"
 
 namespace hum {
@@ -64,11 +65,14 @@ void WaveDrawBrick::paint(juce::Graphics& g) {
 
     g.setColour(dropping_ ? Palette::accent : Palette::border);
     g.drawRoundedRectangle(area, 4.0f, dropping_ ? 2.0f : 1.0f);
+    if (dropping_) drop::paintBadge(g, area);
 
     g.setColour(dropping_ ? Palette::accent : Palette::textDim);
     g.setFont(juce::FontOptions(11.0f));
+    const auto label = area.toNearestInt().reduced(8, 6);
     g.drawText(dropping_ ? tr("wave-draw.drop-to-seed", "drop to seed") : sourceText(),
-               area.toNearestInt().reduced(8, 6), juce::Justification::topRight, false);
+               dropping_ ? label.withTrimmedRight((int) (drop::kBadgeSize + drop::kBadgeInset)) : label,
+               juce::Justification::topRight, false);
 
     paintStrip(g);
 

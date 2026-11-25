@@ -14,6 +14,7 @@
 #include "core/app/AppPaths.h"
 #include "core/browser/FileKind.h"
 #include "core/browser/NameFacts.h"
+#include "gui/video/VideoProbe.h"
 
 namespace hum::browser {
 
@@ -68,7 +69,10 @@ Facts probeSound(const std::string& path) {
     juce::AudioFormatManager fm;
     fm.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> reader(fm.createReaderFor(fileAt(path)));
-    if (!reader || reader->sampleRate <= 0.0 || reader->lengthInSamples <= 0) return f;
+    if (!reader || reader->sampleRate <= 0.0 || reader->lengthInSamples <= 0) {
+        if (kindOfFile(path) == Kind::Video) f.seconds = probeVideoSeconds(fileAt(path));
+        return f;
+    }
     f.sampleRate = reader->sampleRate;
     f.channels = (int) reader->numChannels;
     f.seconds = (double) reader->lengthInSamples / reader->sampleRate;

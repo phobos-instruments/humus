@@ -6,14 +6,14 @@
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "gui/settings/Appearance.h"
+
 namespace hum {
 
 class SettingsHost;
 class AiSettingsView;
 class AppearanceSettingsView;
 class MidiSettingsView;
-
-void applySavedAppearance();
 
 class SettingsComponent : public juce::Component,
                           private juce::ListBoxModel {

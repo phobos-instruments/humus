@@ -8,6 +8,8 @@
 #include "hum/dsp/SoundFileBuffer.h"
 #include "core/library/UserLibrary.h"
 
+#include <string>
+#include <atomic>
 #include <algorithm>
 #include <cstddef>
 #include <map>
@@ -16,6 +18,7 @@
 
 #include "core/graph/GraphLayout.h"
 #include "core/plugins/HostedPlugin.h"
+#include "core/plugins/PluginHost.h"
 #include "core/plugins/PluginNode.h"
 #include "core/packs/PackRegistry.h"
 #include "core/graph/PerfBox.h"
@@ -29,12 +32,23 @@
 
 namespace hum {
 
+namespace {
+
+std::string nextPluginVideoScope() {
+    static std::atomic<unsigned> instances{0};
+    return "humus-" + std::to_string(++instances) + "/";
+}
+
+}
+
 EngineHost::EngineHost() : EngineHost(messageThreadScheduler()) {}
 
 EngineHost::EngineHost(HostScheduler& scheduler) : EngineHost(scheduler, deviceAudioIo()) {}
 
-EngineHost::EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> audio)
-    : scheduler_(scheduler), audio_(std::move(audio)) {
+EngineHost::EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> audio, HostEnvironment environment)
+    : scheduler_(scheduler), audio_(std::move(audio)), env_(std::move(environment)) {
+    if (env_.sharesProcessWithOtherHosts) videoScope_ = nextPluginVideoScope();
+    if (env_.drivenByDaw) daw_ = std::make_unique<DawBridge>();
     static const bool soundFormatsInstalled = [] { installExtraSoundFormats(); return true; }();
     juce::ignoreUnused(soundFormatsInstalled);
     for (int row = 0; row < kMidiPortRows; ++row)
@@ -44,17 +58,28 @@ EngineHost::EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> au
     midiDeviceListConn_ = juce::MidiDeviceListConnection::make([this] {
         if (midiState_.enabled) midi().refreshDevices();
     });
-    if (AppSettings::instance().getInt("osc.enabled", 0) != 0) osc_.setEnabled(true);
-    osc_.applySerialSettings();
+    if (env_.claimsMachineResources) {
+        if (AppSettings::instance().getInt("osc.enabled", 0) != 0) osc_.setEnabled(true);
+        osc_.applySerialSettings();
+    }
     if (const auto lib = AppSettings::instance().getString("library.path"); lib.isNotEmpty())
         library::configuredRoot() = lib.toStdString();
     latch_ = AppSettings::instance().getInt("automation.latch", 0) != 0;
     registerBuiltinOrganisms();
+    asyncPluginListener_ = PluginHost::instance().addAsyncReadyListener([this, alive = hostAlive_] {
+        scheduler_.post([this, alive] {
+            if (!*alive) return;
+            requestRebuild();
+            ++liveControlGen_;
+            ++changeStamp_;
+        });
+    });
     newDocument();
 }
 
 EngineHost::~EngineHost() {
     *hostAlive_ = false;
+    PluginHost::instance().removeAsyncReadyListener(asyncPluginListener_);
     waitForLoads(true);
     midi().setEnabled(false);
     stopAudio();
@@ -171,6 +196,7 @@ void EngineHost::rebuild() {
         }
         retired = std::move(graph_);
         graph_ = std::move(g);
+        if (daw_ != nullptr) daw_->rebuild(graph_.get(), model_);
         refreshArmedInputs();
         graph_->setModRoutes([&] {
             std::vector<ModRoute> routes;
@@ -251,6 +277,7 @@ void EngineHost::discardLiveGraph() {
     {
         const AudioLock::Scope sl(lock_);
         retired = std::move(graph_);
+        if (daw_ != nullptr) daw_->rebuild(nullptr, model_);
         soundOut_ = nullptr;
         masterTaps_.clear();
         auxOuts_.clear();

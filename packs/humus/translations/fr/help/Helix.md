@@ -26,9 +26,9 @@ L'anneau de chaque strand dessine ce qui y est enregistré : la forme d'onde de 
 
 **Level1** Le niveau du strand dans le mix principal et sur sa sortie directe.
 
-**Mute1** M : rend le strand muet. Il continue de tourner en dessous, donc il revient en phase.
+**Mute1** M : rend le strand muet. Il continue de tourner en dessous, donc il revient en phase. Alt-clic sur n'importe quel M coupe ou rétablit tous les strands d'un coup.
 
-**Solo1** S : fait entendre ce strand seul.
+**Solo1** S : fait entendre ce strand seul. Alt-clic sur n'importe quel S met tous les solos dans le même état, donc un Alt-clic sur un solo allumé les éteint tous ; Cmd-clic (Ctrl-clic) sur l'un d'eux ne fait entendre que ce strand.
 
 **Sync1** Free, Beat, Bar ou Follow : ce sur quoi se calent les appuis, Rev et Half. Follow utilise la jointure du strand en lecture qui a le plus petit numéro, pour que sa boucle devienne la grille ; efface ce strand et le suivant en lecture prend le relais. Un nouvel Helix démarre le strand 1 sur Bar et les strands 2 à 4 sur Follow, pour que la première boucle fixe la longueur sur laquelle les autres se calent.
 

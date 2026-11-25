@@ -2,7 +2,7 @@
 
 A pitch-tracking harmonizer that adds up to four shifted copies of a single melodic line.
 
-It listens to the pitch at its inlet and builds harmonies around it, each one the same performance shifted to a new note. Harmonies sound only while a clear pitch is heard, so breaths and consonants pass clean. In MIDI mode the notes held at the MIDI inlet set the targets: sing one note and the chord follows your hand. In SCALE mode Key, Scale and the four Voice intervals set them, so the harmonies stay in key wherever the melody goes. Cord a SoundIn or a FilePlayer into it, and a PianoRoll or a keyboard into the MIDI inlet for MIDI mode.
+It listens to the pitch at its inlet and builds harmonies around it, each one the same performance shifted to a new note. Harmonies sound only while a clear pitch is heard, so breaths and consonants pass clean. Bells and other sounds whose overtones are not whole multiples of the note, such as Mineral, are heard at their lowest partial, the note they are played on. In MIDI mode the notes held at the MIDI inlet set the targets: sing one note and the chord follows your hand. In SCALE mode Key, Scale and the four Voice intervals set them, so the harmonies stay in key wherever the melody goes. Cord a SoundIn or a FilePlayer into it, and a PianoRoll or a keyboard into the MIDI inlet for MIDI mode.
 
 ## Parameters
 

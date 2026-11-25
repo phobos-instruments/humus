@@ -1,8 +1,12 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <vector>
 #include <string>
+#include <utility>
 
+#include "gui/host/DawMacroTarget.h"
+#include "gui/host/HostEnvironment.h"
 #include "core/params/RangeEnd.h"
 #include "gui/host/AutomationEdits.h"
 #include "gui/host/ClipEdits.h"
@@ -56,6 +60,19 @@ public:
     virtual bool canShowParameterControl() const = 0;
     virtual void showParameterControl(const std::string& organism, const std::string& param) = 0;
     virtual void noteNodeRolled(const std::string& organism) = 0;
+
+    virtual const HostEnvironment& environment() const {
+        static const HostEnvironment standalone;
+        return standalone;
+    }
+    virtual std::string videoScope() const { return {}; }
+    std::string videoKey(const std::string& node) const { return videoScope() + node; }
+    virtual int dawControlCount() const { return 0; }
+    virtual std::vector<DawMacroTarget> dawControlTargets(int) const { return {}; }
+    virtual int dawControlFor(const std::string&, const std::string&) const { return -1; }
+    virtual void addDawControlTarget(int, const std::string&, const std::string&) {}
+    virtual void removeDawControlTarget(const std::string&, const std::string&) {}
+    virtual void setDawControlRange(const std::string&, const std::string&, double, double) {}
 
     virtual void holdPatternSync() = 0;
     virtual void releasePatternSync() = 0;

@@ -11,6 +11,7 @@
 #include "core/params/ParamSchema.h"
 #include "core/graph/RtWord.h"
 #include "core/packs/Roles.h"
+#include "gui/host/NodeEvolve.h"
 #include "gui/host/NodeRoll.h"
 
 namespace hum {
@@ -121,6 +122,20 @@ void EngineHost::fireRandom(const std::string& organism, bool high) {
         return;
     }
     rollLive(organism);
+}
+
+void EngineHost::fireEvolve(const std::string& organism, bool high) {
+    bool& was = evolveHigh_[organism];
+    const bool edge = high && !was;
+    was = high;
+    if (!edge || model_.byName(organism) == nullptr) return;
+    LiveControlScope live(*this);
+    NoLatchScope noLatch(*this);
+    paramHistory_.commit(organism, captureNodeState(organism));
+    evolveNode(*this, organism, false);
+    paramHistory_.commit(organism, captureNodeState(organism));
+    ++liveControlGen_;
+    if (onNodeRolled) onNodeRolled(organism);
 }
 
 void EngineHost::firePodRandom(const std::string& pod, bool high) {

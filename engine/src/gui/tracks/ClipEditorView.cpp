@@ -97,6 +97,13 @@ bool ClipEditorView::keyPressed(const juce::KeyPress& k) {
 }
 
 juce::String ClipEditorView::getTooltip() {
+    if (ctx_.effectiveTool() == Tool::Draw) {
+        ClipEditor::ClipInfo ci;
+        if (!clipInfo(ci) || ci.audioFile.empty()) return {};
+        return pencilReady(ci)
+            ? tr("tracks-pane-clip.pencil-draw", "Draw over the waveform to redraw its samples")
+            : tr("tracks-pane-clip.pencil-zoom", "Zoom in until single samples show to draw with the pencil");
+    }
     if (ctx_.effectiveTool() != Tool::Pointer) return {};
     switch (clipEditorHit(hover_)) {
         case Hit::FadeL:  return tr("tracks-pane-roll.fade-in-drag-to-set", "Fade in - drag to set how long it takes");
@@ -214,6 +221,10 @@ bool ClipEditorView::mouseDownClip(const juce::MouseEvent& e, juce::Point<int> p
     offset0_ = ci.audioOffset;
     anchorBeat_ = beat;
 
+    if (ctx_.effectiveTool() == Tool::Draw) {
+        beginPencil(ci, p);
+        return true;
+    }
     if (ctx_.effectiveTool() == Tool::Scissors) {
         splitClipAt((int) std::llround(ctx_.snapBeats(beat, e.mods.isAltDown()) * Pattern::kTicksPerBeat));
         return true;
@@ -247,6 +258,10 @@ bool ClipEditorView::mouseDownClip(const juce::MouseEvent& e, juce::Point<int> p
 void ClipEditorView::mouseDragClip(const juce::MouseEvent& e) {
     const auto pp = toPane(e.getPosition());
     if (drag_ == Drag::None) return;
+    if (drag_ == Drag::Pencil) {
+        dragPencil(pp);
+        return;
+    }
     const double beat = std::max(0.0, xToBeat((float) pp.x));
     const double snapped = ctx_.snapBeats(beat, e.mods.isAltDown());
     const int c = clipOrdinal();
@@ -323,12 +338,17 @@ void ClipEditorView::mouseDragClip(const juce::MouseEvent& e) {
                 host().clips().setFadeCurves(node_, c, ci.fadeInCurve, v);
             break;
         }
+        case Drag::Pencil:
         case Drag::None: break;
     }
     if (drag_ != Drag::Select && drag_ != Drag::Pending) repaint();
 }
 
 void ClipEditorView::mouseUpClip() {
+    if (drag_ == Drag::Pencil) {
+        endPencil();
+        return;
+    }
     const bool selecting = drag_ == Drag::Pending || drag_ == Drag::Select;
     if (drag_ == Drag::Pending) {
         view_.sel.active = false;
@@ -369,6 +389,7 @@ bool ClipEditorView::keyPressedClip(const juce::KeyPress& k) {
         return pasteClipSelection((int) std::llround(
             ctx_.snapBeats(host().positionBeats(), false) * Pattern::kTicksPerBeat));
     if (k == juce::KeyPress('1')) { ctx_.selectTool(Tool::Pointer); return true; }
+    if (k == juce::KeyPress('2')) { ctx_.selectTool(Tool::Draw); return true; }
     if (k == juce::KeyPress('3')) { ctx_.selectTool(Tool::Scissors); return true; }
     return false;
 }

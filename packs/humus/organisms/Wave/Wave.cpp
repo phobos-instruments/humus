@@ -309,6 +309,10 @@ void Wave::process(const float* const*, int, float* const* out, int numOut,
         }
         if (!v.gate && v.env < 1.0e-4) { v.note = -1; v.env = 0.0; }
     }
+    double loudest = poly ? 0.0 : freeEnv_;
+    for (const auto& v : voices_)
+        if (v.note >= 0 && poly) loudest = std::max(loudest, v.env * (double) v.vel);
+    env_.store((float) std::clamp(loudest, 0.0, 1.0), std::memory_order_relaxed);
 
     {
         const double driveCoef = 1.0 - std::exp(-1.0 / (0.008 * sr));

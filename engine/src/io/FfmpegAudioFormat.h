@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    const int track_;
+    [[maybe_unused]] const int track_;
 };
 
 void installExtraSoundFormats();

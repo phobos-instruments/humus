@@ -30,6 +30,8 @@ Zeiger wählt aus und verschiebt, Zeichnen erstellt, Schere teilt, Radierer wisc
 
 **Quantize** Rastet aufgenommene Noten auf das Raster der Notenrolle ein. Klick mit rechts auf Q, um es zuzuweisen.
 
+**Bank** Welche der acht Schleifen spielt und zu sehen ist, A bis H. A ist die Notenrolle wie immer; B bis H sind sieben weitere eigene Schleifen, jede mit ihrer eigenen Länge, und Record und Loop schreiben in die, die zu sehen ist. Ein Wechsel spielt sofort die neue Schleife.
+
 ## Rezept
 
 **Ein Riff, drei Stimmen** Bars 2, zeichne eine zweitaktige Bassfigur und verkable den Ausgang zugleich mit einem Rhizome, einem Sampler und einem MidiOut. VelocityScale 0.8, Follow an, damit die Figur den Patch-Groove übernimmt, und weise Mute einem Button zu, um die Linie für einen Break wegzunehmen.

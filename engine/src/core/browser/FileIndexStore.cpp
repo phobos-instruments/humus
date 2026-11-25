@@ -123,6 +123,7 @@ bool saveIndex(const std::string& file, FileIndex& index) {
     }
     root.set("collections", json::Value::fromItems(std::move(collections)));
     root.set("watched", strings(index.watched()));
+    root.set("pinned", strings(index.pinned()));
 
     const std::string temp = file + ".saving";
     {
@@ -156,6 +157,7 @@ bool loadIndex(const std::string& file, FileIndex& into) {
         if (const auto name = o["name"].text(); !name.empty() && fresh.collection(name) == nullptr)
             fresh.collections_.push_back({name, stringsOf(o["paths"])});
     fresh.watched_ = stringsOf(root["watched"]);
+    fresh.pinned_ = stringsOf(root["pinned"]);
     into = std::move(fresh);
     return true;
 }

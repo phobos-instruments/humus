@@ -88,6 +88,12 @@ inline void drawPeaks(juce::Graphics& g, const std::vector<std::uint8_t>& peaks,
     }
 }
 
+inline void styleDanger(juce::TextButton& b) {
+    b.setColour(juce::TextButton::buttonColourId, ink::state::danger);
+    b.setColour(juce::TextButton::textColourOffId,
+                contrast::readable(ink::state::danger, Palette::background, juce::Colours::white));
+}
+
 inline juce::Colour onAccent() {
     return contrast::ratio(Palette::accent, Palette::text) >= contrast::ratio(Palette::accent, Palette::background)
                ? Palette::text : Palette::background;
@@ -109,6 +115,11 @@ inline juce::String lengthText(double seconds) {
     if (seconds <= 0.0) return {};
     if (seconds < 10.0) return juce::String(seconds, 2) + " s";
     const int whole = (int) std::lround(seconds);
+    return juce::String(whole / 60) + ":" + juce::String(whole % 60).paddedLeft('0', 2);
+}
+
+inline juce::String clockText(double seconds) {
+    const int whole = std::max(0, (int) std::floor(seconds));
     return juce::String(whole / 60) + ":" + juce::String(whole % 60).paddedLeft('0', 2);
 }
 

@@ -30,9 +30,13 @@ Er misst den Eingang, bestimmt einen Gain-Wert und wendet ihn an, sodass laute M
 
 **SyncMultiplier** Wie viele dieser Einheiten ein Release ergeben.
 
+**Mix** Wie viel komprimierten Klang du gegenüber dem unberührten Eingang hörst. 1 ist ganz komprimiert, 0 ist der Eingang, wie er hereinkommt, und alles dazwischen ist Parallelkompression: Die gequetschte Kopie macht den Klang dicker, während die trockene ihre Schläge behält.
+
 ## Rezept
 
 **Drum-Bus-Glue** Threshold 0.4, CompressionRatio 3, KneeWidth 8, AttackTime 20, HoldTime 0, Sync an mit SyncUnit 1/8. Schick die Drum-Summe eines Mixers hinein, schalte AutoMakeupGain an, während du die Schwelle einstellst, und wieder aus, sobald der Pegel sitzt, wo du ihn haben willst.
+
+**Parallele Drums** Threshold 0.1, CompressionRatio 10, AttackTime 1, ReleaseTime 80, MakeupGain hoch, bis der gequetschte Klang so laut ist wie der trockene, dann Mix auf etwa 0.4. Die Schläge behalten ihren Biss, und Raum und Ausklang kommen darunter hervor.
 
 ## Verwandte Organisms
 

@@ -187,6 +187,7 @@ public:
             const double t = raw / (double) sourceMaxValue(e.cc);
             if (e.shape.isButton()) {
                 if (!consumesPress(e, active, t)) continue;
+                seedFromParam(e, currentOf);
             } else if (!active) {
                 if (ready || e.state.lastOut < 0.0) trackSilently(e, t);
                 continue;
@@ -225,7 +226,7 @@ private:
             m.wasPressed = pressed;
         }
         for (auto& l : lanes_) {
-            const int* v = frame.laneValues(l.lane);
+            const int* v = frame.laneValues(anyChannelLane(l.lane));
             for (int s = 0; s < kMidiSourceCount; ++s)
                 l.held[(std::size_t) s] = canBeHeld(s) && v[s] > kHeldThreshold ? 1 : 0;
             for (const auto& m : modifiers_)
@@ -264,6 +265,12 @@ private:
         const double current = currentOf(e.organism, e.param);
         if (std::isnan(current)) return true;
         return pickUpAllows(e.state, a.value, rangeToShaped(e.shape, e.min, e.max, current));
+    }
+
+    static void seedFromParam(MidiMapEntry& e, const CurrentValueFn& currentOf) {
+        if (!currentOf || e.state.lastOut >= 0.0) return;
+        const double current = currentOf(e.organism, e.param);
+        if (!std::isnan(current)) seedToggle(e.shape, e.state, rangeToShaped(e.shape, e.min, e.max, current));
     }
 
     static bool consumesPress(MidiMapEntry& e, bool active, double t) {

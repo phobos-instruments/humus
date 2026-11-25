@@ -4,7 +4,7 @@ Vier Ringe aus gleichmäßig verteilten Schlägen, die die Noten arpeggieren, di
 
 Jeder Ring beantwortet eine Frage: wann. Er nimmt eine Anzahl Schritte und eine Anzahl Schläge und verteilt die Schläge so gleichmäßig wie möglich über den Kreis. Das ist die Regel hinter sehr vielen Tanzrhythmen der Welt: Drei Schläge in acht sind der Tresillo, fünf in acht der Cinquillo, sieben in zwölf die westafrikanische Standard-Glockenfigur. Welche Note erklingt, beantworten deine Hände. Verkable ein Keyboard oder eine PianoRoll mit dem Eingang, und jeder Schlag spielt die nächste Note des Akkords, den du hältst; hältst du nichts, schreiten die Ringe die gewählte Tonart und Tonleiter von selbst ab. Noten, die du spielst, werden zuerst auf die Tonleiter gezogen, sodass nichts außerhalb der Tonart landet. Atom läuft, solange der Transport spielt, und schickt alles aus einem MIDI-Ausgang.
 
-Die Frontplatte zeigt die Ringe von außen nach innen, Ring 1 ganz außen. Leuchtende Punkte sind Schläge, hohle Punkte Pausen, und der helle Punkt ist der Schritt, der gerade spielt.
+Die Frontplatte zeigt die Ringe von außen nach innen, Ring 1 ganz außen. Leuchtende Punkte sind Schläge, hohle Punkte Pausen, und der helle Punkt ist der Schritt, der gerade spielt. Klicke auf einen Schlag, um ihn stummzuschalten, und noch einmal, um ihn zurückzuholen; ein stummer Schlag erscheint blass und dreht sich mit Turn.
 
 Die Presets gibt es in drei Familien. Rhythms sind die Tanzmuster von oben. Elements behandeln die Ringe als Elektronenschalen: Der innerste Ring ist die erste Schale, und jeder Ring ist so lang, wie seine Schale fassen kann (2, 8, 18 und 32 Schritte, von innen nach außen), seine Schläge sind die Elektronen darin, und jede Schale dreht sich einmal pro Takt, sodass schwerere Atome dichtere, schnellere Schichten füllen. Planets machen die Ringe zu Umlaufbahnen, deren Längen die Proportionen der echten wahren: acht Umläufe des Erdrings gegen dreizehn der Venus, Jupiters zwölf gegen Saturns neunundzwanzig, Neptun dreimal herum, während Pluto zweimal herumgeht, sodass die Ringe auseinanderdriften und wieder zusammenfinden, so wie die Planeten.
 
@@ -15,6 +15,8 @@ Die Presets gibt es in drei Familien. Rhythms sind die Tanzmuster von oben. Elem
 **Hits** Wie viele dieser Schritte erklingen. Der Ring verteilt sie so gleichmäßig, wie er kann. 0 bringt den Ring zum Schweigen.
 
 **Turn** Dreht die ganze Figur um den Ring, einen Schritt nach dem anderen, sodass derselbe Rhythmus an einer anderen Stelle beginnt.
+
+**Chance** Wie oft jeder Schlag des Rings erklingt, von 0 % bis 100 %. Die Würfel gehören der Box: Ein Patch spielt bei jedem Abspielen und jedem Bounce dieselben Schläge, und zwei Atoms würfeln jeweils ihre eigenen.
 
 **Rate** Wie lange ein Schritt dauert: eine Viertel-, Achtel-, Sechzehntel- oder Zweiunddreißigstelnote. Fit bar dehnt stattdessen den ganzen Ring über einen Takt, egal wie viele Schritte er hat, und genau das ergibt einen echten Kreuzrhythmus: Ein Ring mit 3 und ein Ring mit 4, beide auf Fit bar, spielen drei gegen vier. Ringe auf einem Notenwert mit unterschiedlicher Schrittzahl laufen einfach weiter und driften gegeneinander, bis sie erst nach vielen Takten wieder zusammenkommen.
 
@@ -39,6 +41,8 @@ Die Presets gibt es in drei Familien. Rhythms sind die Tanzmuster von oben. Elem
 **Swing** Der eigene Swing dieses Organisms, verwendet, wenn Follow aus ist. Ein Ring auf Fit bar wird nie geswingt.
 
 **Follow** Übernimmt den Swing vom Transport; schalte es aus, um ihn hier mit Swing einzustellen.
+
+**Bank** Welcher der acht Ringsätze spielt, A bis H. Jede Bank behält ihre eigenen Steps, Hits, Turn, Chance, Rate, Fix, Note und stummen Schläge für alle vier Ringe; die Arpeggio-Einstellungen darunter teilen sich alle Banken. Eine Bank, die du noch nicht benutzt hast, beginnt als Kopie der, auf der du warst. Ein Bankwechsel spielt die neue Bank sofort, auch von einem Button, einem zugewiesenen Pad oder einer Automationsspur.
 
 ## Rezept
 

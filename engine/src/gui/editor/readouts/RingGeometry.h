@@ -62,4 +62,27 @@ struct RingPicture {
     }
 };
 
+struct RingDot {
+    int ring = -1, step = -1;
+};
+
+inline RingDot ringDotAt(const RingPicture& picture, float dx, float dy, float outer) {
+    RingDot best;
+    float nearest = 0.0f;
+    const int count = (int) picture.rings.size();
+    for (int r = 0; r < count; ++r) {
+        const int steps = picture.rings[(size_t) r].steps;
+        const float radius = ringRadius(r, count, outer);
+        const float reach = dotSize(steps, radius) * 0.5f + 4.0f;
+        for (int s = 0; s < steps; ++s) {
+            const auto spot = ringSpot(s, steps, radius);
+            const float d = std::hypot(dx - spot.x, dy - spot.y);
+            if (d > reach || (best.ring >= 0 && d >= nearest)) continue;
+            best = {r, s};
+            nearest = d;
+        }
+    }
+    return best;
+}
+
 }

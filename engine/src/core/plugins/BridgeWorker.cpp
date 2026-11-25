@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "core/plugins/BridgeWorker.h"
+#include "core/plugins/PluginHost.h"
 
 #include "core/plugins/ProcessId.h"
 
@@ -99,10 +100,8 @@ void BridgeWorker::prepareOnMessageThread(const juce::String& descXml, const juc
         auto descElem = juce::parseXML(descXml);
         juce::PluginDescription desc;
         if (descElem == nullptr || !desc.loadFromXml(*descElem)) { quit(); return; }
-        juce::AudioPluginFormatManager formats;
-        formats.addDefaultFormats();
         juce::String ierr;
-        auto inst = formats.createPluginInstance(desc, sr, maxBlock, ierr);
+        auto inst = PluginHost::instance().formats().createPluginInstance(desc, sr, maxBlock, ierr);
         if (inst == nullptr) { quit(); return; }
         plugin_ = std::make_unique<HostedPlugin>(std::move(inst), classRaw.toStdString());
         if (plugin_->params.all().empty()) {

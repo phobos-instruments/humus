@@ -1,60 +1,51 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
-#include <atomic>
+#include <array>
 #include <memory>
+#include <mutex>
 #include <string>
-#include <utility>
 
 #include <juce_audio_processors/juce_audio_processors.h>
 
-#include "core/graph/AudioGraph.h"
-#include "core/xml/Xml.h"
-#include "core/graph/GraphIo.h"
-#include "core/graph/GraphMidi.h"
-#include "io/PatchDocument.h"
-
-#include "hum/dsp/DspMath.h"
+#include "gui/host/EngineHost.h"
+#include "gui/host/HostScheduler.h"
+#include "plugin/PluginAudioIo.h"
+#include "plugin/PatchPanes.h"
+#include "plugin/PluginSession.h"
+#include "plugin/VideoWindows.h"
 
 namespace hum {
 
-class HumusProcessor : public juce::AudioProcessor, private juce::AsyncUpdater {
-public:
-    HumusProcessor();
-    ~HumusProcessor() override { cancelPendingUpdate(); }
-
-    bool loadPatchFile(const juce::File& file, std::string& error);
-    bool loadPatchText(const std::string& amhXml, std::string& error);
-    juce::String patchName() const { return patchName_; }
-    float lastPeak(int channel) const { return peak_[channel & 1].load(); }
-
-    void setLiveParam(const std::string& organism, const std::string& param, double v);
-    double liveParam(const std::string& organism, const std::string& param,
-                     double fallback) const;
-
-    void setFreeRun(bool on) { freeRun_.store(on, std::memory_order_relaxed); }
-    bool freeRun() const { return freeRun_.load(std::memory_order_relaxed); }
-    void rewindTransport() { rewindReq_.store(true, std::memory_order_relaxed); }
-
-    bool transportPlaying() const { return graph_ && graph_->transport().playing(); }
-    double transportTempo() const {
-        return graph_ ? graph_->transport().tempo() : model_.clock.tempo;
+struct PluginModeFirst {
+    PluginModeFirst() {
+        EngineHost::ignoreSavedDeviceFormat();
     }
-    double transportBeats() const { return graph_ ? graph_->transport().beats() : 0.0; }
+};
 
-    static constexpr int kNumMacros = 8;
-    const PatchDocumentModel& model() const { return model_; }
-    void setMacroMapping(int i, const std::string& organism, const std::string& param);
-    std::pair<std::string, std::string> macroMapping(int i) const;
-    float macroValue(int i) const;
-    void setMacroValue(int i, float v);
+class HumusProcessor : public juce::AudioProcessor, private juce::Timer {
+public:
+    struct Setup {
+        HostScheduler* scheduler = nullptr;
+        bool loadUserExtensions = true;
+    };
+    HumusProcessor() : HumusProcessor(Setup{}) {}
+    explicit HumusProcessor(Setup setup);
+    ~HumusProcessor() override;
+
+    EngineHost& host() { return *host_; }
+    VideoWindows& videoWindows() { return *videoWindows_; }
+    PaneLayout& paneLayout() { return paneLayout_; }
+    juce::AudioParameterFloat& macro(int i) { return *macros_[(size_t) i]; }
+    bool loadPatch(const juce::File& file, std::string& error);
+    bool loadPatchText(const std::string& text, const std::string& documentPath, std::string& error);
+    std::string patchText();
 
     const juce::String getName() const override { return "Humus"; }
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override {}
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    const graphmidi::Ports& midiPortsForTest() const { return midiPorts_; }
-    bool holdsRetiredGraphForTest() const { return retired_ != nullptr; }
     juce::AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override { return true; }
     bool acceptsMidi() const override { return true; }
@@ -69,50 +60,27 @@ public:
     void setStateInformation(const void* data, int size) override;
 
 private:
-    void applyPending();
-    void handleAsyncUpdate() override;
-    void driveTransportFromHost();
-    void applyMacros();
-    void applyParamEdits();
-    void collectPorts(AudioGraph& g, std::vector<MasterTap*>& masters,
-                      std::vector<HardwareOut*>& auxes, graphmidi::Ports& ports) const;
+    void timerCallback() override;
+    void startPlaying();
+    PluginSession currentSession();
+    void applySession(PluginSession session);
+    void refreshSaved(bool force);
 
-    struct MacroMap { std::string organism, param; float lo = 0.0f, hi = 1.0f; };
-    struct MacroTarget { Organism* organism = nullptr; int slot = -1; bool resolved = false; };
-    MacroMap macros_[kNumMacros];
-    MacroTarget macroTargets_[kNumMacros];
-    juce::AudioParameterFloat* macroParam_[kNumMacros] {};
-    juce::CriticalSection macroLock_;
-    PatchDocumentModel model_;
-
-    std::unique_ptr<AudioGraph> graph_;
-    std::vector<MasterTap*> masters_;
-    std::vector<HardwareOut*> auxes_;
-    graphmidi::Ports midiPorts_;
-    std::unique_ptr<AudioGraph> pending_;
-    std::vector<MasterTap*> pendingMasters_;
-    std::vector<HardwareOut*> pendingAuxes_;
-    graphmidi::Ports pendingPorts_;
-    std::unique_ptr<AudioGraph> retired_;
-    std::atomic<bool> hasPending_{false};
-    juce::CriticalSection stageLock_;
-
-    struct ParamEdit { std::string organism, param; double value; };
-    std::vector<ParamEdit> pendingEdits_;
-    std::vector<ParamEdit> appliedEdits_;
-    juce::CriticalSection editLock_;
-
-    std::string docText_;
-    std::unique_ptr<hum::xml::Element> docXml_;
-    juce::String patchName_;
-    double sampleRate_ = kDefaultSampleRate;
-    int blockSize_ = 512;
-    double lastPpq_ = -1.0;
-    bool hostWasPlaying_ = false;
-    std::atomic<bool> freeRun_{true};
-    std::atomic<bool> rewindReq_{false};
+    PluginModeFirst modeFirst_;
+    PluginAudioIo* audio_ = nullptr;
+    std::array<juce::AudioParameterFloat*, DawBridge::kControls> macros_{};
+    std::unique_ptr<EngineHost> host_;
+    std::unique_ptr<VideoWindows> videoWindows_;
+    PaneLayout paneLayout_;
     juce::AudioBuffer<float> inScratch_;
-    std::atomic<float> peak_[2] {0.0f, 0.0f};
+    juce::MidiBuffer dawIn_;
+    std::mutex savedLock_;
+    juce::MemoryBlock saved_;
+    juce::uint64 savedStamp_ = 0;
+    juce::uint32 savedAt_ = 0;
+    std::shared_ptr<bool> alive_ = std::make_shared<bool>(true);
+    bool playWhenStopped_ = true;
+    bool playChoicePending_ = true;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HumusProcessor)
 };

@@ -26,11 +26,13 @@ The Inputs dropdown sets how many stereo channels the desk sums, 2 to 8, and re-
 
 **Pan_1-2** Balance of channel 1. Centre passes both sides at full level; moving off centre only turns the far side down. And so on for 3-4 to 11-12.
 
-**Mute_1-2** Silences channel 1, which also relaxes the rail for the others. And so on for 3-4 to 11-12.
+**Mute_1-2** Silences channel 1, which also relaxes the rail for the others. And so on for 3-4 to 11-12. Alt-click any M to mute or unmute every channel at once.
 
-**Solo_1-2** Silences every channel but this one. A channel's own Mute always wins. And so on for 3-4 to 11-12.
+**Solo_1-2** Silences every channel but this one. A channel's own Mute always wins. And so on for 3-4 to 11-12. Alt-click any S to set every solo the same way, so Alt-clicking a lit one clears them all; Cmd-click (Ctrl-click) one to hear only that channel.
 
 **Name_1-2** The tape above channel 1. Blank until something is corded in, then it shows that organism's name. Double-click to write your own; clear it to go back to the corded name. And so on for 3-4 to 11-12.
+
+**Faders** Shows every level as a fader instead of a knob. The choice is kept with the box.
 
 ## Recipe
 

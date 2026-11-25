@@ -2,7 +2,9 @@
 
 Une piste vidéo de la timeline qui lit ses clips en suivant le transport et enregistre ce qui arrive sur son entrée.
 
-Ajoute-en une depuis le menu d'ajout de piste de la timeline, ou dépose une vidéo sur l'arrangement et une piste apparaît pour elle. Les clips se coupent, se raccourcissent, se déplacent, bouclent et ont des fondus comme les clips audio, et la sortie montre ce qui se trouve sous la tête de lecture : arrête la lecture et elle garde cette image, saute ailleurs et elle y saute aussi, mets le morceau en boucle et elle boucle avec lui. Warp étire un clip au tempo du morceau d'après son tempo d'origine, Inverser le lit à l'envers, et les fondus sont des fondus au noir. Chaque clip porte une bande d'images tirées de son film, et un clic droit sur un clip ouvre Infos sur le média pour lire son codec, sa taille et sa fréquence d'images. Branche la sortie dans un VideoOut, un VideoFX ou un calque de Lumen ; deux pistes font deux calques.
+Ajoute-en une depuis le menu d'ajout de piste de la timeline, ou dépose une vidéo sur l'arrangement et une piste apparaît pour elle. Les clips se coupent, se raccourcissent, se déplacent, bouclent et ont des fondus comme les clips audio, et la sortie montre ce qui se trouve sous la tête de lecture : arrête la lecture et elle garde cette image, saute ailleurs et elle y saute aussi, mets le morceau en boucle et elle boucle avec lui. Warp étire un clip au tempo du morceau d'après son tempo d'origine, Inverser le lit à l'envers, et les fondus sont des fondus au noir et au silence. Chaque clip porte une bande d'images tirées de son film, et un clic droit sur un clip ouvre Infos sur le média pour lire son codec, sa taille et sa fréquence d'images. Branche la sortie dans un VideoOut, un VideoFX ou un calque de Lumen ; deux pistes font deux calques.
+
+Les deux sorties audio jouent le son des clips, en phase avec l'image : tout ce qui coupe, boucle, étire, inverse ou fond un clip fait de même avec son son. Branche-les dans un SoundOut ou une voie de console pour l'entendre.
 
 ## Enregistrement
 
@@ -17,6 +19,8 @@ Branche un CameraIn, une chaîne VideoFX, un VideoPad ou une autre piste dans l'
 **Opacity** L'intensité avec laquelle l'image de la piste apparaît. Par-dessus des calques dans un Lumen, ou par-dessus une autre source qui partage la même entrée, elle fait un fondu entre eux ; sans rien en dessous, elle fait un fondu de l'image vers le noir. Dans tous les cas, elle s'applique exactement une fois, où qu'elle arrive.
 
 **Blend** La façon dont elle se combine avec les calques en dessous : Normal, Add, Multiply ou Screen. Contrairement à Opacity, il lui faut quelque chose en dessous pour se combiner, donc elle n'a aucun effet sur une piste câblée directement dans un VideoOut ou dans un côté d'un VideoMix.
+
+**Gain** Le volume auquel le son des clips sort des sorties audio, du silence au double.
 
 ## Recette
 

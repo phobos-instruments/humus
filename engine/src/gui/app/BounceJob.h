@@ -55,15 +55,7 @@ public:
             trouble_ = tr("bounce.no-notes-written", "No notes were written.");
         show();
         if (wants_.audio) {
-            std::string error;
-            if (!host_.openOfflineSound(sound_, error)) {
-                finish({false, error.empty()
-                                   ? tr("bounce.no-sound-made", "Nothing was rendered.")
-                                   : juce::String(error)});
-                return;
-            }
-            stage(tr("bounce.rendering-audio", "Rendering audio..."), 0.0, 0.5);
-            startThread();
+            openSoundOncePluginsOpen();
             return;
         }
         startPicture();
@@ -166,7 +158,29 @@ private:
                      : juce::String(m) + ":" + two(sec);
     }
 
+    void openSoundOncePluginsOpen() {
+        if (!host_.asyncPluginsReady() && ++pluginWaits_ < kPluginWaitTicks) {
+            waitingForPlugins_ = true;
+            say(tr("bounce.opening-plugins", "Opening plug-ins..."));
+            return;
+        }
+        waitingForPlugins_ = false;
+        std::string error;
+        if (!host_.openOfflineSound(sound_, error)) {
+            finish({false, error.empty()
+                               ? tr("bounce.no-sound-made", "Nothing was rendered.")
+                               : juce::String(error)});
+            return;
+        }
+        stage(tr("bounce.rendering-audio", "Rendering audio..."), 0.0, 0.5);
+        startThread();
+    }
+
     void timerCallback() override {
+        if (waitingForPlugins_) {
+            openSoundOncePluginsOpen();
+            return;
+        }
         const double done = std::clamp((progress_ - stageBase_) / std::max(1.0e-9, stageSpan_),
                                        0.0, 1.0);
         const double elapsed = (double) (juce::Time::getMillisecondCounter() - stageBegan_) / 1000.0;
@@ -279,6 +293,9 @@ private:
     double progress_ = 0.0, stageBase_ = 0.0, stageSpan_ = 1.0;
     juce::uint32 stageBegan_ = 0;
     bool stopped_ = false;
+    bool waitingForPlugins_ = false;
+    int pluginWaits_ = 0;
+    static constexpr int kPluginWaitTicks = 40;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(BounceJob)
 };

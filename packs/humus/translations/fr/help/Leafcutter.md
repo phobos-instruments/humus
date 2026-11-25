@@ -6,7 +6,7 @@ Charge une boucle et elle est coupée sur ses transitoires ; les tranches suiven
 
 ## La carte
 
-La carte affiche la boucle avec un repère à chaque coupe et allume la tranche en cours de lecture. Fais glisser vers le haut ou vers le bas sur une tranche pour la réaccorder seule, et fais un clic droit dessus pour l'inverser, la rendre muette ou la réinitialiser, ou pour effacer toutes les modifications des tranches. Ces modifications vivent dans SliceEdits et restent avec le patch.
+La carte affiche la boucle avec un repère à chaque coupe et allume la tranche en cours de lecture. Fais glisser vers le haut ou vers le bas sur une tranche pour la réaccorder seule, et fais un clic droit dessus pour l'inverser, la rendre muette ou la réinitialiser, ou pour effacer toutes les modifications des tranches. Fais glisser vers la gauche le bord droit d'une tranche pour la raccourcir : seule la partie gardée joue, et dans la boucle les tranches suivantes se resserrent, si bien qu'une queue à la fin du fichier ne laisse plus de pause avant que la boucle ne revienne. La partie coupée est ombrée et la tranche indique ce qui en reste. Ces modifications vivent dans SliceEdits et restent avec le patch.
 
 ## Paramètres
 

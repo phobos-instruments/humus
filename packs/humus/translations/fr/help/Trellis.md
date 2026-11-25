@@ -2,7 +2,7 @@
 
 Un correcteur de hauteur monophonique qui ramène une voix ou une ligne lead sur les notes d'une tonalité et d'une gamme.
 
-Il suit la fondamentale entrante, la cale sur la note autorisée la plus proche dans la Key et la Scale choisies, et décale l'audio jusque-là avec un pitch shifter à ligne de retard en fondu enchaîné, une voix à la fois. Speed règle la vitesse du glissement vers la cible : lent garde la dérive naturelle, rapide donne l'effet hard-tune. La grille de notes vient de l'accordage du patch, donc un organism Tuning réglé en 19-EDO pose les masques de gamme sur 19 degrés au lieu de 12. Le chemin du signal traité porte un court retard. Câble en entrée une voix mono venant d'un SoundIn, ou un Decomposer.
+Il suit la fondamentale entrante, la cale sur la note autorisée la plus proche dans la Key et la Scale choisies, et décale l'audio jusque-là avec un pitch shifter à ligne de retard en fondu enchaîné, une voix à la fois. Les cloches et les autres sons dont les harmoniques ne sont pas des multiples entiers de la note, comme Mineral, sont suivis par leur partiel le plus grave, c'est-à-dire la note sur laquelle ils sont joués. Speed règle la vitesse du glissement vers la cible : lent garde la dérive naturelle, rapide donne l'effet hard-tune. La grille de notes vient de l'accordage du patch, donc un organism Tuning réglé en 19-EDO pose les masques de gamme sur 19 degrés au lieu de 12. Le chemin du signal traité porte un court retard. Câble en entrée une voix mono venant d'un SoundIn, ou un Decomposer.
 
 ## Paramètres
 

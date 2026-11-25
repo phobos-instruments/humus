@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/app/AppPaths.h"
+#include "core/browser/FolderScan.h"
 #include "core/browser/ProjectFacts.h"
 #include "core/project/ProjectFolder.h"
 #include "gui/app/FreeWindow.h"
@@ -71,6 +72,11 @@ browser::PlaceRoots MainComponent::browserRoots() const {
     add(tr("browser.desktop", "Desktop"), juce::File::getSpecialLocation(juce::File::userDesktopDirectory));
     add(tr("browser.documents", "Documents"), juce::File::getSpecialLocation(juce::File::userDocumentsDirectory));
     add(tr("browser.downloads", "Downloads"), juce::File::getSpecialLocation(juce::File::userHomeDirectory).getChildFile("Downloads"));
+#if JUCE_MAC
+    add(tr("browser.movies", "Movies"), juce::File::getSpecialLocation(juce::File::userMoviesDirectory));
+#else
+    add(tr("browser.videos", "Videos"), juce::File::getSpecialLocation(juce::File::userMoviesDirectory));
+#endif
     juce::Array<juce::File> drives;
     juce::File::findFileSystemRoots(drives);
     for (const auto& d : drives) {
@@ -181,9 +187,12 @@ void MainComponent::openLibrary() {
         view->loadTarget = [this](const std::string& path) { return browserLoadTarget(path); };
         view->engineRunning = [this] { return host_.audioRunning() || host_.audioStarting(); };
         view->turnEngineOn = [this] { if (!host_.audioRunning() && !host_.audioStarting()) toggleAudio(); };
+        view->openDocument = [this] { return currentFile_.toStdString(); };
         view->onForgetRecent = [](const std::string& path) {
             recents::remove(fileAt(path));
             if (project::isProject(path)) recents::remove(fileAt(browser::patchOf(path)));
+            for (const auto& recent : recents::get())
+                if (browser::isUnder(recent.toStdString(), path)) recents::remove(juce::File(recent));
         };
         libraryView_ = view;
         libraryWindow_ = std::make_unique<FreeWindow>(tr("main-windows.library", "Library"), view);

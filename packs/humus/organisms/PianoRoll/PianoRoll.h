@@ -49,6 +49,7 @@ public:
     std::string recordSwitch() const override { return "Record"; }
     std::string loopSwitch() const override { return "Loop"; }
     std::string quantizeSwitch() const override { return "Quantize"; }
+    std::string bankSwitch() const override { return "Bank"; }
 
     int liveMidiPort() const override { return -1; }
     void pushLiveMidi(const MidiEvent& e) override {
@@ -58,6 +59,7 @@ public:
 
 private:
     void refreshClips();
+    Pattern bankView() const;
     int durationTicks() const;
     void emit(int offset, bool on, int pitch, int velocity);
     void emitCC(int offset, int controller, int value);
@@ -66,6 +68,7 @@ private:
     Pattern pattern_;
     std::vector<noteschedule::Voice> clips_;
     bool clipsDirty_ = true;
+    int bank_ = 0;
     bool patternEdited_ = false;
     bool wasPlaying_ = false;
     bool wasMuted_ = false;

@@ -38,6 +38,8 @@ public:
     virtual double metapadX() const = 0;
     virtual double metapadY() const = 0;
     virtual unsigned textStamp() const = 0;
+    virtual unsigned liveControlGeneration() const = 0;
+    virtual bool routesAlive() const = 0;
     virtual juce::Point<int> editorPosition(const std::string& name) const = 0;
     virtual bool editorVisible(const std::string& name) const = 0;
     virtual void setEditorState(const std::string& name, juce::Point<int> pos, bool visible) = 0;

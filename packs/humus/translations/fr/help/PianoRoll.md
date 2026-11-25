@@ -30,6 +30,8 @@ Pointer sélectionne et déplace, Draw crée, Scissors scinde, Eraser efface au 
 
 **Quantize** Cale les notes enregistrées sur la grille de magnétisme du roll. Fais un clic droit sur Q pour l'assigner.
 
+**Bank** Laquelle des huit boucles joue et s'affiche, de A à H. A est le roll de toujours ; de B à H, ce sont sept autres boucles bien à elles, chacune avec sa longueur, et Record et Loop écrivent dans celle qui s'affiche. Changer joue la nouvelle boucle aussitôt.
+
 ## Recette
 
 **Un riff, trois voix** Bars 2, dessine une figure de basse de deux mesures et branche la sortie sur un Rhizome, un Sampler et un MidiOut à la fois. VelocityScale 0.8, Follow activé pour que la figure prenne le groove du patch, et assigne Mute à un Button pour couper la ligne le temps d'un break.

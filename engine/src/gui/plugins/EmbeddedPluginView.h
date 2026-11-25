@@ -10,6 +10,8 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 
 #include "core/plugins/HostedPlugin.h"
+#include "gui/plugins/DragPicture.h"
+#include "gui/plugins/EmbedFit.h"
 #include "gui/properties/DeviceStripView.h"
 #include "gui/host/PluginsHost.h"
 #include "gui/style/LookAndFeel.h"
@@ -18,7 +20,7 @@
 #include "gui/plugins/PluginParamMirror.h"
 #include "gui/common/Localisation.h"
 
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_WINDOWS
 namespace hum {
 bool embeddedClipUpdate(juce::Component& editor, juce::ComponentPeer& peer,
                         juce::Rectangle<int> clipRegionInPeer,
@@ -27,6 +29,13 @@ bool embeddedClipUpdate(juce::Component& editor, juce::ComponentPeer& peer,
                         juce::Point<int> panInPlugin);
 bool embeddedClipHide(void*& handle);
 void embeddedClipRemove(juce::Component& editor, juce::ComponentPeer* peer, void*& handle);
+}
+#endif
+#if JUCE_WINDOWS
+namespace hum {
+float embeddedClipScale(void* handle);
+bool embeddedClipIntact(void* handle);
+bool embeddedClipSnapshot(void* handle, juce::Image& picture, juce::Rectangle<int>& areaInPeer);
 }
 #endif
 
@@ -40,10 +49,16 @@ public:
         panBar_.setAutoHide(false);
         panBar_.addListener(&panListener_);
         addChildComponent(panBar_);
+#if JUCE_WINDOWS
+        juce::Desktop::getInstance().addGlobalMouseListener(&gestureWatch_);
+#endif
         startTimerHz(30);
     }
 
     ~EmbeddedPluginView() override {
+#if JUCE_WINDOWS
+        juce::Desktop::getInstance().removeGlobalMouseListener(&gestureWatch_);
+#endif
         stopTimer();
         onLayoutChanged = nullptr;
         onWantsFloat = nullptr;
@@ -51,15 +66,15 @@ public:
     }
 
     int heightForWidth(int w) const {
-        if (naturalW_ <= 0 || naturalH_ <= 0) return DeviceStripView::kHeight;
-        if (fragile_ || !zoomable()) return naturalH_ + (naturalW_ > w ? kPanBarH : 0);
-        return juce::jmax(24, (int) std::lround((double) naturalH_ * w / naturalW_));
+        if (fit_.naturalW() <= 0 || fit_.naturalH() <= 0) return DeviceStripView::kHeight;
+        if (fragile_ || !zoomable()) return fit_.naturalH() + (fit_.naturalW() > w ? kPanBarH : 0);
+        return fit_.heightFor(w);
     }
-    int naturalWidth() const { return naturalW_ > 0 ? naturalW_ : 360; }
+    int naturalWidth() const { return fit_.naturalW() > 0 ? fit_.naturalW() : 360; }
 
     void release() {
         if (!editor_) return;
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_WINDOWS
         {
             EditorOpGuard g(classRaw_, "plugins.fragileEditor", "unwrapping its embedded UI");
             embeddedClipRemove(*editor_, getPeer(), nativeClip_);
@@ -79,7 +94,8 @@ public:
 #else
         editor_.reset();
 #endif
-        naturalW_ = naturalH_ = 0;
+        fit_.reset({});
+        picture_.clear();
         actualSize_ = false;
         judgeTicks_ = 0;
         panX_ = 0;
@@ -99,6 +115,12 @@ public:
     void resized() override {
         layoutPanBar();
         updateEditorPosition();
+    }
+
+    void paintOverChildren(juce::Graphics& g) override {
+        if (!picture_.shown) return;
+        g.fillAll(Palette::panel);
+        picture_.paint(g, getWidth());
     }
 
     void paint(juce::Graphics& g) override {
@@ -147,6 +169,12 @@ private:
         EmbeddedPluginView& owner;
     };
 
+    struct GestureWatch : juce::MouseListener {
+        explicit GestureWatch(EmbeddedPluginView& o) : owner(o) {}
+        void mouseDown(const juce::MouseEvent&) override { owner.takePicture(); }
+        EmbeddedPluginView& owner;
+    };
+
     struct PositionTracker : juce::ComponentMovementWatcher {
         explicit PositionTracker(EmbeddedPluginView& o)
             : juce::ComponentMovementWatcher(&o), owner(o) {}
@@ -176,7 +204,7 @@ private:
         }
         const float scaleNow = scaleFactor();
         if (geomCached_ && wrapSettled_ && peer == lastPeer_ && vis == lastVis_
-            && clipRegion == lastClip_ && std::abs(scaleNow - lastScale_) < 0.0005f) {
+            && clipRegion == lastClip_ && std::abs(scaleNow - lastScale_) < 0.0005f && nativeClipIntact()) {
             if (vis.isEmpty()) return;
             auto originNow = peer->getComponent().getLocalPoint(this, juce::Point<int>());
             if (originNow == lastOrigin_) return;
@@ -213,6 +241,16 @@ private:
                 native = embeddedClipUpdate(*editor_, *peer, clipRegion, origin, s,
                                             Palette::panel, nativeClip_, {panX_, 0});
             }
+#elif JUCE_WINDOWS
+            if (picture_.wantedAt(s) && buttonHeld()) {
+                if (!picture_.shown) embeddedClipHide(nativeClip_);
+                picture_.shown = true;
+                repaint();
+                native = true;
+            } else {
+                native = embeddedClipUpdate(*editor_, *peer, vis, lastOrigin_, s,
+                                            Palette::panel, nativeClip_, {panX_, 0});
+            }
 #endif
             wrapSettled_ = !native || nativeClip_ != nullptr;
 #if JUCE_MAC
@@ -240,7 +278,7 @@ private:
                                           : juce::AffineTransform());
             }
         } else {
-#if JUCE_MAC
+#if JUCE_MAC || JUCE_WINDOWS
             if (embeddedClipHide(nativeClip_)) {
                 editor_->setVisible(true);
                 editor_->setTopLeftPosition(0, 0);
@@ -257,16 +295,70 @@ private:
     static constexpr int kPanBarH = 10;
     static constexpr int kJudgeTicks = 45;
 
+    static bool buttonHeld() { return juce::ModifierKeys::getCurrentModifiersRealtime().isAnyMouseButtonDown(); }
+
+    void takePicture() {
+#if JUCE_WINDOWS
+        picture_.clear();
+        auto* peer = getPeer();
+        if (!editor_ || !zoomable() || peer == nullptr || !isShowing()) return;
+        juce::Image image;
+        juce::Rectangle<int> inPeer;
+        if (!embeddedClipSnapshot(nativeClip_, image, inPeer)) {
+            fit_.freezeAt(fit_.scale(getWidth()));
+            return;
+        }
+        picture_.image = image;
+        picture_.area = getLocalArea(&peer->getComponent(),
+                                     inPeer.toFloat() / (float) peer->getPlatformScaleFactor());
+        picture_.widthWhenTaken = getWidth();
+        picture_.scaleWhenTaken = scaleFactor();
+#endif
+    }
+
+    void dropPicture() {
+        const bool wasShown = picture_.shown;
+        picture_.clear();
+        if (!wasShown) return;
+        geomCached_ = false;
+        repaint();
+    }
+
+    bool nativeClipIntact() const {
+#if JUCE_WINDOWS
+        return embeddedClipIntact(nativeClip_);
+#else
+        return true;
+#endif
+    }
+
+    float outerScale() const {
+#if JUCE_WINDOWS
+        auto* peer = getPeer();
+        if (peer == nullptr || getWidth() <= 0) return 1.0f;
+        return peer->getComponent().getLocalArea(this, getLocalBounds().toFloat()).getWidth() / (float) getWidth();
+#else
+        return 1.0f;
+#endif
+    }
+
+    float appliedEditorScale() const {
+#if JUCE_WINDOWS
+        return embeddedClipScale(nativeClip_);
+#else
+        return 1.0f;
+#endif
+    }
+
+
     bool zoomable() const { return !actualSize_; }
 
     int panRange() const {
-        return zoomable() ? 0 : juce::jmax(0, naturalW_ - getWidth());
+        return zoomable() ? 0 : juce::jmax(0, fit_.naturalW() - getWidth());
     }
 
     float scaleFactor() const {
-        if (!zoomable()) return 1.0f;
-        return naturalW_ > 0 && getWidth() > 0
-                   ? (float) getWidth() / (float) naturalW_ : 1.0f;
+        return (zoomable() ? fit_.scale(getWidth()) : 1.0f) * outerScale();
     }
 
     void layoutPanBar() {
@@ -274,7 +366,7 @@ private:
         panBar_.setVisible(range > 0);
         if (range <= 0) { panX_ = 0; return; }
         panBar_.setBounds(getLocalBounds().removeFromBottom(kPanBarH));
-        panBar_.setRangeLimits(0.0, (double) naturalW_, juce::dontSendNotification);
+        panBar_.setRangeLimits(0.0, (double) fit_.naturalW(), juce::dontSendNotification);
         panBar_.setCurrentRange((double) panX_, (double) getWidth(), juce::dontSendNotification);
         panX_ = juce::jlimit(0, range, panX_);
     }
@@ -282,12 +374,13 @@ private:
     void timerCallback() override {
         auto* hp = host_.hostedPluginFor(name_);
         if (!hp) return;
+        if (picture_.taken() && !buttonHeld()) dropPicture();
         if (!editor_ && !hp->instance()->getActiveEditor()) acquire();
 #if JUCE_MAC
         if (editor_ && !windowed_ && ++ownWindowPolls_ % 30 == 0
             && std::getenv("HUM_EMBED_NOWRAP") == nullptr)
             if (auto* peer = getPeer())
-                if (embeddedEditorUsesOwnWindow(*peer, naturalW_, naturalH_)) {
+                if (embeddedEditorUsesOwnWindow(*peer, fit_.naturalW(), fit_.naturalH())) {
                     windowed_ = true;
                     enrollWindowedEditor(classRaw_);
                     release();
@@ -299,9 +392,11 @@ private:
         if (editor_ && editor_->getX() == 0) {
             if (mirrorPluginParams(host_, name_, *hp))
                 host_.pokeLiveRefresh();
-            if (editor_->getWidth() != naturalW_ || editor_->getHeight() != naturalH_) {
-                naturalW_ = editor_->getWidth();
-                naturalH_ = editor_->getHeight();
+            const bool buttonDown = buttonHeld();
+            if (fit_.observe({editor_->getWidth(), editor_->getHeight()}, appliedEditorScale(), outerScale(),
+                             buttonDown, fit_.scale(getWidth()))
+                || fit_.letGo(buttonDown, getWidth())) {
+                geomCached_ = false;
                 if (onLayoutChanged) onLayoutChanged();
             }
         }
@@ -323,7 +418,7 @@ private:
         if (!editor_ || actualSize_ || embedsize::wantsFit(classRaw_)) return;
         if (judgeTicks_ >= kJudgeTicks) return;
         ++judgeTicks_;
-        if (!embeddedViewResistsZoom(*editor_)) return;
+        if (!embeddedViewResistsZoom(*editor_) && !fit_.ignoresZoom()) return;
         embedsize::rememberActualSize(classRaw_);
         applyActualSize(true);
     }
@@ -348,8 +443,7 @@ private:
 #if JUCE_MAC
         if (!fragile_ && embeddedViewIsRemote(*ed)) fragile_ = true;
 #endif
-        naturalW_ = ed->getWidth();
-        naturalH_ = ed->getHeight();
+        fit_.reset({ed->getWidth(), ed->getHeight()});
         editor_.reset(ed);
         addAndMakeVisible(editor_.get());
         judgeZoom();
@@ -368,7 +462,8 @@ private:
     std::string name_;
     std::unique_ptr<juce::AudioProcessorEditor> editor_;
     std::string classRaw_;
-    int naturalW_ = 0, naturalH_ = 0;
+    EmbedFit fit_;
+    DragPicture picture_;
     bool fragile_ = false;
     bool windowed_ = false;
     int ownWindowPolls_ = 0;
@@ -387,6 +482,7 @@ private:
     juce::ScrollBar panBar_{false};
     PanListener panListener_{*this};
     PositionTracker tracker_{*this};
+    GestureWatch gestureWatch_{*this};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(EmbeddedPluginView)
 };

@@ -48,6 +48,10 @@ public:
     bool unwatch(const std::string& dir);
     const std::vector<std::string>& watched() const { return watched_; }
 
+    bool pin(const std::string& dir);
+    bool unpin(const std::string& dir);
+    const std::vector<std::string>& pinned() const { return pinned_; }
+
     std::string relocate(const std::string& foundPath, std::int64_t size,
                          const std::vector<std::string>& missing);
     void movePath(const std::string& from, const std::string& to);
@@ -61,10 +65,13 @@ public:
 
 private:
     Entry* at(const std::string& path);
+    bool addOnce(std::vector<std::string>& list, const std::string& dir);
+    bool removeOnce(std::vector<std::string>& list, const std::string& dir);
 
     std::map<std::string, Entry> entries_;
     std::vector<Collection> collections_;
     std::vector<std::string> watched_;
+    std::vector<std::string> pinned_;
     bool dirty_ = false;
 
     friend bool loadIndex(const std::string& file, FileIndex& into);

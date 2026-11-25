@@ -26,11 +26,13 @@ Das Dropdown Inputs legt fest, wie viele Stereokanäle das Pult summiert, 2 bis 
 
 **Pan_1-2** Balance von Kanal 1. In der Mitte gehen beide Seiten mit vollem Pegel durch; aus der Mitte heraus wird nur die gegenüberliegende Seite leiser. Ebenso für 3-4 bis 11-12.
 
-**Mute_1-2** Schaltet Kanal 1 stumm, was auch die Schiene für die anderen entlastet. Ebenso für 3-4 bis 11-12.
+**Mute_1-2** Schaltet Kanal 1 stumm, was auch die Schiene für die anderen entlastet. Ebenso für 3-4 bis 11-12. Alt-Klick auf ein beliebiges M schaltet alle Kanäle auf einmal stumm oder wieder ein.
 
-**Solo_1-2** Schaltet jeden Kanal außer diesem stumm. Das eigene Mute eines Kanals gewinnt immer. Ebenso für 3-4 bis 11-12.
+**Solo_1-2** Schaltet jeden Kanal außer diesem stumm. Das eigene Mute eines Kanals gewinnt immer. Ebenso für 3-4 bis 11-12. Alt-Klick auf ein beliebiges S bringt alle Solos in denselben Zustand, ein Alt-Klick auf ein leuchtendes löscht also alle; Cmd-Klick (Strg-Klick) auf eines lässt nur diesen Kanal hören.
 
 **Name_1-2** Der Klebestreifen über Kanal 1. Leer, bis etwas angeschlossen ist, dann zeigt er den Namen dieses Organisms. Doppelklick, um einen eigenen zu schreiben; leere ihn, um zum Namen des angeschlossenen zurückzukehren. Ebenso für 3-4 bis 11-12.
+
+**Faders** Zeigt jeden Pegel als Fader statt als Regler. Die Wahl bleibt bei der Box.
 
 ## Rezept
 

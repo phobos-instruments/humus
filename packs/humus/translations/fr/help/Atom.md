@@ -4,7 +4,7 @@ Quatre anneaux de frappes réparties régulièrement, qui arpègent les notes qu
 
 Chaque anneau répond à une question : quand. Il prend un nombre de pas et un nombre de frappes et répartit les frappes autour du cercle aussi régulièrement que possible, ce qui est la règle derrière un très grand nombre des rythmes de danse du monde : trois frappes sur huit, c'est le tresillo, cinq sur huit le cinquillo, sept sur douze la cloche standard d'Afrique de l'Ouest. Quelle note sonne, ce sont tes mains qui le décident. Branche un clavier ou un PianoRoll à l'entrée et chaque frappe joue la note suivante de l'accord que tu tiens ; ne tiens rien et les anneaux parcourent tout seuls la tonalité et la gamme choisies. Les notes que tu joues sont d'abord ramenées sur la gamme, donc rien ne tombe hors de la tonalité. Il tourne pendant que le transport joue, et envoie tout par une seule sortie MIDI.
 
-La façade montre les anneaux de l'extérieur vers l'intérieur, l'anneau 1 étant le plus à l'extérieur. Les points allumés sont des frappes, les points creux des silences, et le point le plus brillant est le pas en train de jouer.
+La façade montre les anneaux de l'extérieur vers l'intérieur, l'anneau 1 étant le plus à l'extérieur. Les points allumés sont des frappes, les points creux des silences, et le point le plus brillant est le pas en train de jouer. Clique sur une frappe pour la faire taire, et clique de nouveau pour la faire revenir ; une frappe muette apparaît pâle et tourne avec Turn.
 
 Les presets se répartissent en trois familles. Rhythms, ce sont les motifs de danse ci-dessus. Elements traite les anneaux comme des couches électroniques : l'anneau le plus intérieur est la première couche, chaque anneau est aussi long que sa couche peut contenir d'électrons (2, 8, 18 et 32 pas, de l'intérieur vers l'extérieur), ses frappes sont les électrons qu'elle contient, et chaque couche fait un tour par mesure, si bien que les atomes plus lourds se remplissent de couches plus denses et plus rapides. Planets fait des anneaux des orbites dont les longueurs gardent les proportions des vraies : huit tours de l'anneau de la Terre contre treize pour Vénus, les douze de Jupiter contre les vingt-neuf de Saturne, Neptune qui fait trois tours pendant que Pluton en fait deux, si bien que les anneaux s'écartent puis se retrouvent comme le font les planètes.
 
@@ -15,6 +15,8 @@ Les presets se répartissent en trois familles. Rhythms, ce sont les motifs de d
 **Hits** Combien de ces pas sonnent. L'anneau les espace aussi régulièrement qu'il peut. 0 rend l'anneau muet.
 
 **Turn** Fait tourner toute la figure autour de l'anneau, un pas à la fois, pour que le même rythme parte d'un autre endroit.
+
+**Chance** La fréquence à laquelle chaque frappe de l'anneau sonne, de 0 % à 100 %. Les dés appartiennent à la boîte : un patch joue les mêmes frappes à chaque lecture et à chaque export, et deux Atom lancent chacun les leurs.
 
 **Rate** La durée d'un pas : une noire, une croche, une double croche ou une triple croche. Fit bar étire plutôt tout l'anneau sur une mesure, quel que soit son nombre de pas, et c'est ce qui crée une vraie polyrythmie : un anneau de 3 et un anneau de 4, tous deux sur Fit bar, jouent trois contre quatre. Des anneaux sur une valeur de note avec des nombres de pas différents continuent simplement leur route et se décalent les uns par rapport aux autres, pour ne se retrouver qu'après de nombreuses mesures.
 
@@ -39,6 +41,8 @@ Les presets se répartissent en trois familles. Rhythms, ce sont les motifs de d
 **Swing** Le swing propre à cet organism, utilisé quand Follow est désactivé. Un anneau sur Fit bar n'a jamais de swing.
 
 **Follow** Prend le swing du transport ; désactive-le pour le régler ici avec Swing.
+
+**Bank** Lequel des huit jeux d'anneaux joue, de A à H. Chaque banque garde ses propres Steps, Hits, Turn, Chance, Rate, Fix, Note et frappes muettes pour les quatre anneaux ; les réglages d'arpège en dessous sont partagés. Une banque pas encore utilisée commence comme une copie de celle où tu étais. Changer de banque joue aussitôt la nouvelle, y compris depuis un Button, un pad assigné ou une piste d'automation.
 
 ## Recette
 

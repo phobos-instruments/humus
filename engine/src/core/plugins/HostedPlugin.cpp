@@ -28,6 +28,7 @@ HostedPlugin::HostedPlugin(std::unique_ptr<juce::AudioPluginInstance> instance,
         params.add(p);
     }
     adoptInstanceValues();
+    listenForTouches(true);
 }
 
 void HostedPlugin::adoptInstanceValues() {
@@ -48,12 +49,31 @@ void HostedPlugin::loadFrom(const OrganismState& state) {
 
 HostedPlugin::~HostedPlugin() {
     if (!instance_) return;
+    listenForTouches(false);
     instance_->releaseResources();
     if (shouldLeakInstance && shouldLeakInstance(classRaw_)) {
         (void) instance_.release();
         return;
     }
     PluginHost::instance().retire(std::move(instance_), classRaw_);
+}
+
+void HostedPlugin::listenForTouches(bool on) {
+    for (auto* p : instance_->getParameters()) {
+        if (on) p->addListener(&touchListener_);
+        else p->removeListener(&touchListener_);
+    }
+}
+
+bool HostedPlugin::layoutChanged() const {
+    return std::max(0, instance_->getTotalNumInputChannels()) != ins_
+           || std::max(1, instance_->getTotalNumOutputChannels()) != outs_;
+}
+
+void HostedPlugin::adoptLayout() {
+    ins_ = std::max(0, instance_->getTotalNumInputChannels());
+    outs_ = std::max(1, instance_->getTotalNumOutputChannels());
+    scratch_.setSize(std::max(1, std::max(ins_, outs_)), std::max(1, scratch_.getNumSamples()), true, true, true);
 }
 
 void HostedPlugin::prepare(double sampleRate, int maxBlock) {
@@ -173,7 +193,9 @@ OrganismPtr PluginHost::createOrganism(const std::string& classRaw) {
         if (bp->launched()) return bp;
     }
     std::string err;
-    auto inst = instance().createInstance(*desc, kDefaultSampleRate, 512, err);
+    auto inst = instance().createsOnlyAsync(*desc)
+                    ? instance().takeAsyncInstance(classRaw, *desc)
+                    : instance().createInstance(*desc, kDefaultSampleRate, 512, err);
     if (!inst) return nullptr;
     instance().learnFrom(classRaw, *inst);
     return std::make_unique<HostedPlugin>(std::move(inst), classRaw);

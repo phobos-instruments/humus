@@ -70,15 +70,14 @@ void Riff::placeSteps(int numSamples, const Transport& transport) {
     const double stepEnd = step0 + (double) numSamples * stepsPerSec / sr;
 
     const long count = (long) steps_.size();
-    const auto stepAt = [&](long step) -> const BasslineStep& {
-        return steps_[(size_t) (((step - nudge) % count + count) % count)];
-    };
+    const auto indexOf = [&](long step) { return ((step - nudge) % count + count) % count; };
+    const auto stepAt = [&](long step) -> const BasslineStep& { return steps_[(size_t) indexOf(step)]; };
 
     for (long k = (long) std::floor(step0 - swingFrac) - 1; k < (long) std::ceil(stepEnd) + 1; ++k) {
         const double pos = (double) k + swing::delaySteps((double) k, ticksPerStep, groove);
         if (pos < step0 || pos >= stepEnd || k < 0) continue;
         const auto& s = stepAt(k);
-        if (!s.gate) continue;
+        if (!s.gate || !stepPlays(seed_, 0, k, chances_.at(params, bank_, indexOf(k)))) continue;
         const int at = std::min(numSamples - 1, (int) ((pos - step0) / stepsPerSec * sr));
         const int note = std::clamp(s.note + transpose, 0, kMidiMax);
         const double nextPos = (double) (k + 1) + swing::delaySteps((double) (k + 1), ticksPerStep, groove);

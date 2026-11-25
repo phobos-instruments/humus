@@ -64,16 +64,11 @@ inline Node scan(const juce::File& dir) {
 
 inline std::vector<juce::File> roots() {
     std::vector<juce::File> out;
-    const auto exe = juce::File::getSpecialLocation(juce::File::currentExecutableFile);
-    const auto dir = exe.getParentDirectory();
-    for (const auto& c : {dir.getChildFile("examples"),
-                          dir.getParentDirectory().getChildFile("Resources").getChildFile("examples")})
+    for (const auto& c : bundleCandidates(binaryDirs(), "examples"))
         if (c.isDirectory()) out.push_back(c);
-#ifdef HUM_PACKS_DIR
-    if (const auto repo = juce::File(HUM_PACKS_DIR).getParentDirectory().getChildFile("examples");
-        repo.isDirectory())
-        out.push_back(repo);
-#endif
+    if (const auto repo = sourceTreePacks(); repo != juce::File())
+        if (const auto mine = repo.getParentDirectory().getChildFile("examples"); mine.isDirectory())
+            out.push_back(mine);
     return out;
 }
 

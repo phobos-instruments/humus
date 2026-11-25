@@ -71,7 +71,7 @@ void ClipGridBrick::resized() {
 }
 
 std::shared_ptr<VideoLayer> ClipGridBrick::layer(int i) const {
-    return VideoDeckPool::instance().peek(name_ + "/" + suffix(i));
+    return VideoDeckPool::instance().peek(host_.videoKey(name_ + "/" + suffix(i)));
 }
 
 void ClipGridBrick::hold(int i, const juce::File& file, bool onStage) {
@@ -88,7 +88,7 @@ void ClipGridBrick::hold(int i, const juce::File& file, bool onStage) {
     if (!sameTape) {
         heldPath_[(size_t) i] = path;
         const bool fresh = layer(i) == nullptr;
-        h = VideoDeckPool::instance().open(name_ + "/" + suffix(i), path);
+        h = VideoDeckPool::instance().open(host_.videoKey(name_ + "/" + suffix(i)), path);
         if (h != nullptr && fresh && !onStage) h->setPaused(true);
         pads_.armPark(i, in);
     } else if (pads_.parkMoved(i, in)) {

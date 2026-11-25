@@ -59,11 +59,11 @@ public:
             pickPitchClass();
         else
             showNotePicker(host_, name_, param_, localAreaToGlobal(getLocalBounds()), note_.lowest(), note_.highest(),
-                           [this] { repaint(); });
+                           [this] { changed(); });
     }
     void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& w) override {
         if (PanelScroller::takesWheel(*this, e, w)) return;
-        if (note_.step(w.deltaY > 0 ? 1 : -1)) repaint();
+        if (note_.step(w.deltaY > 0 ? 1 : -1)) changed();
     }
 
 private:
@@ -78,10 +78,15 @@ private:
             kMiddleOctave + storedNote(note_.note(), true), 0, kMidiMax,
             [this](int n) {
                 host_.editParam(name_, param_, (double) storedNote(n, true));
-                repaint();
+                changed();
             },
             &host_.midi());
         juce::CallOutBox::launchAsynchronously(std::move(picker), localAreaToGlobal(getLocalBounds()), nullptr);
+    }
+
+    void changed() {
+        host_.notePanelEdit(name_);
+        repaint();
     }
 
     void poll() override {

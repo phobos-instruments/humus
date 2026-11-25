@@ -30,9 +30,13 @@ Misura l'ingresso, decide un guadagno e lo applica, così i momenti forti vengon
 
 **SyncMultiplier** Quante di quelle unità fanno un rilascio.
 
+**Mix** Quanto suono compresso senti rispetto all'ingresso intatto. 1 è tutto compresso, 0 è l'ingresso così com'è arrivato, e ogni valore intermedio è compressione parallela: la copia schiacciata dà corpo al suono mentre quella asciutta conserva i colpi.
+
 ## Ricetta
 
 **Colla sul bus della batteria** Threshold 0.4, CompressionRatio 3, KneeWidth 8, AttackTime 20, HoldTime 0, Sync attivo con SyncUnit 1/8. Collegaci la somma della batteria di un Mixer, attiva AutoMakeupGain mentre imposti la soglia, poi disattivalo quando il livello è dove lo vuoi.
+
+**Batteria in parallelo** Threshold 0.1, CompressionRatio 10, AttackTime 1, ReleaseTime 80, alza MakeupGain finché il suono schiacciato è forte quanto quello asciutto, poi porta Mix a circa 0.4. I colpi restano decisi e la stanza e le code salgono da sotto.
 
 ## Organism correlati
 

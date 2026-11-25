@@ -228,20 +228,25 @@ std::vector<std::string> FileIndex::collectionsHolding(const std::string& path) 
     return out;
 }
 
-bool FileIndex::watch(const std::string& dir) {
-    if (dir.empty() || std::find(watched_.begin(), watched_.end(), dir) != watched_.end()) return false;
-    watched_.push_back(dir);
+bool FileIndex::addOnce(std::vector<std::string>& list, const std::string& dir) {
+    if (dir.empty() || std::find(list.begin(), list.end(), dir) != list.end()) return false;
+    list.push_back(dir);
     dirty_ = true;
     return true;
 }
 
-bool FileIndex::unwatch(const std::string& dir) {
-    const auto it = std::find(watched_.begin(), watched_.end(), dir);
-    if (it == watched_.end()) return false;
-    watched_.erase(it);
+bool FileIndex::removeOnce(std::vector<std::string>& list, const std::string& dir) {
+    const auto it = std::find(list.begin(), list.end(), dir);
+    if (it == list.end()) return false;
+    list.erase(it);
     dirty_ = true;
     return true;
 }
+
+bool FileIndex::watch(const std::string& dir) { return addOnce(watched_, dir); }
+bool FileIndex::unwatch(const std::string& dir) { return removeOnce(watched_, dir); }
+bool FileIndex::pin(const std::string& dir) { return addOnce(pinned_, dir); }
+bool FileIndex::unpin(const std::string& dir) { return removeOnce(pinned_, dir); }
 
 std::string FileIndex::relocate(const std::string& foundPath, std::int64_t size,
                                 const std::vector<std::string>& missing) {

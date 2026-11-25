@@ -12,6 +12,13 @@
           "max": 8.0,
           "def": 0.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -82,6 +89,13 @@
           "max": 8.0,
           "def": 1.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -98,6 +112,13 @@
           "max": 8.0,
           "def": 2.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -114,6 +135,13 @@
           "max": 8.0,
           "def": 3.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -130,6 +158,13 @@
           "max": 8.0,
           "def": 4.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -146,6 +181,13 @@
           "max": 8.0,
           "def": 5.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -162,6 +204,13 @@
           "max": 8.0,
           "def": 6.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -178,6 +227,13 @@
           "max": 8.0,
           "def": 7.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"
@@ -194,6 +250,13 @@
           "max": 8.0,
           "def": 8.0,
           "int": true
+        },
+        {
+          "name": "Channel",
+          "min": 0.0,
+          "max": 16.0,
+          "def": 0.0,
+          "enum": true
         }
       ],
       "editor": "layout:midiin-editor.json"

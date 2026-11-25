@@ -52,6 +52,7 @@ const std::string* propNameByIndex(const OrganismModel* cm, int idx) {
 void MetaEditor::apply(double x, double y) {
     LiveControlHold live(doc_);
     DerivedControlHold derived(doc_);
+    const RestoringStateHold restoring(doc_);
     auto values = interpolateMetapad(doc_.document().metapad, x, y);
     for (const auto& mv : values)
         if (auto* name = propNameByIndex(doc_.document().byName(mv.organism), mv.propertyIndex)) {
@@ -246,6 +247,7 @@ void MetaEditor::storeSnapshot(int index) {
 void MetaEditor::recallSnapshot(int index) {
     auto& ms = doc_.document().metapad;
     DerivedControlHold derived(doc_);
+    const RestoringStateHold restoring(doc_);
     for (auto& s : ms.snapshots)
         if (s.index == index) {
             for (const auto& c : s.organisms)

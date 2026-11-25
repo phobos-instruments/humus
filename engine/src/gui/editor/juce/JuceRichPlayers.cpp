@@ -100,7 +100,9 @@ std::unique_ptr<RichView> makeJucePlayerBrick(juce::Component& parent, EditorHos
         case CT::SequenceGrid: {
             auto sg = std::make_unique<SequenceGridBrick>(
                 host, cn, bound, std::atoi(s.extraOr("rows", "8").c_str()));
-            return brickView(parent, std::move(sg));
+            auto view = reloadingView(parent, std::move(sg), [](SequenceGridBrick& w) { w.reload(); });
+            view->onLive = view->onReload;
+            return view;
         }
         case CT::GainShapeCurve: {
             auto gs = std::make_unique<GainShapeBrick>(host, cn, pn);
@@ -111,7 +113,7 @@ std::unique_ptr<RichView> makeJucePlayerBrick(juce::Component& parent, EditorHos
             host.patterns().ensureMatrix(cn, grid.matrixId, grid.steps, grid.seed);
             auto g = std::make_unique<PatternStepGrid>(
                 host, cn, grid.arp ? PatternStepGrid::Mode::Arp : PatternStepGrid::Mode::Bassline,
-                bound(bind::kNudge), bound(bind::kTranspose));
+                bound(bind::kNudge), bound(bind::kTranspose), bound(bind::kView), bound(bind::kChancePrefix));
             return reloadingView(parent, std::move(g), [](PatternStepGrid& w) { w.reload(); });
         }
         case CT::PatternGrid: {
@@ -133,7 +135,7 @@ std::unique_ptr<RichView> makeJucePlayerBrick(juce::Component& parent, EditorHos
                 host, cn, PianoRollEditor::Params{bound(bind::kBars), bound(bind::kSwing),
                                                    bound(bind::kSwingFollow), bound(bind::kSwingUnit),
                                                    bound(bind::kRecord), bound(bind::kLoop),
-                                                   bound(bind::kQuantize)});
+                                                   bound(bind::kQuantize), bound(bind::kBank)});
             pr->onAutomationChanged = changedHook(owner);
             return editorView(parent, std::move(pr));
         }

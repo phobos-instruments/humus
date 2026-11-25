@@ -6,7 +6,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Source-SHA256: "
-"50c13a926678909c8d71e6e9766997f271c8e82053a3766b700b763c14ca6bc0\n"
+"5a72cb86d222dd96113592104c60675df47d8d3f3a282f6af462b5872196053b\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
@@ -14,7 +14,7 @@ msgstr ""
 "X-Generator: Translate Toolkit 3.20.0\n"
 "Language: it\n"
 "X-Template-SHA256: "
-"50c13a926678909c8d71e6e9766997f271c8e82053a3766b700b763c14ca6bc0\n"
+"5a72cb86d222dd96113592104c60675df47d8d3f3a282f6af462b5872196053b\n"
 "X-Language-Name: Italiano\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -736,6 +736,11 @@ msgctxt "bounce.ogg"
 msgid "Ogg Vorbis"
 msgstr "Ogg Vorbis"
 
+#: engine/src/gui/app/BounceJob.h
+msgctxt "bounce.opening-plugins"
+msgid "Opening plug-ins..."
+msgstr "Apertura dei plug-in..."
+
 #: engine/src/gui/app/BounceWindow.h
 msgctxt "bounce.picture"
 msgid "Picture"
@@ -831,10 +836,15 @@ msgctxt "browser.add-to-collection"
 msgid "Add to Collection"
 msgstr "Aggiungi alla raccolta"
 
-#: engine/src/gui/browser/AuditionStrip.h
+#: engine/src/gui/browser/AuditionPane.cpp
 msgctxt "browser.audio-off"
 msgid "Audio is off, so previews are silent"
 msgstr "L'audio è spento, quindi le anteprime sono mute"
+
+#: engine/src/gui/browser/AuditionPane.cpp
+msgctxt "browser.audio-off-video"
+msgid "Audio is off, so video previews stand still"
+msgstr "L'audio è spento, quindi le anteprime video restano ferme"
 
 #: engine/src/gui/browser/BatchBar.h
 msgctxt "browser.batch-clear"
@@ -1068,8 +1078,8 @@ msgstr "Seleziona un file per vederne e modificarne i dettagli"
 
 #: engine/src/gui/browser/FileBrowserPanels.cpp
 msgctxt "browser.inspector-tip"
-msgid "Details, tags and collections (I)"
-msgstr "Dettagli, tag e raccolte (I)"
+msgid "Preview, details, tags and collections (I)"
+msgstr "Anteprima, dettagli, tag e raccolte (I)"
 
 #: engine/src/gui/browser/FileBrowserPanels.cpp
 msgctxt "browser.is-gone"
@@ -1093,7 +1103,7 @@ msgctxt "browser.loading"
 msgid "Loading..."
 msgstr "Caricamento..."
 
-#: engine/src/gui/browser/AuditionStrip.h
+#: engine/src/gui/browser/AuditionPane.cpp
 msgctxt "browser.loop"
 msgid "Loop"
 msgstr "Loop"
@@ -1108,10 +1118,20 @@ msgctxt "browser.move-library"
 msgid "Move Library Folder..."
 msgstr "Sposta la cartella della libreria..."
 
-#: engine/src/gui/browser/FileBrowserMenus.cpp
+#: engine/src/gui/browser/BatchBar.h
 msgctxt "browser.move-to-trash"
 msgid "Move to Trash"
 msgstr "Sposta nel Cestino"
+
+#: engine/src/gui/browser/FileBrowserMenus.cpp
+msgctxt "browser.move-to-trash-dots"
+msgid "Move to Trash..."
+msgstr "Sposta nel Cestino..."
+
+#: engine/src/gui/app/MainComponentBrowser.cpp
+msgctxt "browser.movies"
+msgid "Movies"
+msgstr "Filmati"
 
 #: engine/src/gui/browser/FileBrowserMenus.cpp
 msgctxt "browser.new-collection"
@@ -1153,6 +1173,11 @@ msgctxt "browser.other-tip"
 msgid "Choose with the system's own file dialog instead"
 msgstr "Scegli invece con la finestra di selezione file del sistema"
 
+#: engine/src/gui/browser/FileBrowserMenus.cpp
+msgctxt "browser.pin"
+msgid "Pin to Sidebar"
+msgstr "Fissa nella barra laterale"
+
 #: engine/src/gui/browser/BrowserSidebar.h
 msgctxt "browser.place-favourites"
 msgid "Favourites"
@@ -1184,26 +1209,9 @@ msgid "Looking for changes"
 msgstr "Cerco le modifiche"
 
 #: engine/src/gui/browser/FileBrowserMenus.cpp
-msgctxt "browser.remove"
-msgid "Move this file from the Library to the Trash?"
-msgid_plural "Move these {n} files from the Library to the Trash?"
-msgstr[0] "Spostare questo file dalla libreria al Cestino?"
-msgstr[1] "Spostare questi {n} file dalla libreria al Cestino?"
-
-#: engine/src/gui/browser/FileBrowserMenus.cpp
 msgctxt "browser.remove-from-collection"
 msgid "Remove from This Collection"
 msgstr "Rimuovi da questa raccolta"
-
-#: engine/src/gui/browser/FileBrowserMenus.cpp
-msgctxt "browser.remove-from-library"
-msgid "Remove from Library..."
-msgstr "Rimuovi dalla libreria..."
-
-#: engine/src/gui/browser/FileBrowserMenus.cpp
-msgctxt "browser.remove-from-library-title"
-msgid "Remove from Library"
-msgstr "Rimuovi dalla libreria"
 
 #: engine/src/gui/browser/FileBrowserMenus.cpp
 msgctxt "browser.remove-from-recent"
@@ -1252,12 +1260,12 @@ msgctxt "browser.stop-watching"
 msgid "Stop Watching"
 msgstr "Smetti di monitorare"
 
-#: engine/src/gui/browser/AuditionStrip.h
+#: engine/src/gui/browser/AuditionPane.cpp
 msgctxt "browser.sync"
 msgid "Sync"
 msgstr "Sync"
 
-#: engine/src/gui/browser/AuditionStrip.h
+#: engine/src/gui/browser/AuditionPane.cpp
 msgctxt "browser.sync-tip"
 msgid "Play loops at the patch tempo"
 msgstr "Riproduci i loop al tempo della patch"
@@ -1272,15 +1280,42 @@ msgctxt "browser.tags"
 msgid "TAGS"
 msgstr "TAG"
 
-#: engine/src/gui/browser/AuditionStrip.h
+#: engine/src/gui/browser/FileBrowserMenus.cpp
+msgctxt "browser.trash-folder"
+msgid "Move \"{name}\" and everything in it to the Trash?"
+msgstr "Spostare \"{name}\" e tutto quello che contiene nel Cestino?"
+
+#: engine/src/gui/browser/FileBrowserMenus.cpp
+msgctxt "browser.trash-many"
+msgid "Move {n} item to the Trash?"
+msgid_plural "Move these {n} items to the Trash?"
+msgstr[0] "Spostare {n} elemento nel Cestino?"
+msgstr[1] "Spostare questi {n} elementi nel Cestino?"
+
+#: engine/src/gui/browser/FileBrowserMenus.cpp
+msgctxt "browser.trash-one"
+msgid "Move \"{name}\" to the Trash?"
+msgstr "Spostare \"{name}\" nel Cestino?"
+
+#: engine/src/gui/browser/AuditionPane.cpp
 msgctxt "browser.turn-on-audio"
 msgid "Turn on audio"
 msgstr "Attiva l'audio"
+
+#: engine/src/gui/browser/FileBrowserMenus.cpp
+msgctxt "browser.unpin"
+msgid "Remove from Sidebar"
+msgstr "Togli dalla barra laterale"
 
 #: engine/src/gui/browser/BrowserPaint.h
 msgctxt "browser.use-file-browser"
 msgid "Use File Browser..."
 msgstr "Usa il browser dei file..."
+
+#: engine/src/gui/app/MainComponentBrowser.cpp
+msgctxt "browser.videos"
+msgid "Videos"
+msgstr "Video"
 
 #: engine/src/gui/browser/FileBrowserPanels.cpp
 msgctxt "browser.view-cards"
@@ -1297,7 +1332,7 @@ msgctxt "browser.view-small"
 msgid "Small"
 msgstr "Piccole"
 
-#: engine/src/gui/browser/AuditionStrip.h
+#: engine/src/gui/browser/AuditionPane.cpp
 msgctxt "browser.volume"
 msgid "Preview volume"
 msgstr "Volume anteprima"
@@ -1352,12 +1387,12 @@ msgctxt "caution.ok"
 msgid "OK"
 msgstr "OK"
 
-#: engine/src/gui/host/EngineHostChoices.cpp
+#: engine/src/gui/host/OrganismChoices.h
 msgctxt "choices.channel-n"
 msgid "Channel {n}"
 msgstr "Canale {n}"
 
-#: engine/src/gui/host/EngineHostChoices.cpp
+#: engine/src/gui/host/OrganismChoices.h
 msgctxt "choices.channels-pair"
 msgid "Channels {first}/{second}"
 msgstr "Canali {first}/{second}"
@@ -1377,7 +1412,7 @@ msgctxt "choices.port-name"
 msgid "Port {n} - {name}"
 msgstr "Porta {n} - {name}"
 
-#: engine/src/gui/host/EngineHostChoices.cpp
+#: engine/src/gui/host/OrganismChoices.h
 msgctxt "choices.sound-track"
 msgid "Sound track"
 msgstr "Traccia audio"
@@ -1988,13 +2023,6 @@ msgid "Detach into a floating window"
 msgstr "Stacca in una finestra mobile"
 
 #: engine/src/gui/app/Dock.h
-msgctxt "dock.drag-to-resize-the-organism"
-msgid "Drag to resize the organism list; click to hide/show it"
-msgstr ""
-"Trascina per ridimensionare l'elenco degli organism; clicca per nasconderlo "
-"o mostrarlo"
-
-#: engine/src/gui/app/Dock.h
 msgctxt "dock.hide-this-pane"
 msgid "Hide this pane"
 msgstr "Nascondi questo pannello"
@@ -2561,67 +2589,60 @@ msgctxt "history.yesterday"
 msgid "yesterday"
 msgstr "ieri"
 
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.back-to-bar-1"
-msgid "Back to bar 1"
-msgstr "Torna alla battuta 1"
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.about"
+msgid "About Humus: version, credits, website and support"
+msgstr "Informazioni su Humus: versione, riconoscimenti, sito e sostegno"
 
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.clock-stopped"
-msgid "{clock}   (stopped)"
-msgstr "{clock}   (fermo)"
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.daw-macros"
+msgid "DAW Macros"
+msgstr "Macro della DAW"
 
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.free-run-the-patch-while"
-msgid "Free-run the patch while the DAW is stopped"
-msgstr "Lascia girare la patch mentre la DAW è ferma"
-
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.humus"
-msgid "Humus"
-msgstr "Humus"
-
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.load-failed"
-msgid "Load failed: {reason}"
-msgstr "Caricamento non riuscito: {reason}"
-
-#: engine/src/plugin/HumusEditor.h
+#: engine/src/plugin/HumusEditor.cpp
 msgctxt "humus-editor.load-patch"
 msgid "Load patch..."
 msgstr "Carica patch..."
 
-#: engine/src/plugin/HumusEditor.h
+#: engine/src/plugin/HumusEditor.cpp
 msgctxt "humus-editor.load-patch-2"
 msgid "Load patch"
 msgstr "Carica patch"
 
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.no-patch-loaded"
-msgid "(no patch loaded)"
-msgstr "(nessuna patch caricata)"
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.redo-tip"
+msgid "Redo what was undone (Cmd-Shift-Z / Ctrl-Y)"
+msgstr "Ripristina ciò che è stato annullato (Cmd-Maiusc-Z / Ctrl-Y)"
 
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.no-soundout"
-msgid "This patch has no SoundOut, so the plugin is silent - add one in Humus and reload."
-msgstr ""
-"Questa patch non ha un SoundOut, quindi il plugin è muto - aggiungine uno in "
-"Humus e ricarica."
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.settings"
+msgid "Settings: themes and language"
+msgstr "Impostazioni: temi e lingua"
 
-#: engine/src/plugin/HumusEditor.h
-msgctxt "humus-editor.play"
-msgid "Play"
-msgstr "Riproduci"
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.show-patcher"
+msgid "Show or hide the patcher"
+msgstr "Mostra o nascondi il patcher"
 
-#: engine/src/plugin/HumusProcessor.cpp
-msgctxt "humus-processor.embedded-patch"
-msgid "(embedded patch)"
-msgstr "(patch incorporata)"
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.show-properties"
+msgid "Show or hide the properties of the boxes you open"
+msgstr "Mostra o nascondi le proprietà dei box che apri"
+
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "humus-editor.undo-tip"
+msgid "Undo the last change to the patch (Cmd-Z / Ctrl-Z)"
+msgstr "Annulla l'ultima modifica alla patch (Cmd-Z / Ctrl-Z)"
 
 #: engine/src/gui/style/IconGlyph.h
 msgctxt "icon-glyph.fat-saw-pair-detuned"
 msgid "Fat saw pair (detuned)"
 msgstr "Doppio dente di sega corposo (desintonizzato)"
+
+#: engine/src/gui/style/IconGlyph.h
+msgctxt "icon-glyph.function"
+msgid "The function corded in"
+msgstr "La funzione collegata"
 
 #: engine/src/gui/style/IconGlyph.h
 msgctxt "icon-glyph.sample-and-hold"
@@ -2670,6 +2691,128 @@ msgstr ""
 "L'intervallo di ogni riga sopra la fondamentale - clicca un tasto per "
 "sostituire l'accordo di quella riga; clicca di nuovo il tasto acceso per "
 "seguire l'accordo"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.active-input-channels"
+msgid "Active input channels:"
+msgstr "Canali d'ingresso attivi:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.active-midi-inputs"
+msgid "Active MIDI inputs:"
+msgstr "Ingressi MIDI attivi:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.active-output-channels"
+msgid "Active output channels:"
+msgstr "Canali d'uscita attivi:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.audio-buffer-size"
+msgid "Audio buffer size:"
+msgstr "Dimensione del buffer:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.audio-device-type"
+msgid "Audio device type:"
+msgstr "Tipo di dispositivo audio:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.bluetooth-midi"
+msgid "Bluetooth MIDI"
+msgstr "MIDI Bluetooth"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.control-panel"
+msgid "Control Panel"
+msgstr "Pannello di controllo"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.device"
+msgid "Device:"
+msgstr "Dispositivo:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.input"
+msgid "Input:"
+msgstr "Ingresso:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.midi-output"
+msgid "MIDI Output:"
+msgstr "Uscita MIDI:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.no-input-channels"
+msgid "(no audio input channels found)"
+msgstr "(nessun canale audio d'ingresso trovato)"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.no-midi-inputs"
+msgid "No MIDI inputs available"
+msgstr "Nessun ingresso MIDI disponibile"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.no-output-channels"
+msgid "(no audio output channels found)"
+msgstr "(nessun canale audio d'uscita trovato)"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.none"
+msgid "none"
+msgstr "nessuno"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.open-error"
+msgid "Error when trying to open audio device!"
+msgstr "Errore nell'aprire il dispositivo audio!"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.opens-control-panel"
+msgid "Opens the device's own control panel"
+msgstr "Apre il pannello di controllo del dispositivo"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.output"
+msgid "Output:"
+msgstr "Uscita:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.plays-a-test-tone"
+msgid "Plays a test tone"
+msgstr "Suona un tono di prova"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.reset-device"
+msgid "Reset Device"
+msgstr "Reimposta il dispositivo"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.resets-device"
+msgid "Resets the audio interface - sometimes needed after changing a device's properties in its custom control panel"
+msgstr ""
+"Reimposta l'interfaccia audio: a volte serve dopo aver cambiato le "
+"impostazioni nel pannello di controllo del dispositivo"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.sample-rate"
+msgid "Sample rate:"
+msgstr "Frequenza di campionamento:"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.scan-bluetooth"
+msgid "Scan for bluetooth MIDI devices"
+msgstr "Cerca dispositivi MIDI Bluetooth"
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.show-advanced"
+msgid "Show advanced settings..."
+msgstr "Mostra impostazioni avanzate..."
+
+#: engine/src/gui/common/JuceStrings.h
+msgctxt "juce.test"
+msgid "Test"
+msgstr "Prova"
 
 #: engine/src/gui/bricks/KnobGridBrick.h
 msgctxt "knob-grid.mute-this-operator"
@@ -2785,20 +2928,10 @@ msgctxt "license.unregistered"
 msgid "Unregistered"
 msgstr "Non registrato"
 
-#: engine/src/plugin/MacroPanel.h
-msgctxt "macro.daw-automation-map-a-macro"
-msgid "DAW automation: map a Macro, automate it from the host"
-msgstr "Automazione DAW: assegna una Macro e automatizzala dall'host"
-
-#: engine/src/plugin/MacroPanel.h
-msgctxt "macro.none"
-msgid "(none)"
-msgstr "(nessuno)"
-
-#: engine/src/plugin/MacroPanel.h
-msgctxt "macro.param"
-msgid "(param)"
-msgstr "(parametro)"
+#: engine/src/gui/app/MainComponentAutosave.cpp
+msgctxt "main-autosave.autosave-failed"
+msgid "autosave failed: {reason}"
+msgstr "salvataggio automatico non riuscito: {reason}"
 
 #: engine/src/gui/app/MainComponentAutosave.cpp
 msgctxt "main-autosave.recovered-unsaved-session"
@@ -2814,6 +2947,16 @@ msgstr "sessione non salvata recuperata ({name})"
 msgctxt "main-autosave.recovery-failed"
 msgid "recovery failed: {reason}"
 msgstr "recupero non riuscito: {reason}"
+
+#: engine/src/gui/app/MainComponentLanguage.cpp
+msgctxt "main-dock.organisms"
+msgid "Organisms"
+msgstr "Organism"
+
+#: engine/src/gui/app/MainComponentLanguage.cpp
+msgctxt "main-dock.organisms-rail"
+msgid "Organisms and plug-ins (drag one onto the patcher)"
+msgstr "Organism e plug-in (trascinane uno nel patcher)"
 
 #: engine/src/gui/app/MainComponentLanguage.cpp
 msgctxt "main-dock.patcher"
@@ -4075,6 +4218,13 @@ msgstr ""
 "precedente)"
 
 #: engine/src/gui/app/MainComponentMenu.cpp
+msgctxt "menu.arranged-the-selection"
+msgid "arranged the selected boxes as a top-down flow (Undo restores the old layout)"
+msgstr ""
+"riquadri selezionati disposti come flusso dall'alto in basso (Annulla "
+"ripristina la disposizione precedente)"
+
+#: engine/src/gui/app/MainComponentMenu.cpp
 msgctxt "menu.audio-settings"
 msgid "Audio Settings..."
 msgstr "Impostazioni audio..."
@@ -4085,9 +4235,19 @@ msgid "Auto-arrange"
 msgstr "Disponi automaticamente"
 
 #: engine/src/gui/app/MainComponentMenu.cpp
+msgctxt "menu.auto-arrange-selection"
+msgid "Auto-arrange Selection"
+msgstr "Disponi automaticamente la selezione"
+
+#: engine/src/gui/app/MainComponentMenu.cpp
 msgctxt "menu.automation"
 msgid "Automation"
 msgstr "Automazione"
+
+#: engine/src/gui/app/MainComponentMenu.cpp
+msgctxt "menu.autosave"
+msgid "Autosave"
+msgstr "Salvataggio automatico"
 
 #: engine/src/gui/app/MainComponentMenu.cpp
 msgctxt "menu.bounce-mac"
@@ -4706,22 +4866,66 @@ msgctxt "midi-settings.off"
 msgid "Off"
 msgstr "Disattivato"
 
-#: engine/src/gui/settings/MidiSettingsView.cpp
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-input-tip"
+msgid "Humus listens on every network address of this computer. Point your OSC sender at the address shown here, on this port."
+msgstr ""
+"Humus ascolta su ogni indirizzo di rete di questo computer. Punta il tuo "
+"mittente OSC all'indirizzo mostrato qui, su questa porta."
+
+#: engine/src/gui/settings/OscNetRows.cpp
 msgctxt "midi-settings.osc-input-udp"
 msgid "OSC input (UDP)"
 msgstr "Ingresso OSC (UDP)"
+
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-listening"
+msgid "Listening on {address}"
+msgstr "In ascolto su {address}"
+
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-no-network"
+msgid "127.0.0.1, no network"
+msgstr "127.0.0.1, nessuna rete"
+
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-output"
+msgid "OSC output"
+msgstr "Uscita OSC"
+
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-output-tip"
+msgid "Where Humus sends OSC. Organisms with OSC switched on, such as Hands and Skeleton, send their values to this address and port."
+msgstr ""
+"Dove Humus invia l'OSC. Gli organism con l'OSC attivo, come Hands e "
+"Skeleton, inviano i loro valori a questo indirizzo e a questa porta."
 
 #: engine/src/gui/settings/OscSerialRow.h
 msgctxt "midi-settings.osc-over-serial"
 msgid "OSC over serial (SLIP)"
 msgstr "OSC su seriale (SLIP)"
 
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-port-busy"
+msgid "Not listening: port {port} is in use by another app"
+msgstr "Non in ascolto: la porta {port} è usata da un'altra app"
+
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-send-to"
+msgid "Send to"
+msgstr "Invia a"
+
+#: engine/src/gui/settings/OscNetRows.cpp
+msgctxt "midi-settings.osc-this-computer"
+msgid "This computer: {address}"
+msgstr "Questo computer: {address}"
+
 #: engine/src/gui/settings/MidiSettingsView.cpp
 msgctxt "midi-settings.own-action"
 msgid "Own action"
 msgstr "Azione propria"
 
-#: engine/src/gui/settings/MidiSettingsView.cpp
+#: engine/src/gui/settings/OscNetRows.cpp
 msgctxt "midi-settings.port"
 msgid "Port"
 msgstr "Porta"
@@ -4733,11 +4937,6 @@ msgstr ""
 "Un organism MidiIn riceve dal dispositivo della sua porta; un organism "
 "MidiOut invia al dispositivo della sua porta. Le modifiche valgono mentre il "
 "MIDI è attivo (il pulsante MIDI nella barra degli strumenti)."
-
-#: engine/src/gui/settings/MidiSettingsView.cpp
-msgctxt "midi-settings.port-in-use"
-msgid "port in use?"
-msgstr "porta in uso?"
 
 #: engine/src/gui/settings/MidiSettingsView.cpp
 msgctxt "midi-settings.remove"
@@ -5340,15 +5539,30 @@ msgid_plural "{n} updates available"
 msgstr[0] "{n} aggiornamento disponibile"
 msgstr[1] "{n} aggiornamenti disponibili"
 
-#: engine/src/plugin/OrganismParamPanel.h
-msgctxt "organism-param.click-a-box-in-the"
-msgid "click a box in the patch map"
-msgstr "clicca un box nella mappa della patch"
+#: engine/src/gui/patcher/OrganismTreePanel.cpp
+msgctxt "organism-tree.collapse-all"
+msgid "Collapse all"
+msgstr "Comprimi tutto"
 
-#: engine/src/plugin/OrganismParamPanel.h
-msgctxt "organism-param.no-organism-selected"
-msgid "(no organism selected)"
-msgstr "(nessun organism selezionato)"
+#: engine/src/gui/patcher/OrganismTreePanel.cpp
+msgctxt "organism-tree.expand-all"
+msgid "Expand all"
+msgstr "Espandi tutto"
+
+#: engine/src/gui/patcher/OrganismTreePanel.cpp
+msgctxt "organism-tree.leaf-tip"
+msgid "Drag onto the patcher, or double-click to add"
+msgstr "Trascinalo nel patcher, o fai doppio clic per aggiungerlo"
+
+#: engine/src/gui/patcher/OrganismTreePanel.cpp
+msgctxt "organism-tree.plugins"
+msgid "Plug-ins"
+msgstr "Plug-in"
+
+#: engine/src/gui/patcher/OrganismTreePanel.cpp
+msgctxt "organism-tree.search"
+msgid "Search..."
+msgstr "Cerca..."
 
 #: engine/src/gui/bricks/OscLogView.h
 msgctxt "osc-log.messages"
@@ -5368,6 +5582,18 @@ msgstr[1] "{n} messaggi {dot} ingresso SPENTO (Impostazioni)"
 msgctxt "osc-log.waiting-for-osc"
 msgid "waiting for OSC..."
 msgstr "in attesa di OSC..."
+
+#: engine/src/gui/host/OscHost.cpp
+msgctxt "osc-monitor.bytes-from"
+msgid "{n} byte from {sender}"
+msgid_plural "{n} bytes from {sender}"
+msgstr[0] "{n} byte da {sender}"
+msgstr[1] "{n} byte da {sender}"
+
+#: engine/src/gui/host/OscHost.cpp
+msgctxt "osc-monitor.not-osc"
+msgid "(not OSC)"
+msgstr "(non OSC)"
 
 #: engine/src/gui/editor/ParamSlider.h
 msgctxt "param-slider.set-value"
@@ -5454,6 +5680,13 @@ msgid "Pick a source to edit it on the right. Right-click one for more."
 msgstr ""
 "Scegli una sorgente per modificarla a destra. Clic destro su una per altre "
 "opzioni."
+
+#: engine/src/gui/properties/ParameterControlView.cpp
+msgctxt "parameter-control.hint-plugin"
+msgid "Nothing controls this yet. Move a control in the plug-in's own window to pick it here, then Learn a controller or type a CC number."
+msgstr ""
+"Ancora niente lo controlla. Muovi un controllo nella finestra del plug-in "
+"per sceglierlo qui, poi impara un controller o scrivi un numero CC."
 
 #: engine/src/gui/properties/ParameterControlView.cpp
 msgctxt "parameter-control.hint-span"
@@ -5715,25 +5948,6 @@ msgctxt "parameter.plugin-not-responding"
 msgid "Plugin not responding"
 msgstr "Il plugin non risponde"
 
-#: engine/src/plugin/PatchMapView.h
-msgctxt "patch-map.daw-in"
-msgid "DAW IN"
-msgstr "DAW IN"
-
-#: engine/src/plugin/PatchMapView.h
-msgctxt "patch-map.daw-out"
-msgid "DAW OUT"
-msgstr "DAW OUT"
-
-#: engine/src/plugin/PatchMapView.h
-msgctxt "patch-map.load-a-hum-patch"
-msgid "Load a .hum patch.\n\nThe DAW's audio enters the patch at SoundIn;\nwhatever reaches SoundOut is the plugin's output."
-msgstr ""
-"Carica una patch .hum.\n"
-"\n"
-"L'audio della DAW entra nella patch da SoundIn;\n"
-"tutto ciò che raggiunge SoundOut è l'uscita del plugin."
-
 #: engine/src/gui/patcher/PatcherCanvasMenus.cpp
 msgctxt "patcher-canvas-menus.add-pod-control-inlet"
 msgid "Add Pod Control Inlet"
@@ -5790,6 +6004,11 @@ msgid "Auto-arrange"
 msgstr "Disponi automaticamente"
 
 #: engine/src/gui/patcher/PatcherCanvasMenus.cpp
+msgctxt "patcher-canvas-menus.auto-arrange-selection"
+msgid "Auto-arrange Selection"
+msgstr "Disponi automaticamente la selezione"
+
+#: engine/src/gui/patcher/PatcherCanvasMenus.cpp
 msgctxt "patcher-canvas-menus.bypass"
 msgid "Bypass"
 msgstr "Bypass"
@@ -5823,6 +6042,13 @@ msgstr "Taglia"
 msgctxt "patcher-canvas-menus.delete"
 msgid "Delete"
 msgstr "Elimina"
+
+#: engine/src/gui/patcher/PatcherCanvasMenus.cpp
+msgctxt "patcher-canvas-menus.delete-cords"
+msgid "Delete {n} Cord"
+msgid_plural "Delete {n} Cords"
+msgstr[0] "Elimina {n} cavo"
+msgstr[1] "Elimina {n} cavi"
 
 #: engine/src/gui/patcher/PatcherCanvasMenus.cpp
 msgctxt "patcher-canvas-menus.disconnect"
@@ -6239,6 +6465,11 @@ msgctxt "pattern-step-grid.roll-111-offbeat-16ths"
 msgid "Roll -111 (offbeat 16ths)"
 msgstr "Rullata -111 (sedicesimi in levare)"
 
+#: engine/src/gui/bricks/PatternStepGrid.h
+msgctxt "pattern-step-grid.step-chance-title"
+msgid "Step {step} chance"
+msgstr "Probabilità dello step {step}"
+
 #: engine/src/gui/pianoroll/PianoRollEditor.h
 msgctxt "piano-roll-editor.bars"
 msgid "bars"
@@ -6459,6 +6690,55 @@ msgctxt "pitch-readout.no-pitch"
 msgid "no pitch"
 msgstr "nessuna nota"
 
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.macro"
+msgid "Macro M{n}"
+msgstr "Macro M{n}"
+
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.macro-also"
+msgid "Macro M{n}, also driving {target}"
+msgstr "Macro M{n}, che muove anche {target}"
+
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.macro-also-more"
+msgid "Macro M{m}, also driving {target} and {n} more"
+msgid_plural "Macro M{m}, also driving {target} and {n} more"
+msgstr[0] "Macro M{m}, che muove anche {target} e un altro controllo"
+msgstr[1] "Macro M{m}, che muove anche {target} e altri {n} controlli"
+
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.macro-range"
+msgid "Set the range Macro M{n} sweeps..."
+msgstr "Imposta l'escursione della Macro M{n}..."
+
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.macro-range-title"
+msgid "Macro M{n} sweeps {target}"
+msgstr "La Macro M{n} muove {target}"
+
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.map-to-macro"
+msgid "Automate from the DAW"
+msgstr "Automatizza dalla DAW"
+
+#: engine/src/gui/editor/DawMacroMenu.h
+msgctxt "plugin-face.unmap"
+msgid "Stop automating from Macro M{n}"
+msgstr "Non automatizzare più dalla Macro M{n}"
+
+#: engine/src/plugin/DawMacroStrip.h
+msgctxt "plugin-macros.drives-tip"
+msgid "Macro M{n} drives {targets}; the DAW can automate it"
+msgstr "La Macro M{n} muove {targets}; la DAW può automatizzarla"
+
+#: engine/src/plugin/DawMacroStrip.h
+msgctxt "plugin-macros.empty-tip"
+msgid "Right-click any control and choose Automate from the DAW to give it Macro M{n}"
+msgstr ""
+"Fai clic destro su un controllo e scegli Automatizza dalla DAW per dargli la "
+"Macro M{n}"
+
 #: engine/src/gui/plugins/PluginManagerView.h
 msgctxt "plugin-manager.clear-ui-quarantine"
 msgid "Clear UI quarantine ("
@@ -6580,6 +6860,23 @@ msgstr ""
 "Ora usa automaticamente un ripiego sicuro. Per riprovare il percorso "
 "normale, rimuovilo da \"{setting}\" in settings.xml."
 
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "plugin-transport.play"
+msgid "Play the patch while the DAW is stopped; the DAW's own Play always runs it"
+msgstr ""
+"Suona la patch mentre la DAW è ferma; il Play della DAW la fa sempre suonare"
+
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "plugin-transport.start"
+msgid "Back to the start"
+msgstr "Torna all'inizio"
+
+#: engine/src/plugin/HumusEditor.cpp
+msgctxt "plugin-transport.stop"
+msgid "Stop the patch while the DAW is stopped; press again to go back to the start"
+msgstr ""
+"Ferma la patch mentre la DAW è ferma; premi di nuovo per tornare all'inizio"
+
 #: engine/src/gui/properties/PresetActions.h
 msgctxt "preset-actions.cancel"
 msgid "Cancel"
@@ -6684,10 +6981,11 @@ msgstr "Evolvi"
 
 #: engine/src/gui/properties/PresetRail.cpp
 msgctxt "preset.evolve-tip"
-msgid "Evolve - nudge the settings; press again to wander further (one undo step)"
+msgid "Evolve - nudge the settings; press again to wander further (one undo step). Right-click to map it."
 msgstr ""
 "Evolvi - modifica leggermente le impostazioni; premi ancora per allontanarti "
-"di più (un solo passo di annullamento)"
+"di più (un solo passo di annullamento). Clic destro per assegnarlo a un "
+"controllo."
 
 #: engine/src/gui/properties/PresetRail.cpp
 msgctxt "preset.export-dots"
@@ -7268,6 +7566,11 @@ msgctxt "riff-import.overflow-title"
 msgid "Some patterns left out"
 msgstr "Alcuni pattern esclusi"
 
+#: engine/src/gui/bricks/RingFaceBrick.h
+msgctxt "ring-face.click-a-hit"
+msgid "Click a hit to silence it, and again to bring it back"
+msgstr "Clicca un colpo per zittirlo, e di nuovo per farlo tornare"
+
 #: engine/src/gui/assistant/SampleLabCard.h
 msgctxt "sample-lab-card.designing"
 msgid "Designing sounds..."
@@ -7333,10 +7636,13 @@ msgid "Generate"
 msgstr "Genera"
 
 #: engine/src/gui/assistant/SampleLabCard.h
-msgctxt "sample-lab.landed"
-msgid "{n} sounds on '{sampler}'. Keys from C4 up play them. Undo takes them back."
-msgstr ""
-"{n} suoni su '{sampler}'. Li suonano i tasti da C4 in su. Annulla li rimuove."
+msgctxt "sample-lab.landed-from"
+msgid "{n} sound on '{sampler}'. {key} plays it. Undo takes it back."
+msgid_plural "{n} sounds on '{sampler}'. Keys from {key} up play them. Undo takes them back."
+msgstr[0] "{n} suono su '{sampler}'. Lo suona {key}. Annulla lo toglie."
+msgstr[1] ""
+"{n} suoni su '{sampler}'. Li suonano i tasti da {key} in su. Annulla li "
+"toglie."
 
 #: engine/src/gui/assistant/SampleLab.h
 msgctxt "sample-lab.new-sampler"
@@ -7377,6 +7683,21 @@ msgstr "Copia"
 msgctxt "selectable-text.select-all"
 msgid "Select All"
 msgstr "Seleziona tutto"
+
+#: engine/src/gui/bricks/SequenceGridBrick.h
+msgctxt "sequence-grid.exclude-row"
+msgid "Exclude Row from Random"
+msgstr "Escludi la riga dalla randomizzazione"
+
+#: engine/src/gui/bricks/SequenceGridBrick.h
+msgctxt "sequence-grid.row-chance"
+msgid "Row chance: how often this row's steps play"
+msgstr "Chance della riga: quanto spesso suonano gli step di questa riga"
+
+#: engine/src/gui/bricks/SequenceGridBrick.h
+msgctxt "sequence-grid.row-chance-title"
+msgid "Row {row} chance"
+msgstr "Probabilità della riga {row}"
 
 #: engine/src/gui/editor/grids/SequenceGridModel.h
 msgctxt "sequence-grid.unwired-row"
@@ -7700,6 +8021,36 @@ msgctxt "setup-wizard.next"
 msgid "Next"
 msgstr "Avanti"
 
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.page-appearance"
+msgid "Appearance"
+msgstr "Aspetto"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.page-audio"
+msgid "Audio"
+msgstr "Audio"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.page-menus"
+msgid "Menus"
+msgstr "Menu"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.page-midi"
+msgid "MIDI"
+msgstr "MIDI"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.page-privacy"
+msgid "Privacy"
+msgstr "Privacy"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.page-ready"
+msgid "Ready"
+msgstr "Pronto"
+
 #: engine/src/gui/app/SetupWizard.cpp
 msgctxt "setup-wizard.privacy-both-off"
 msgid "With both off, Humus never touches the network except when you ask it to. Change either any time in Settings > License & Privacy."
@@ -7744,6 +8095,58 @@ msgstr "Condividi dati d'uso anonimi"
 msgctxt "setup-wizard.skip-setup"
 msgid "Skip setup"
 msgstr "Salta"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-audio"
+msgid "Audio: {device}"
+msgstr "Audio: {device}"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-audio-none"
+msgid "Audio: not configured"
+msgstr "Audio: non configurato"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-menus-classic"
+msgid "Creation menus: Classic"
+msgstr "Menu di creazione: classici"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-menus-modern"
+msgid "Creation menus: Modern"
+msgstr "Menu di creazione: moderni"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-midi"
+msgid "MIDI: {n} input enabled"
+msgid_plural "MIDI: {n} inputs enabled"
+msgstr[0] "MIDI: {n} ingresso attivo"
+msgstr[1] "MIDI: {n} ingressi attivi"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-theme"
+msgid "Theme: {theme}"
+msgstr "Tema: {theme}"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-updates-off"
+msgid "Update checks: only when you ask"
+msgstr "Controllo aggiornamenti: solo quando lo chiedi"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-updates-on"
+msgid "Update checks: at startup"
+msgstr "Controllo aggiornamenti: all'avvio"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-usage-off"
+msgid "Usage data: not shared"
+msgstr "Dati d'uso: non condivisi"
+
+#: engine/src/gui/app/WizardText.h
+msgctxt "setup-wizard.summary-usage-on"
+msgid "Usage data: shared anonymously"
+msgstr "Dati d'uso: condivisi in forma anonima"
 
 #: engine/src/gui/app/SetupWizard.cpp
 msgctxt "setup-wizard.updates-and-privacy"
@@ -8048,6 +8451,13 @@ msgctxt "status-dot.rec"
 msgid "REC"
 msgstr "REC"
 
+#: engine/src/gui/bricks/StepGridReadout.h
+msgctxt "step-grid.chance-key"
+msgid "Step chance: click, then drag a step up or down to set how often it plays"
+msgstr ""
+"Probabilità dello step: clicca, poi trascina uno step su o giù per decidere "
+"quanto spesso suona"
+
 #: engine/src/gui/bricks/StepNudgeBrick.h
 msgctxt "step-nudge.earlier"
 msgid "Nudge the pattern a step earlier"
@@ -8069,6 +8479,13 @@ msgid "Click a step to silence it; drag to sweep. Right-click for the whole stri
 msgstr ""
 "Clicca uno step per silenziarlo; trascina per farlo su più step. Clic destro "
 "per tutta la striscia"
+
+#: engine/src/gui/bricks/StepStripBrick.h
+msgctxt "step-strip.click-or-chance"
+msgid "Click a step to silence it; drag to sweep. Cmd-drag a step up or down for its chance. Right-click for more"
+msgstr ""
+"Clicca uno step per zittirlo; trascina per passarne diversi. Cmd-trascina "
+"uno step su o giù per la sua probabilità. Clic destro per altro"
 
 #: engine/src/gui/bricks/StepStripBrick.h
 msgctxt "step-strip.invert"
@@ -8185,6 +8602,28 @@ msgctxt "timecode-readout.times"
 msgid "x"
 msgstr "x"
 
+#: engine/src/gui/tracks/SongViewHeader.cpp
+msgctxt "tracks-blocks.add-lane"
+msgid "Add Blocks Lane"
+msgstr "Aggiungi corsia a blocchi"
+
+#: engine/src/gui/tracks/SongViewBlockLane.cpp
+msgctxt "tracks-blocks.delete-block"
+msgid "Delete Block"
+msgstr "Elimina blocco"
+
+#: engine/src/gui/tracks/SongViewBlockLane.cpp
+msgctxt "tracks-blocks.delete-blocks"
+msgid "Delete {n} Block"
+msgid_plural "Delete {n} Blocks"
+msgstr[0] "Elimina {n} blocco"
+msgstr[1] "Elimina {n} blocchi"
+
+#: engine/src/gui/tracks/SongViewBlockLane.cpp
+msgctxt "tracks-blocks.header"
+msgid "{param} block"
+msgstr "Blocco {param}"
+
 #: engine/src/gui/tracks/ClipEditorEdits.cpp
 msgctxt "tracks-pane-clip.delete-and-close-gap"
 msgid "Delete and Close Gap"
@@ -8225,10 +8664,31 @@ msgctxt "tracks-pane-clip.normalize"
 msgid "Normalize"
 msgstr "Normalizza"
 
+#: engine/src/gui/tracks/ClipEditorView.cpp
+msgctxt "tracks-pane-clip.pencil-draw"
+msgid "Draw over the waveform to redraw its samples"
+msgstr "Disegna sulla forma d'onda per ridisegnarne i campioni"
+
+#: engine/src/gui/tracks/ClipEditorView.cpp
+msgctxt "tracks-pane-clip.pencil-zoom"
+msgid "Zoom in until single samples show to draw with the pencil"
+msgstr ""
+"Ingrandisci finché si vedono i singoli campioni per disegnare con la matita"
+
 #: engine/src/gui/tracks/ClipEditorEdits.cpp
 msgctxt "tracks-pane-clip.pitch"
 msgid "Pitch"
 msgstr "Pitch"
+
+#: engine/src/gui/tracks/ClipEditorEdits.cpp
+msgctxt "tracks-pane-clip.repair-selection"
+msgid "Repair Selection"
+msgstr "Ripara la selezione"
+
+#: engine/src/gui/tracks/ClipEditorEdits.cpp
+msgctxt "tracks-pane-clip.restore-original-audio"
+msgid "Restore Original Audio"
+msgstr "Ripristina l'audio originale"
 
 #: engine/src/gui/tracks/ClipEditorEdits.cpp
 msgctxt "tracks-pane-clip.reverse"
@@ -8320,7 +8780,7 @@ msgctxt "tracks-pane-input.clear-automation-points"
 msgid "Clear Automation Points"
 msgstr "Cancella i punti di automazione"
 
-#: engine/src/gui/tracks/SongViewPointOps.cpp
+#: engine/src/gui/tracks/SongViewBlockLane.cpp
 msgctxt "tracks-pane-input.clear-lane-points"
 msgid "Clear Lane Points"
 msgstr "Cancella i punti della corsia"
@@ -8350,7 +8810,7 @@ msgctxt "tracks-pane-input.delete-automation-lanes"
 msgid "Delete Automation Lanes"
 msgstr "Elimina le corsie di automazione"
 
-#: engine/src/gui/tracks/SongViewPointOps.cpp
+#: engine/src/gui/tracks/SongViewBlockLane.cpp
 msgctxt "tracks-pane-input.delete-lane"
 msgid "Delete Lane"
 msgstr "Elimina corsia"
@@ -8497,7 +8957,7 @@ msgctxt "tracks-pane-menu.down-an-octave"
 msgid "Down an Octave"
 msgstr "Giù di un'ottava"
 
-#: engine/src/gui/tracks/SongViewMenu.cpp
+#: engine/src/gui/tracks/SongViewBlockLane.cpp
 msgctxt "tracks-pane-menu.duplicate-after"
 msgid "Duplicate After"
 msgstr "Duplica dopo"
@@ -9008,9 +9468,24 @@ msgid "All inputs"
 msgstr "Tutti gli ingressi"
 
 #: engine/src/gui/tracks/SongViewMidiInput.cpp
+msgctxt "tracks-pane.input-all-channels"
+msgid "All channels"
+msgstr "Tutti i canali"
+
+#: engine/src/gui/tracks/SongViewMidiInput.cpp
 msgctxt "tracks-pane.input-auto"
 msgid "Auto - follow the patch"
 msgstr "Auto - segue la patch"
+
+#: engine/src/gui/tracks/SongViewMidiInput.cpp
+msgctxt "tracks-pane.input-channel"
+msgid "Channel"
+msgstr "Canale"
+
+#: engine/src/gui/tracks/SongViewMidiInput.cpp
+msgctxt "tracks-pane.input-channel-n"
+msgid "Channel {n}"
+msgstr "Canale {n}"
 
 #: engine/src/gui/tracks/TimelineChips.h
 msgctxt "tracks-pane.input-chip-all"
@@ -9021,6 +9496,11 @@ msgstr "Tutti"
 msgctxt "tracks-pane.input-chip-auto"
 msgid "Auto"
 msgstr "Auto"
+
+#: engine/src/gui/tracks/TimelineChips.h
+msgctxt "tracks-pane.input-chip-channel"
+msgid "{input}, ch {n}"
+msgstr "{input}, can {n}"
 
 #: engine/src/gui/tracks/TimelineChips.h
 msgctxt "tracks-pane.input-chip-in"

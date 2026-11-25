@@ -3,6 +3,7 @@
 #pragma once
 #include <cstddef>
 #include <algorithm>
+#include <cmath>
 #include <atomic>
 #include <cstdint>
 #include <functional>
@@ -15,6 +16,7 @@
 #include <juce_audio_basics/juce_audio_basics.h>
 #include <juce_audio_formats/juce_audio_formats.h>
 
+#include "hum/dsp/ClipPlayer.h"
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
@@ -70,6 +72,11 @@ inline std::atomic<unsigned>& soundFileReads() {
     return reads;
 }
 
+inline unsigned& soundFileReadsOnThisThread() {
+    thread_local unsigned reads = 0;
+    return reads;
+}
+
 inline ExtraSoundFormats& extraSoundFormats() {
     static ExtraSoundFormats formats;
     return formats;
@@ -113,6 +120,7 @@ inline bool loadSoundFile(std::string uri, juce::AudioBuffer<float>& dest,
     const int total = (int) wanted;
     info.sampleRate = reader->sampleRate > 0.0 ? reader->sampleRate : kDefaultSampleRate;
     ++soundFileReads();
+    ++soundFileReadsOnThisThread();
     if (!onProgress && !abandon && !filling) {
         reader->read(&dest, 0, total, 0, true, true);
     } else {
@@ -260,6 +268,17 @@ inline bool loadSoundFile(std::string uri, juce::AudioBuffer<float>& dest,
     if (!loadSoundFile(std::move(uri), dest, info, onProgress)) return false;
     fileSampleRate = info.sampleRate;
     return true;
+}
+
+inline std::shared_ptr<const ClipPcm> loadClipPcm(const std::string& uri, double sampleRate) {
+    juce::AudioBuffer<float> buf;
+    double fileRate = sampleRate;
+    if (!loadSoundFile(uri, buf, fileRate) || buf.getNumChannels() <= 0) return nullptr;
+    ClipPcm pcm;
+    for (int c = 0; c < buf.getNumChannels(); ++c)
+        pcm.channels.emplace_back(buf.getReadPointer(c), buf.getReadPointer(c) + buf.getNumSamples());
+    if (std::abs(fileRate - sampleRate) > 0.5) pcm = resampledPcm(pcm, fileRate, sampleRate);
+    return std::make_shared<const ClipPcm>(std::move(pcm));
 }
 
 inline juce::StringPairArray loopTempoMetadata(double tempoBpm, int numSamples, double sampleRate) {

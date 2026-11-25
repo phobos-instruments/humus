@@ -8,6 +8,8 @@ Each step carries a note, a gate, an accent and a slide, the pattern language of
 
 Drag in the note lane to set a step's pitch, which also gates it; right-click a step to rest it. The A and S rows toggle accent and slide. A slide into the same note ties it instead of striking it again. Right-click the A or S rows for Random, Clear, Nudge, Load riffs and Copy to another bank. Load riffs opens a browser over your Riffs library folder, with the ones you loaded before under Recent and Open a file for anything else. The riff you pick, or a file dropped on the grid, reads MIDI files and acid-box pattern dumps into the bank shown and the ones after it.
 
+**Step chance** Click the % key at the grid's top right to see each step's chance as a bar, then drag up or down on a step to set how often it plays, from never to every time in steps of 5%. Cmd-drag (Ctrl-drag on Windows and Linux) does the same without switching. The % key is the View switch, so a mapped button or pad flips it too. Each step's chance is also a parameter, Chance_1 to Chance_16, so faders can be mapped to them. Right-click a step in chance view to map it. A step below 100% draws fainter and shows its chance above it, and Nudge moves the chances with the steps. The dice belong to the box: a patch plays the same steps on every play and every bounce, and two boxes roll their own. Each bank keeps its own chances, Copy to bank takes them along and Clear sets them back to sure.
+
 ## Parameters
 
 **Transpose** Shifts the whole pattern in semitones.
@@ -21,6 +23,10 @@ Drag in the note lane to set a step's pitch, which also gates it; right-click a 
 **Velocity** Velocity of plain, non-accented notes.
 
 **Bank** Which of the eight patterns plays, A to H.
+
+**View** Steps or Chance: what the grid shows and edits. The % key switches it.
+
+**Chance_1 to Chance_16** How often each step plays, from 0 to 100%. Each bank keeps its own.
 
 **Nudge** Plays the riff that many steps later, or earlier below zero, wrapping around. The pattern itself stays as written, so it moves where a line lands against the kick without redrawing it.
 

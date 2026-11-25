@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <map>
 #include <string>
@@ -26,6 +27,7 @@ public:
     static constexpr int kRulerH = 10;
     static constexpr int kFootH = 3;
     static constexpr float kLabelMinW = 44.0f;
+    static constexpr int kEdgeGrabPx = 5;
 
     SliceMapBrick(BrickHost& host, std::string organism, const Bindings& bound)
         : PolledBrick(host, organism, 2), map_(host, organism, bound(bind::kEdits)) {}
@@ -113,12 +115,14 @@ public:
             g.drawVerticalLine((int) sliceX(i), area.getY(), area.getBottom());
         }
 
+        paintCuts(g, area, sliceX);
         g.setFont(juce::FontOptions(10.0f));
         for (const auto& [idx, e] : map_.edits()) {
             if (idx >= (int) starts_.size()) continue;
             juce::String tag;
             if (e.pitch != 0) tag << (e.pitch > 0 ? "+" : "") << e.pitch;
             if (e.reverse) tag << (tag.isEmpty() ? "" : " ") << juce::String::fromUTF8("\xe2\x86\xba");
+            if (e.lengthPct < kFullSlicePct) tag << (tag.isEmpty() ? "" : " ") << e.lengthPct << "%";
             if (e.gainPct == 0) tag = "mute";
             if (tag.isEmpty()) continue;
             g.setColour(Palette::accent);
@@ -133,9 +137,19 @@ public:
         g.drawRoundedRectangle(r.reduced(0.5f), 5.0f, 1.0f);
     }
 
+    void mouseMove(const juce::MouseEvent& e) override {
+        setMouseCursor(cutEdgeAt(e.x, e.y) >= 0 ? juce::MouseCursor::LeftRightResizeCursor : juce::MouseCursor::NormalCursor);
+    }
+
     void mouseDown(const juce::MouseEvent& e) override {
         onRuler_ = showsRuler() && rulerArea().contains(e.getPosition());
         if (onRuler_) { setStartFrom(e.x); return; }
+        cutting_ = e.mods.isPopupMenu() ? -1 : cutEdgeAt(e.x, e.y);
+        if (cutting_ >= 0) {
+            map_.select(cutting_);
+            repaint();
+            return;
+        }
         const int s = sliceAt(e.x);
         if (s < 0) return;
         if (e.mods.isPopupMenu()) { map_.select(s); showMenu(s); repaint(); return; }
@@ -144,12 +158,18 @@ public:
     }
 
     void mouseUp(const juce::MouseEvent& e) override {
-        if (onRuler_ || e.mods.isPopupMenu() || e.mouseWasDraggedSinceMouseDown()) return;
+        const bool cut = cutting_ >= 0;
+        cutting_ = -1;
+        if (cut || onRuler_ || e.mods.isPopupMenu() || e.mouseWasDraggedSinceMouseDown()) return;
         map_.audition(sliceAt(e.x));
     }
 
     void mouseDrag(const juce::MouseEvent& e) override {
         if (onRuler_) { setStartFrom(e.x); return; }
+        if (cutting_ >= 0) {
+            if (cutTo(cutting_, e.x)) repaint();
+            return;
+        }
         if (e.mods.isPopupMenu()) return;
         if (map_.drag(e.x, e.y, e.mods.isShiftDown())) repaint();
     }
@@ -160,6 +180,39 @@ private:
         const auto area = waveArea();
         if (map_.starts().empty() || area.getWidth() <= 0) return -1;
         return map_.sliceAt((float) (px - area.getX()) / (float) area.getWidth());
+    }
+
+    float sliceLeft(int i) const {
+        const auto area = waveArea().toFloat();
+        const auto& starts = map_.starts();
+        return i < (int) starts.size() ? area.getX() + starts[(size_t) i] * area.getWidth() : area.getRight();
+    }
+
+    float keptRight(int i) const { return sliceLeft(i) + (sliceLeft(i + 1) - sliceLeft(i)) * (float) map_.lengthPct(i) / kFullSlicePct; }
+
+    int cutEdgeAt(int px, int py) const {
+        if (!map_.hasAudio() || !waveArea().contains(px, py)) return -1;
+        for (int i = 0; i < (int) map_.starts().size(); ++i)
+            if (std::abs((float) px - keptRight(i)) <= (float) kEdgeGrabPx && keptRight(i) - sliceLeft(i) > (float) kEdgeGrabPx) return i;
+        return -1;
+    }
+
+    bool cutTo(int s, int px) {
+        const float width = sliceLeft(s + 1) - sliceLeft(s);
+        if (width <= 0.0f) return false;
+        return map_.setLength(s, (int) std::lround(((float) px - sliceLeft(s)) / width * kFullSlicePct));
+    }
+
+    template <class SliceX>
+    void paintCuts(juce::Graphics& g, juce::Rectangle<float> wave, SliceX sliceX) {
+        for (int i = 0; i < (int) map_.starts().size(); ++i) {
+            if (map_.lengthPct(i) >= kFullSlicePct) continue;
+            const float kept = keptRight(i), end = sliceX(i + 1);
+            g.setColour(Palette::background.withAlpha(alpha::strong));
+            g.fillRect(kept, wave.getY(), end - kept, wave.getHeight());
+            g.setColour(Palette::accent);
+            g.drawVerticalLine((int) kept, wave.getY(), wave.getBottom());
+        }
     }
 
     void showMenu(int s) {
@@ -249,6 +302,7 @@ private:
 
     files::SliceMapModel map_;
     bool onRuler_ = false;
+    int cutting_ = -1;
 };
 
 }

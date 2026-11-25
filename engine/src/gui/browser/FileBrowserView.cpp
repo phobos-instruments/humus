@@ -20,10 +20,10 @@ constexpr const char* kColumnsKey = "browser.columns";
 FileBrowserView::FileBrowserView(BrowserIndex& index, PlaceRoots roots, Audition* audition)
     : index_(index), audition_(audition) {
     if (audition_ != nullptr) {
-        strip_ = std::make_unique<AuditionStrip>(*audition_);
-        strip_->engineRunning = [this] { return !engineRunning || engineRunning(); };
-        strip_->turnEngineOn = [this] { if (turnEngineOn) turnEngineOn(); };
-        addChildComponent(*strip_);
+        pane_ = std::make_unique<AuditionPane>(*audition_);
+        pane_->engineRunning = [this] { return !engineRunning || engineRunning(); };
+        pane_->turnEngineOn = [this] { if (turnEngineOn) turnEngineOn(); };
+        sideColumn_.addChildComponent(*pane_);
     }
     model_.setRoots(std::move(roots));
     addAndMakeVisible(sidebar_);
@@ -47,6 +47,7 @@ FileBrowserView::FileBrowserView(BrowserIndex& index, PlaceRoots roots, Audition
     sidebar_.onAddFolder = [this] { addWatchedFolder(); };
     sidebar_.onNewCollection = [this] { newCollection(); };
     sidebar_.onMenu = [this](const Place& p, juce::Point<int> at) { showPlaceMenu(p, at); };
+    sidebar_.onPin = [this](const std::vector<std::string>& folders) { pinFolders(folders); };
     search_.onChange = [this](const std::string& text) {
         model_.setSearch(text);
         refreshNow();
@@ -140,11 +141,11 @@ void FileBrowserView::refreshNow() {
     selectionMoved();
 }
 
-const Entry* FileBrowserView::focusedSound() const {
+const Entry* FileBrowserView::focusedPreview() const {
     const int row = model_.rowOf(model_.focused());
     if (row < 0 || model_.selection().size() != 1) return nullptr;
     const auto& e = model_.rows()[(size_t) row];
-    return e.kind == Kind::Sound || e.kind == Kind::Impulse ? &e : nullptr;
+    return e.kind == Kind::Sound || e.kind == Kind::Impulse || e.kind == Kind::Video ? &e : nullptr;
 }
 
 juce::String FileBrowserView::stripHint(const Entry& e) const {
@@ -155,18 +156,9 @@ juce::String FileBrowserView::stripHint(const Entry& e) const {
     return tr("browser.hint-browse", "Drag onto an organism or the timeline");
 }
 
-bool FileBrowserView::stripShown() const { return strip_ != nullptr && focusedSound() != nullptr; }
-
 void FileBrowserView::selectionMoved() {
     open_.setEnabled(pickable());
-    const auto* sound = focusedSound();
-    if (strip_ != nullptr) {
-        const bool was = strip_->isVisible();
-        strip_->setVisible(sound != nullptr);
-        if (sound != nullptr)
-            strip_->show(*sound, stripHint(*sound));
-        if (was != strip_->isVisible()) resized();
-    }
+    const auto* sound = focusedPreview();
     syncPanels();
     if (sound != nullptr && audition_ != nullptr && autoplay_ && audition_->current() != sound->path)
         audition_->play(sound->path, sound->facts.bpm);
@@ -178,7 +170,7 @@ void FileBrowserView::poll() {
         flash_.clear();
         repaint();
     }
-    if (strip_ != nullptr && strip_->isVisible()) strip_->tick();
+    if (pane_ != nullptr && pane_->isVisible()) pane_->tick();
     if (veil_.isVisible()) {
         if (!placeLoading()) refreshNow();
         else veil_.repaint();
@@ -227,8 +219,8 @@ void FileBrowserView::resized() {
         if (projects) b->setBounds(top.removeFromRight(kIconW).reduced(0, 2));
     }
     if (projects) top.removeFromRight(8);
-    if (inspectorOpen_) inspector_.setBounds(r.removeFromRight(BrowserInspector::kWidth));
-    if (stripShown()) strip_->setBounds(r.removeFromBottom(AuditionStrip::kHeight));
+    if (inspectorOpen_) side_.setBounds(r.removeFromRight(BrowserInspector::kWidth));
+    layoutSide();
     if (batch_.isVisible()) batch_.setBounds(r.removeFromBottom(BatchBar::kHeight));
     if (picking) {
         const int titleW = (int) std::ceil(juce::GlyphArrangement::getStringWidth(title_.getFont(), title_.getText())) + 2 * kGap;

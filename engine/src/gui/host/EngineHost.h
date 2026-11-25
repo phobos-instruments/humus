@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <array>
 #include <atomic>
 #include <cmath>
 #include <cstddef>
@@ -22,6 +23,8 @@
 #include "core/xml/Xml.h"
 #include "core/graph/AudioGraph.h"
 #include "core/graph/DeviceChannels.h"
+#include "core/graph/GraphMidi.h"
+#include "core/graph/MidiTap.h"
 #include "core/graph/PodModel.h"
 #include "core/midi/MidiControl.h"
 #include "core/midi/MidiRecord.h"
@@ -38,8 +41,11 @@
 #include "io/PatchDocument.h"
 #include "io/MediaRefs.h"
 
+#include "gui/host/DawBridge.h"
+#include "gui/host/StandardEnvironments.h"
 #include "gui/host/EngineHostAutomation.h"
 #include "gui/host/EngineHostClips.h"
+#include "gui/host/EngineHostSamples.h"
 #include "gui/host/LinkSync.h"
 #include "gui/host/ParamHistory.h"
 #include "gui/host/BrickHost.h"
@@ -90,13 +96,18 @@ class EngineHost final : public virtual BrickHost,
 public:
     EngineHost();
     explicit EngineHost(HostScheduler& scheduler);
-    EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> audio);
+    EngineHost(HostScheduler& scheduler, std::unique_ptr<HostAudioIo> audio,
+               HostEnvironment environment = appEnvironment());
+    const HostEnvironment& environment() const override { return env_; }
+    std::string videoScope() const override { return videoScope_; }
     ~EngineHost() override;
 
     void newDocument(juce::Point<int> masterPos = {520, 360});
     bool loadFile(const std::string& path, std::string& error) { return loadFileAs(path, path, error); }
     bool loadFileAs(const std::string& path, const std::string& documentPath, std::string& error);
     bool saveFile(const std::string& path, std::string& error);
+    bool loadDocumentText(const std::string& text, const std::string& documentPath, std::string& error);
+    std::string documentText();
     bool saveIntoProject(const std::string& chosen, std::string& landed, std::string& error);
     bool saveCopy(const std::string& path, std::string& error);
     bool writeSnapshot(const std::string& path, std::string& error);
@@ -181,17 +192,22 @@ public:
     void applyBypass(const std::string& name, bool on);
     void applyTrackMute(const std::string& name, bool on);
     void fireRandom(const std::string& name, bool high);
+    void fireEvolve(const std::string& name, bool high);
     void firePodRandom(const std::string& pod, bool high);
     void renamePodActions(const std::string& oldPod, const std::string& newPod);
     void fireTransport(const std::string& action, bool high);
     void firePresetStep(const std::string& name, int dir, bool high);
     void pullVoiceParams(const std::string& name);
+    bool asyncPluginsReady();
+    int paramBankShown(const std::string& organism, const std::string& param) const;
+    void switchParamBank(const std::string& organism, int from, int to);
     void pullVoiceTexts(const std::string& name) override;
     bool cordWouldStray(const std::string& src, int outlet, const std::string& dst, int inlet,
                         pods::Domain dom = pods::Domain::Audio) const;
     void connect(const std::string& src, int outlet, const std::string& dst, int inlet) override;
     void syncRoutes() override;
     void pushSocketSources();
+    void handOver(const std::string& changed = {}, const std::string& param = {});
     using ControlCord = hum::ControlCord;
     int controlInletsOf(const std::string& name) const override;
     bool socketShown(const std::string& name, const std::string& param) const;
@@ -281,14 +297,8 @@ public:
     void pollMidiOut();
     void routeLiveMidi(const juce::MidiMessage& m, int port = -1);
     void pushToMonitors(const juce::MidiMessage& m, int port);
-    void setLiveTargets(std::vector<std::string> nodes) override {
-        const juce::ScopedLock ml(midiState_.targetsLock);
-        liveTargets_ = std::move(nodes);
-    }
-    std::vector<std::string> liveTargets() const {
-        const juce::ScopedLock ml(midiState_.targetsLock);
-        return liveTargets_;
-    }
+    void setLiveTargets(std::vector<std::string> nodes) override;
+    std::vector<std::string> liveTargets() const;
 
     void injectLiveMidi(const juce::MidiMessage& m);
     void injectLiveMidiToNode(const std::string& node, const juce::MidiMessage& m);
@@ -366,6 +376,7 @@ public:
     PatternHost& patterns() override { return patterns_; }
 
     ClipEditor& clips() override { return clips_; }
+    SampleEditor& samples() override { return samples_; }
 
     MetaEditor& metapad() override { return metapad_; }
 
@@ -433,7 +444,7 @@ public:
         EngineHost& host_;
         bool prev_;
     };
-    unsigned liveControlGeneration() const { return liveControlGen_; }
+    unsigned liveControlGeneration() const override { return liveControlGen_; }
     void pokeLiveRefresh() override { ++liveControlGen_; }
 
     std::string clockNodeName() override;
@@ -517,6 +528,7 @@ public:
     juce::AudioDeviceManager& audioDevices() override { return audio_->manager(); }
     int maxTrackHeldForTest() const { return graph_ ? graph_->maxTrackHeld() : 0; }
     void resetMaxTrackHeldForTest() { if (graph_) graph_->resetMaxTrackHeld(); }
+    const AudioGraph* graphForTest() const { return graph_.get(); }
     void startDeviceForTest(juce::AudioIODevice& d) { audioDeviceAboutToStart(&d); }
     void renderOrganismForTest(const std::string& name, float* const* out, int numOut, int n) {
         const AudioLock::Scope sl(lock_);
@@ -608,7 +620,7 @@ public:
     int liveGrooveGrid() const;
     void performGroove(double amount);
     void performGrooveGrid(int index);
-    bool routesAlive() const { return graph_ != nullptr && graph_->modRouteCount() > 0; }
+    bool routesAlive() const override { return graph_ != nullptr && graph_->modRouteCount() > 0; }
 
     const std::string& notes() const { return model_.notes; }
     void setNotes(const std::string& s) {
@@ -678,6 +690,7 @@ private:
     HostScheduler& scheduler_;
     MetaEditor metapad_{*this, *this};
     ClipEditor clips_{*this, *this};
+    SampleEditor samples_{*this, *this};
     DeckHost decks_{*this, *this};
     PatternHost patterns_{*this, *this};
     PresetHost presets_{*this, *this};
@@ -731,6 +744,8 @@ private:
     void reloadChangedBoxes();
     void publishClock() override;
     void applyLoadedLayout();
+    void adoptDocument(PatchDocumentModel m, std::unique_ptr<xml::Element> raw, const std::string& documentPath);
+    void prepareSnapshot();
     void syncViewsFromPositions();
     static int countInlets(const PatchDocumentModel&, const std::string& name);
     static int countOutlets(const PatchDocumentModel&, const std::string& name);
@@ -839,14 +854,19 @@ private:
     std::vector<PendingMidiOut*> midiDrains_;
     std::vector<LiveMidiIn*> midiMonitors_;
     std::vector<std::pair<std::string, LiveMidiIn*>> namedLiveIns_;
-    std::vector<std::string> liveTargets_;
+    struct LiveTarget {
+        std::string node;
+        MidiReach reach;
+    };
+    MidiReach keyboardReachOf(const std::string& node) const;
+    std::vector<LiveTarget> liveTargets_;
     std::set<std::string> solo_;
     std::vector<std::string> soloable_;
     std::atomic<double> liveBeats_{0.0};
     bool midiOnlyEdit_ = false;
     unsigned fadedRebuilds_ = 0;
     std::string trackFeeding(const std::string& instrument);
-    std::string makeTrackFor(const std::string& instrument, const std::vector<int>& ports);
+    std::string makeTrackFor(const std::string& instrument, const std::vector<MidiReach>& reaches);
     void drainInletTap(std::vector<TimedMidi>& into);
     std::vector<TimedMidi> carryUnfinishedNotes(const std::vector<TimedMidi>& events, bool finalize);
     std::atomic<double> liveSeconds_{0.0};
@@ -913,6 +933,10 @@ private:
     void gatherRecordingsFor(const std::string& path);
     bool liveControl_ = false;
     bool derivedControl_ = false;
+    bool restoringState_ = false;
+    bool handingOver_ = false;
+    void handOverRoute(const std::string& source, const std::string& sink, const std::string& param,
+                       bool fresh, bool texts);
     bool noLatch_ = false;
     unsigned liveControlGen_ = 0;
 
@@ -954,6 +978,22 @@ public:
     static bool headless() { return headless_; }
     static void setHeadless() { headless_ = true; }
 
+
+    DawBridge* daw() { return daw_.get(); }
+    void setRenderOffline(bool offline) { renderOffline_ = offline; }
+    int dawControlCount() const override { return daw_ != nullptr ? DawBridge::kControls : 0; }
+    std::vector<DawMacroTarget> dawControlTargets(int slot) const override {
+        return daw_ != nullptr ? daw_->targets(slot) : std::vector<DawMacroTarget>{};
+    }
+    int dawControlFor(const std::string& organism, const std::string& param) const override {
+        return daw_ != nullptr ? daw_->slotFor(organism, param) : -1;
+    }
+    void addDawControlTarget(int slot, const std::string& organism, const std::string& param) override;
+    void removeDawControlTarget(const std::string& organism, const std::string& param) override;
+    void setDawControlRange(const std::string& organism, const std::string& param, double from, double to) override;
+    void setDawControlTargets(int slot, const std::vector<DawMacroTarget>& targets);
+    void serviceTick();
+
     static bool linkAllowed() { return linkAllowed_; }
     static void allowLink() { linkAllowed_ = true; }
 
@@ -966,10 +1006,17 @@ public:
 
 private:
     static inline bool ignoreSavedFormat_ = false;
+    HostEnvironment env_;
+    std::string videoScope_;
+    void noteMidiControl(const juce::MidiMessage& m, int port);
+    std::unique_ptr<DawBridge> daw_;
+    bool renderOffline_ = false;
+    std::atomic<bool> playIntent_{false};
     static inline bool headless_ = false;
     static inline bool linkAllowed_ = false;
     bool auxCheckPending_ = false;
     std::shared_ptr<bool> hostAlive_ = std::make_shared<bool>(true);
+    int asyncPluginListener_ = 0;
     std::atomic<bool> playing_{false};
     std::atomic<float> level_[2] {0.0f, 0.0f};
     std::atomic<double> lastCallbackMs_ {0.0};
@@ -998,6 +1045,7 @@ private:
     juce::MidiInputCallback& midiInputSink() override { return *this; }
     bool setLiveControl(bool on) override { return std::exchange(liveControl_, on); }
     bool setDerivedControl(bool on) override { return std::exchange(derivedControl_, on); }
+    bool setRestoringState(bool on) override { return std::exchange(restoringState_, on); }
     void noteTopologyChanged() override {
         if (onTopologyChanged) scheduler_.post([cb = onTopologyChanged] { cb(); });
     }
@@ -1021,6 +1069,7 @@ private:
     hum::LimiterCore limiter_;
     ParamHistory paramHistory_;
     std::map<std::string, bool> randomHigh_;
+    std::map<std::string, bool> evolveHigh_;
     std::map<std::string, bool> transportHigh_;
     std::map<std::string, bool> presetStepHigh_;
     int patternBatch_ = 0;

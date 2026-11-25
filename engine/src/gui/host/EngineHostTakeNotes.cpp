@@ -138,7 +138,9 @@ void EngineHost::flushMidiRecording(bool finalize) {
         bool wrap = true;
         int dur = cm->pattern.present && cm->pattern.duration > 0 ? cm->pattern.duration
                                                                   : 4 * 4 * Pattern::kTicksPerBeat;
-        if (tg.clip >= 0) {
+        if (tg.bank > 0) {
+            if (const int loop = patterns().bankLength(tg.node, tg.bank); loop > 0) dur = loop;
+        } else if (tg.clip >= 0) {
             const auto cs = clips().list(tg.node);
             if (tg.clip >= (int) cs.size()) { dead.push_back(tg.node); continue; }
             const auto& ci = cs[(size_t) tg.clip];
@@ -160,7 +162,11 @@ void EngineHost::flushMidiRecording(bool finalize) {
         if (fresh.empty()) continue;
         for (auto& n : fresh) n.colour = tg.takeColour;
         if (!midiState_.recordUndoPushed) { pushUndo(); midiState_.recordUndoPushed = true; }
-        if (tg.clip >= 0) {
+        if (tg.bank > 0) {
+            auto all = patterns().bankNotes(tg.node, tg.bank);
+            all.insert(all.end(), fresh.begin(), fresh.end());
+            patterns().setBankNotes(tg.node, tg.bank, all, dur);
+        } else if (tg.clip >= 0) {
             auto all = clips().notes(tg.node, tg.clip);
             all.insert(all.end(), fresh.begin(), fresh.end());
             clips().setNotes(tg.node, tg.clip, all, 0);

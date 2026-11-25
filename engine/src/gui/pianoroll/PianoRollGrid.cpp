@@ -56,7 +56,7 @@ void PianoRollEditor::paintKeys(juce::Graphics& g) {
         if (((pitch % 12) + 12) % 12 == 0) {
             g.setColour(juce::Colour(noteedit::kEbony));
             g.setFont(juce::Font(juce::FontOptions(9.0f)));
-            g.drawText("C" + juce::String(pitch / 12 - 1), 2, y - 1, kKeyW - 5, kRowH + 2,
+            g.drawText("C" + juce::String(octaveOf(pitch)), 2, y - 1, kKeyW - 5, kRowH + 2,
                        juce::Justification::centredRight, false);
         }
     }

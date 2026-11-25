@@ -38,6 +38,9 @@ inline constexpr int kMidiLanes = kMidiPortRows * kMidiChannelSlots;
 inline int midiLane(int port, int channel) {
     return midiPortRow(port) * kMidiChannelSlots + midiChannelSlot(channel);
 }
+inline int anyChannelLane(int lane) {
+    return lane - lane % kMidiChannelSlots + kAnyMidiChannel;
+}
 
 inline constexpr int kHeldThreshold = 63;
 inline bool isMidiSource(int id) { return id >= 0 && id < kMidiSourceCount; }
@@ -106,6 +109,10 @@ struct MidiSource {
     bool anyPort() const { return port < 0 || port >= kMidiPorts; }
     bool anyChannel() const { return channel == kAnyMidiChannel; }
     int lane() const { return midiLane(port, channel); }
+    bool hears(int fromPort, int fromChannel) const {
+        return (anyPort() || midiPortRow(fromPort) == midiPortRow(port))
+               && (anyChannel() || midiChannelSlot(fromChannel) == channel);
+    }
     bool operator==(const MidiSource& o) const {
         return cc == o.cc && held == o.held && lane() == o.lane();
     }

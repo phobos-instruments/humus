@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
+#include <map>
 #include <string>
 #include "hum/ParseInt.h"
 
@@ -15,8 +16,9 @@ inline void addSizeHeader(LayoutSpec& spec, bool panOption) {
     if (panOption) modes.push_back("Pan");
     spec.controls.push_back({CT::Combo, "", "", "Inputs", 8, 4, 108, 20, 2, false,
                              {"2", "3", "4", "5", "6", "7", "8"}, {{"reclass", "inputs"}}});
-    spec.controls.push_back({CT::Combo, "", "", "Mode", 126, 4, 130, 20, 2, false,
+    spec.controls.push_back({CT::Combo, "", "", "Mode", 126, 4, 100, 20, 2, false,
                              std::move(modes), {{"reclass", "mode"}}});
+    spec.controls.push_back({CT::MiniToggle, "Faders", "", "Faders", 232, 4, 54, 20, 2, false});
 }
 
 inline LayoutSpec fileRecorderLayout(const std::string& cls) {
@@ -86,13 +88,23 @@ inline LayoutSpec mixerLayout(const std::string& cls) {
     const int knobY = 50, knobH = kKnobH, top = 32;
     auto column = [&](int x, const std::string& gain, const std::string& mute,
                       const std::string& solo, const std::string& label, int meterCh) {
-        spec.controls.push_back({LayoutSpec::ControlType::MiniToggle, mute, "", "M", x, top, 24, 16, 2, false});
+        const auto grouped = [&](const char* group) {
+            return solo.empty() ? std::map<std::string, std::string>{} : std::map<std::string, std::string>{{"group", group}};
+        };
+        spec.controls.push_back({LayoutSpec::ControlType::MiniToggle, mute, "", "M", x, top, 24, 16, 2, false, {},
+                                 grouped("mute")});
         if (!solo.empty())
-            spec.controls.push_back({LayoutSpec::ControlType::MiniToggle, solo, "", "S", x + 26, top, 24, 16, 2, false});
+            spec.controls.push_back({LayoutSpec::ControlType::MiniToggle, solo, "", "S", x + 26, top, 24, 16, 2, false,
+                                     {}, grouped("solo")});
         std::map<std::string, std::string> extra;
         if (meterCh >= 0) extra["meter"] = std::to_string(meterCh);
+        auto asKnob = extra, asFader = extra;
+        asKnob["show-when"] = "Faders=0";
+        asFader["show-when"] = "Faders=1";
         spec.controls.push_back({LayoutSpec::ControlType::Knob, gain, "", label, x, knobY,
-                                 kKnobW, knobH, 2, false, {}, extra});
+                                 kKnobW, knobH, 2, false, {}, asKnob});
+        spec.controls.push_back({LayoutSpec::ControlType::VSlider, gain, "", label, x, knobY,
+                                 kKnobW, knobH, 2, false, {}, asFader});
     };
 
     column(kMasterX, "MasterGain", "MasterMute", "", "Master", -1);

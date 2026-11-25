@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 #include <functional>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -29,6 +30,13 @@ public:
                                                               std::string& error);
 
     static OrganismPtr createOrganism(const std::string& classRaw);
+
+    bool createsOnlyAsync(const juce::PluginDescription& desc);
+    std::unique_ptr<juce::AudioPluginInstance> takeAsyncInstance(const std::string& classRaw,
+                                                                 const juce::PluginDescription& desc);
+    bool prepareAsync(const std::string& classRaw, const juce::PluginDescription& desc, int count);
+    int addAsyncReadyListener(std::function<void()> listener);
+    void removeAsyncReadyListener(int id);
 
     using Retirer = std::function<void(std::unique_ptr<juce::AudioPluginInstance>, const std::string& classRaw)>;
     void setRetirer(Retirer retirer) { retirer_ = std::move(retirer); }
@@ -84,6 +92,17 @@ private:
     std::function<bool(const std::string&)> bridgePolicy_;
     Retirer retirer_;
     int instancesMade_ = 0;
+
+    struct AsyncWait {
+        std::vector<std::unique_ptr<juce::AudioPluginInstance>> ready;
+        bool inFlight = false;
+        bool failed = false;
+    };
+    void startAsync(const std::string& classRaw, const juce::PluginDescription& desc);
+    void landAsyncInstance(const std::string& classRaw, std::unique_ptr<juce::AudioPluginInstance> instance);
+    std::unordered_map<std::string, AsyncWait> async_;
+    std::map<int, std::function<void()>> asyncListeners_;
+    int nextAsyncListener_ = 0;
 };
 
 }

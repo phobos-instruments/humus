@@ -44,7 +44,7 @@ std::size_t EngineHost::approxBytes(const UndoState& s) {
         for (const auto& c : s.model.organisms) {
             n += c.name.size() + c.classRaw.size() + c.displayClass.size() + c.kind.size();
             n += params(c.properties) + pattern(c.pattern);
-            for (const auto& pr : c.presets) n += pr.name.size() + params(pr.properties);
+            for (const auto& pr : c.presets) n += pr.name.size() + params(pr.properties) + pattern(pr.pattern);
             for (const auto& l : c.automation)
                 n += l.propertyName.size()
                      + l.points.capacity() * sizeof(AutomationBreakpoint);
@@ -161,6 +161,7 @@ void EngineHost::applyDelta(const UndoState& step) {
     const bool wasOpen = paramStepOpen_;
     paramStepOpen_ = false;
     DerivedControlScope derived(*this);
+    const RestoringStateHold restoring(*this);
     {
         PatternSyncBatch batch(*this);
         for (const auto& r : step.patterns)
@@ -240,6 +241,7 @@ bool EngineHost::undo() {
     reloadAfterRebuild_.insert(reloadAfterRebuild_.end(), changed.begin(), changed.end());
     model_ = std::move(s.model);
     positions_ = std::move(s.positions);
+    samples_.syncRevisions();
     requestRebuild();
     dirty_ = s.wasDirty;
     return true;
@@ -270,6 +272,7 @@ bool EngineHost::redo() {
     reloadAfterRebuild_.insert(reloadAfterRebuild_.end(), changed.begin(), changed.end());
     model_ = std::move(s.model);
     positions_ = std::move(s.positions);
+    samples_.syncRevisions();
     requestRebuild();
     dirty_ = s.wasDirty;
     return true;

@@ -19,14 +19,14 @@ set(HUM_GUI_SOURCES
     src/gui/patcher/PatcherCanvas.cpp
     src/gui/patcher/PatcherCanvasEdit.cpp
     src/gui/patcher/PatcherCanvasFileDrop.cpp
-    src/gui/patcher/PatcherCanvasGeometry.cpp
-    src/gui/patcher/PatcherCanvasPorts.cpp
+    src/gui/patcher/OrganismTreePanel.cpp
     src/gui/video/X11Mirror.cpp
     src/gui/video/X11MirrorInput.cpp
     src/gui/patcher/PatcherCanvasPaint.cpp
     src/gui/patcher/PatcherCanvasArrange.cpp
     src/gui/patcher/PatcherCanvasMouse.cpp
     src/gui/patcher/PatcherCanvasCordGrab.cpp
+    src/gui/patcher/PatcherCanvasCordSelect.cpp
     src/gui/patcher/PatcherCanvasCordDrop.cpp
     src/gui/patcher/PatcherCanvasMenus.cpp
     src/gui/pianoroll/PianoRollEditor.cpp
@@ -41,6 +41,7 @@ set(HUM_GUI_SOURCES
     src/gui/tracks/TimelineRuler.cpp
     src/gui/tracks/ClipEditorView.cpp
     src/gui/tracks/ClipEditorEdits.cpp
+    src/gui/tracks/ClipEditorPencil.cpp
     src/gui/tracks/ClipEditorPaint.cpp
     src/gui/tracks/ClipEditorTransients.cpp
     src/gui/tracks/TrackRollView.cpp
@@ -54,6 +55,8 @@ set(HUM_GUI_SOURCES
     src/gui/tracks/TracksPaneScroll.cpp
     src/gui/tracks/SongView.cpp
     src/gui/tracks/SongViewAutoLane.cpp
+    src/gui/tracks/SongViewBlockLane.cpp
+    src/gui/tracks/SongViewBlockItems.cpp
     src/gui/tracks/SongViewBody.cpp
     src/gui/tracks/SongViewBoxPaint.cpp
     src/gui/tracks/SongViewClip.cpp
@@ -78,8 +81,6 @@ set(HUM_GUI_SOURCES
     src/gui/editor/ParameterPanel.cpp
     src/gui/editor/OrganismEditorFactory.cpp
     src/gui/properties/PropertiesPane.cpp
-    src/gui/style/HandCursors.cpp
-    src/gui/editor/Skin.cpp
     src/gui/editor/QuickMapDialog.cpp
     src/gui/app/WindowMinimum.cpp
     src/gui/properties/PropertiesPaneLayout.cpp
@@ -94,14 +95,12 @@ set(HUM_GUI_SOURCES
     src/gui/properties/ParameterWindowInput.cpp
     src/gui/properties/ParameterWindowLayout.cpp
     src/gui/patcher/PatcherCanvasDragHints.cpp
-    src/gui/settings/AppearanceThemes.cpp
     src/gui/help/HelpBrowser.cpp
     src/gui/properties/MetapadView.cpp
     src/gui/properties/PresetRail.cpp
     src/gui/bricks/ClipCell.cpp
     src/gui/bricks/ClipGridBrick.cpp
     src/gui/settings/MidiSettingsView.cpp
-    src/gui/patcher/ModernPicker.cpp
     src/gui/bricks/WaveDrawBrick.cpp
     src/gui/properties/ParameterControlView.cpp
     src/gui/properties/ParameterControlRows.cpp
@@ -113,14 +112,10 @@ set(HUM_GUI_SOURCES
     src/gui/video/VisualGlCanvasDecks.cpp
     src/gui/video/VisualGlCanvasTaps.cpp
     src/gui/video/VisualGlCanvas.cpp
-    src/gui/style/LookAndFeel.cpp
     src/gui/app/DefaultPatchHandler.cpp
     src/gui/settings/SettingsComponent.cpp
     src/gui/settings/AiSettingsView.cpp
-    src/gui/settings/AppearanceSettingsView.cpp
     src/gui/app/SetupWizard.cpp
-    src/gui/style/LookAndFeelSliders.cpp
-    src/gui/style/LookAndFeelWidgets.cpp
     src/gui/editor/LayoutEditor.cpp
     src/gui/bricks/PatternEditor.cpp
     src/gui/bricks/PatternEditorInput.cpp
@@ -133,8 +128,6 @@ set(HUM_HOST_SOURCES
     src/gui/assistant/AssistantEngine.cpp
     src/gui/assistant/AssistantAutomix.cpp
     src/gui/assistant/AssistantTools.cpp
-    src/gui/video/VideoLayer.cpp
-    src/gui/video/VideoEncoder.cpp
     src/gui/video/VisualPlanBuilder.cpp
     src/gui/video/VisualPlanSteps.cpp
     src/gui/host/HostAudioIo.cpp
@@ -144,6 +137,8 @@ set(HUM_HOST_SOURCES
     src/gui/host/HostHistory.cpp
     src/gui/host/GamepadHost.cpp
     src/gui/browser/Audition.cpp
+    src/gui/browser/AuditionPicture.cpp
+    src/gui/browser/AuditionPane.cpp
     src/gui/browser/BrowserInspector.cpp
     src/gui/browser/FileBrowserActions.cpp
     src/gui/browser/FileBrowserMenus.cpp
@@ -185,6 +180,7 @@ set(HUM_HOST_SOURCES
     src/gui/host/EngineHostTouch.cpp
     src/gui/host/EngineHostChoices.cpp
     src/gui/host/EngineHostControlCords.cpp
+    src/gui/host/EngineHostHandOver.cpp
     src/gui/host/EngineHostDevice.cpp
     src/gui/host/EngineHostDocument.cpp
     src/gui/host/EngineHostInsert.cpp
@@ -199,13 +195,20 @@ set(HUM_HOST_SOURCES
     src/gui/host/EngineHostInputReach.cpp
     src/gui/host/EngineHostTakeNotes.cpp
     src/gui/host/EngineHostTransport.cpp
+    src/gui/host/EngineHostDaw.cpp
+    src/gui/host/DawBridge.cpp
     src/gui/host/EngineHostUndo.cpp
     src/gui/host/EngineHostViews.cpp
     src/gui/host/EngineHostPattern.cpp
+    src/gui/host/EngineHostNoteBanks.cpp
+    src/gui/host/EngineHostChance.cpp
+    src/gui/host/EngineHostParamBanks.cpp
     src/gui/host/EngineHostClips.cpp
+    src/gui/host/EngineHostSamples.cpp
     src/gui/host/EngineHostPlugins.cpp
-    src/gui/app/AppSettings.cpp
     src/gui/host/OscHost.cpp
+    src/gui/host/OscUdpListener.cpp
+    src/gui/settings/OscNetRows.cpp
     src/gui/settings/OscSerial.cpp
     src/gui/host/ModHost.cpp
 )
@@ -220,18 +223,19 @@ set(HUM_HOST_SOURCES
 # HUM_VIDEO_NATIVE picks VideoEncoderMac.mm / VideoEncoderWin.cpp. Linux has
 # no system encoder, so it goes through the FFmpeg above, whose x264 is the
 # reason ffmpeg-lite.sh is a GPL build.
+set(HUM_MEDIA_SOURCES src/gui/video/VideoLayer.cpp src/gui/video/VideoEncoder.cpp)
 add_library(hum_video INTERFACE)
 target_link_libraries(hum_video INTERFACE hum_ffmpeg)
 
 
 if(APPLE)
-  list(APPEND HUM_HOST_SOURCES src/gui/video/VideoLayerMac.mm src/gui/video/VideoEncoderMac.mm)
+  list(APPEND HUM_MEDIA_SOURCES src/gui/video/VideoLayerMac.mm src/gui/video/VideoEncoderMac.mm)
   target_link_libraries(hum_video INTERFACE
     "-framework AVFoundation" "-framework CoreMedia" "-framework CoreVideo")
   target_compile_definitions(hum_video INTERFACE HUM_VIDEO_NATIVE=1)
   message(STATUS "video encode: AVFoundation (H.264 through the system encoder)")
 elseif(WIN32)
-  list(APPEND HUM_HOST_SOURCES src/gui/video/VideoLayerMediaFoundation.cpp src/gui/video/VideoEncoderWin.cpp)
+  list(APPEND HUM_MEDIA_SOURCES src/gui/video/VideoLayerMediaFoundation.cpp src/gui/video/VideoEncoderWin.cpp)
   target_link_libraries(hum_video INTERFACE mfplat mfreadwrite mfuuid ole32)
   target_compile_definitions(hum_video INTERFACE HUM_MEDIA_FOUNDATION=1 HUM_VIDEO_NATIVE=1)
   message(STATUS "video decode: Media Foundation")
@@ -239,7 +243,7 @@ elseif(WIN32)
 endif()
 
 if(HUM_FFMPEG_FOUND)
-  list(APPEND HUM_HOST_SOURCES src/gui/video/VideoLayerFfmpeg.cpp)
+  list(APPEND HUM_MEDIA_SOURCES src/gui/video/VideoLayerFfmpeg.cpp)
   message(STATUS "video decode: the system's, with FFmpeg behind it for what it cannot open")
 elseif(NOT APPLE AND NOT WIN32)
   message(WARNING
@@ -250,7 +254,7 @@ endif()
 
 # The rpath is a target property, not a link option: Ninja eats the $ORIGIN.
 function(hum_link_video target)
-  target_link_libraries(${target} PRIVATE hum_video)
+  target_link_libraries(${target} PRIVATE hum_media)
   if(HUM_FFMPEG_FOUND AND HUM_FFMPEG_ROOT)
     set_property(TARGET ${target} APPEND PROPERTY BUILD_RPATH
       "\$ORIGIN/lib" "${HUM_FFMPEG_ROOT}/lib")
@@ -270,11 +274,13 @@ if(APPLE)
 else()
   list(APPEND HUM_HOST_SOURCES src/gui/host/DeviceProbeNone.cpp)
 endif()
+if(WIN32)
+  list(APPEND HUM_GUI_SOURCES src/gui/plugins/EmbeddedPluginViewWin.cpp)
+endif()
 if(APPLE)
   list(APPEND HUM_GUI_SOURCES
     src/gui/plugins/EmbeddedPluginViewMac.mm
     src/gui/plugins/PluginEditorWindowMac.mm
-    src/gui/style/HandCursors.mm
     src/gui/app/AppNapMac.mm
     src/gui/app/MenuBarTitlesMac.mm
     src/gui/tracks/FileDragImageMac.mm

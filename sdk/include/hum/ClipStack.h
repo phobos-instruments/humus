@@ -13,7 +13,7 @@ struct Span { int startTick = 0; int lengthTicks = 0; };
 inline constexpr int kEndlessTicks = 1 << 28;
 
 inline bool placed(const PatternChannel& ch) {
-    return ch.type != "trigger-timepoints" && ch.startTick >= 0 && ch.lengthTicks > 0;
+    return ch.type != "trigger-timepoints" && ch.type != kNoteBankChannel && ch.startTick >= 0 && ch.lengthTicks > 0;
 }
 
 inline Span extentOf(const PatternChannel& ch) {

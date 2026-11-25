@@ -33,18 +33,18 @@ void EngineHost::routeLiveMidi(const juce::MidiMessage& m, int port) {
     if (routable)
         for (auto* in : liveMidiIns_)
             if (port < 0 || in->liveMidiPort() == kLiveMidiAllPorts || in->liveMidiPort() == port)
-                in->pushLiveMidi(ev);
+                in->pushLiveMidi(ev, port);
     const bool note = m.isNoteOn() || m.isNoteOff();
     auto sounds = [&](const std::string& node) {
         return !m.isNoteOn() || midiState_.silenced.count(node) == 0;
     };
     auto thruNow = [&](const MidiState::RecordTarget& tg) {
-        return tg.thru && tg.hearsPort(port) && (tg.inlet || (playing_ && note));
+        return tg.thru && tg.hears(port, m.getChannel()) && (tg.inlet || (playing_ && note));
     };
     if (!routable) return;
     if (m.isNoteOn())
         for (const auto& tg : midiState_.recordTargets)
-            if (tg.inlet && tg.hearsPort(port)) ++midiState_.keyboardHits[tg.node];
+            if (tg.inlet && tg.hears(port, m.getChannel())) ++midiState_.keyboardHits[tg.node];
     for (const auto& tg : midiState_.recordTargets)
         if (thruNow(tg) && sounds(tg.node))
             for (auto& [nm, in] : namedLiveIns_)
@@ -58,11 +58,32 @@ void EngineHost::routeLiveMidi(const juce::MidiMessage& m, int port) {
     }
     for (const auto& target : liveTargets_) {
         const bool already = std::any_of(midiState_.recordTargets.begin(), midiState_.recordTargets.end(),
-                                          [&](const MidiState::RecordTarget& tg) { return thruNow(tg) && tg.node == target; });
-        if (already || !sounds(target)) continue;
+                                          [&](const MidiState::RecordTarget& tg) { return thruNow(tg) && tg.node == target.node; });
+        if (already || !sounds(target.node)) continue;
+        if (port >= 0 && !target.reach.hears(port, m.getChannel())) continue;
         for (auto& [nm, in] : namedLiveIns_)
-            if (nm == target) { in->pushLiveMidi(ev); break; }
+            if (nm == target.node) { in->pushLiveMidi(ev); break; }
     }
+}
+
+MidiReach EngineHost::keyboardReachOf(const std::string& node) const {
+    const auto* cm = model_.byName(node);
+    if (cm == nullptr) return {};
+    return {cm->trackInput >= 0 ? cm->trackInput : kLiveMidiAllPorts, cm->trackInputChannel};
+}
+
+void EngineHost::setLiveTargets(std::vector<std::string> nodes) {
+    std::vector<LiveTarget> next;
+    for (auto& n : nodes) next.push_back({n, keyboardReachOf(n)});
+    const juce::ScopedLock ml(midiState_.targetsLock);
+    liveTargets_ = std::move(next);
+}
+
+std::vector<std::string> EngineHost::liveTargets() const {
+    std::vector<std::string> names;
+    const juce::ScopedLock ml(midiState_.targetsLock);
+    for (const auto& t : liveTargets_) names.push_back(t.node);
+    return names;
 }
 
 void EngineHost::pushToMonitors(const juce::MidiMessage& m, int port) {
@@ -135,6 +156,14 @@ void EngineHost::panic() {
         const AudioLock::Scope sl(lock_);
         if (graph_ != nullptr) graph_->panic();
     }
+    if (daw_ != nullptr) {
+        for (int channel = 1; channel <= kMidiChannels; ++channel) {
+            for (const int cc : {kSustainController, kAllSoundOffController, kAllNotesOffController})
+                daw_->send(juce::MidiMessage::controllerEvent(channel, cc, 0));
+            daw_->send(juce::MidiMessage::pitchWheel(channel, kBendCentre));
+        }
+        return;
+    }
     const juce::ScopedLock ml(midiState_.targetsLock);
     for (int port = 0; port < MidiState::kPorts; ++port) {
         auto* out = midiState_.outForPort(port);
@@ -148,6 +177,7 @@ void EngineHost::panic() {
 }
 
 void EngineHost::pollMidiOut() {
+    if (env_.drivenByDaw) return;
     MidiEvent buf[128];
     juce::MidiBuffer blocks[kMidiPorts];
     {

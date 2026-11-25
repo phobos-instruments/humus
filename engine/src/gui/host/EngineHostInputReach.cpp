@@ -3,6 +3,7 @@
 #include "gui/host/EngineHost.h"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <set>
 #include <string>
@@ -57,15 +58,17 @@ std::string EngineHost::trackFeeding(const std::string& instrument) {
     return {};
 }
 
-std::string EngineHost::makeTrackFor(const std::string& instrument, const std::vector<int>& ports) {
+std::string EngineHost::makeTrackFor(const std::string& instrument, const std::vector<MidiReach>& reaches) {
     if (model_.byName(instrument) == nullptr) return {};
     auto track = addOrganism(classWithRole(role::kMidiTrack), position(instrument).translated(-160, 0));
     if (track.empty()) return {};
     if (renameOrganism(track, instrument + " MIDI")) track = instrument + " MIDI";
     connectMidi(track, 0, instrument, 0);
     patterns().ensureNote(track);
-    if (ports.size() == 1 && (ports.front() >= 0 || ports.front() == OrganismModel::kTrackInputAll))
-        midi().setTrackInput(track, ports.front());
+    if (reaches.size() == 1 && (reaches.front().port >= 0 || reaches.front().port == OrganismModel::kTrackInputAll)) {
+        midi().setTrackInput(track, reaches.front().port);
+        midi().setTrackChannel(track, reaches.front().channel);
+    }
     return track;
 }
 
@@ -81,21 +84,21 @@ std::vector<std::string> EngineHost::ensureTracksFeeding(const std::vector<Input
     MidiOnlyEditScope quiet(*this);
     beginTransaction();
     for (const auto* reach : missing)
-        if (const auto made = makeTrackFor(reach->instrument, reach->ports); !made.empty()) out.push_back(made);
+        if (const auto made = makeTrackFor(reach->instrument, reach->reaches); !made.empty()) out.push_back(made);
     endTransaction();
     return out;
 }
 
 std::vector<InputReach> EngineHost::rowsReachedByInput() {
-    std::map<std::string, std::set<int>> tracks, instruments;
+    std::map<std::string, std::set<MidiReach>> tracks, instruments;
     if (graph_ == nullptr) return {};
-    auto land = [&](const std::string& node, int port) {
+    auto land = [&](const std::string& node, MidiReach reach) {
         if (nodeIsMidiTrack(node) || nodeHoldsNotes(node)) {
-            tracks[node].insert(port);
+            tracks[node].insert(reach);
             return true;
         }
         if (nodePlaysNotes(node)) {
-            instruments[node].insert(port);
+            instruments[node].insert(reach);
             return true;
         }
         return false;
@@ -104,7 +107,7 @@ std::vector<InputReach> EngineHost::rowsReachedByInput() {
         if (!classHasRole(cm.classRaw, role::kMidiIn)) continue;
         auto* in = dynamic_cast<LiveMidiIn*>(graph_->find(cm.name));
         if (in == nullptr) continue;
-        const int port = in->liveMidiPort();
+        const MidiReach reach{in->liveMidiPort(), (int) std::lround(liveParamValue(cm.name, "Channel"))};
         std::set<std::string> seen{cm.name};
         std::vector<std::string> frontier{cm.name};
         while (!frontier.empty()) {
@@ -112,7 +115,7 @@ std::vector<InputReach> EngineHost::rowsReachedByInput() {
             frontier.pop_back();
             for (const auto& cord : model_.midiConnections) {
                 if (cord.src != at || !seen.insert(cord.dst).second) continue;
-                if (!land(cord.dst, port) && nodePassesMidiOn(cord.dst)) frontier.push_back(cord.dst);
+                if (!land(cord.dst, reach) && nodePassesMidiOn(cord.dst)) frontier.push_back(cord.dst);
             }
         }
     }
@@ -120,23 +123,25 @@ std::vector<InputReach> EngineHost::rowsReachedByInput() {
         const juce::ScopedLock ml(midiState_.targetsLock);
         for (const auto& t : midiState_.targets) {
             if (t.mode == OrganismModel::kMidiCordsOnly) continue;
+            const int channel = t.mode == OrganismModel::kMidiChannel ? t.channel : kAllMidiChannels;
             for (const auto& cm : model_.organisms)
-                if (dynamic_cast<PluginNode*>(graph_->find(cm.name)) == t.hp) land(cm.name, kLiveMidiAllPorts);
+                if (dynamic_cast<PluginNode*>(graph_->find(cm.name)) == t.hp) land(cm.name, {kLiveMidiAllPorts, channel});
         }
     }
     std::vector<InputReach> out;
-    for (const auto& [track, ports] : tracks) out.push_back({track, std::vector<int>(ports.begin(), ports.end()), {}});
-    for (const auto& [instrument, ports] : instruments)
-        out.push_back({{}, std::vector<int>(ports.begin(), ports.end()), instrument});
+    for (const auto& [track, reaches] : tracks)
+        out.push_back({track, std::vector<MidiReach>(reaches.begin(), reaches.end()), {}});
+    for (const auto& [instrument, reaches] : instruments)
+        out.push_back({{}, std::vector<MidiReach>(reaches.begin(), reaches.end()), instrument});
     return out;
 }
 
 void EngineHost::refreshArmedInputs() {
     std::set<std::string> corded;
-    std::map<std::string, std::vector<int>> played;
+    std::map<std::string, std::vector<MidiReach>> played;
     for (const auto& r : rowsReachedByInput()) {
         if (!r.node.empty()) corded.insert(r.node);
-        else played[r.instrument] = r.ports;
+        else played[r.instrument] = r.reaches;
     }
     std::vector<std::string> tapped;
     {
@@ -150,24 +155,28 @@ void EngineHost::refreshArmedInputs() {
             tapped.push_back(t.node);
             t.thru = false;
             t.fromInput = false;
-            t.ports.clear();
+            t.reaches.clear();
             const auto* cm = model_.byName(t.node);
             const int input = cm != nullptr ? cm->trackInput : OrganismModel::kTrackInputAuto;
+            const int channel = cm != nullptr ? cm->trackInputChannel : kAllMidiChannels;
             if (corded.count(t.node) != 0 || input == OrganismModel::kTrackInputNone) continue;
-            std::vector<int> playedPorts;
+            std::vector<MidiReach> playedBy;
             for (const auto& cord : model_.midiConnections)
                 if (const auto it = played.find(cord.dst); cord.src == t.node && it != played.end())
-                    playedPorts.insert(playedPorts.end(), it->second.begin(), it->second.end());
+                    playedBy.insert(playedBy.end(), it->second.begin(), it->second.end());
             t.fromInput = true;
             if (input == OrganismModel::kTrackInputAuto) {
-                t.ports = playedPorts.empty() ? std::vector<int>{kLiveMidiAllPorts} : playedPorts;
-                t.thru = playedPorts.empty();
+                t.reaches = playedBy.empty() ? std::vector<MidiReach>{{kLiveMidiAllPorts, channel}} : playedBy;
+                if (channel != kAllMidiChannels)
+                    for (auto& r : t.reaches) r.channel = channel;
+                t.thru = playedBy.empty();
             } else {
-                t.ports = {input};
-                t.thru = std::none_of(playedPorts.begin(), playedPorts.end(),
-                                      [&](int p) { return p == kLiveMidiAllPorts || p == input; });
+                t.reaches = {{input, channel}};
+                t.thru = std::none_of(playedBy.begin(), playedBy.end(),
+                                      [&](const MidiReach& r) { return r.port == kLiveMidiAllPorts || r.port == input; });
             }
         }
+        for (auto& live : liveTargets_) live.reach = keyboardReachOf(live.node);
     }
     if (graph_ == nullptr) return;
     const AudioLock::Scope sl(lock_);

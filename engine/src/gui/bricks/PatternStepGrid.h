@@ -13,11 +13,15 @@
 #include "core/midi/MidiFormat.h"
 #include "core/params/Randomize.h"
 #include "gui/style/Colours.h"
+#include "gui/style/DropBadge.h"
 #include "gui/host/BrickHost.h"
 #include "gui/host/EngineHostPattern.h"
 #include "io/PatchDocument.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/StepCellPaint.h"
+#include "gui/bricks/StepChanceView.h"
+#include "gui/editor/AutomateMenu.h"
+#include "gui/bricks/StepGridReadout.h"
 #include "gui/bricks/StepPlayhead.h"
 #include "gui/common/UiTicker.h"
 #include "gui/common/Localisation.h"
@@ -26,15 +30,21 @@
 
 namespace hum {
 
-class PatternStepGrid : public juce::Component, public juce::FileDragAndDropTarget {
+class PatternStepGrid : public juce::Component, public juce::FileDragAndDropTarget, public juce::TooltipClient {
 public:
     using Mode = grids::StepGridModel::Mode;
 
     PatternStepGrid(BrickHost& host, std::string name, Mode mode, std::string nudgeParam = {},
-                    std::string transposeParam = {})
+                    std::string transposeParam = {}, std::string viewParam = {}, std::string chancePrefix = {})
         : host_(host), name_(name), mode_(mode),
-          grid_(host, host.patterns(), name, mode, std::move(nudgeParam), std::move(transposeParam)) {
-        tickerId_ = UiTicker::instance().add([this] { pollPlayhead(); pollBank(); });
+          grid_(host, host.patterns(), name, mode, std::move(nudgeParam), std::move(transposeParam),
+                std::move(chancePrefix)),
+          chance_(host, name, std::move(viewParam), grid_) {
+        tickerId_ = UiTicker::instance().add([this] {
+            pollPlayhead();
+            pollBank();
+            if (chance_.changed()) repaint();
+        });
     }
     ~PatternStepGrid() override { UiTicker::instance().remove(tickerId_); }
 
@@ -44,7 +54,14 @@ public:
         g.fillAll(Palette::panel.darker(0.06f));
         if (mode_ == Mode::Bassline) paintBassline(g);
         else                         paintArp(g);
+        chance_.paint(g, playingSteps(), (float) gridWidth(), (float) getHeight(), familyColour());
         paintPlayhead(g);
+        if (chance_.available()) stepgrid::paintChanceKey(g, chanceKey(), chance_.on(), familyColour());
+    }
+
+    juce::String getTooltip() override {
+        return chance_.available() && chanceKey().contains(getMouseXYRelative().toFloat()) ? stepgrid::chanceKeyTip()
+                                                                                          : juce::String();
     }
 
 
@@ -54,7 +71,13 @@ public:
             if (isRiffFile(f)) return true;
         return false;
     }
+    void fileDragEnter(const juce::StringArray&, int, int) override { dropHot_ = true; repaint(); }
+    void fileDragExit(const juce::StringArray&) override { dropHot_ = false; repaint(); }
+    void paintOverChildren(juce::Graphics& g) override {
+        if (dropHot_) drop::paintTarget(g, getLocalBounds().toFloat());
+    }
     void filesDropped(const juce::StringArray& files, int, int) override {
+        dropHot_ = false;
         importRiffFiles(host_, name_, files);
         repaint();
     }
@@ -62,7 +85,26 @@ public:
     void mouseMove(const juce::MouseEvent& e) override { setMouseCursor(cursorFor(e, false)); }
 
     void mouseDown(const juce::MouseEvent& e) override {
+        if (chance_.available() && chanceKey().contains(e.position)) {
+            if (!e.mods.isPopupMenu()) {
+                chance_.toggle();
+                repaint();
+            }
+            return;
+        }
+        if (e.x >= gridWidth()) return;
+        if (chance_.on() && e.mods.isPopupMenu()) {
+            chanceMenu(grid_.columnAt(e.x, gridWidth()), e.getScreenPosition());
+            return;
+        }
         if (mode_ == Mode::Arp && e.mods.isPopupMenu()) { stampMenu(); return; }
+        if (!e.mods.isPopupMenu() && (chance_.on() || (chance_.available() && e.mods.isCommandDown()))) {
+            grid_.pressed();
+            chance_.setDragging(true);
+            grid_.setChanceAt(e.x, e.y, gridWidth(), getHeight());
+            repaint();
+            return;
+        }
         setMouseCursor(cursorFor(e, !e.mods.isPopupMenu()));
         grid_.pressed();
         if (mode_ == Mode::Bassline && e.mods.isAltDown()) {
@@ -72,16 +114,24 @@ public:
         apply(e, true);
     }
     void mouseDrag(const juce::MouseEvent& e) override {
-        if (grid_.sliding()) { grid_.slideTo(e.x, getWidth()); repaint(); return; }
+        if (e.mouseDownPosition.x >= (float) gridWidth()) return;
+        if (chance_.dragging()) { grid_.setChanceAt(e.x, e.y, gridWidth(), getHeight()); repaint(); return; }
+        if (grid_.sliding()) { grid_.slideTo(e.x, gridWidth()); repaint(); return; }
         apply(e, false);
     }
     void mouseUp(const juce::MouseEvent& e) override {
         setMouseCursor(cursorFor(e, false));
         grid_.endSlide();
+        chance_.setDragging(false);
         if (grid_.releaseDrag()) repaint();
     }
 
+    int gridWidth() const { return std::max(1, getWidth() - stepgrid::kChanceKeyW - 4); }
+    juce::Rectangle<float> chanceKey() const { return StepChanceView::key(getWidth(), mode_ == Mode::Arp ? 4.0f : 0.0f); }
+
     juce::MouseCursor cursorFor(const juce::MouseEvent& e, bool held) const {
+        if (chanceKey().contains(e.position)) return juce::MouseCursor::PointingHandCursor;
+        if (chance_.on() || (chance_.available() && e.mods.isCommandDown())) return juce::MouseCursor::UpDownResizeCursor;
         if (mode_ != Mode::Bassline) return juce::MouseCursor::PointingHandCursor;
         if (e.mods.isAltDown()) return juce::MouseCursor::LeftRightResizeCursor;
         if (e.y >= getHeight() - 2 * kRowH) return juce::MouseCursor::PointingHandCursor;
@@ -91,11 +141,10 @@ public:
 private:
     static constexpr int kRowH = grids::StepGridModel::kRowH;
 
-
     void paintBassline(juce::Graphics& g) {
         const auto steps = grid_.shownBassline();
         const int n = std::max(1, (int) steps.size());
-        const float cw = getWidth() / (float) n;
+        const float cw = gridWidth() / (float) n;
         const int laneBottom = getHeight() - 2 * kRowH;
         const auto fam = familyColour();
         for (int i = 0; i < (int) steps.size(); ++i) {
@@ -128,9 +177,9 @@ private:
             cell(1, s.slide, "S");
         }
         g.setColour(Palette::background.withAlpha(alpha::mid));
-        g.drawHorizontalLine(laneBottom, 0.0f, (float) getWidth());
+        g.drawHorizontalLine(laneBottom, 0.0f, (float) gridWidth());
         const int dragCol = grid_.dragColumn();
-        if (dragCol >= 0 && dragCol < (int) steps.size() && steps[(size_t) dragCol].gate)
+        if (!chance_.dragging() && dragCol >= 0 && dragCol < (int) steps.size() && steps[(size_t) dragCol].gate)
             paintNoteReadout(g, steps[(size_t) dragCol].note, dragCol * cw + cw * 0.5f,
                              grids::StepGridModel::noteY(steps[(size_t) dragCol].note, laneBottom), fam);
     }
@@ -148,24 +197,35 @@ private:
     juce::String noteReadoutText(int note) const { return juce::String(grid_.noteReadout(note)); }
 
     void paintNoteReadout(juce::Graphics& g, int note, float cx, float barY, juce::Colour fam) {
-        const auto text = noteReadoutText(note);
-        g.setFont(juce::FontOptions(11.0f).withStyle("Bold"));
-        const float w = juce::GlyphArrangement::getStringWidth(g.getCurrentFont(), text) + 12.0f;
-        const float h = 18.0f;
-        float x = std::clamp(cx - w * 0.5f, 2.0f, std::max(2.0f, getWidth() - w - 2.0f));
-        float y = barY - h - 8.0f;
-        if (y < 2.0f) y = barY + 8.0f;
-        const juce::Rectangle<float> pill(x, y, w, h);
-        g.setColour(Palette::background.withAlpha(alpha::nearOpaque));
-        g.fillRoundedRectangle(pill, 4.0f);
-        g.setColour(fam.brighter(0.4f));
-        g.drawRoundedRectangle(pill, 4.0f, 1.0f);
-        g.setColour(Palette::text);
-        g.drawText(text, pill, juce::Justification::centred);
+        stepgrid::paintReadout(g, noteReadoutText(note), cx, barY, (float) gridWidth(), fam);
+    }
+
+    std::vector<bool> playingSteps() const {
+        std::vector<bool> plays;
+        if (mode_ == Mode::Bassline)
+            for (const auto& s : grid_.shownBassline()) plays.push_back(s.gate);
+        else
+            for (const auto& s : grid_.arpSteps()) plays.push_back(s.trigger);
+        return plays;
+    }
+
+    void chanceMenu(int col, juce::Point<int> at) {
+        const auto param = grid_.chanceParamAtColumn(col);
+        if (param.empty()) { gridMenu(at); return; }
+        juce::PopupMenu head;
+        head.addSectionHeader(tr("pattern-step-grid.step-chance-title", "Step {step} chance", {{"step", juce::String(col + 1)}}));
+        showAutomateMenu(host_, name_, param, at, [safe = juce::Component::SafePointer<PatternStepGrid>(this)] {
+            if (safe != nullptr) safe->repaint();
+        }, true, {}, std::move(head));
+    }
+
+    void gridMenu(juce::Point<int> at) {
+        if (mode_ == Mode::Bassline) bankMenu(at);
+        else stampMenu();
     }
 
     void applyBassline(const juce::MouseEvent& e, bool down) {
-        const auto hit = grid_.bassline(e.x, e.y, getWidth(), getHeight(), down, e.mods.isPopupMenu());
+        const auto hit = grid_.bassline(e.x, e.y, gridWidth(), getHeight(), down, e.mods.isPopupMenu());
         if (hit == grids::StepGridModel::Hit::BankMenu) bankMenu(e.getScreenPosition());
         if (hit == grids::StepGridModel::Hit::Changed) repaint();
     }
@@ -220,7 +280,7 @@ private:
         auto steps = grid_.arpSteps();
         auto ups = grid_.arpUps();
         const int n = std::max(1, (int) steps.size());
-        const float cw = getWidth() / (float) n;
+        const float cw = gridWidth() / (float) n;
         const int upTop = getHeight() - 2 * kRowH;
         const int tieTop = getHeight() - kRowH;
         const auto fam = familyColour();
@@ -254,11 +314,11 @@ private:
             else       paintSoilCell(g, socket);
         }
         g.setColour(Palette::background.withAlpha(alpha::mid));
-        g.drawHorizontalLine(tieTop, 0.0f, (float) getWidth());
+        g.drawHorizontalLine(tieTop, 0.0f, (float) gridWidth());
     }
 
     void applyArp(const juce::MouseEvent& e, bool down) {
-        if (grid_.arp(e.x, e.y, getWidth(), getHeight(), down)) repaint();
+        if (grid_.arp(e.x, e.y, gridWidth(), getHeight(), down)) repaint();
     }
 
     void stampMenu() {
@@ -287,7 +347,7 @@ private:
 
     juce::Rectangle<int> columnRect(int col) const {
         const int n = std::max(1, grid_.stepCount());
-        const float cw = getWidth() / (float) n;
+        const float cw = gridWidth() / (float) n;
         return juce::Rectangle<float>(col * cw, 0.0f, cw, (float) getHeight()).getSmallestIntegerContainer();
     }
     void paintPlayhead(juce::Graphics& g) {
@@ -315,8 +375,10 @@ private:
     std::string name_;
     Mode mode_;
     grids::StepGridModel grid_;
+    StepChanceView chance_;
     int tickerId_ = 0;
     int playhead_ = -1;
+    bool dropHot_ = false;
     JuceFilePicker picker_;
 };
 

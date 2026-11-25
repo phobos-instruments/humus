@@ -101,6 +101,7 @@ public:
     void releaseTap(TapTarget& rb);
 
     void setPreviewNode(std::string n) { previewNode_ = std::move(n); }
+    void setStoreScope(std::string scope) { storeScope_ = std::move(scope); }
 
     unsigned renderCount() const { return renders_.load(); }
 
@@ -196,6 +197,7 @@ private:
 
     int prevW_ = 160, prevH_ = 90;
     std::string previewNode_;
+    std::string storeScope_;
     std::map<std::string, TapTarget> taps_;
     TapTarget grabTarget_;
     std::atomic<unsigned> renders_{0};

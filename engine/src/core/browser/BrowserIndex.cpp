@@ -146,7 +146,8 @@ int BrowserIndex::probePending(int most) {
         std::vector<std::pair<std::string, Kind>> out;
         for (const auto& [path, e] : i.entries()) {
             if ((int) out.size() >= most) break;
-            const bool probes = e.kind == Kind::Sound || e.kind == Kind::Impulse || e.kind == Kind::Project || e.kind == Kind::Patch;
+            const bool probes = e.kind == Kind::Sound || e.kind == Kind::Impulse || e.kind == Kind::Video
+                                || e.kind == Kind::Project || e.kind == Kind::Patch;
             if (probes && !e.facts.probed) out.emplace_back(path, e.kind);
         }
         return out;

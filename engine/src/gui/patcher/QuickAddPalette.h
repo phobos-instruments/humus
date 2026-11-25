@@ -23,8 +23,8 @@ class QuickAddPalette : public juce::Component, private juce::ListBoxModel {
 public:
     std::function<void(const std::string& cls)> onPick;
 
-    QuickAddPalette() {
-        for (const auto& origin : classPickerGroups())
+    explicit QuickAddPalette(const ClassFilter& keep = {}) {
+        for (const auto& origin : classPickerGroups(keep))
             for (const auto& group : origin.second)
                 for (const auto& cls : group.second) {
                     Entry e;
@@ -59,10 +59,10 @@ public:
     }
 
     static void show(juce::Rectangle<int> screenAnchor,
-                     std::function<void(const std::string&)> onPick) {
-        auto content = std::make_unique<QuickAddPalette>();
+                     std::function<void(const std::string&)> onPick, const PickerScope& scope = {}) {
+        auto content = std::make_unique<QuickAddPalette>(scope.keep);
         content->onPick = std::move(onPick);
-        juce::CallOutBox::launchAsynchronously(std::move(content), screenAnchor, nullptr);
+        launchCallOut(std::move(content), screenAnchor, scope.parent);
     }
 
     void resized() override {

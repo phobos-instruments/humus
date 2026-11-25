@@ -2,7 +2,9 @@
 
 Eine Videospur auf der Timeline, die ihre Clips zum Transport abspielt und aufnimmt, was an ihrem Eingang ankommt.
 
-Füg eine über das Menü zum Hinzufügen von Spuren in der Timeline hinzu, oder zieh ein Video ins Arrangement, und es erscheint eine Spur dafür. Clips lassen sich schneiden, trimmen, verschieben, loopen und blenden wie Audio-Clips, und der Ausgang zeigt, was gerade unter der Abspielposition liegt: Stoppst du, hält er diesen Frame; springst du an eine Stelle, springt er mit; loopst du den Song, loopt er mit. Warp streckt einen Clip vom Tempo seiner Quelle auf das Tempo des Songs, Rückwärts spielt ihn von hinten nach vorn ab, und Blenden sind Blenden nach Schwarz. Jeder Clip trägt einen Streifen Frames aus seinem Material, und mit einem Rechtsklick auf einen Clip zeigt dir Medieninfo seinen Codec, seine Größe und seine Framerate. Schick den Ausgang in ein VideoOut, ein VideoFX oder eine Lumen-Ebene; zwei Spuren sind zwei Ebenen.
+Füg eine über das Menü zum Hinzufügen von Spuren in der Timeline hinzu, oder zieh ein Video ins Arrangement, und es erscheint eine Spur dafür. Clips lassen sich schneiden, trimmen, verschieben, loopen und blenden wie Audio-Clips, und der Ausgang zeigt, was gerade unter der Abspielposition liegt: Stoppst du, hält er diesen Frame; springst du an eine Stelle, springt er mit; loopst du den Song, loopt er mit. Warp streckt einen Clip vom Tempo seiner Quelle auf das Tempo des Songs, Rückwärts spielt ihn von hinten nach vorn ab, und Blenden sind Blenden nach Schwarz und in die Stille. Jeder Clip trägt einen Streifen Frames aus seinem Material, und mit einem Rechtsklick auf einen Clip zeigt dir Medieninfo seinen Codec, seine Größe und seine Framerate. Schick den Ausgang in ein VideoOut, ein VideoFX oder eine Lumen-Ebene; zwei Spuren sind zwei Ebenen.
+
+Die beiden Audioausgänge spielen den Ton der Clips, im Takt mit dem Bild: Was einen Clip schneidet, loopt, per Warp streckt, umkehrt oder blendet, macht dasselbe mit seinem Ton. Schick sie in ein SoundOut oder einen Mischpultkanal, um ihn zu hören.
 
 ## Aufnahme
 
@@ -17,6 +19,8 @@ Schließ ein CameraIn, eine VideoFX-Kette, ein VideoPad oder eine andere Spur am
 **Opacity** Wie stark das Bild der Spur zu sehen ist. Über Ebenen darunter in einem Lumen oder über einer anderen Quelle am selben Eingang blendet es zwischen ihnen über; gibt es nichts darunter, blendet es das Bild Richtung Schwarz. So oder so wird es genau einmal angewendet, wo immer es landet.
 
 **Blend** Wie es sich mit den Ebenen darunter verbindet: Normal, Add, Multiply oder Screen. Anders als Opacity braucht dieser Parameter etwas darunter, mit dem er sich verbinden kann, deshalb bewirkt er nichts auf einer Spur, die direkt an einem VideoOut oder an einer Seite eines VideoMix hängt.
+
+**Gain** Wie laut der Ton der Clips aus den Audioausgängen kommt, von stumm bis doppelt so laut.
 
 ## Rezept
 

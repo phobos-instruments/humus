@@ -77,6 +77,9 @@ private:
     void handleEvent(const MidiEvent& e);
     void renderAdd(float* left, float* right, int from, int count);
     int activeCount() const { return (int) active_.size(); }
+    double naturalEnd(int slice) const;
+    double keptLength(int slice) const;
+    double layOutGrid();
 
     juce::AudioBuffer<float> buf_;
     double srcRate_ = kDefaultSampleRate;
@@ -94,6 +97,7 @@ private:
     std::vector<SliceOnset> active_;
     double lastSense_ = -1.0;
     std::array<int, kMaxSliceOnsets> perm_{};
+    std::array<double, kMaxSliceOnsets + 1> grid_{};
     int lastShuffle_ = 0, lastPermCount_ = -1;
 
     void syncEdits() {

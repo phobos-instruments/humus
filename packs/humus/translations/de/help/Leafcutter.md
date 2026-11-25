@@ -6,7 +6,7 @@ Lade einen Loop, und er wird an seinen Transienten zerschnitten; die Slices folg
 
 ## Die Map
 
-Die Map zeigt den Loop mit einer Markierung an jedem Schnitt und hebt den Slice hervor, der gerade spielt. Zieh auf einem Slice nach oben oder unten, um ihn einzeln umzustimmen, und klick mit rechts darauf, um ihn umzukehren, stummzuschalten oder zurückzusetzen, oder um alle Slice-Änderungen zu verwerfen. Diese Änderungen liegen in SliceEdits und bleiben beim Patch.
+Die Map zeigt den Loop mit einer Markierung an jedem Schnitt und hebt den Slice hervor, der gerade spielt. Zieh auf einem Slice nach oben oder unten, um ihn einzeln umzustimmen, und klick mit rechts darauf, um ihn umzukehren, stummzuschalten oder zurückzusetzen, oder um alle Slice-Änderungen zu verwerfen. Zieh den rechten Rand eines Slices nach links, um ihn zu kürzen: Nur der behaltene Teil spielt, und im Loop rücken die folgenden Slices auf, sodass ein Ausklang am Ende der Datei keine Pause mehr lässt, bevor der Loop von vorn beginnt. Der abgeschnittene Teil ist schattiert, und der Slice zeigt, wie viel davon bleibt. Diese Änderungen liegen in SliceEdits und bleiben beim Patch.
 
 ## Parameter
 

@@ -109,15 +109,27 @@ const Loader* LoaderTable::slotIn(const std::string& className, const std::strin
     return nullptr;
 }
 
-std::string loadInto(PatcherHost& host, const std::string& node, const std::string& path) {
+namespace {
+
+const Loader* slotFor(PatcherHost& host, const std::string& node, const std::string& path) {
     const auto* cm = host.model().byName(node);
-    if (cm == nullptr) return {};
+    if (cm == nullptr) return nullptr;
     for (const auto* cls : {&cm->displayClass, &cm->classRaw})
-        if (const auto* slot = LoaderTable::shared().slotIn(*cls, path)) {
-            host.setParamText(node, slot->param, path);
-            return slot->param;
-        }
-    return {};
+        if (const auto* slot = LoaderTable::shared().slotIn(*cls, path)) return slot;
+    return nullptr;
+}
+
+}
+
+bool canLoadInto(PatcherHost& host, const std::string& node, const std::string& path) {
+    return slotFor(host, node, path) != nullptr;
+}
+
+std::string loadInto(PatcherHost& host, const std::string& node, const std::string& path) {
+    const auto* slot = slotFor(host, node, path);
+    if (slot == nullptr) return {};
+    host.setParamText(node, slot->param, path);
+    return slot->param;
 }
 
 std::vector<std::string> loadIntoNew(PatcherHost& host, const std::string& className, const std::vector<std::string>& paths,

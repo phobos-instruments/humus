@@ -61,6 +61,7 @@ void SongView::rebuild() {
         view_.vScroll = maxV;
         rebuildSlots();
     }
+    pruneBlockSelection();
     repaintAll();
 }
 
@@ -154,6 +155,27 @@ bool SongView::nodeMuted(const std::string& node) const {
 void SongView::setNodeMuted(const std::string& node, bool muted) {
     if (nodeHasMuteParam(node)) host().setParam(node, "Mute", muted ? 1.0 : 0.0);
     else host().setTrackMuted(node, muted);
+}
+
+void SongView::muteClick(const std::string& node, bool muted, bool everyTrack) {
+    if (!everyTrack) {
+        setNodeMuted(node, muted);
+        repaintAll();
+        return;
+    }
+    host().beginTransaction();
+    for (const auto& row : rows_) setNodeMuted(row, muted);
+    host().endTransaction();
+    repaintAll();
+}
+
+void SongView::soloClick(const std::string& node, bool soloed, bool everyTrack, bool only) {
+    for (const auto& row : rows_) {
+        if (arrangeable_.count(row) == 0) continue;
+        if (only) host().setSoloed(row, row == node);
+        else if (everyTrack || row == node) host().setSoloed(row, soloed);
+    }
+    repaintAll();
 }
 
 void SongView::enterBox(const std::string& node) {

@@ -4,6 +4,7 @@
  #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 #endif
 
+#include "gui/common/ShutdownSingleton.h"
 #include "gui/app/WindowMinimum.h"
 
 #include <algorithm>
@@ -67,12 +68,8 @@ namespace {
 
 constexpr int kKeepMs = 200;
 
-class MinimumKeeper : private juce::Timer {
+class MinimumKeeper : public ShutdownSingleton<MinimumKeeper>, private juce::Timer {
 public:
-    static MinimumKeeper& instance() {
-        static MinimumKeeper keeper;
-        return keeper;
-    }
 
     void keep(const juce::ResizableWindow& w, int contentW, int contentH) {
         auto* key = const_cast<juce::ResizableWindow*>(&w);

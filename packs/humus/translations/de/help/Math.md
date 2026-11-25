@@ -6,7 +6,9 @@ Zuerst die Lautstärke runter: Math spielt alles, was du tippst, direkt an den A
 
 ## Das Vokabular
 
-Zahlen, Klammern, + - * / %, Vergleiche, die 0 oder 1 ergeben, if(c, then, else); nebeneinanderstehende Terme werden multipliziert, also funktioniert 2a. Funktionen: sin cos tan tanh asin exp log log2 sqrt abs floor ceil fract pow min max clamp mix step smoothstep, die Phasenformen saw tri sqr pulse, ph(hz), harm(hz, n, tilt), env(gate, attack, release) und noise(). prev ist das vorige Ausgangssample, dt ist ein Sample in Sekunden, und pi, tau und e sind gesetzt. Anweisungen werden durch Semikolons getrennt, und name := value behält einen Wert zwischen den Samples.
+Zahlen, Klammern, + - * / %, Vergleiche, die 0 oder 1 ergeben, if(c, then, else); nebeneinanderstehende Terme werden multipliziert, also funktioniert 2a. Funktionen: sin cos tan tanh asin exp log log2 sqrt abs floor ceil fract pow min max clamp mix step smoothstep, die Phasenformen saw tri sqr pulse, ph(hz), harm(hz, n, tilt), env(gate, attack, release) und noise(). prev ist das vorige Ausgangssample, dt ist ein Sample in Sekunden, phase ist der Zyklus von freq, der von 0 bis 1 läuft, und pi, tau und e sind gesetzt. Anweisungen werden durch Semikolons getrennt, und name := value behält einen Wert zwischen den Samples.
+
+rate ist das Tempo dessen, was die Formel spielt: 1 in einem Math und die Rate des LFOs, wenn die Formel in einem LFO spielt, sodass eine Bewegung, die um rate*dt weiterschreitet, mit ihm schneller wird. Die Nature-Presets sind so ausgeschriebene Bewegungen, zum Lesen und Ändern: Gravity lässt einen Ball springen, Pendulum schwingt, Heart schlägt seinen Doppelschlag, Breath atmet ein und aus, Swarm blinkt wie drei Glühwürmchen, die in den Takt finden, Wind weht in Böen und Wander streift umher wie eine Hand an einem Regler, jedes von gleichmäßig bei X 0 bis wild bei 1. noise() folgt in jeder Box einer eigenen Folge, sodass zwei Maths verschieden wandern, während ein Patch immer gleich spielt. Eine Formel, die um dt weiterschreitet, zeigt im Plot acht Sekunden.
 
 ## Parameter
 
@@ -32,6 +34,10 @@ Zahlen, Klammern, + - * / %, Vergleiche, die 0 oder 1 ergeben, if(c, then, else)
 **Spielbare Stimme** Auto aus, Expression `sin(tau*ph(freq)) * vel * env(gate, 0.01, 0.3)`, und verbinde eine PianoRoll mit dem MIDI-Eingang. Ersetze `sin(tau*ph(freq))` durch `harm(freq, 1 + x*15, y*2)`, und x zählt die Obertöne, während y sie formt.
 
 **Benannte Bedienelemente** Leg eine Var namens x und eine namens depth an, verbinde beide mit Vars und schreib `sin(tau*ph(freq)) * depth * x`. Zieh einen Slider oder einen LFO auf den Value jeder Var: Der X-Regler bewegt sich mit der ersten, die Formel liest die zweite, bis zu acht Namen.
+
+**Lebendige Bewegung** Lade das Nature-Preset Gravity und nutze "Steuern mit" auf dem Cutoff eines Filters: Der Ball springt immer früher und niedriger, bis er liegen bleibt, und wird dann wieder hochgeworfen. Dreh X auf für einen lebhafteren Ball, oder lade Heart, Wind oder Breath.
+
+**Eine Form für einen LFO** Schreib einen Zyklus in phase, etwa `pow(sin(tau*phase), 3)` oder `tri(phase)*x`, und zieh den Math auf die Buchse Function eines LFOs. Der LFO schaltet auf FN und spielt die Form bei seiner eigenen Rate und folgt jeder Änderung und jedem Dreh an den Reglern hier.
 
 ## Verwandte Organisms
 

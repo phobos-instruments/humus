@@ -9,7 +9,7 @@ namespace hum {
 
 namespace {
 constexpr int kLitMs = 160;
-constexpr int kAutoItem = 1, kAllItem = 2, kNoneItem = 3, kFirstPortItem = 10;
+constexpr int kAutoItem = 1, kAllItem = 2, kNoneItem = 3, kFirstPortItem = 10, kAllChannelsItem = 100;
 }
 
 void SongView::showInputMenu(const std::string& node, juce::Point<int> screen) {
@@ -22,12 +22,25 @@ void SongView::showInputMenu(const std::string& node, juce::Point<int> screen) {
         if (item.first >= 1)
             m.addItem(kFirstPortItem + item.first - 1, juce::String::fromUTF8(item.second.c_str()), true,
                       current == item.first - 1);
+    const int channel = host().midi().trackChannel(node);
+    juce::PopupMenu channels;
+    channels.addItem(kAllChannelsItem, tr("tracks-pane.input-all-channels", "All channels"), true, channel == 0);
+    for (int ch = 1; ch <= 16; ++ch)
+        channels.addItem(kAllChannelsItem + ch, tr("tracks-pane.input-channel-n", "Channel {n}", {{"n", juce::String(ch)}}),
+                         true, channel == ch);
+    m.addSubMenu(tr("tracks-pane.input-channel", "Channel"), channels, current != OrganismModel::kTrackInputNone);
     m.addSeparator();
     m.addItem(kNoneItem, tr("tracks-pane.input-none", "None - only its cord"), true,
               current == OrganismModel::kTrackInputNone);
     m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({screen.x, screen.y, 1, 1}),
                     [this, node](int r) {
         if (r <= 0) return;
+        if (r >= kAllChannelsItem) {
+            host().midi().setTrackChannel(node, r - kAllChannelsItem);
+            repaintAll();
+            ctx_.patchChanged();
+            return;
+        }
         const int input = r == kAutoItem ? OrganismModel::kTrackInputAuto
                         : r == kAllItem  ? OrganismModel::kTrackInputAll
                         : r == kNoneItem ? OrganismModel::kTrackInputNone

@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <string>
 
 #include "hum/Number.h"
 #include "hum/dsp/DspMath.h"
@@ -31,6 +32,8 @@ enum FVar : std::uint8_t {
     fvNote, fvFreq, fvGate, fvVel,
     fvCh,
     fvDt,
+    fvPhase,
+    fvRate,
     fvIn0,
     fvInLast = fvIn0 + 7,
     fvCount
@@ -63,7 +66,13 @@ struct FormulaProgram {
     Op ops[kMaxOps];
     int n = 0;
     int userVars = 0;
+    char userNames[kMaxUserVars][16] = {};
     bool valid() const { return n > 0; }
+    int userSlot(const char* name) const {
+        for (int k = 0; k < userVars; ++k)
+            if (std::strcmp(userNames[k], name) == 0) return kMaxOps + k;
+        return -1;
+    }
     bool reads(FVar v) const {
         for (int i = 0; i < n; ++i) if (ops[i].code == FOp::PushVar && ops[i].var == v) return true;
         return false;
@@ -88,6 +97,17 @@ inline float formulaNoise(std::uint32_t& s) {
     s ^= s << 5;
     return (float) (s & 0xffffffu) * (2.0f / 16777215.0f) - 1.0f;
 }
+
+inline std::uint32_t formulaSeedFor(const std::string& name) {
+    std::uint32_t h = 2166136261u;
+    for (const unsigned char c : name) {
+        h ^= c;
+        h *= 16777619u;
+    }
+    return h != 0 ? h : 0x9e3779b9u;
+}
+
+inline bool formulaSteps(const FormulaProgram& p) { return p.reads(fvDt); }
 
 inline void seedFormulaState(float* state, const FormulaProgram& p) {
     if (state == nullptr) return;
@@ -262,7 +282,7 @@ inline const Var* variables(int& count) {
         {"a", fvA}, {"b", fvB}, {"x", fvX}, {"y", fvY}, {"z", fvZ}, {"w", fvW},
         {"t", fvT}, {"beat", fvBeat}, {"bpm", fvBpm}, {"sr", fvSr}, {"prev", fvPrev},
         {"note", fvNote}, {"freq", fvFreq}, {"gate", fvGate}, {"vel", fvVel}, {"ch", fvCh},
-        {"dt", fvDt},
+        {"dt", fvDt}, {"phase", fvPhase}, {"rate", fvRate},
     };
     count = (int) (sizeof(k) / sizeof(k[0]));
     return k;
@@ -279,6 +299,13 @@ inline const Konst* constants(int& count) {
     return k;
 }
 
+inline bool softName(const char* name) {
+    static const char* const k[] = {"phase", "rate"};
+    for (const char* n : k)
+        if (std::strcmp(n, name) == 0) return true;
+    return false;
+}
+
 struct Parser {
     const char* s;
     const FormulaInlets* inlets = nullptr;
@@ -288,7 +315,6 @@ struct Parser {
     int stack = 0;
     const char* err = nullptr;
     int errPos = -1;
-    char names[FormulaProgram::kMaxUserVars][16] = {};
 
     bool builtin(const char* name) const {
         int n = 0;
@@ -300,15 +326,11 @@ struct Parser {
         for (int v = 0; v < n; ++v) if (std::strcmp(ks[v].name, name) == 0) return true;
         return false;
     }
-    int userSlot(const char* name) const {
-        for (int k = 0; k < prog.userVars; ++k)
-            if (std::strcmp(names[k], name) == 0) return FormulaProgram::kMaxOps + k;
-        return -1;
-    }
+    int userSlot(const char* name) const { return prog.userSlot(name); }
     bool declare(const char* name) {
         if (userSlot(name) >= 0) return true;
         if (prog.userVars >= FormulaProgram::kMaxUserVars) { fail("too many variables"); return false; }
-        std::snprintf(names[prog.userVars], sizeof(names[prog.userVars]), "%s", name);
+        std::snprintf(prog.userNames[prog.userVars], sizeof(prog.userNames[prog.userVars]), "%s", name);
         ++prog.userVars;
         return true;
     }
@@ -326,7 +348,7 @@ struct Parser {
                 int k = j;
                 while (s[k] == ' ' || s[k] == '\t') ++k;
                 if (s[k] == ':' && s[k + 1] == '=') {
-                    if (builtin(name)) { i = j - n; fail("cannot assign to a built-in name"); return; }
+                    if (builtin(name) && !softName(name)) { i = j - n; fail("cannot assign to a built-in name"); return; }
                     if (!declare(name)) return;
                 }
                 continue;
@@ -430,6 +452,10 @@ struct Parser {
             }
             if (const int k = inlets != nullptr ? inlets->find(name) : -1; k >= 0) {
                 emit(FOp::PushVar, (std::uint8_t) (fvIn0 + k), 0.0f, +1);
+                return;
+            }
+            if (const int slot = softName(name) ? userSlot(name) : -1; slot >= 0) {
+                emit(FOp::LoadVar, (std::uint8_t) slot, 0.0f, +1);
                 return;
             }
             int varCount = 0;
@@ -545,6 +571,7 @@ inline FormulaShape formulaShape(const FormulaProgram& p) {
         osc |= op.code == FOp::Ph || op.code == FOp::Harm;
         if (op.code != FOp::PushVar) continue;
         inlet |= op.var == fvA || op.var == fvB;
+        osc |= op.var == fvPhase;
         midi |= op.var == fvFreq || op.var == fvNote || op.var == fvGate || op.var == fvVel;
         timed |= op.var == fvT || op.var == fvBeat;
     }

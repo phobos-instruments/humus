@@ -40,11 +40,20 @@ inline ClassId parseClassString(const std::string& raw) {
     if (type == "au")        id.kind = "au";
     else if (type == "vst3") id.kind = "vst3";
     else if (type == "lv2")  id.kind = "lv2";
+    else if (type == "clap") id.kind = "clap";
     return id;
 }
 
 inline bool isPluginKind(const std::string& kind) {
-    return kind == "vst3" || kind == "lv2" || kind == "au";
+    return kind == "vst3" || kind == "lv2" || kind == "au" || kind == "clap";
+}
+
+inline std::string pluginBadge(const std::string& kind) {
+    if (kind == "vst3") return "VST3";
+    if (kind == "au") return "AU";
+    if (kind == "clap") return "CLAP";
+    if (kind == "lv2") return "LV2";
+    return {};
 }
 
 }

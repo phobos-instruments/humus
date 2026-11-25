@@ -8,7 +8,9 @@ Fetched by the build, pinned to a commit: [Ableton Link](https://github.com/Able
 their licence texts and the note on what is taken ride in
 `engine/third_party/ableton_link/`.
 
-Vendored: [Monocypher](https://monocypher.org) (CC0/BSD-2), and the four FM engines behind
+Vendored: [Monocypher](https://monocypher.org) (CC0/BSD-2), the
+[CLAP](https://github.com/free-audio/clap) headers Humus hosts CLAP plug-ins
+through (MIT, `engine/third_party/clap/`), and the four FM engines behind
 the pH synthesizer -
 [music-synthesizer-for-android](https://github.com/google/music-synthesizer-for-android)
 (Apache-2.0), [Nuked-OPN2](https://github.com/nukeykt/Nuked-OPN2),

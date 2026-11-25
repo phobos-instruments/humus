@@ -8,6 +8,7 @@
 #include "core/plugins/PluginListStore.h"
 #include "core/plugins/PluginScanner.h"
 #include "core/tuning/TuningProbe.h"
+#include "gui/app/BundleCheck.h"
 #include "gui/host/DriverProbe.h"
 #include "gui/assistant/AiClient.h"
 #include "hum/Registry.h"
@@ -15,6 +16,14 @@
 namespace hum::appcli {
 
 namespace {
+
+Outcome probeWhileTheLoopRuns(const juce::File& out, const juce::String& format, const juce::StringArray& files) {
+    juce::Thread::launch([out, format, files] {
+        out.replaceWithText(PluginScanner::probeFilesXml(format, files));
+        juce::MessageManager::callAsync([] { juce::JUCEApplicationBase::quit(); });
+    });
+    return {true, 0, true};
+}
 
 Outcome aiPing(const juce::StringArray& args, int at) {
     int status = 0;
@@ -48,6 +57,12 @@ Outcome audioDriverProbe(const juce::StringArray& args, int at) {
 }
 
 Outcome run(const juce::StringArray& args) {
+    if (args.contains("--bundle-check")) {
+        const auto report = bundlecheck::run();
+        for (const auto& line : report.lines) std::cout << line << std::endl;
+        return {true, report.problems == 0 ? 0 : 1};
+    }
+
     if (const int at = args.indexOf("--ai-ping"); at >= 0) return aiPing(args, at);
 
     if (const int at = args.indexOf("--tuning-probe"); at >= 0 && at + 2 < args.size())
@@ -66,6 +81,7 @@ Outcome run(const juce::StringArray& args) {
         const juce::String fmt = args[at + 2];
         juce::StringArray files;
         for (int i = at + 3; i < args.size(); ++i) files.add(args[i]);
+        if (PluginScanner::needsMessageLoop(fmt, files)) return probeWhileTheLoopRuns(out, fmt, files);
         out.replaceWithText(PluginScanner::probeFilesXml(fmt, files));
         return {true, 0};
     }

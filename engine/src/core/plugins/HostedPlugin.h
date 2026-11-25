@@ -61,6 +61,12 @@ public:
     std::string getStateBase64() const override;
     void setStateBase64(const std::string& base64) override;
     void loadFrom(const OrganismState& state) override;
+    bool layoutChanged() const override;
+    void adoptLayout() override;
+    int touchedParam(unsigned& stamp) const override {
+        stamp = touchStamp_.load(std::memory_order_acquire);
+        return touched_.load(std::memory_order_relaxed);
+    }
 
 private:
     struct TransportPlayHead : juce::AudioPlayHead {
@@ -89,6 +95,25 @@ private:
     std::vector<MidiEvent> staged_;
     int stagedCount_ = 0;
     void adoptInstanceValues();
+
+    struct TouchListener : juce::AudioProcessorParameter::Listener {
+        explicit TouchListener(HostedPlugin& owner) : owner_(owner) {}
+        void parameterValueChanged(int index, float) override {
+            if (juce::MessageManager::existsAndIsCurrentThread()) owner_.noteTouch(index);
+        }
+        void parameterGestureChanged(int index, bool starting) override {
+            if (starting) owner_.noteTouch(index);
+        }
+        HostedPlugin& owner_;
+    };
+    void noteTouch(int index) {
+        touched_.store(index, std::memory_order_relaxed);
+        touchStamp_.fetch_add(1, std::memory_order_release);
+    }
+    void listenForTouches(bool on);
+    std::atomic<int> touched_{-1};
+    std::atomic<unsigned> touchStamp_{0};
+    TouchListener touchListener_{*this};
     std::vector<float> lastSentParams_;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(HostedPlugin)

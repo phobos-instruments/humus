@@ -23,15 +23,15 @@ inline void setModernMenus(bool on) {
 }
 
 inline void showCreatePicker(juce::Rectangle<int> screenAnchor,
-                             std::function<void(const std::string&)> onPick) {
+                             std::function<void(const std::string&)> onPick, const PickerScope& scope = {}) {
     auto counted = [onPick = std::move(onPick)](const std::string& cls) {
         telemetryCount(telemetry::organismAdd(cls));
         onPick(cls);
     };
     if (modernMenusEnabled())
-        ModernPicker::show(screenAnchor, std::move(counted));
+        ModernPicker::show(screenAnchor, std::move(counted), scope);
     else
-        QuickAddPalette::show(screenAnchor, std::move(counted));
+        QuickAddPalette::show(screenAnchor, std::move(counted), scope);
 }
 
 }

@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include <juce_gui_basics/juce_gui_basics.h>
 
+#include "core/timeline/SampleRepair.h"
 #include "gui/host/BrickHost.h"
 #include "gui/host/EngineHostClips.h"
 #include "gui/tracks/ClipDetail.h"
@@ -61,10 +63,21 @@ public:
     void setClipPitch(double semitones);
     int transientCount();
     void repaintCutGuide();
+    void repairSelection();
+    void restoreOriginalAudio();
+    bool canRepairSelection();
 
 private:
     enum class Drag { None, Select, TrimL, TrimR, StretchL, StretchR, Slip, FadeL, FadeR,
-                      CurveL, CurveR, Pending };
+                      CurveL, CurveR, Pending, Pencil };
+    static constexpr double kPencilPixelsPerSample = 1.0;
+
+    struct WaveGeometry {
+        double toFile = 1.0, spb = 1.0, startBeat = 0.0, regionLen = 0.0;
+        long long offset = 0;
+        bool reverse = false;
+        float midY = 0.0f, halfH = 1.0f, gain = 1.0f;
+    };
     enum class Hit { None, Body, EdgeL, EdgeR, FadeL, FadeR, CurveL, CurveR };
 
     class SelectionWatch {
@@ -104,6 +117,14 @@ private:
     void paintClipRibbon(juce::Graphics& g, const ClipEditor::ClipInfo& ci);
     void paintCutGuide(juce::Graphics& g);
     std::vector<long long> clipTransients(const ClipEditor::ClipInfo& ci);
+    bool waveGeometry(const ClipEditor::ClipInfo& ci, juce::Rectangle<int> field, WaveGeometry& wg) const;
+    double fileSampleAtX(const WaveGeometry& wg, float x) const;
+    float xOfFileSample(const WaveGeometry& wg, double s) const;
+    bool pencilReady(const ClipEditor::ClipInfo& ci) const;
+    bool beginPencil(const ClipEditor::ClipInfo& ci, juce::Point<int> p);
+    void dragPencil(juce::Point<int> p);
+    void endPencil();
+    bool selectionSamples(const ClipEditor::ClipInfo& ci, std::int64_t& start, int& length) const;
     long long sampleToTick(const ClipEditor::ClipInfo& ci, long long sessionSample) const;
 
     Context& ctx_;
@@ -118,6 +139,8 @@ private:
     double curve0_ = 0.0;
     int curveY0_ = 0;
     clipdetail::SampleWindow window_;
+    std::vector<samplefix::PencilPoint> strokePoints_;
+    samplefix::Span stroke_;
     double sense_ = 0.5;
     juce::Point<int> hover_{-1, -1};
 };

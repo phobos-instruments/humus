@@ -11,8 +11,6 @@
 
 namespace hum {
 
-static bool hidden(const OrganismModel& c) { return isHiddenOrganism(c.displayClass); }
-
 bool PatcherCanvas::beginPan(const juce::MouseEvent& e) {
     auto* vp = findParentComponentOfClass<juce::Viewport>();
     if (vp == nullptr) return false;
@@ -69,17 +67,21 @@ void PatcherCanvas::mouseDown(const juce::MouseEvent& e) {
         }
     }
 
+    const bool additive = e.mods.isShiftDown() || e.mods.isCommandDown();
     Edge ce;
     if (hitCord(p, ce)) {
-        cordSelected_ = true; selectedCord_ = ce;
-        selection_.clear(); primary_.clear(); notifySelection();
+        if (additive) {
+            toggleCord(ce);
+        } else {
+            selectedCords_ = {ce};
+            selection_.clear(); primary_.clear(); notifySelection();
+        }
         refresh();
         return;
     }
-    cordSelected_ = false;
+    if (!additive) selectedCords_.clear();
 
     std::string n = hitNode(p);
-    const bool additive = e.mods.isShiftDown() || e.mods.isCommandDown();
 
     if (n.empty()) {
         if (e.getNumberOfClicks() >= 2) {
@@ -87,10 +89,7 @@ void PatcherCanvas::mouseDown(const juce::MouseEvent& e) {
             openQuickAdd(p, e.getScreenPosition());
             return;
         }
-        if (e.mods.isAltDown() && beginPan(e)) return;
-        if (!additive) { selection_.clear(); primary_.clear(); notifySelection(); }
-        drag_ = Drag::Select; dragStart_ = p; selectRect_ = {p.x, p.y, 0, 0};
-        refresh();
+        beginBand(p, e.mods.isAltDown(), additive);
         return;
     }
 
@@ -123,30 +122,9 @@ void PatcherCanvas::mouseDrag(const juce::MouseEvent& e) {
     }
     if (drag_ != Drag::None) autoScrollWhileDragging(e);
     if (drag_ == Drag::Move) {
-        auto d = modelPos(e) - dragStart_;
-        alignGuideX_ = alignGuideY_ = -1;
-        if (!e.mods.isAltDown() && origPos_.count(dragLead_) > 0) {
-            juce::Point<int> lead = origPos_[dragLead_] + d;
-            constexpr int kReach = 6;
-            int bestDx = kReach + 1, bestDy = kReach + 1, snapX = 0, snapY = 0;
-            for (auto& other : displayNodes()) {
-                if (selection_.count(other.name) > 0) continue;
-                const auto ob = nodeBounds(other.name);
-                if (std::abs(ob.getX() - lead.x) < bestDx) {
-                    bestDx = std::abs(ob.getX() - lead.x);
-                    snapX = ob.getX();
-                }
-                if (std::abs(ob.getY() - lead.y) < bestDy) {
-                    bestDy = std::abs(ob.getY() - lead.y);
-                    snapY = ob.getY();
-                }
-            }
-            if (bestDx <= kReach) { lead.x = snapX; alignGuideX_ = snapX; }
-            else lead.x = ((lead.x + kGrid / 2) / kGrid) * kGrid;
-            if (bestDy <= kReach) { lead.y = snapY; alignGuideY_ = snapY; }
-            else lead.y = ((lead.y + kGrid / 2) / kGrid) * kGrid;
-            d = lead - origPos_[dragLead_];
-        }
+        const bool hasLead = origPos_.count(dragLead_) > 0;
+        const auto d = snapMove(modelPos(e) - dragStart_, hasLead ? origPos_[dragLead_] : juce::Point<int>(),
+                                e.mods.isAltDown() || !hasLead);
         for (auto& kv : origPos_) host_.setPosition(kv.first, kv.second + d);
         updateDragHints();
         refresh();
@@ -159,12 +137,8 @@ void PatcherCanvas::mouseDrag(const juce::MouseEvent& e) {
         refresh();
     } else if (drag_ == Drag::Grab) {
         dragGrab(modelPos(e));
-    } else if (drag_ == Drag::Select) {
-        selectRect_ = juce::Rectangle<int>(dragStart_, modelPos(e));
-        selection_.clear();
-        for (auto& d : displayNodes())
-            if (selectRect_.intersects(nodeBounds(d.name))) selection_.insert(d.name);
-        refresh();
+    } else if (drag_ == Drag::Select || drag_ == Drag::CordBand) {
+        dragBand(modelPos(e));
     }
 }
 
@@ -240,7 +214,7 @@ void PatcherCanvas::mouseMove(const juce::MouseEvent& e) {
     setMouseCursor(grab ? juce::MouseCursor::DraggingHandCursor
                    : (ph || h) ? juce::MouseCursor::PointingHandCursor
                    : (e.mods.isAltDown() && hitNode(p).empty())
-                       ? juce::MouseCursor::DraggingHandCursor
+                       ? juce::MouseCursor::CrosshairCursor
                        : juce::MouseCursor::NormalCursor);
     if (changed) refresh();
 }

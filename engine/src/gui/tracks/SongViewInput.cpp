@@ -42,8 +42,10 @@ void SongView::mouseDownAt(const juce::MouseEvent& e) {
 void SongView::mouseUpAt(const juce::MouseEvent& e) {
     const bool gesture = drag_ != Drag::None || dragRow_ >= 0 || dragBox_ >= 0 || dragAutoPoint_ >= 0
                          || dragCurveIndex_ >= 0 || lineSlot_ >= 0 || repeatSrcId_ != 0 || !moveBase_.empty()
-                         || !dragAutoNode_.empty();
+                         || !dragAutoNode_.empty() || block_.active();
     dragSync_.reset();
+    endBlockLane(e);
+    endBlockRide();
     traceSel("up", e);
     if (rowDrag_.armed && !endRowDrag() && selTracks_.size() > 1 && !e.mouseWasDraggedSinceMouseDown())
         selectTrack(rowAt(e.getPosition().y), false, false);
@@ -103,6 +105,10 @@ void SongView::mouseDoubleClickAt(const juce::MouseEvent& e) {
         s >= 0 && slots_[(size_t) s].kind == trackslayout::Kind::AutoLane) {
         const auto& sl = slots_[(size_t) s];
         const auto& node = rows_[(size_t) sl.track];
+        if (p.x >= kStripW && isBlockLane(node, sl.param)) {
+            blockMenuAt(s, p, e.getScreenPosition());
+            return;
+        }
         if (const int hit = autoPointAt(sl, node, sl.param, p); hit >= 0) {
             editAutoPoint(node, sl.param, hit, paneToScreen(p));
             return;
@@ -154,6 +160,10 @@ void SongView::mouseMoveAt(const juce::MouseEvent& e) {
     if (tool == Tool::Scissors) cutguide::repaintMove(*this, view_, ctx_, was.x, p.x);
     if (const int s = trackslayout::slotAt(slots_, p.y); s >= 0 && p.x >= kStripW) {
         const auto& sl = slots_[(size_t) s];
+        if (sl.kind == trackslayout::Kind::AutoLane && isBlockLane(rows_[(size_t) sl.track], sl.param)) {
+            setMouseCursor(tool == Tool::Pointer ? blockLaneCursor(sl, p) : timelinechrome::toolCursor(tool));
+            return;
+        }
         if (sl.kind == trackslayout::Kind::AutoLane) {
             const int hit = autoPointAt(sl, rows_[(size_t) sl.track], sl.param, p);
             if (hit != hoverPt_ || s != hoverPtSlot_) {

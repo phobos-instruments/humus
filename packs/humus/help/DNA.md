@@ -4,6 +4,8 @@ A generative sequencer that plays a sixteen-base genome as MIDI notes.
 
 Sixteen bases, A, C, G and T, loop at Rate against the transport, and each base sounds its interval over Root: the Chord voicing's, or one of your own set on the base keys at the bottom of the editor. Every bar there is a Mutate chance that one base flips, so the line slowly evolves as it plays, while the same Seed always grows the same starting strand. The strip above the base rows shows the playing step and the rests of the current pass; click a cell to silence that step outright, drag to sweep several, right-click for the whole strand. Cord the MIDI outlet into an Acid, a Mineral or a Substrate.
 
+**Step chance** Cmd-drag a cell of the strip up or down (Ctrl-drag on Windows and Linux) to set how often that step plays, from never to every time in steps of 5%, on top of Rest. A step below 100% draws fainter and shows its chance. Right-click a cell for quick chances, the strip's own actions, and MIDI Learn for that step's chance. The dice belong to the box: a patch plays the same steps on every play and every export.
+
 ## Parameters
 
 **Root** The key, as a MIDI note.
@@ -37,6 +39,10 @@ Sixteen bases, A, C, G and T, loop at Rate against the transport, and each base 
 **SwingFollow** Follow makes the pattern take the patch groove from the transport instead of the Swing knob.
 
 **Swing** Delays every second step towards a triplet feel. Used only while SwingFollow is off.
+
+**Chance_1 to Chance_16** How often each step plays, from 0 to 100%.
+
+**Bank** Which of the eight strands plays, A to H. Each bank keeps its own Seed, Mute, base intervals and step chances; Root, Chord, Rate and the knobs are shared. A bank you have not used yet starts as a copy of the one shown.
 
 ## Recipe
 

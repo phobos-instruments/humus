@@ -2,7 +2,9 @@
 
 A video track on the timeline that plays its clips against the transport and records what reaches its inlet.
 
-Add one from the timeline's add-track menu, or drop a video onto the arrangement and a track appears for it. Clips cut, trim, move, loop and fade like audio clips, and the outlet shows whatever sits under the playhead: stop and it holds that frame, locate and it jumps there, loop the song and it loops with it. Warp stretches a clip to the song's tempo against its source tempo, Reverse plays it backwards and fades are fades to black. Each clip wears a strip of frames from its tape, and right-click a clip for Media Info to read its codec, size and frame rate. Cord the outlet into a VideoOut, a VideoFX or a Lumen layer; two tracks are two layers.
+Add one from the timeline's add-track menu, or drop a video onto the arrangement and a track appears for it. Clips cut, trim, move, loop and fade like audio clips, and the outlet shows whatever sits under the playhead: stop and it holds that frame, locate and it jumps there, loop the song and it loops with it. Warp stretches a clip to the song's tempo against its source tempo, Reverse plays it backwards and fades are fades to black and to silence. Each clip wears a strip of frames from its tape, and right-click a clip for Media Info to read its codec, size and frame rate. Cord the outlet into a VideoOut, a VideoFX or a Lumen layer; two tracks are two layers.
+
+The two audio outlets play the clips' own sound, in step with the picture: whatever cuts, loops, warps, reverses or fades a clip does the same to its sound. Cord them into a SoundOut or a mixer channel to hear it.
 
 ## Recording
 
@@ -17,6 +19,8 @@ Cord a CameraIn, a VideoFX chain, a VideoPad or another track into the inlet, ar
 **Opacity** How strongly the track's picture shows. Over layers beneath it in a Lumen, or over another source sharing the same inlet, it fades between them; with nothing to show over, it fades the picture towards black. Either way it is applied exactly once, wherever it lands.
 
 **Blend** How it combines with the layers beneath it: Normal, Add, Multiply or Screen. Unlike Opacity this one needs something underneath to combine with, so it does nothing on a track cabled straight to a VideoOut or into one side of a VideoMix.
+
+**Gain** How loud the clips' sound comes out of the audio outlets, from silent to twice as loud.
 
 ## Recipe
 

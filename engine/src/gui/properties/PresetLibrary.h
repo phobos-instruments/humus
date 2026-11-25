@@ -10,8 +10,10 @@
 
 #include "core/app/AppPaths.h"
 #include "core/packs/PackManifest.h"
+#include "core/packs/PackRegistry.h"
 #include "core/params/ParamSchema.h"
 #include "io/PatchDocument.h"
+#include "io/PatternText.h"
 
 namespace hum {
 
@@ -41,6 +43,7 @@ inline void writeDef(juce::DynamicObject& o, const PresetDef& pd) {
             txts->setProperty(juce::String(n), juce::String(t));
         o.setProperty("texts", juce::var(txts));
     }
+    if (!pd.pattern.empty()) o.setProperty("pattern", juce::String(pd.pattern));
 }
 
 inline juce::var toVar(const std::vector<PresetDef>& defs) {
@@ -104,9 +107,19 @@ inline std::string parsePresetFile(const std::string& jsonText, PresetDef& out) 
     return cls;
 }
 
+inline bool keepsPattern(const OrganismModel& c) {
+    const auto* m = PackRegistry::instance().classManifest(c.displayClass);
+    return m != nullptr && m->presetKeepsPattern;
+}
+
+inline Pattern patternFor(const OrganismModel& c) {
+    return keepsPattern(c) && c.pattern.present ? c.pattern : Pattern{};
+}
+
 inline PresetDef capture(const OrganismModel& c, const std::string& name) {
     PresetDef pd;
     pd.name = name;
+    pd.pattern = patternToText(patternFor(c));
     for (const auto& p : settingsOnly(c.properties)) {
         if (p.type == "text" || p.type == "soundfile" || p.type == "rhythmic-unit") {
             if (!p.text.empty()) pd.texts.emplace_back(p.name, p.text);
@@ -151,6 +164,7 @@ inline PresetModel toModel(const PresetDef& def, const std::vector<ParamDesc>& s
             }
         pm.properties.push_back(std::move(p));
     }
+    patternFromText(def.pattern, pm.pattern);
     return pm;
 }
 

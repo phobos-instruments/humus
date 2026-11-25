@@ -208,6 +208,7 @@ private:
     InspectedSource inspected(const SourceRow& r) const;
     void wireInspector(const SourceRow& r);
     void updateLive();
+    void followPluginTouch();
 
     void addCcRow(const MidiSource& src, double min, double max, const ControlShape& shape,
                   RangeEnd end, bool bounded);
@@ -254,6 +255,8 @@ private:
     int selectedSource_ = -1;
     std::vector<std::pair<std::string, std::string>> modChoices_;
     juce::String mapSignature_;
+    std::string touchOrganism_;
+    unsigned touchSeen_ = 0;
     std::map<DragNumberEditor*, double> mappedValues_;
     std::map<std::string, std::string> lastParam_;
     bool switchingOrganism_ = false;

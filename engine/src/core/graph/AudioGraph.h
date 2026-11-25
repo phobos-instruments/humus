@@ -59,8 +59,11 @@ public:
 
     void adoptMatchingNodes(AudioGraph& old);
     bool takeLatencyChanges();
+    bool pluginLayoutsChanged() const;
+    void adoptPluginLayouts();
 
     void setAutomation(std::vector<AutoLane> lanes);
+    const std::vector<AutoLane>& automationLanesForTest() const { return autoLanes_; }
     void setMeterMap(std::vector<MeterChange> changes);
     const std::vector<MeterChange>& meterMap() const { return meterChanges_; }
     void setModRoutes(std::vector<ModRoute> routes);

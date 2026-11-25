@@ -114,7 +114,8 @@
       "x": 39,
       "y": 122,
       "w": 522,
-      "h": 16
+      "h": 16,
+      "chance-prefix": "Chance_"
     },
     {
       "type": "interval-rows",
@@ -131,6 +132,33 @@
       "y": 6,
       "w": 155,
       "h": 20
+    },
+    {
+      "type": "label",
+      "label": "Bank",
+      "x": 427,
+      "y": 40,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Bank",
+      "label": "",
+      "x": 427,
+      "y": 56,
+      "w": 165,
+      "h": 24,
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ]
     }
   ]
 }

@@ -32,6 +32,9 @@ private:
     std::deque<Line> lines_;
 };
 
+constexpr int kLogBatch = 256;
+constexpr int kLogRounds = 32;
+
 class MidiLog {
 public:
     MidiLog(std::string sourceParam, std::string channelParam)
@@ -39,13 +42,25 @@ public:
 
     bool drain(ModelHost& host, const std::string& organism, bool paused, EventLog& log) {
         auto* src = live::source<MidiLogSource>(host, organism);
-        if (src == nullptr || src->logGeneration() == lastGen_) return false;
-        lastGen_ = src->logGeneration();
+        if (src == nullptr) return false;
+        const unsigned generation = src->logGeneration();
+        if (generation == lastGen_) return false;
 
-        MidiLogSource::Logged events[256];
-        const int count = src->consumeLog(events, 256);
-        if (count == 0 || paused) return false;
+        MidiLogSource::Logged events[kLogBatch];
+        bool pushed = false;
+        int count = kLogBatch;
+        for (int round = 0; round < kLogRounds && count == kLogBatch; ++round) {
+            count = src->consumeLog(events, kLogBatch);
+            if (!paused && show(host, organism, events, count, log)) pushed = true;
+        }
+        if (count < kLogBatch) lastGen_ = generation;
+        return pushed;
+    }
 
+private:
+    bool show(ModelHost& host, const std::string& organism, const MidiLogSource::Logged* events,
+              int count, EventLog& log) const {
+        if (count == 0) return false;
         const int source = (int) host.liveParamValue(organism, sourceParam_);
         const int chan = (int) host.liveParamValue(organism, channelParam_);
         bool pushed = false;
@@ -63,7 +78,6 @@ public:
         return pushed;
     }
 
-private:
     std::string sourceParam_, channelParam_;
     unsigned lastGen_ = ~0u;
 };
@@ -74,13 +88,25 @@ public:
 
     bool drain(ModelHost& host, const std::string& organism, bool paused, EventLog& log) {
         auto* src = live::source<OscLogSource>(host, organism);
-        if (src == nullptr || src->oscLogGeneration() == lastGen_) return false;
-        lastGen_ = src->oscLogGeneration();
+        if (src == nullptr) return false;
+        const unsigned generation = src->oscLogGeneration();
+        if (generation == lastGen_) return false;
 
-        OscLogSource::Logged events[256];
-        const int count = src->consumeOscLog(events, 256);
-        if (count == 0 || paused) return false;
+        OscLogSource::Logged events[kLogBatch];
+        bool pushed = false;
+        int count = kLogBatch;
+        for (int round = 0; round < kLogRounds && count == kLogBatch; ++round) {
+            count = src->consumeOscLog(events, kLogBatch);
+            if (!paused && show(host, organism, events, count, log)) pushed = true;
+        }
+        if (count < kLogBatch) lastGen_ = generation;
+        return pushed;
+    }
 
+private:
+    bool show(ModelHost& host, const std::string& organism, const OscLogSource::Logged* events,
+              int count, EventLog& log) const {
+        if (count == 0) return false;
         const int dir = (int) host.liveParamValue(organism, directionParam_);
         bool pushed = false;
         for (int i = 0; i < count; ++i) {
@@ -93,7 +119,6 @@ public:
         return pushed;
     }
 
-private:
     std::string directionParam_;
     unsigned lastGen_ = ~0u;
 };

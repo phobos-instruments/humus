@@ -29,6 +29,7 @@ struct EngineHost::ClockTimer : juce::HighResolutionTimer {
 void EngineHost::ClockTimerDeleter::operator()(ClockTimer* t) const { delete t; }
 
 void EngineHost::setMidiSyncMode(int mode) {
+    if (!env_.claimsMachineResources) return;
     syncMode_.store(mode, std::memory_order_relaxed);
     AppSettings::instance().set("midi.sync",
                                 juce::String(mode == kSyncGenerate ? "generate"

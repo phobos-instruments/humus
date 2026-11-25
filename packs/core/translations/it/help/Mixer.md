@@ -12,9 +12,11 @@ Collega le sorgenti agli ingressi numerati e l'uscita a un SoundOut o a un Bus. 
 
 **Gain_1-2** Livello della coppia d'ingresso 1-2, e così via per 3-4 fino a 7-8. In cima è a guadagno unitario; il misuratore del canale mostra cosa arriva prima del guadagno.
 
-**Mute_1-2** Silenzia l'ingresso 1-2 senza clic, e così via per le altre coppie. Un ingresso in mute resta muto anche se è in solo.
+**Mute_1-2** Silenzia l'ingresso 1-2 senza clic, e così via per le altre coppie. Un ingresso in mute resta muto anche se è in solo. Alt-clic su una M qualsiasi mette o toglie il mute a tutti gli ingressi insieme.
 
-**Solo_1-2** Fa sentire l'ingresso 1-2 da solo, e così via per le altre coppie. Finché un ingresso è in solo, si sentono solo gli ingressi in solo.
+**Solo_1-2** Fa sentire l'ingresso 1-2 da solo, e così via per le altre coppie. Finché un ingresso è in solo, si sentono solo gli ingressi in solo. Alt-clic su una S qualsiasi porta tutti i solo nello stesso stato, quindi un Alt-clic su una accesa li spegne tutti; Cmd-clic (Ctrl-clic) su una fa sentire solo quell'ingresso.
+
+**Faders** Mostra ogni livello come un fader invece che come una manopola. La scelta resta con il box.
 
 ## Ricetta
 

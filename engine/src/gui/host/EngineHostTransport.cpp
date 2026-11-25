@@ -48,6 +48,7 @@ void EngineHost::play() {
     }
     pendingCountInBars_ = 0;
     playing_ = true;
+    playIntent_.store(true, std::memory_order_relaxed);
     clearTouches();
     {
         const AudioLock::Scope sl(lock_);
@@ -82,6 +83,7 @@ void EngineHost::serviceCountIn() {
     if (punchFire_.exchange(false)) record_.onPunchIn();
     if (!countInFire_.exchange(false)) return;
     playing_ = true;
+    playIntent_.store(true, std::memory_order_relaxed);
     clearTouches();
     record_.onPlay();
     syncTransportEvent(true);
@@ -94,6 +96,7 @@ void EngineHost::stop() {
     record_.onStop();
     finishOnDemandClips();
     playing_ = false;
+    playIntent_.store(false, std::memory_order_relaxed);
     clearTouches();
     {
         const AudioLock::Scope sl(lock_);

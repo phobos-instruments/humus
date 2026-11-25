@@ -10,6 +10,7 @@
 
 #include "gui/editor/BrickBindings.h"
 #include "gui/style/Colours.h"
+#include "gui/style/DropBadge.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
 #include "gui/bricks/StrandColours.h"
@@ -134,6 +135,7 @@ public:
             if (i == dropStrand_) {
                 g.setColour(Palette::accent);
                 g.drawEllipse(ring.expanded(3.0f), 2.0f);
+                drop::paintBadge(g, ring.expanded(3.0f));
             }
 
             paintNudges(g, i, c);

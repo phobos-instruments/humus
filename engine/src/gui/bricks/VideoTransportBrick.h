@@ -102,7 +102,7 @@ public:
 private:
     std::string fileParam_;
     std::shared_ptr<VideoLayer> layer() const {
-        return VideoDeckPool::instance().peek(name_);
+        return VideoDeckPool::instance().peek(host_.videoKey(name_));
     }
 
     void ensureDeck() {
@@ -115,7 +115,7 @@ private:
         }
         if (held_ == nullptr || heldPath_ != file.getFullPathName()) {
             heldPath_ = file.getFullPathName();
-            held_ = VideoDeckPool::instance().open(name_, heldPath_);
+            held_ = VideoDeckPool::instance().open(host_.videoKey(name_), heldPath_);
         }
     }
 

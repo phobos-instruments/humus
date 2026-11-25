@@ -120,6 +120,7 @@ public:
     }
 
     juce::String siteButtonText() const { return siteBtn_.getButtonText(); }
+    static juce::String titleText() { return juce::String("Humus ") + HUM_VERSION; }
     const AboutBody& body() const { return body_; }
     AboutBody& body() { return body_; }
 
@@ -147,12 +148,9 @@ public:
         drawHumusMark(g, juce::Rectangle<float>((float) getWidth() / 2.0f - 66.0f, 12.0f,
                                                 132.0f, 132.0f));
 
-        juce::String title("Humus");
-        if (auto* app = juce::JUCEApplication::getInstance())
-            title << " " << app->getApplicationVersion();
         g.setColour(line);
         g.setFont(juce::Font(juce::FontOptions(17.0f, juce::Font::bold)));
-        g.drawText(title, 0, 150, getWidth(), 22, juce::Justification::centred);
+        g.drawText(titleText(), 0, 150, getWidth(), 22, juce::Justification::centred);
 
         g.setColour(line.withAlpha(alpha::dim));
         g.setFont(juce::Font(juce::FontOptions(10.0f)));

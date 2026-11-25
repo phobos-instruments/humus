@@ -5,11 +5,14 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
+#include <string>
 
 #include "Atom/RingRules.h"
 #include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/ParamRef.h"
+#include "hum/Pattern.h"
+#include "hum/StepChance.h"
 
 namespace hum {
 
@@ -17,6 +20,7 @@ class Atom : public Organism, public MidiNode, public RingFace {
 public:
     static constexpr int kRings = 4;
     static constexpr int kMaxSteps = 32;
+    static constexpr int kBanks = 8;
     enum Rate { kQuarter = 0, kEighth, kSixteenth, kThirtySecond, kFitBar };
 
     int numAudioInputs() const override { return 0; }
@@ -26,6 +30,11 @@ public:
 
     void prepare(double sampleRate, int) override;
     void reset() override;
+    void setPattern(const Pattern& p) override;
+    void loadFrom(const OrganismState& state) override {
+        Organism::loadFrom(state);
+        setPattern(state.pattern);
+    }
     void process(const float* const* in, int numIn, float* const* out, int numOut,
                  int numSamples, const Transport& transport) override;
 
@@ -48,12 +57,17 @@ public:
 
 private:
     struct Ring {
-        int steps = 16, hits = 0, rotate = 0, rate = kSixteenth, note = 60;
+        int steps = 16, hits = 0, rotate = 0, rate = kSixteenth, note = 60, chance = kFullChance;
+        std::uint32_t muted = 0;
         bool fixed = false;
     };
+    using Bank = std::array<Ring, kRings>;
     struct PendingOff { int note; long samplesLeft; };
 
     Ring ringAt(int ring) const;
+    Ring paramRing(int ring) const;
+    static Ring clamped(Ring shape);
+    static void storeValue(Bank& bank, const std::string& name, long long value);
     void hear(bool latch);
     void releaseDue(int numSamples);
     void turn(int ring, const Ring& shape, const rings::Pool& pool, int numSamples, const Transport& transport);
@@ -67,6 +81,13 @@ private:
     std::array<ParamRef, kRings> rateRef_ = numberedParams<kRings>("Rate_");
     std::array<ParamRef, kRings> fixedRef_ = numberedParams<kRings>("Fixed_");
     std::array<ParamRef, kRings> noteRef_ = numberedParams<kRings>("Note_");
+    std::array<ParamRef, kRings> chanceRef_ = numberedParams<kRings>("Chance_");
+    std::array<ParamRef, kRings> muteRef_ = numberedParams<kRings>("Mute_");
+    ParamRef bankRef_{"Bank"};
+
+    std::array<Bank, kBanks> banks_{};
+    std::array<bool, kBanks> stored_{};
+    std::uint32_t seed_ = 0;
 
     rings::HeldNotes held_;
     std::array<long long, kRings> turns_{};

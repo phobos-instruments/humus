@@ -25,7 +25,7 @@ public:
                      VideoRenderService* renderer = nullptr)
         : host_(host), sink_(std::move(sink)), renderer_(renderer),
           builder_(host_, sink_, true) {
-        VideoPreviewStore::instance().want(sink_, true);
+        VideoPreviewStore::instance().want(host_.videoKey(sink_), true);
         attach(true);
         tickerId_ = UiTicker::instance().add([this] { tick(); });
     }
@@ -34,7 +34,7 @@ public:
         UiTicker::instance().remove(tickerId_);
         wantComposite(false);
         attach(false);
-        VideoPreviewStore::instance().want(sink_, false);
+        VideoPreviewStore::instance().want(host_.videoKey(sink_), false);
     }
 
     void tick() {
@@ -76,7 +76,7 @@ public:
         }
         if (root->kind == visual::Step::Deck) {
             bool held = false;
-            if (const auto lay = VideoDeckPool::instance().peek(root->node)) {
+            if (const auto lay = VideoDeckPool::instance().peek(host_.videoKey(root->node))) {
                 float rate = 1.0f;
                 if (const auto* cm = host_.model().byName(root->node))
                     for (const auto& prop : cm->properties)
@@ -103,7 +103,7 @@ public:
         dst->setVideoSourceHeld(false);
         auto held = std::make_shared<std::vector<std::uint8_t>>();
         int w = 0, h = 0;
-        if (VideoPreviewStore::instance().takeRaw(sink_, gen_, w, h, *held)
+        if (VideoPreviewStore::instance().takeRaw(host_.videoKey(sink_), gen_, w, h, *held)
             && w > 0 && h > 0)
             dst->pushVideoFrame({w, h, false, held->data(), nullptr, held});
     }

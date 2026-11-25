@@ -26,7 +26,11 @@ En mode Pitched, les zones se partagent le clavier aux points médians entre leu
 
 **Polyphony** Le nombre de voix qui sonnent en même temps. Au-delà, la voix la plus ancienne est volée.
 
-**Loop** Activé, il tient une note sur les points de boucle qu'apporte le fichier, tant que tu gardes la touche enfoncée ; un fichier qui n'en a pas est lu jusqu'au bout dans tous les cas. Désactivé, il ignore tout point de boucle et laisse chaque note aller jusqu'à la fin de son échantillon : c'est le réglage à choisir quand les boucles d'une bibliothèque sont mal placées. Le raccord se fait en fondu enchaîné, donc une boucle dont les deux extrémités ne s'alignent pas tient au lieu de cliquer à chaque cycle.
+**Loop** Comment une note tenue continue après la fin de son son. File la tient sur les points de boucle qu'apporte le fichier, tant que tu gardes la touche enfoncée ; un fichier qui n'en a pas est lu jusqu'au bout. Off ignore tout point de boucle et laisse chaque note aller jusqu'à la fin de son échantillon : c'est le réglage à choisir quand les boucles d'une bibliothèque sont mal placées. Forward répète le passage entre Loop in et Loop out, sur n'importe quel échantillon, avec ou sans points de boucle. Ping-pong parcourt ce passage en avant, puis en arrière, puis de nouveau en avant. Le raccord d'une boucle File ou Forward se fait en fondu, si bien qu'une boucle dont les deux bouts ne s'accordent pas tient au lieu de claquer à chaque tour ; Ping-pong n'en a pas besoin, car il ne saute jamais.
+
+**LoopStart** Affiché comme Loop in. L'endroit où commence une boucle Forward ou Ping-pong, du début de l'échantillon à sa fin. La note part quand même du début et entre dans la boucle en jouant.
+
+**LoopEnd** Affiché comme Loop out. L'endroit où une boucle Forward ou Ping-pong fait demi-tour, du début de l'échantillon à sa fin. Une boucle ne dure jamais moins de quelques millisecondes.
 
 **File1** Le fichier son de l'emplacement 1, et ainsi de suite pour File2 à File8.
 

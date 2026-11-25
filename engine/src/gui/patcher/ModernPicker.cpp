@@ -7,8 +7,8 @@
 
 namespace hum {
 
-ModernPicker::ModernPicker() {
-    groups_ = classPickerGroups();
+ModernPicker::ModernPicker(const ClassFilter& keep) {
+    groups_ = classPickerGroups(keep);
 
     search_.onKey = [this](const juce::KeyPress& k) { return handleKey(k); };
     search_.setFont(juce::FontOptions(14.0f));
@@ -47,10 +47,11 @@ float ModernPicker::marqueeForTest(int ticks) {
     return marqueeOffset_;
 }
 
-void ModernPicker::show(juce::Rectangle<int> screenAnchor, std::function<void(const std::string&)> onPick) {
-    auto content = std::make_unique<ModernPicker>();
+void ModernPicker::show(juce::Rectangle<int> screenAnchor, std::function<void(const std::string&)> onPick,
+                        const PickerScope& scope) {
+    auto content = std::make_unique<ModernPicker>(scope.keep);
     content->onPick = std::move(onPick);
-    juce::CallOutBox::launchAsynchronously(std::move(content), screenAnchor, nullptr);
+    launchCallOut(std::move(content), screenAnchor, scope.parent);
 }
 
 void ModernPicker::resized() {

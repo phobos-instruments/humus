@@ -275,6 +275,10 @@ inline const PatternChannel* matrixChannel(const Pattern& p, const std::string& 
     return nullptr;
 }
 
+inline const PatternChannel* noteBankChannel(const Pattern& p, int bank) {
+    return bank >= 1 ? matrixChannel(p, kNoteBankChannel, bank - 1) : nullptr;
+}
+
 inline int matrixChannelCount(const Pattern& p, const std::string& type) {
     int n = 0;
     for (const auto& ch : p.channels) n += ch.type == type ? 1 : 0;

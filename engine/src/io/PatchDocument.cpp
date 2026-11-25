@@ -187,6 +187,10 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
         const auto u = gr->attribute("unit", "1/16");
         if (!u.empty()) out.grooveUnit = u;
     }
+    if (auto* edited = root->child("edited-audio"))
+        for (auto* f : edited->children())
+            if (f->hasTag("file") && !f->attribute("copy", "").empty())
+                out.editedAudio[f->attribute("copy", "")] = f->attribute("original", "");
     if (auto* mods = root->child("midi-modifiers"))
         for (auto* me : mods->children()) {
             if (!me->hasTag("modifier")) continue;
@@ -224,7 +228,7 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
                     } else if (p->hasTag("au-class-info")) {
                         c.hasBlob = true;
                     } else if (p->hasTag("vst3-class-info") || p->hasTag("lv2-class-info")
-                               || p->hasTag("au-state")) {
+                               || p->hasTag("au-state") || p->hasTag("clap-state")) {
                         c.pluginState = xmltext::trimmed(p->allSubText());
                         c.hasBlob = true;
                     }
@@ -247,6 +251,7 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
                 if (port == "all") c.trackInput = OrganismModel::kTrackInputAll;
                 else if (port == "none") c.trackInput = OrganismModel::kTrackInputNone;
                 else if (const int n = ti->intAttribute("port", 0); n >= 1 && n <= 8) c.trackInput = n - 1;
+                if (const int ch = ti->intAttribute("channel", 0); ch >= 1 && ch <= 16) c.trackInputChannel = ch;
             }
             if (auto* placed = el->child("timeline-row"))
                 c.timelineRow = std::max(-1, placed->intAttribute("index", -1));
@@ -262,8 +267,10 @@ bool parsePatchText(const std::string& xmlText, PatchDocumentModel& out, std::st
                     PresetModel pm;
                     pm.number = pe->intAttribute("number", (int) c.presets.size() + 1);
                     pm.name = pe->attribute("name");
-                    for (auto* p : pe->children())
+                    for (auto* p : pe->children()) {
                         if (p->hasTag("property")) pm.properties.push_back(parseProperty(*p));
+                        else if (p->hasTag("pattern")) parsePattern(*p, pm.pattern);
+                    }
                     c.presets.push_back(std::move(pm));
                 }
             }

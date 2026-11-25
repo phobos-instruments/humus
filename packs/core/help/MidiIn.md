@@ -8,9 +8,13 @@ Cord its outlet into an instrument such as Rhizome, into a MidiBus, or into a Mi
 
 **Port** Which MIDI input ports this organism listens to. All inputs, the default for a new MidiIn, hears every connected keyboard and controller at once; a single port hears only the device assigned to it, and the dropdown shows each port with that device.
 
+**Channel** Which of the sixteen MIDI channels a device gets through on. All, the default, lets every channel in; a single channel keeps out what a device sends on the others. The on-screen keys always play, whatever the channel.
+
 ## Recipe
 
 **Keyboard to synth** Drop a MidiIn, pick the port your keyboard is assigned to, cord it into a Rhizome and the Rhizome into the Mixer. Click the on-screen keys first to hear the voice, then play the hardware.
+
+**Keys and pads apart** Many controllers send their keys on channel 1 and their pads on channel 10. Set the MidiIn's Channel to 1 and the synth behind it hears only the keys, while the pads stay free for MIDI Learn; a pad learned onto a parameter keeps to its own channel, so the keys never fire it.
 
 ## Related Organisms
 

@@ -3,6 +3,8 @@
 #pragma once
 #include <atomic>
 #include <cstdint>
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -12,6 +14,7 @@
 #include "hum/caps/Video.h"
 #include "hum/Organism.h"
 #include "hum/Pattern.h"
+#include "hum/dsp/ClipPlayer.h"
 
 namespace hum {
 
@@ -43,16 +46,15 @@ class VideoTrack : public Organism, public ClipArrangement, public VideoNode,
 public:
     static constexpr double kPrerollSeconds = 1.5;
 
+    static constexpr int kSoundChannels = 2;
+
     int numAudioInputs() const override { return 0; }
-    int numAudioOutputs() const override { return 0; }
-    void prepare(double sampleRate, int) override {
-        sampleRate_ = sampleRate;
-        setPattern(pattern_);
-    }
-    void reset() override {}
+    int numAudioOutputs() const override { return kSoundChannels; }
+    void prepare(double sampleRate, int) override;
+    void reset() override { player_.reset(); }
     void loadFrom(const OrganismState& state) override;
     void setPattern(const Pattern& pattern) override;
-    void process(const float* const*, int, float* const*, int, int,
+    void process(const float* const*, int, float* const* out, int numOut, int numSamples,
                  const Transport& transport) override;
 
     int numVideoInputs() const override { return 1; }
@@ -65,6 +67,8 @@ public:
     Cue upcomingAt(double beat, double tempo) const override;
 
 private:
+    std::vector<ClipVoice> soundVoices();
+    std::shared_ptr<const ClipPcm> soundOf(const std::string& file);
     void publish(std::atomic<int>& clip, std::atomic<double>& seconds, std::atomic<double>& rate,
                  std::atomic<float>& level, const Cue& c);
 
@@ -73,6 +77,9 @@ private:
     std::vector<VideoClipPlay> clips_;
     std::vector<VideoClipPlay> pending_;
     std::vector<VideoClipPlay> table_;
+    std::map<std::string, std::shared_ptr<const ClipPcm>> sounds_;
+    std::vector<ClipVoice> pendingVoices_;
+    ClipPlayer player_;
     juce::CriticalSection loadLock_;
     std::atomic<bool> hasPending_{false};
     std::atomic<int> cueClip_{-1};

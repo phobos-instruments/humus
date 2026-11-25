@@ -26,9 +26,9 @@ L'anello di ogni strand disegna quello che c'è registrato: la forma d'onda del 
 
 **Level1** Il livello dello strand nel mix principale e sulla sua uscita diretta.
 
-**Mute1** M: silenzia lo strand. Continua a girare sotto, quindi rientra in fase.
+**Mute1** M: silenzia lo strand. Continua a girare sotto, quindi rientra in fase. Alt-clic su una M qualsiasi mette o toglie il mute a tutti gli strand insieme.
 
-**Solo1** S: fa sentire solo questo strand.
+**Solo1** S: fa sentire solo questo strand. Alt-clic su una S qualsiasi porta tutti i solo nello stesso stato, quindi un Alt-clic su una accesa li spegne tutti; Cmd-clic (Ctrl-clic) su una fa sentire solo quello strand.
 
 **Sync1** Free, Beat, Bar o Follow: a cosa si agganciano le pressioni, Rev e Half. Follow usa il punto di giunzione dello strand col numero più basso che sta suonando, così il suo loop diventa la griglia; se svuoti quello strand, subentra il successivo in riproduzione. Un Helix nuovo parte con lo strand 1 su Bar e gli strand da 2 a 4 su Follow, così il primo loop fissa la lunghezza a cui si agganciano gli altri.
 

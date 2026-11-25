@@ -31,6 +31,7 @@ public:
     virtual const MidiControlMap& map() const = 0;
     virtual int lastCC() const = 0;
     virtual int lastPort() const = 0;
+    virtual int lastChannel() const = 0;
     virtual std::string deviceForPort(int port) const = 0;
     virtual int portForDevice(const std::string& device) const = 0;
     virtual std::vector<std::string> inputDevices() const = 0;
@@ -38,7 +39,8 @@ public:
     virtual int sourceValue(int source) const = 0;
     virtual std::vector<int> heldNotes(int except) const = 0;
     virtual std::vector<int> recentValues(int source, double sinceMs) const = 0;
-    virtual double lastSeenMs(int source) const = 0;
+    virtual int laneValue(const MidiSource& src) const = 0;
+    virtual double lastSeenMs(const MidiSource& src) const = 0;
     virtual void setReceiveMode(const std::string& name, int mode, int channel) = 0;
     virtual void setRecordTarget(const std::string& name, bool armed, int quantizeTicks = 0, int clip = -1,
                                  bool thru = false) = 0;
@@ -48,6 +50,8 @@ public:
     virtual bool anyInletArmed() const = 0;
     virtual void setTrackInput(const std::string& name, int input) = 0;
     virtual int trackInput(const std::string& name) const = 0;
+    virtual void setTrackChannel(const std::string& name, int channel) = 0;
+    virtual int trackChannel(const std::string& name) const = 0;
     virtual unsigned inputActivity(const std::string& name) const = 0;
     virtual bool isRecordTarget(const std::string& name) const = 0;
     virtual bool anyRecordTarget() const = 0;

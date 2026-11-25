@@ -2,7 +2,7 @@
 
 Un harmonizer con rilevatore di intonazione che aggiunge fino a quattro copie trasposte di una singola linea melodica.
 
-Ascolta il pitch al suo ingresso e ci costruisce intorno delle armonie, ognuna la stessa esecuzione spostata su una nuova nota. Le armonie suonano solo finché si sente un pitch chiaro, così respiri e consonanti passano puliti. In modalità MIDI sono le note tenute all'ingresso MIDI a decidere i bersagli: canta una nota e l'accordo segue la tua mano. In modalità SCALE li decidono Key, Scale e i quattro intervalli Voice, così le armonie restano in tonalità ovunque vada la melodia. Collegaci un SoundIn o un FilePlayer, e un PianoRoll o una tastiera all'ingresso MIDI per la modalità MIDI.
+Ascolta il pitch al suo ingresso e ci costruisce intorno delle armonie, ognuna la stessa esecuzione spostata su una nuova nota. Le armonie suonano solo finché si sente un pitch chiaro, così respiri e consonanti passano puliti. Le campane e gli altri suoni i cui armonici non sono multipli interi della nota, come Mineral, vengono sentiti alla loro parziale più bassa, cioè la nota su cui sono suonati. In modalità MIDI sono le note tenute all'ingresso MIDI a decidere i bersagli: canta una nota e l'accordo segue la tua mano. In modalità SCALE li decidono Key, Scale e i quattro intervalli Voice, così le armonie restano in tonalità ovunque vada la melodia. Collegaci un SoundIn o un FilePlayer, e un PianoRoll o una tastiera all'ingresso MIDI per la modalità MIDI.
 
 ## Parametri
 

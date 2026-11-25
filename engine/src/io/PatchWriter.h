@@ -11,6 +11,8 @@ namespace hum {
 
 std::unique_ptr<xml::Element> buildPatchTree(const PatchDocumentModel& doc, const xml::Element* original = nullptr);
 
+std::string writePatchTextBeside(const PatchDocumentModel& doc, const std::string& folder,
+                                 const xml::Element* original = nullptr);
 bool writePatchFile(const std::string& path, const PatchDocumentModel& doc, std::string& error,
                     const xml::Element* original = nullptr);
 

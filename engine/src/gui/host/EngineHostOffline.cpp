@@ -8,10 +8,14 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <map>
+#include <string>
 #include <vector>
 #include "hum/CameraCapture.h"
 #include "hum/SerialPort.h"
 #include "core/graph/GraphIo.h"
+#include "core/packs/ClassString.h"
+#include "core/plugins/PluginHost.h"
 #include "core/net/LinkChase.h"
 #include "core/packs/Roles.h"
 #include "gui/app/AppSettings.h"
@@ -22,6 +26,18 @@
 #include "hum/dsp/DspMath.h"
 
 namespace hum {
+
+bool EngineHost::asyncPluginsReady() {
+    std::map<std::string, int> wanted;
+    for (const auto& c : model_.organisms)
+        if (isPluginKind(c.kind)) ++wanted[c.classRaw];
+    auto& plugins = PluginHost::instance();
+    bool ready = true;
+    for (const auto& [cls, count] : wanted)
+        if (const auto desc = plugins.descriptionFor(cls); desc != nullptr && plugins.createsOnlyAsync(*desc))
+            ready = plugins.prepareAsync(cls, *desc, count) && ready;
+    return ready;
+}
 
 bool EngineHost::openOfflineSound(OfflineSound& made, std::string& error) {
     made.graph = std::make_unique<AudioGraph>();

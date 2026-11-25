@@ -2,7 +2,7 @@
 
 Ein Harmonizer mit Tonhöhenerkennung, der einer einzelnen Melodielinie bis zu vier verschobene Kopien hinzufügt.
 
-Er hört auf die Tonhöhe an seinem Eingang und baut Harmonien darum herum, jede davon dieselbe Performance, auf eine neue Note verschoben. Harmonien erklingen nur, solange eine klare Tonhöhe zu hören ist, sodass Atmer und Konsonanten sauber durchgehen. Im MIDI-Modus legen die am MIDI-Eingang gehaltenen Noten die Ziele fest: Sing eine Note, und der Akkord folgt deiner Hand. Im SCALE-Modus legen Key, Scale und die vier Voice-Intervalle sie fest, sodass die Harmonien in der Tonart bleiben, wohin die Melodie auch geht. Verbinde ein SoundIn oder einen FilePlayer damit und für den MIDI-Modus eine PianoRoll oder ein Keyboard mit dem MIDI-Eingang.
+Er hört auf die Tonhöhe an seinem Eingang und baut Harmonien darum herum, jede davon dieselbe Performance, auf eine neue Note verschoben. Harmonien erklingen nur, solange eine klare Tonhöhe zu hören ist, sodass Atmer und Konsonanten sauber durchgehen. Glocken und andere Klänge, deren Obertöne keine ganzzahligen Vielfachen der Note sind, wie Mineral, werden an ihrem tiefsten Teilton erkannt, also an der Note, auf der sie gespielt werden. Im MIDI-Modus legen die am MIDI-Eingang gehaltenen Noten die Ziele fest: Sing eine Note, und der Akkord folgt deiner Hand. Im SCALE-Modus legen Key, Scale und die vier Voice-Intervalle sie fest, sodass die Harmonien in der Tonart bleiben, wohin die Melodie auch geht. Verbinde ein SoundIn oder einen FilePlayer damit und für den MIDI-Modus eine PianoRoll oder ein Keyboard mit dem MIDI-Eingang.
 
 ## Parameter
 

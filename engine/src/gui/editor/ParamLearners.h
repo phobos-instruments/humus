@@ -8,6 +8,7 @@
 
 #include "core/midi/ControlGuess.h"
 #include "core/midi/MidiControl.h"
+#include "gui/common/ShutdownSingleton.h"
 #include "gui/editor/ControlDefaults.h"
 #include "gui/host/BrickHost.h"
 #include "gui/host/EngineHostMidiControl.h"
@@ -18,9 +19,8 @@
 
 namespace hum {
 
-class MidiLearner : private juce::Timer {
+class MidiLearner : public ShutdownSingleton<MidiLearner>, private juce::Timer {
 public:
-    static MidiLearner& instance() { static MidiLearner l; return l; }
 
     std::function<void(const juce::String&)> onStatus;
 
@@ -33,6 +33,7 @@ public:
         min_ = min; max_ = max;
         pendingNote_ = -1;
         pendingPort_ = kAnyMidiPort;
+        pendingChannel_ = kAnyMidiChannel;
         pendingHeld_.clear();
         listening_ = -1;
         armedAt_ = juce::Time::getMillisecondCounter();
@@ -51,6 +52,7 @@ public:
         startTimerHz(20);
     }
     bool armed() const { return host_ != nullptr; }
+    bool armedOn(const BrickHost& host) const { return host_ == &host; }
     int secondsLeft() const {
         if (host_ == nullptr) return 0;
         const auto elapsed = juce::Time::getMillisecondCounter() - armedAt_;
@@ -86,7 +88,7 @@ private:
         if (listening_ >= 0) {
             if (juce::Time::getMillisecondCounterHiRes() - listenFrom_ < kListenMs) return;
             const auto guess = guessControl(listening_, host_->midi().recentValues(listening_, listenFrom_));
-            capture(MidiSource(listening_, std::move(pendingHeld_), pendingPort_), guess);
+            capture(MidiSource(listening_, std::move(pendingHeld_), pendingPort_, pendingChannel_), guess);
             return;
         }
         const int cc = host_->midi().lastCC();
@@ -97,6 +99,7 @@ private:
                 pendingNote_ = cc;
                 pendingHeld_ = std::move(held);
                 pendingPort_ = host_->midi().lastPort();
+                pendingChannel_ = host_->midi().lastChannel();
                 if (window_)
                     window_->setMessage(tr("organism-editor.learn-holding", "Holding") + " "
                                         + juce::String(midiSourceLabel(cc)) + "\n"
@@ -106,13 +109,15 @@ private:
                 return;
             }
             if (!isCcSource(cc)) {
-                capture(MidiSource(cc, std::move(held), host_->midi().lastPort()), guessControl(cc, {}));
+                capture(MidiSource(cc, std::move(held), host_->midi().lastPort(), host_->midi().lastChannel()),
+                        guessControl(cc, {}));
                 return;
             }
             listening_ = cc;
             listenFrom_ = juce::Time::getMillisecondCounterHiRes() - kEchoMs;
             pendingHeld_ = std::move(held);
             pendingPort_ = host_->midi().lastPort();
+            pendingChannel_ = host_->midi().lastChannel();
             if (window_)
                 window_->setMessage(tr("organism-editor.learn-listening", "Got") + " "
                                     + juce::String(midiSourceLabel(cc)) + "\n"
@@ -121,7 +126,7 @@ private:
             return;
         }
         if (pendingNote_ >= 0 && host_->midi().sourceValue(pendingNote_) <= kHeldThreshold)
-            capture(MidiSource(pendingNote_, std::move(pendingHeld_), pendingPort_),
+            capture(MidiSource(pendingNote_, std::move(pendingHeld_), pendingPort_, pendingChannel_),
                     guessControl(pendingNote_, {}));
     }
 
@@ -160,7 +165,7 @@ private:
     double min_ = 0.0, max_ = 1.0;
     static constexpr double kListenMs = 450.0;
     static constexpr double kEchoMs = 120.0;
-    int pendingNote_ = -1, pendingPort_ = kAnyMidiPort;
+    int pendingNote_ = -1, pendingPort_ = kAnyMidiPort, pendingChannel_ = kAnyMidiChannel;
     int listening_ = -1;
     double listenFrom_ = 0.0;
     std::vector<int> pendingHeld_;
@@ -168,9 +173,8 @@ private:
     std::unique_ptr<QuickMapWindow> window_;
 };
 
-class OscLearner : private juce::Timer {
+class OscLearner : public ShutdownSingleton<OscLearner>, private juce::Timer {
 public:
-    static OscLearner& instance() { static OscLearner l; return l; }
 
     std::function<void(const juce::String&)> onStatus;
 
@@ -195,6 +199,7 @@ public:
     }
 
     bool armed() const { return host_ != nullptr; }
+    bool armedOn(const BrickHost& host) const { return host_ == &host; }
 
     void cancel() {
         if (host_ != nullptr && onStatus) onStatus(tr("organism-editor.osc-learn-cancelled", "OSC Learn cancelled"));

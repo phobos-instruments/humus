@@ -6,64 +6,75 @@
       "type": "ring-face",
       "x": 12,
       "y": 8,
-      "w": 220,
-      "h": 220
+      "w": 208,
+      "h": 208,
+      "hits-prefix": "Hits_",
+      "turn-prefix": "Rotate_",
+      "mute-prefix": "Mute_"
     },
     {
       "type": "label",
       "label": "Steps",
-      "x": 258,
+      "x": 240,
       "y": 8,
-      "w": 60,
+      "w": 40,
       "h": 13
     },
     {
       "type": "label",
       "label": "Hits",
-      "x": 312,
+      "x": 284,
       "y": 8,
-      "w": 60,
+      "w": 40,
       "h": 13
     },
     {
       "type": "label",
       "label": "Turn",
-      "x": 366,
+      "x": 328,
       "y": 8,
-      "w": 60,
+      "w": 40,
+      "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Chance",
+      "x": 372,
+      "y": 8,
+      "w": 48,
       "h": 13
     },
     {
       "type": "label",
       "label": "Rate",
-      "x": 420,
+      "x": 424,
       "y": 8,
-      "w": 60,
+      "w": 76,
       "h": 13
     },
     {
       "type": "label",
       "label": "Note",
-      "x": 498,
+      "x": 504,
       "y": 8,
-      "w": 60,
+      "w": 84,
       "h": 13
     },
     {
       "type": "label",
       "label": "1",
-      "x": 234,
+      "x": 222,
       "y": 28,
-      "w": 22,
+      "w": 16,
       "h": 13
     },
     {
       "type": "number-box",
       "param": "Steps_1",
       "label": "",
-      "x": 258,
+      "x": 240,
       "y": 24,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -72,9 +83,9 @@
       "type": "number-box",
       "param": "Hits_1",
       "label": "",
-      "x": 312,
+      "x": 284,
       "y": 24,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -83,9 +94,20 @@
       "type": "number-box",
       "param": "Rotate_1",
       "label": "",
-      "x": 366,
+      "x": 328,
       "y": 24,
-      "w": 50,
+      "w": 40,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Chance_1",
+      "label": "",
+      "x": 372,
+      "y": 24,
+      "w": 48,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -94,9 +116,9 @@
       "type": "combo",
       "param": "Rate_1",
       "label": "",
-      "x": 420,
+      "x": 424,
       "y": 24,
-      "w": 72,
+      "w": 76,
       "h": 22,
       "options": [
         "1/4",
@@ -110,9 +132,9 @@
       "type": "minitoggle",
       "param": "Fixed_1",
       "label": "Fix",
-      "x": 498,
+      "x": 504,
       "y": 25,
-      "w": 34,
+      "w": 32,
       "h": 20
     },
     {
@@ -120,26 +142,26 @@
       "param": "Note_1",
       "label": "",
       "dim-when": "!Fixed_1",
-      "x": 536,
+      "x": 540,
       "y": 24,
-      "w": 52,
+      "w": 48,
       "h": 22
     },
     {
       "type": "label",
       "label": "2",
-      "x": 234,
+      "x": 222,
       "y": 60,
-      "w": 22,
+      "w": 16,
       "h": 13
     },
     {
       "type": "number-box",
       "param": "Steps_2",
       "label": "",
-      "x": 258,
+      "x": 240,
       "y": 56,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -148,9 +170,9 @@
       "type": "number-box",
       "param": "Hits_2",
       "label": "",
-      "x": 312,
+      "x": 284,
       "y": 56,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -159,9 +181,20 @@
       "type": "number-box",
       "param": "Rotate_2",
       "label": "",
-      "x": 366,
+      "x": 328,
       "y": 56,
-      "w": 50,
+      "w": 40,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Chance_2",
+      "label": "",
+      "x": 372,
+      "y": 56,
+      "w": 48,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -170,9 +203,9 @@
       "type": "combo",
       "param": "Rate_2",
       "label": "",
-      "x": 420,
+      "x": 424,
       "y": 56,
-      "w": 72,
+      "w": 76,
       "h": 22,
       "options": [
         "1/4",
@@ -186,9 +219,9 @@
       "type": "minitoggle",
       "param": "Fixed_2",
       "label": "Fix",
-      "x": 498,
+      "x": 504,
       "y": 57,
-      "w": 34,
+      "w": 32,
       "h": 20
     },
     {
@@ -196,26 +229,26 @@
       "param": "Note_2",
       "label": "",
       "dim-when": "!Fixed_2",
-      "x": 536,
+      "x": 540,
       "y": 56,
-      "w": 52,
+      "w": 48,
       "h": 22
     },
     {
       "type": "label",
       "label": "3",
-      "x": 234,
+      "x": 222,
       "y": 92,
-      "w": 22,
+      "w": 16,
       "h": 13
     },
     {
       "type": "number-box",
       "param": "Steps_3",
       "label": "",
-      "x": 258,
+      "x": 240,
       "y": 88,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -224,9 +257,9 @@
       "type": "number-box",
       "param": "Hits_3",
       "label": "",
-      "x": 312,
+      "x": 284,
       "y": 88,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -235,9 +268,20 @@
       "type": "number-box",
       "param": "Rotate_3",
       "label": "",
-      "x": 366,
+      "x": 328,
       "y": 88,
-      "w": 50,
+      "w": 40,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Chance_3",
+      "label": "",
+      "x": 372,
+      "y": 88,
+      "w": 48,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -246,9 +290,9 @@
       "type": "combo",
       "param": "Rate_3",
       "label": "",
-      "x": 420,
+      "x": 424,
       "y": 88,
-      "w": 72,
+      "w": 76,
       "h": 22,
       "options": [
         "1/4",
@@ -262,9 +306,9 @@
       "type": "minitoggle",
       "param": "Fixed_3",
       "label": "Fix",
-      "x": 498,
+      "x": 504,
       "y": 89,
-      "w": 34,
+      "w": 32,
       "h": 20
     },
     {
@@ -272,26 +316,26 @@
       "param": "Note_3",
       "label": "",
       "dim-when": "!Fixed_3",
-      "x": 536,
+      "x": 540,
       "y": 88,
-      "w": 52,
+      "w": 48,
       "h": 22
     },
     {
       "type": "label",
       "label": "4",
-      "x": 234,
+      "x": 222,
       "y": 124,
-      "w": 22,
+      "w": 16,
       "h": 13
     },
     {
       "type": "number-box",
       "param": "Steps_4",
       "label": "",
-      "x": 258,
+      "x": 240,
       "y": 120,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -300,9 +344,9 @@
       "type": "number-box",
       "param": "Hits_4",
       "label": "",
-      "x": 312,
+      "x": 284,
       "y": 120,
-      "w": 50,
+      "w": 40,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -311,9 +355,20 @@
       "type": "number-box",
       "param": "Rotate_4",
       "label": "",
-      "x": 366,
+      "x": 328,
       "y": 120,
-      "w": 50,
+      "w": 40,
+      "h": 22,
+      "decimals": 0,
+      "step": 1
+    },
+    {
+      "type": "number-box",
+      "param": "Chance_4",
+      "label": "",
+      "x": 372,
+      "y": 120,
+      "w": 48,
       "h": 22,
       "decimals": 0,
       "step": 1
@@ -322,9 +377,9 @@
       "type": "combo",
       "param": "Rate_4",
       "label": "",
-      "x": 420,
+      "x": 424,
       "y": 120,
-      "w": 72,
+      "w": 76,
       "h": 22,
       "options": [
         "1/4",
@@ -338,9 +393,9 @@
       "type": "minitoggle",
       "param": "Fixed_4",
       "label": "Fix",
-      "x": 498,
+      "x": 504,
       "y": 121,
-      "w": 34,
+      "w": 32,
       "h": 20
     },
     {
@@ -348,18 +403,18 @@
       "param": "Note_4",
       "label": "",
       "dim-when": "!Fixed_4",
-      "x": 536,
+      "x": 540,
       "y": 120,
-      "w": 52,
+      "w": 48,
       "h": 22
     },
     {
       "type": "combo",
       "param": "Order",
       "label": "",
-      "x": 242,
+      "x": 240,
       "y": 158,
-      "w": 90,
+      "w": 92,
       "h": 22,
       "options": [
         "Up",
@@ -470,6 +525,33 @@
       "y": 162,
       "w": 20,
       "h": 13
+    },
+    {
+      "type": "label",
+      "label": "Bank",
+      "x": 12,
+      "y": 222,
+      "w": 60,
+      "h": 13
+    },
+    {
+      "type": "enum-buttons",
+      "param": "Bank",
+      "label": "",
+      "x": 12,
+      "y": 238,
+      "w": 208,
+      "h": 24,
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H"
+      ]
     }
   ]
 }

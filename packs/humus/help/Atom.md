@@ -4,7 +4,7 @@ Four rings of evenly spread hits that arpeggiate the notes you hold, or walk a s
 
 Each ring answers one question: when. It takes a number of steps and a number of hits and spreads the hits round the circle as evenly as they will go, which is the rule behind a great many of the world's dance rhythms: three hits in eight is the tresillo, five in eight the cinquillo, seven in twelve the standard West African bell. Which note sounds is answered by your hands. Cord a keyboard or a PianoRoll into the inlet and every hit plays the next note of the chord you hold; hold nothing and the rings walk the chosen key and scale by themselves. Notes you play are pulled onto the scale first, so nothing lands outside the key. It runs while the transport plays, and sends everything from one MIDI outlet.
 
-The face shows the rings from the outside in, ring 1 outermost. Lit dots are hits, hollow dots are rests, and the bright dot is the step playing now.
+The face shows the rings from the outside in, ring 1 outermost. Lit dots are hits, hollow dots are rests, and the bright dot is the step playing now. Click a hit to silence it, and click it again to bring it back; a silenced hit shows faint and turns with Turn.
 
 The presets come in three families. Rhythms are the dance patterns above. Elements treat the rings as electron shells: the innermost ring is the first shell, and each ring is as long as its shell can hold (2, 8, 18 and 32 steps, from the inside out), its hits are the electrons in it, and every shell turns once a bar, so heavier atoms fill in denser, faster layers. Planets make the rings orbits whose lengths keep the proportions of the real ones: eight turns of the Earth ring against thirteen of Venus, Jupiter's twelve against Saturn's twenty-nine, Neptune three times round while Pluto goes twice, so the rings drift apart and come back together the way the planets do.
 
@@ -15,6 +15,8 @@ The presets come in three families. Rhythms are the dance patterns above. Elemen
 **Hits** How many of those steps sound. The ring spaces them as evenly as it can. 0 silences the ring.
 
 **Turn** Rotates the whole figure round the ring, one step at a time, so the same rhythm starts from a different place.
+
+**Chance** How often each hit of the ring sounds, from 0% to 100%. The dice belong to the box: a patch plays the same hits on every play and every bounce, and two Atoms roll their own.
 
 **Rate** How long a step lasts: a quarter, eighth, sixteenth or thirty-second note. Fit bar instead stretches the whole ring across one bar, whatever its step count, and that is what makes a true cross-rhythm: a ring of 3 and a ring of 4, both on Fit bar, play three against four. Rings on a note rate with different step counts simply run on and drift against each other, coming back together only after many bars.
 
@@ -39,6 +41,8 @@ The presets come in three families. Rhythms are the dance patterns above. Elemen
 **Swing** This organism's own swing, used when Follow is off. A ring on Fit bar is never swung.
 
 **Follow** Takes the swing from the transport; switch it off to set it here with Swing.
+
+**Bank** Which of the eight sets of rings plays, A to H. Each bank keeps its own Steps, Hits, Turn, Chance, Rate, Fix, Note and silenced hits for all four rings; the arpeggio settings below them are shared. A bank you have not used yet starts as a copy of the one you were on. Switching plays the new bank at once, from a Button, a mapped pad or an automation lane too.
 
 ## Recipe
 

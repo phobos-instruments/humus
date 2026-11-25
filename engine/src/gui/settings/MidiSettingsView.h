@@ -15,6 +15,7 @@
 #include "gui/host/MidiState.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/common/Localisation.h"
+#include "gui/settings/OscNetRows.h"
 #include "gui/settings/OscSerialRow.h"
 
 namespace hum {
@@ -50,14 +51,13 @@ private:
     };
 
     SettingsHost* host_;
-    juce::Label title_, inputsLabel_, outputLabel_, hint_, mapLabel_, oscPortLabel_,
-                syncLabel_;
+    juce::Label title_, inputsLabel_, outputLabel_, hint_, mapLabel_, syncLabel_;
     juce::ComboBox syncCombo_;
     juce::TextButton btMidi_;
     std::array<PortRow, MidiState::kPorts> inRows_, outRows_;
     std::vector<juce::MidiDeviceInfo> inputs_, outputs_;
-    juce::ToggleButton oscEnable_;
-    juce::TextEditor oscPort_;
+    OscInputRow oscInput_{host_};
+    OscOutputRow oscOutput_;
     OscSerialRow oscSerial_{host_};
     juce::ToggleButton padEnable_;
     juce::Label padStatus_;

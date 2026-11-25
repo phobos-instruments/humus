@@ -3,21 +3,35 @@
 #include "gui/browser/Audition.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 
 #include <juce_audio_formats/juce_audio_formats.h>
 
 #include "core/app/AppPaths.h"
+#include "core/browser/FileKind.h"
+#include "gui/video/VideoProbe.h"
 
 namespace hum::browser {
 
 namespace {
 
+std::shared_ptr<const PreviewSound> silenceAsLongAsThePicture(const std::string& path) {
+    const double seconds = std::min(probeVideoSeconds(fileAt(path)), Audition::kLongestSeconds);
+    if (seconds <= 0.0) return nullptr;
+    auto sound = std::make_shared<PreviewSound>();
+    sound->sampleRate = Audition::kSilentRate;
+    sound->left.assign((size_t) std::ceil(seconds * Audition::kSilentRate) + 1, 0.0f);
+    sound->right = sound->left;
+    return sound;
+}
+
 std::shared_ptr<const PreviewSound> decode(const std::string& path) {
     juce::AudioFormatManager fm;
     fm.registerBasicFormats();
     std::unique_ptr<juce::AudioFormatReader> reader(fm.createReaderFor(fileAt(path)));
-    if (!reader || reader->sampleRate <= 0.0 || reader->lengthInSamples <= 1) return nullptr;
+    if (!reader || reader->sampleRate <= 0.0 || reader->lengthInSamples <= 1)
+        return kindOfFile(path) == Kind::Video ? silenceAsLongAsThePicture(path) : nullptr;
     const auto frames = (int) std::min<std::int64_t>(reader->lengthInSamples,
                                                      (std::int64_t) (reader->sampleRate * Audition::kLongestSeconds));
     juce::AudioBuffer<float> buf((int) std::max(1u, std::min(2u, reader->numChannels)), frames);
@@ -39,18 +53,27 @@ Audition::~Audition() {
 
 void Audition::play(const std::string& path, double fileBpm) {
     const unsigned mine = ++request_;
+    const auto stamp = fileAt(path).getLastModificationTime().toMilliseconds();
     {
         const std::lock_guard<std::mutex> hold(lock_);
         current_ = path;
-        fileBpm_ = fileBpm;
+        fileBpm_ = kindOfFile(path) == Kind::Video ? 0.0 : fileBpm;
+        if (sound_ != nullptr && soundPath_ == path && soundStamp_ == stamp) {
+            applySpeed();
+            voice_.play(sound_);
+            return;
+        }
     }
-    pool_.addJob([this, path, mine] {
+    pool_.addJob([this, path, mine, stamp] {
         if (request_.load() != mine) return;
         auto sound = decode(path);
+        decodes_.fetch_add(1);
         if (request_.load() != mine) return;
         const std::lock_guard<std::mutex> hold(lock_);
         if (current_ != path) return;
         sound_ = sound;
+        soundPath_ = path;
+        soundStamp_ = stamp;
         applySpeed();
         voice_.play(sound);
     });
@@ -62,8 +85,8 @@ void Audition::stop() {
 }
 
 void Audition::toggle() {
-    if (voice_.playing()) {
-        stop();
+    if (voice_.playing() || voice_.paused()) {
+        voice_.setPaused(!voice_.holding());
         return;
     }
     const auto path = current();

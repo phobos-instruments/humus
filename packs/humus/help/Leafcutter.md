@@ -6,7 +6,7 @@ Load a loop and it is cut at its transients; the slices then ride the transport 
 
 ## The map
 
-The map shows the loop with a marker at every cut and lights the slice that is playing. Drag up or down on a slice to retune it on its own, and right-click it to reverse it, mute it or reset it, or to clear every slice edit. Those edits live in SliceEdits and stay with the patch.
+The map shows the loop with a marker at every cut and lights the slice that is playing. Drag up or down on a slice to retune it on its own, and right-click it to reverse it, mute it or reset it, or to clear every slice edit. Drag a slice's right edge left to cut it short: only the part you keep plays, and in the loop the slices after it close up, so a tail at the end of the file no longer leaves a pause before the loop comes round. The cut part is shaded and the slice shows how much of it is kept. Those edits live in SliceEdits and stay with the patch.
 
 ## Parameters
 

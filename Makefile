@@ -67,8 +67,16 @@ $(NINJA):
 	cmake -S $(ENGINE_DIR) -B $(BUILD_DIR) -G $(GENERATOR) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(CMAKE_ARCH)
 
 .PHONY: build
-build: configure ## Build the app and the command-line tool
+build: configure ## Build the app, the command-line tool and the Humus plug-in
 	cmake --build $(BUILD_DIR)
+
+.PHONY: plugin
+plugin: configure ## Build the Humus plug-in on its own (VST3, and AU on macOS)
+	cmake --build $(BUILD_DIR) --target Humus_VST3
+ifeq ($(UNAME_S),Darwin)
+	cmake --build $(BUILD_DIR) --target Humus_AU
+endif
+	@echo "the plug-in is in $(BUILD_DIR)/Humus_artefacts/$(BUILD_TYPE)/ - copy it into your DAW's plug-in folder"
 
 .PHONY: run
 run: configure ## Build and launch the app in this terminal (ARGS="--first-boot" replays the tour)

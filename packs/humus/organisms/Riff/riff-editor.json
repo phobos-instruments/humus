@@ -10,7 +10,9 @@
       "x": 8,
       "y": 8,
       "w": 584,
-      "h": 150
+      "h": 150,
+      "view": "View",
+      "chance-prefix": "Chance_"
     },
     {
       "type": "label",

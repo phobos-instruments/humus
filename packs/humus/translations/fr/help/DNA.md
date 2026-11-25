@@ -4,6 +4,8 @@ Un séquenceur génératif qui joue un génome de seize bases sous forme de note
 
 Seize bases, A, C, G et T, tournent en boucle au rythme de Rate, calées sur le transport, et chaque base fait sonner son intervalle au-dessus de Root : celui du voicing de Chord, ou un intervalle à toi, réglé sur les touches de base en bas de l'éditeur. À chaque mesure, Mutate donne une chance qu'une base change, si bien que la ligne évolue lentement pendant qu'elle joue, tandis que la même Seed fait toujours pousser le même brin de départ. La bande au-dessus des lignes de bases montre le pas en cours et les silences du passage actuel ; clique sur une case pour faire taire ce pas pour de bon, fais glisser pour en balayer plusieurs, clic droit pour tout le brin. Relie la sortie MIDI à un Acid, un Mineral ou un Substrate.
 
+**Probabilité du pas** Cmd-glisse une cellule de la bande vers le haut ou le bas (Ctrl-glisser sous Windows et Linux) pour régler la fréquence à laquelle ce pas joue, de jamais à toujours, par pas de 5 %, en plus de Rest. Un pas sous 100 % apparaît plus pâle et affiche sa probabilité. Fais un clic droit sur une cellule pour les probabilités rapides, les actions de la bande et l'apprentissage MIDI de la probabilité de ce pas. Les dés appartiennent à la boîte : un patch joue les mêmes pas à chaque lecture et à chaque export.
+
 ## Paramètres
 
 **Root** La tonalité, sous forme de note MIDI.
@@ -37,6 +39,10 @@ Seize bases, A, C, G et T, tournent en boucle au rythme de Rate, calées sur le 
 **SwingFollow** Follow fait prendre au motif le groove du patch depuis le transport, au lieu du bouton rotatif Swing.
 
 **Swing** Retarde un pas sur deux vers un ressenti de triolet. Utilisé seulement quand SwingFollow est désactivé.
+
+**Chance_1 à Chance_16** La fréquence à laquelle chaque pas joue, de 0 à 100 %.
+
+**Bank** Lequel des huit brins joue, de A à H. Chaque banque garde ses propres Seed, Mute, intervalles des bases et probabilités des pas ; Root, Chord, Rate et les boutons sont partagés. Une banque pas encore utilisée commence comme une copie de celle affichée.
 
 ## Recette
 

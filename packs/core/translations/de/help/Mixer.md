@@ -12,9 +12,11 @@ Verbinde deine Quellen mit den nummerierten Eingängen und den Ausgang weiter mi
 
 **Gain_1-2** Pegel des Eingangspaars 1-2, und so weiter für 3-4 bis 7-8. Ganz oben ist Unity; die Pegelanzeige des Kanalzugs zeigt, was davor ankommt.
 
-**Mute_1-2** Schaltet Eingang 1-2 ohne Klicken stumm, und so weiter für die anderen Paare. Ein stummgeschalteter Eingang bleibt still, auch wenn er auf Solo steht.
+**Mute_1-2** Schaltet Eingang 1-2 ohne Klicken stumm, und so weiter für die anderen Paare. Ein stummgeschalteter Eingang bleibt still, auch wenn er auf Solo steht. Alt-Klick auf ein beliebiges M schaltet alle Eingänge auf einmal stumm oder wieder ein.
 
-**Solo_1-2** Lässt Eingang 1-2 allein hören, und so weiter für die anderen Paare. Solange irgendein Eingang auf Solo steht, sind nur die Solo-Eingänge zu hören.
+**Solo_1-2** Lässt Eingang 1-2 allein hören, und so weiter für die anderen Paare. Solange irgendein Eingang auf Solo steht, sind nur die Solo-Eingänge zu hören. Alt-Klick auf ein beliebiges S bringt alle Solos in denselben Zustand, ein Alt-Klick auf ein leuchtendes löscht also alle; Cmd-Klick (Strg-Klick) auf eines lässt nur diesen Eingang hören.
+
+**Faders** Zeigt jeden Pegel als Fader statt als Regler. Die Wahl bleibt bei der Box.
 
 ## Rezept
 

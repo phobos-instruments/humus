@@ -53,6 +53,10 @@ bool parseOrganismManifest(const std::string& jsonText, OrganismManifest& out) {
         c.canonical = str(cv, "canonical");
         c.roll = str(cv, "roll");
         c.fixedTailOutlets = std::max(0, (int) num(cv, "fixed-tail-outlets", 0.0));
+        c.presetKeepsPattern = flag(cv, "preset-keeps-pattern");
+        const auto& banks = cv["param-banks"];
+        c.bankSelect = str(banks, "select");
+        for (const auto& prefix : banks["prefixes"].items()) c.bankedPrefixes.push_back(prefix.text());
         for (const auto& r : cv["roles"].items()) c.roles.push_back(r.text());
         for (const auto& pv : cv["params"].items()) {
             ParamDesc d;
@@ -71,6 +75,12 @@ bool parseOrganismManifest(const std::string& jsonText, OrganismManifest& out) {
             d.isTrigger = flag(pv, "trigger");
             d.socket = flag(pv, "socket");
             d.namedInlet = flag(pv, "named-inlet");
+            d.handOverInlet = flag(pv, "hand-over-inlet");
+            d.handsOver = str(pv, "hands-over");
+            d.takes = str(pv, "takes");
+            d.picks = str(pv, "picks");
+            d.sharedVar = flag(pv, "shared-var");
+            d.hidden = flag(pv, "hidden");
             d.carry = flag(pv, "carry");
             if (const auto& random = pv["random"]; random.isString())
                 d.randomText = random.text();
@@ -84,7 +94,7 @@ bool parseOrganismManifest(const std::string& jsonText, OrganismManifest& out) {
             if (!d.name.empty()) c.params.push_back(std::move(d));
         }
         for (auto& pd : parsePresetDefs(cv["presets"]))
-            if (!pd.values.empty() || !pd.texts.empty()) c.presets.push_back(std::move(pd));
+            if (!pd.values.empty() || !pd.texts.empty() || !pd.pattern.empty()) c.presets.push_back(std::move(pd));
         out.classes.push_back(std::move(c));
     }
     return !out.classes.empty();

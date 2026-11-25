@@ -2,7 +2,7 @@
 
 Un oscillatore wavetable i cui cicli si disegnano, si fanno crescere da un file seme o si estraggono a caso.
 
-Il display è il suono: disegnaci sopra, parti dalla miniatura della sinusoide, dell'onda triangolare, del dente di sega o dell'onda quadra, o genera la tabella da un file qualsiasi. Una tabella contiene fino a sedici frame e Position fa il morphing tra i due più vicini; Warp rimodella il ciclo, Unison sovrappone copie scordate, e una sinusoide sub, il drive e un passa-basso completano la voce. La riproduzione è a banda limitata per ogni frame, quindi le note alte perdono solo le armoniche che non ci stanno. È uno strumento MIDI a otto voci che segue il Tuning della patch; collega in ingresso un PianoRoll, un DNA o uno Steps e manda l'uscita a un Filter o a un Fern.
+Il display è il suono: disegnaci sopra, parti dalla miniatura della sinusoide, dell'onda triangolare, del dente di sega o dell'onda quadra, o genera la tabella da un file qualsiasi. Una tabella contiene fino a sedici frame e Position fa il morphing tra i due più vicini; Warp rimodella il ciclo, Unison sovrappone copie scordate, e una sinusoide sub, il drive e un passa-basso completano la voce. La riproduzione è a banda limitata per ogni frame, quindi le note alte perdono solo le armoniche che non ci stanno. È uno strumento MIDI a otto voci che segue il Tuning della patch; collega in ingresso un PianoRoll, un DNA o uno Steps e manda l'uscita a un Filter o a un Fern. La sua uscita env porta il livello della voce più forte, così un filtro o un Gain possono seguire le note senza un Follower. Collegato alla presa Function di un LFO, passa la sua tabella, e l'LFO la suona come sua onda alla Position del Wave.
 
 ## Il display
 

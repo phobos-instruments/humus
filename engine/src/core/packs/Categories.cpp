@@ -32,7 +32,7 @@ std::string categoryOf(const std::string& c) {
     if (isHiddenOrganism(c)) return "";
 
     if (const auto id = parseClassString(c); isPluginKind(id.kind)) {
-        const std::string fmt = id.kind == "au" ? "Audio Units" : id.kind == "lv2" ? "LV2" : "VST3";
+        const std::string fmt = id.kind == "au" ? "Audio Units" : id.kind == "lv2" ? "LV2" : id.kind == "clap" ? "CLAP" : "VST3";
         return fmt + " · " + (hostedPlugins().isInstrument(c) ? std::string("Instruments · ")   // utf8-ok: data
                                                     : std::string("Effects · ")) + hostedPlugins().vendorOf(c);   // utf8-ok: data
     }

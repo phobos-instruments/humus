@@ -27,10 +27,10 @@ enum class IconGlyph {
     DockCentre, DockRight, DockBottom,
     Pause, Power, KnobView, PluginView, RackView, FreeView, Warning, Reveal, Panic,
     Pointer, Pencil, Line, Scissors, Eraser, Trash,
-    ViewCards, ViewSmall, ViewList, Refresh
+    ViewCards, ViewSmall, ViewList, Refresh, DockLeft, UnfoldAll, FoldAll
 };
 
-inline const std::array<const char*, 57> kIconGlyphNames = {
+inline const std::array<const char*, 60> kIconGlyphNames = {
     "New", "Open", "Save", "Export",
     "Undo", "Redo", "Cut", "Copy",
     "Paste", "EnableAudio", "EnableMidi", "GoToStart",
@@ -44,7 +44,8 @@ inline const std::array<const char*, 57> kIconGlyphNames = {
     "Pause", "Power", "KnobView", "PluginView",
     "RackView", "FreeView", "Warning", "Reveal", "Panic",
     "Pointer", "Pencil", "Line", "Scissors", "Eraser",
-    "Trash", "ViewCards", "ViewSmall", "ViewList", "Refresh"
+    "Trash", "ViewCards", "ViewSmall", "ViewList", "Refresh", "DockLeft",
+    "UnfoldAll", "FoldAll"
 };
 
 inline std::optional<IconGlyph> iconGlyphNamed(const std::string& name) {
@@ -105,6 +106,7 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
         return;
     }
 
+    g.setColour(fg);
     const float sw = juce::jmax(1.5f, r.getHeight() * 0.15f);
     const juce::PathStrokeType st(sw, juce::PathStrokeType::curved, juce::PathStrokeType::rounded);
     auto stroke = [&](const juce::Path& pp) { g.strokePath(pp, st); };
@@ -594,9 +596,12 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
         }
         case IconGlyph::DockCentre:
         case IconGlyph::DockRight:
+        case IconGlyph::DockLeft:
         case IconGlyph::DockBottom: {
             juce::Rectangle<float> slot;
-            if (glyph == IconGlyph::DockCentre)
+            if (glyph == IconGlyph::DockLeft)
+                slot = { cx - 5.9f * u, cy - 4.4f * u, 3.98f * u, 5.96f * u };
+            else if (glyph == IconGlyph::DockCentre)
                 slot = { cx - 5.9f * u, cy - 4.4f * u, 7.82f * u, 5.96f * u };
             else if (glyph == IconGlyph::DockRight)
                 slot = { cx + 1.92f * u, cy - 4.4f * u, 3.98f * u, 5.96f * u };
@@ -609,6 +614,8 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
                                    13.9f * u, 10.9f * u, 1.0f * u, sw);
             if (glyph == IconGlyph::DockBottom)
                 g.fillRect(cx - 5.9f * u, cy + 1.56f * u - hr * 0.5f, 11.8f * u, hr);
+            else if (glyph == IconGlyph::DockLeft)
+                g.fillRect(cx - 1.92f * u - hr * 0.5f, cy - 4.4f * u, hr, 5.96f * u);
             else
                 g.fillRect(cx + 1.92f * u - hr * 0.5f, cy - 4.4f * u, hr, 5.96f * u);
             break;
@@ -657,6 +664,20 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
             g.fillPath(head);
             break;
         }
+        case IconGlyph::UnfoldAll:
+        case IconGlyph::FoldAll: {
+            const bool outward = glyph == IconGlyph::UnfoldAll;
+            g.fillRoundedRectangle(cx - 6.0f * u, cy - 0.7f * u, 12.0f * u, 1.4f * u, 0.7f * u);
+            for (float side : {-1.0f, 1.0f}) {
+                const float base = cy + side * (outward ? 2.6f : 6.4f) * u;
+                const float tip = cy + side * (outward ? 6.4f : 2.6f) * u;
+                p.startNewSubPath(cx - 4.0f * u, base);
+                p.lineTo(cx, tip);
+                p.lineTo(cx + 4.0f * u, base);
+            }
+            stroke(p);
+            break;
+        }
         case IconGlyph::Overflow: {
             const float pip = 1.3f * u;
             for (float dx : {-5.6f, 0.0f, 5.6f})
@@ -667,10 +688,10 @@ inline void drawIconGlyph(juce::Graphics& g, IconGlyph glyph, juce::Rectangle<fl
     }
 }
 
-enum class WaveGlyph { Saw, Square, Pulse, Tri, Sine, SawDown, Rand, Fat };
+enum class WaveGlyph { Saw, Square, Pulse, Tri, Sine, SawDown, Rand, Fat, Function };
 
-inline const std::array<const char*, 8> kWaveGlyphNames = {
-    "Saw", "Square", "Pulse", "Tri", "Sine", "SawDown", "Rand", "Fat"
+inline const std::array<const char*, 9> kWaveGlyphNames = {
+    "Saw", "Square", "Pulse", "Tri", "Sine", "SawDown", "Rand", "Fat", "Function"
 };
 
 inline juce::String waveGlyphDescription(WaveGlyph g) {
@@ -682,12 +703,14 @@ inline juce::String waveGlyphDescription(WaveGlyph g) {
         case WaveGlyph::SawDown: return tr("icon-glyph.saw-down", "Saw down");
         case WaveGlyph::Rand:    return tr("icon-glyph.sample-and-hold", "Sample & hold");
         case WaveGlyph::Fat:     return tr("icon-glyph.fat-saw-pair-detuned", "Fat saw pair (detuned)");
+        case WaveGlyph::Function: return tr("icon-glyph.function", "The function corded in");
         default:                 return tr("icon-glyph.sawtooth", "Sawtooth");
     }
 }
 
 inline WaveGlyph waveGlyphFor(const juce::String& label) {
     const auto l = label.toLowerCase();
+    if (l == "fn") return WaveGlyph::Function;
     if (l.contains("fat")) return WaveGlyph::Fat;
     if (l.contains("sin")) return WaveGlyph::Sine;
     if (l.contains("s&h") || l.contains("rnd") || l.contains("rand")) return WaveGlyph::Rand;
@@ -743,6 +766,12 @@ inline void drawWaveGlyph(juce::Graphics& g, WaveGlyph glyph_, juce::Rectangle<f
             p.lineTo(pt(0.5f, 0.85f)); p.lineTo(pt(1, -0.15f));
             p.startNewSubPath(pt(0, 1.15f)); p.lineTo(pt(0.5f, 0.15f));
             p.lineTo(pt(0.5f, 1.15f)); p.lineTo(pt(1, 0.15f));
+            break;
+        case WaveGlyph::Function:
+            p.startNewSubPath(pt(0, 0.75f));
+            p.cubicTo(pt(0.12f, -0.2f), pt(0.3f, -0.2f), pt(0.42f, 0.9f));
+            p.cubicTo(pt(0.5f, 0.35f), pt(0.62f, 0.3f), pt(0.7f, 0.95f));
+            p.cubicTo(pt(0.8f, 0.6f), pt(0.92f, 0.6f), pt(1, 0.95f));
             break;
     }
     g.setColour(ink);

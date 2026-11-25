@@ -8,6 +8,7 @@
 
 #include <juce_graphics/juce_graphics.h>
 
+#include "core/midi/MidiReach.h"
 #include "gui/host/AudioLock.h"
 
 namespace juce {
@@ -37,6 +38,7 @@ public:
     virtual bool setLiveControl(bool on) = 0;
     virtual bool setDerivedControl(bool on) = 0;
     virtual bool derivedControl() const = 0;
+    virtual bool setRestoringState(bool on) = 0;
     virtual void noteTopologyChanged() = 0;
 
 protected:
@@ -67,7 +69,7 @@ protected:
 
 struct InputReach {
     std::string node;
-    std::vector<int> ports;
+    std::vector<MidiReach> reaches;
     std::string instrument;
 };
 
@@ -148,6 +150,18 @@ public:
     ~LiveControlHold() { doc_.setLiveControl(prev_); }
     LiveControlHold(const LiveControlHold&) = delete;
     LiveControlHold& operator=(const LiveControlHold&) = delete;
+
+private:
+    HostDocument& doc_;
+    bool prev_;
+};
+
+class RestoringStateHold {
+public:
+    explicit RestoringStateHold(HostDocument& doc) : doc_(doc), prev_(doc.setRestoringState(true)) {}
+    ~RestoringStateHold() { doc_.setRestoringState(prev_); }
+    RestoringStateHold(const RestoringStateHold&) = delete;
+    RestoringStateHold& operator=(const RestoringStateHold&) = delete;
 
 private:
     HostDocument& doc_;

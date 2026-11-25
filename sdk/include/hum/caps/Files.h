@@ -156,6 +156,12 @@ public:
     virtual bool writeAudioTake(int take, const std::string& wavPath) = 0;
 };
 
+class AudioFileWatcher {
+public:
+    virtual ~AudioFileWatcher() = default;
+    virtual void audioFileChanged(const std::string& path) = 0;
+};
+
 class ClipRecorder {
 public:
     static constexpr int kMaxLaps = 64;

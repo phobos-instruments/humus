@@ -55,6 +55,8 @@ std::string PluginHost::classRawFor(const juce::PluginDescription& desc) {
     if (desc.pluginFormatName == "LV2")
         return name + "?type=lv2&uri="
              + juce::URL::addEscapeChars(desc.fileOrIdentifier, false).toStdString();
+    if (desc.pluginFormatName == "CLAP")
+        return name + "?type=clap&uid=" + juce::String::toHexString(desc.uniqueId).toStdString();
     if (desc.pluginFormatName == "AudioUnit")
         return name + "?type=au&auid="
              + juce::URL::addEscapeChars(desc.fileOrIdentifier, false).toStdString();
@@ -67,6 +69,9 @@ std::unique_ptr<juce::PluginDescription> PluginHost::descriptionFor(const std::s
         if (id.kind == "vst3" && d.pluginFormatName == "VST3") {
             const int uid = d.uniqueId != 0 ? d.uniqueId : d.deprecatedUid;
             if (juce::String::toHexString(uid).toStdString() == id.get("uid"))
+                return std::make_unique<juce::PluginDescription>(d);
+        } else if (id.kind == "clap" && d.pluginFormatName == "CLAP") {
+            if (juce::String::toHexString(d.uniqueId).toStdString() == id.get("uid"))
                 return std::make_unique<juce::PluginDescription>(d);
         } else if (id.kind == "lv2" && d.pluginFormatName == "LV2") {
             if (juce::URL::removeEscapeChars(juce::String(id.get("uri"))) == d.fileOrIdentifier)
@@ -89,6 +94,77 @@ std::unique_ptr<juce::AudioPluginInstance> PluginHost::createInstance(
     if (!inst) error = err.toStdString();
     else ++instancesMade_;
     return inst;
+}
+
+bool PluginHost::createsOnlyAsync(const juce::PluginDescription& desc) {
+    if (!juce::MessageManager::getInstance()->isThisTheMessageThread()) return false;
+    for (auto* format : formats_.getFormats())
+        if (format->getName() == desc.pluginFormatName)
+            return format->requiresUnblockedMessageThreadDuringCreation(desc);
+    return false;
+}
+
+std::unique_ptr<juce::AudioPluginInstance> PluginHost::takeAsyncInstance(const std::string& classRaw,
+                                                                         const juce::PluginDescription& desc) {
+    auto& wait = async_[classRaw];
+    if (!wait.ready.empty()) {
+        auto ready = std::move(wait.ready.back());
+        wait.ready.pop_back();
+        ++instancesMade_;
+        return ready;
+    }
+    if (wait.inFlight || wait.failed) return nullptr;
+    startAsync(classRaw, desc);
+    return nullptr;
+}
+
+bool PluginHost::prepareAsync(const std::string& classRaw, const juce::PluginDescription& desc, int count) {
+    auto& wait = async_[classRaw];
+    if (wait.failed || (int) wait.ready.size() >= count) return true;
+    if (!wait.inFlight) startAsync(classRaw, desc);
+    return false;
+}
+
+void PluginHost::startAsync(const std::string& classRaw, const juce::PluginDescription& desc) {
+    async_[classRaw].inFlight = true;
+    formats_.createPluginInstanceAsync(
+        desc, kDefaultSampleRate, 512,
+        [this, classRaw](std::unique_ptr<juce::AudioPluginInstance> made, const juce::String&) {
+            auto held = std::make_shared<std::unique_ptr<juce::AudioPluginInstance>>(std::move(made));
+            auto land = [this, classRaw, held] { landAsyncInstance(classRaw, std::move(*held)); };
+            if (juce::MessageManager::getInstance()->isThisTheMessageThread()) land();
+            else juce::MessageManager::callAsync(std::move(land));
+        });
+}
+
+void PluginHost::landAsyncInstance(const std::string& classRaw, std::unique_ptr<juce::AudioPluginInstance> made) {
+    auto& wait = async_[classRaw];
+    wait.inFlight = false;
+    if (made == nullptr) {
+        wait.failed = true;
+        return;
+    }
+    if (asyncListeners_.empty()) {
+        retire(std::move(made), classRaw);
+        return;
+    }
+    learnFrom(classRaw, *made);
+    wait.ready.push_back(std::move(made));
+    const auto listeners = asyncListeners_;
+    for (const auto& entry : listeners) entry.second();
+}
+
+int PluginHost::addAsyncReadyListener(std::function<void()> listener) {
+    asyncListeners_[++nextAsyncListener_] = std::move(listener);
+    return nextAsyncListener_;
+}
+
+void PluginHost::removeAsyncReadyListener(int id) {
+    asyncListeners_.erase(id);
+    if (!asyncListeners_.empty()) return;
+    for (auto& [classRaw, wait] : async_)
+        for (auto& left : wait.ready) retire(std::move(left), classRaw);
+    async_.clear();
 }
 
 std::vector<std::string> PluginHost::classRawList() const {

@@ -1,4 +1,3 @@
-option(HUM_GUI "Build the JUCE GUI app" ON)
 if(HUM_GUI)
   # JUCE renders Icon.icns / icon.ico with execute_process at configure time,
   # so a changed PNG only reaches the bundle when CMake re-runs. Make the PNG
@@ -53,12 +52,13 @@ if(HUM_GUI)
   target_sources(hum_gui PRIVATE
     src/gui/app/Main.cpp
     src/gui/app/AppCommandLine.cpp
+    src/gui/app/BundleCheck.cpp
     src/gui/app/AppSignals.cpp
-    ${HUM_GUI_SOURCES}
   )
   target_include_directories(hum_gui PRIVATE src ${HUM_GENERATED_DIR})
   add_dependencies(hum_gui hum_build_id)
   target_link_libraries(hum_gui PRIVATE
+    hum_shell
     hum_host
     hum_core
     hum_assets

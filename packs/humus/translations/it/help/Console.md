@@ -26,11 +26,13 @@ Il menu a tendina Inputs stabilisce quanti canali stereo somma il banco, da 2 a 
 
 **Pan_1-2** Il bilanciamento del canale 1. Al centro passano entrambi i lati a livello pieno; spostandolo dal centro si abbassa solo il lato opposto. E così via da 3-4 a 11-12.
 
-**Mute_1-2** Silenzia il canale 1, e questo alleggerisce anche l'alimentazione per gli altri. E così via da 3-4 a 11-12.
+**Mute_1-2** Silenzia il canale 1, e questo alleggerisce anche l'alimentazione per gli altri. E così via da 3-4 a 11-12. Alt-clic su una M qualsiasi mette o toglie il mute a tutti i canali insieme.
 
-**Solo_1-2** Silenzia tutti i canali tranne questo. Il Mute del canale stesso ha sempre la precedenza. E così via da 3-4 a 11-12.
+**Solo_1-2** Silenzia tutti i canali tranne questo. Il Mute del canale stesso ha sempre la precedenza. E così via da 3-4 a 11-12. Alt-clic su una S qualsiasi porta tutti i solo nello stesso stato, quindi un Alt-clic su una accesa li spegne tutti; Cmd-clic (Ctrl-clic) su una fa sentire solo quel canale.
 
 **Name_1-2** L'etichetta di nastro adesivo sopra il canale 1. Vuoto finché non ci colleghi qualcosa, poi mostra il nome di quell'organism. Fai doppio clic per scrivere il tuo; cancellalo per tornare al nome di ciò che è collegato. E così via da 3-4 a 11-12.
+
+**Faders** Mostra ogni livello come un fader invece che come una manopola. La scelta resta con il box.
 
 ## Ricetta
 

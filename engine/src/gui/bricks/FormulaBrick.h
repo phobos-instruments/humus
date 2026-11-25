@@ -111,7 +111,7 @@ public:
             g.drawText(line, hintArea_.reduced(4, 0), juce::Justification::centredLeft);
         } else {
             g.setColour(Palette::textDim);
-            g.drawFittedText("a b  x y z w  t beat bpm sr prev  note freq gate vel  ch\n"
+            g.drawFittedText("a b  x y z w  t beat bpm sr prev  note freq gate vel  ch  phase rate\n"
                              "sin cos tanh saw tri sqr pulse ph(hz) harm(hz,n,tilt) "
                              "env(gate,a,r) noise() if(c,a,b)",
                              hintArea_.reduced(4, 0), juce::Justification::centredLeft, 2);

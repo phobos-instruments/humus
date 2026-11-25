@@ -39,6 +39,10 @@ inline constexpr std::string_view kLoopPrefix = "loop-prefix";
 inline constexpr std::string_view kLaunchPrefix = "launch-prefix";
 inline constexpr std::string_view kEdits = "edits";
 inline constexpr std::string_view kMutePrefix = "mute-prefix";
+inline constexpr std::string_view kHitsPrefix = "hits-prefix";
+inline constexpr std::string_view kTurnPrefix = "turn-prefix";
+inline constexpr std::string_view kView = "view";
+inline constexpr std::string_view kChancePrefix = "chance-prefix";
 inline constexpr std::string_view kSoloPrefix = "solo-prefix";
 inline constexpr std::string_view kSlicePrefix = "slice-prefix";
 inline constexpr std::string_view kNudgePrefix = "nudge-prefix";
@@ -53,6 +57,7 @@ inline constexpr std::string_view kAmplitude = "amplitude";
 inline constexpr std::string_view kOffset = "offset";
 inline constexpr std::string_view kNudge = "nudge";
 inline constexpr std::string_view kTranspose = "transpose";
+inline constexpr std::string_view kBank = "bank";
 inline constexpr std::string_view kBars = "bars";
 inline constexpr std::string_view kSwing = "swing";
 inline constexpr std::string_view kSwingFollow = "swing-follow";
@@ -128,9 +133,10 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
         {bind::kFilePrefix, family}, {bind::kMutePrefix, family}, {bind::kSoloPrefix, family},
         {bind::kSlicePrefix, family}, {bind::kNudgePrefix, family, true}};
     static const std::vector<BrickBinding> intervalRows{{bind::kRowPrefix, family}, {bind::kChord}};
-    static const std::vector<BrickBinding> stepStrip{{bind::kMute}};
+    static const std::vector<BrickBinding> stepStrip{{bind::kMute}, {bind::kChancePrefix, family, true}};
     static const std::vector<BrickBinding> sequenceGrid{
-        {bind::kEnablePrefix, family}, {bind::kNotePrefix, family}, {bind::kVelocityPrefix, family}};
+        {bind::kEnablePrefix, family}, {bind::kNotePrefix, family}, {bind::kVelocityPrefix, family},
+        {bind::kView, param, true}, {bind::kChancePrefix, family, true}};
     static const std::vector<BrickBinding> fileTransport{
         {bind::kActive}, {bind::kLoop}, {bind::kRecord, param, true},
         {bind::kStop, param, true}, {bind::kRewind, param, true},
@@ -138,12 +144,15 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
     static const std::vector<BrickBinding> recordTransport{{bind::kRecord}};
     static const std::vector<BrickBinding> fileBox{{bind::kActive, param, true},
                                                    {bind::kLoop, param, true}};
+    static const std::vector<BrickBinding> ringFace{{bind::kHitsPrefix, family, true}, {bind::kTurnPrefix, family, true},
+                                                    {bind::kMutePrefix, family, true}};
     static const std::vector<BrickBinding> lfoScope{{bind::kWaveform}, {bind::kAmplitude}, {bind::kOffset}};
-    static const std::vector<BrickBinding> stepGrid{{bind::kNudge, param, true}, {bind::kTranspose, param, true}};
+    static const std::vector<BrickBinding> stepGrid{{bind::kNudge, param, true}, {bind::kTranspose, param, true},
+                                                    {bind::kView, param, true}, {bind::kChancePrefix, family, true}};
     static const std::vector<BrickBinding> pianoRoll{
         {bind::kBars}, {bind::kSwing, param, true}, {bind::kSwingFollow, param, true},
         {bind::kSwingUnit, param, true}, {bind::kRecord, param, true}, {bind::kLoop, param, true},
-        {bind::kQuantize, param, true}};
+        {bind::kQuantize, param, true}, {bind::kBank, param, true}};
     static const std::vector<BrickBinding> pictureField{
         {bind::kBlur}, {bind::kGate}, {bind::kTilt}, {bind::kLevel}, {bind::kLowest}, {bind::kHighest},
         {bind::kX}, {bind::kY}, {bind::kWidth}, {bind::kHeight}};
@@ -179,6 +188,7 @@ inline const std::vector<BrickBinding>& brickBindings(LayoutSpec::ControlType ty
         case CT::FileBox: return fileBox;
         case CT::RecordTransport: return recordTransport;
         case CT::LfoScope: return lfoScope;
+        case CT::RingFace: return ringFace;
         case CT::StepGrid: return stepGrid;
         case CT::PianoRoll: return pianoRoll;
         case CT::PictureField: return pictureField;

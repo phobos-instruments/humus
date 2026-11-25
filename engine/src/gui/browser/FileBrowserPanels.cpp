@@ -60,6 +60,7 @@ void FileBrowserView::wirePanels() {
     }
     addChildComponent(crumbs_);
     crumbs_.onChoose = [this](const std::string& dir) { showPlace(folderPlace(dir)); };
+    cardsView_.setComponentID("browser-cards");
     cardsView_.setViewedComponent(&cards_, false);
     cardsView_.setScrollBarsShown(true, false);
     addChildComponent(cardsView_);
@@ -71,11 +72,16 @@ void FileBrowserView::wirePanels() {
         refreshNow();
     };
     addChildComponent(veil_);
-    addChildComponent(inspector_);
+    sideColumn_.addAndMakeVisible(inspector_);
+    side_.setComponentID("browser-side");
+    side_.setViewedComponent(&sideColumn_, false);
+    side_.setScrollBarsShown(true, false);
+    side_.setScrollBarThickness(8);
+    addChildComponent(side_);
     addChildComponent(batch_);
     addAndMakeVisible(info_);
     info_.setButtonText("i");
-    info_.setTooltip(tr("browser.inspector-tip", "Details, tags and collections (I)"));
+    info_.setTooltip(tr("browser.inspector-tip", "Preview, details, tags and collections (I)"));
     info_.setClickingTogglesState(true);
     info_.onClick = [this] { setInspectorOpen(info_.getToggleState()); };
 
@@ -104,6 +110,7 @@ void FileBrowserView::wirePanels() {
         refreshNow();
     };
     inspector_.onReveal = [focusedPath] { fileAt(focusedPath()).revealToUser(); };
+    inspector_.onTrash = [this, focusedPath] { confirmTrash({focusedPath()}); };
 
     batch_.onRate = [this](int stars) {
         const auto paths = model_.selection();
@@ -111,6 +118,7 @@ void FileBrowserView::wirePanels() {
         refreshNow();
     };
     batch_.onTag = [this] { tagSelection(); };
+    batch_.onTrash = [this] { confirmTrash(model_.selection()); };
     batch_.onCollect = [this] { collectSelection(); };
     batch_.onClear = [this] {
         const auto keep = model_.focused();
@@ -119,7 +127,7 @@ void FileBrowserView::wirePanels() {
         selectionMoved();
     };
     restyle();
-    setInspectorOpen(AppSettings::instance().getInt(kInspectorKey, 0) != 0);
+    setInspectorOpen(AppSettings::instance().getInt(kInspectorKey, 1) != 0);
     setProjectsView(AppSettings::instance().getInt(kProjectsViewKey, kCards));
 }
 
@@ -159,8 +167,24 @@ void FileBrowserView::setInspectorOpen(bool open) {
     AppSettings::instance().set(kInspectorKey, open ? 1 : 0);
     info_.setToggleState(open, juce::dontSendNotification);
     inspector_.setVisible(open);
+    side_.setVisible(open);
     syncPanels();
     resized();
+}
+
+void FileBrowserView::layoutSide() {
+    if (!inspectorOpen_ || side_.getWidth() <= 0) return;
+    const int high = side_.getHeight();
+    auto place = [&](int width) {
+        const int paneH = pane_ != nullptr && pane_->isVisible() ? pane_->heightFor(width) : 0;
+        if (pane_ != nullptr) pane_->setBounds(0, 0, width, paneH);
+        inspector_.setBounds(0, paneH, width, inspector_.getHeight());
+        const int bodyH = std::max(high - paneH, inspector_.contentHeight());
+        inspector_.setBounds(0, paneH, width, bodyH);
+        sideColumn_.setSize(width, paneH + bodyH);
+    };
+    place(side_.getWidth());
+    if (sideColumn_.getHeight() > high) place(side_.getWidth() - side_.getScrollBarThickness());
 }
 
 void FileBrowserView::syncPanels() {
@@ -168,6 +192,14 @@ void FileBrowserView::syncPanels() {
     const bool wasBatch = batch_.isVisible();
     batch_.setCount(picked);
     batch_.setVisible(picked > 1);
+    const auto guard = trashGuard();
+    batch_.setTrashable(!trashable(model_.selection(), guard).empty());
+    inspector_.setTrashable(canTrash(model_.focused(), guard));
+    if (pane_ != nullptr) {
+        const auto* sound = focusedPreview();
+        pane_->setVisible(sound != nullptr && inspectorOpen_);
+        if (pane_->isVisible()) pane_->show(*sound, stripHint(*sound));
+    }
     if (inspectorOpen_) {
         const int row = model_.rowOf(model_.focused());
         const Entry* e = row >= 0 ? &model_.rows()[(size_t) row] : nullptr;
@@ -179,6 +211,7 @@ void FileBrowserView::syncPanels() {
         });
         const auto where = e != nullptr ? juce::String::fromUTF8(whereText(e->path, Place{}, model_.roots()).c_str()) : juce::String();
         inspector_.show(e, names, holding, where);
+        layoutSide();
     }
     if (wasBatch != batch_.isVisible()) resized();
 }

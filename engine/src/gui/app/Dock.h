@@ -15,91 +15,6 @@
 
 namespace hum {
 
-class SideBySide : public juce::Component {
-public:
-    SideBySide() { addAndMakeVisible(grip_); grip_.updateCursor(); }
-
-    void setComponents(juce::Component* l, juce::Component* r) {
-        left_ = l; right_ = r;
-        if (l) { addAndMakeVisible(l); l->setVisible(!collapsed_); }
-        if (r) addAndMakeVisible(r);
-        resized();
-    }
-    void setCollapsed(bool c) {
-        if (collapsed_ == c) return;
-        collapsed_ = c;
-        if (left_) left_->setVisible(!c);
-        grip_.updateCursor();
-        resized();
-        grip_.repaint();
-        if (onCollapsedChanged) onCollapsedChanged(c);
-    }
-    bool collapsed() const { return collapsed_; }
-
-    std::function<void(bool)> onCollapsedChanged;
-    std::function<void(int)> onLeftWidthChanged;
-
-    void resized() override {
-        auto a = getLocalBounds();
-        if (left_ && !collapsed_) left_->setBounds(a.removeFromLeft(leftW_));
-        grip_.setBounds(a.removeFromLeft(kGrip));
-        if (right_) right_->setBounds(a);
-    }
-    int leftW_ = 180;
-
-private:
-    static constexpr int kGrip = 11;
-
-    struct Grip : juce::Component, public juce::SettableTooltipClient {
-        explicit Grip(SideBySide& o) : owner(o) {
-            setTooltip(tr("dock.drag-to-resize-the-organism", "Drag to resize the organism list; click to hide/show it"));
-        }
-        SideBySide& owner;
-        bool over = false;
-        int startW = 0;
-
-        void updateCursor() {
-            setMouseCursor(owner.collapsed_ ? juce::MouseCursor::PointingHandCursor
-                                            : juce::MouseCursor::LeftRightResizeCursor);
-        }
-        void paint(juce::Graphics& g) override {
-            g.fillAll(over ? Palette::panelLight : Palette::panel);
-            g.setColour(over ? Palette::accent : Palette::textDim);
-            const auto r = getLocalBounds().toFloat();
-            const float cy = r.getCentreY(), w = r.getWidth();
-            juce::Path p;
-            if (!owner.collapsed_) {
-                p.startNewSubPath(w - 3.0f, cy - 7.0f);
-                p.lineTo(3.0f, cy);
-                p.lineTo(w - 3.0f, cy + 7.0f);
-            } else {
-                p.startNewSubPath(3.0f, cy - 7.0f);
-                p.lineTo(w - 3.0f, cy);
-                p.lineTo(3.0f, cy + 7.0f);
-            }
-            g.strokePath(p, juce::PathStrokeType(1.6f));
-        }
-        void mouseEnter(const juce::MouseEvent&) override { over = true; repaint(); }
-        void mouseExit(const juce::MouseEvent&) override { over = false; repaint(); }
-        void mouseDown(const juce::MouseEvent&) override { startW = owner.leftW_; }
-        void mouseDrag(const juce::MouseEvent& e) override {
-            if (owner.collapsed_) return;
-            owner.leftW_ = juce::jlimit(110, juce::jmax(140, owner.getWidth() - 160),
-                                        startW + e.getDistanceFromDragStartX());
-            owner.resized();
-        }
-        void mouseUp(const juce::MouseEvent& e) override {
-            if (e.mouseWasClicked()) owner.setCollapsed(!owner.collapsed_);
-            else if (owner.onLeftWidthChanged) owner.onLeftWidthChanged(owner.leftW_);
-        }
-    };
-
-    Grip grip_{*this};
-    bool collapsed_ = false;
-    juce::Component* left_ = nullptr;
-    juce::Component* right_ = nullptr;
-};
-
 class DockHeaderButton : public juce::Button {
 public:
     enum Kind { Detach, Close, Up, Down };
@@ -156,6 +71,11 @@ public:
     void setTitle(juce::String t) { title_ = std::move(t); repaint(); }
 
     std::function<void()> onDetach, onClose;
+
+    void showButtons(bool detach, bool close) {
+        detachBtn_.setVisible(detach);
+        closeBtn_.setVisible(close);
+    }
 
     void paint(juce::Graphics& g) override {
         g.setColour(Palette::panelLight);

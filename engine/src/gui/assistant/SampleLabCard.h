@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <string>
@@ -11,6 +12,7 @@
 
 #include "core/app/AppPaths.h"
 #include "core/assistant/RecipeSynth.h"
+#include "core/midi/MidiFormat.h"
 #include "core/packs/Roles.h"
 #include "io/PatchDocument.h"
 #include "gui/app/TimedCard.h"
@@ -41,35 +43,61 @@ inline juce::String sanitize(const std::string& name) {
     return juce::File::createLegalFileName(juce::String(name)).replaceCharacter(' ', '-');
 }
 
+inline constexpr double kCleanBits = 24.0;
+inline constexpr double kCleanRateKhz = 48.0;
+inline constexpr int kSamplerSlots = 8;
+inline constexpr int kFirstKey = kMiddleC;
+
+inline std::vector<int> emptySlots(AssistantHost& host, const std::string& sampler) {
+    std::vector<int> out;
+    for (int slot = 1; slot <= kSamplerSlots; ++slot)
+        if (host.liveParamText(sampler, "File" + std::to_string(slot)).empty()) out.push_back(slot);
+    return out;
+}
+
+inline Landing landSamples(AssistantHost& host, const std::string& targetSampler, const std::vector<juce::String>& paths) {
+    if (paths.empty())
+        return {false, tr("sample-lab.could-not-write-the-sample", "Could not write the sample files.")};
+    host.pushUndo();
+    std::string sampler = targetSampler;
+    const bool exists = !sampler.empty() && host.model().byName(sampler) != nullptr;
+    auto slots = exists ? emptySlots(host, sampler) : std::vector<int>{};
+    if (slots.size() < paths.size()) {
+        sampler = host.addOrganism(classWithRole(role::kSampleKit), {160, 160});
+        host.setParam(sampler, "Bits", kCleanBits);
+        host.setParam(sampler, "Rate", kCleanRateKhz);
+        slots = emptySlots(host, sampler);
+    }
+    host.setParam(sampler, "Mode", 1.0);
+    const auto count = std::min(paths.size(), slots.size());
+    for (size_t i = 0; i < count; ++i) {
+        const auto zone = std::to_string(slots[i]);
+        host.setParamText(sampler, "File" + zone, paths[i].toStdString());
+        host.setParam(sampler, "Root" + zone, (double) (kFirstKey + slots[i] - 1));
+    }
+    const auto key = juce::String(noteName(kFirstKey + (slots.empty() ? 0 : slots.front() - 1)));
+    return {true, trn("sample-lab.landed-from", "{n} sound on '{sampler}'. {key} plays it. Undo takes it back.",
+                      "{n} sounds on '{sampler}'. Keys from {key} up play them. Undo takes them back.", (long long) count,
+                      {{"sampler", juce::String(sampler)}, {"key", key}})};
+}
+
+inline juce::String recipeFileName(const std::string& name, const juce::String& stamp, size_t index) {
+    return sanitize(name) + "-" + stamp + "-" + juce::String((int) index + 1) + ".wav";
+}
+
 inline Landing applyRecipes(AssistantHost& host, const std::string& targetSampler,
                             const std::vector<Recipe>& recipes) {
     if (recipes.empty())
         return {false, tr("sample-lab.the-reply-contained-no-usable", "The reply contained no usable sounds.")};
     const auto stamp = juce::Time::getCurrentTime().formatted("%H%M%S");
     std::vector<juce::String> paths;
-    for (const auto& r : recipes) {
-        const auto mono = renderRecipe(r, kDefaultSampleRate);
-        const auto f = sampleFolder().getChildFile(sanitize(r.name) + "-" + stamp + ".wav");
+    for (size_t i = 0; i < recipes.size(); ++i) {
+        const auto mono = renderRecipe(recipes[i], kDefaultSampleRate);
+        const auto f = sampleFolder().getChildFile(recipeFileName(recipes[i].name, stamp, i));
         if (writeWav(f.getFullPathName().toStdString(), {mono}, kDefaultSampleRate))
             paths.push_back(f.getFullPathName());
     }
-    if (paths.empty())
-        return {false, tr("sample-lab.could-not-write-the-sample", "Could not write the sample files.")};
-
-    host.pushUndo();
-    std::string sampler = targetSampler;
-    if (sampler.empty() || !host.model().byName(sampler))
-        sampler = host.addOrganism(classWithRole(role::kSampleKit), {160, 160});
-    host.setParam(sampler, "Mode", 1.0);
-    for (size_t i = 0; i < paths.size() && i < 8; ++i) {
-        const auto zone = std::to_string(i + 1);
-        host.setParamText(sampler, "File" + zone, paths[i].toStdString());
-        host.setParam(sampler, "Root" + zone, 60.0 + (double) i);
-    }
-    return {true, tr("sample-lab.landed",
-                     "{n} sounds on '{sampler}'. Keys from C4 up play them. Undo takes them back.")
-                      .replace("{n}", juce::String((int) paths.size()))
-                      .replace("{sampler}", juce::String(sampler))};
+    return landSamples(host, targetSampler, paths);
 }
 
 }

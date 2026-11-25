@@ -163,14 +163,30 @@ void Leafcutter::pushLiveMidi(const MidiEvent& e) {
     if (liveCount_ < (int) liveQ_.size()) liveQ_[(size_t) liveCount_++] = e;
 }
 
+double Leafcutter::naturalEnd(int slice) const {
+    return slice + 1 < activeCount() ? (double) active_[(size_t) slice + 1].pos : (double) buf_.getNumSamples();
+}
+
+double Leafcutter::keptLength(int slice) const {
+    const auto it = edits_.find(slice);
+    const double whole = naturalEnd(slice) - (double) active_[(size_t) slice].pos;
+    return it == edits_.end() ? whole : whole * it->second.kept();
+}
+
+double Leafcutter::layOutGrid() {
+    const int n = std::min(activeCount(), kMaxSliceOnsets);
+    grid_[0] = n > 0 ? (double) active_[0].pos : 0.0;
+    for (int k = 0; k < n; ++k) grid_[(size_t) k + 1] = grid_[(size_t) k] + keptLength(k);
+    return grid_[(size_t) n];
+}
+
 void Leafcutter::triggerVoice(Voice& v, int slice, double windowOutSamples, float gain) {
     const int len = buf_.getNumSamples();
     if (slice < 0 || slice >= activeCount() || len <= 0) { v.active = false; return; }
     SliceEdit se;
     if (const auto it = edits_.find(slice); it != edits_.end()) se = it->second;
     const double start = active_[(size_t) slice].pos;
-    const double end = slice + 1 < activeCount() ? (double) active_[(size_t) slice + 1].pos
-                                                 : (double) len;
+    const double end = start + (naturalEnd(slice) - start) * se.kept();
     const double gate = std::clamp(params.get("Gate", 1.0), 0.05, 1.0);
     const double pitch = std::clamp(params.get("Pitch", 0.0) + se.pitch, -48.0, 48.0);
     const bool reverse = (params.get("Reverse", 0.0) >= 0.5) != se.reverse;
@@ -202,10 +218,7 @@ void Leafcutter::handleEvent(const MidiEvent& e) {
     Voice* pick = nullptr;
     for (auto& v : voices_) if (!v.active) { pick = &v; break; }
     if (pick == nullptr) pick = &voices_[0];
-    const double start = active_[(size_t) slice].pos;
-    const double end = slice + 1 < activeCount() ? (double) active_[(size_t) slice + 1].pos
-                                                 : (double) buf_.getNumSamples();
-    const double sliceOut = (end - start) / srcRate_ * sampleRate_;
+    const double sliceOut = keptLength(slice) / srcRate_ * sampleRate_;
     triggerVoice(*pick, slice, sliceOut, (float) vel / kMidiMaxF);
     pick->note = note;
     lastMidiSlice_ = slice;
@@ -290,11 +303,12 @@ void Leafcutter::process(const float* const*, int, float* const* out, int numOut
     const double bps = tempo / kSecondsPerMinute / sampleRate_;
     double beat = transport.playing() ? transport.beats() : beat_;
 
+    const double kept = len > 0 && activeCount() > 0 ? layOutGrid() : 0.0;
     double beatsTotal = params.get("Beats", 0.0);
     if (beatsTotal < 0.5 && fileBeats_ > 0.5)
-        beatsTotal = fileBeats_;
+        beatsTotal = fileBeats_ * kept / (double) len;
     else if (beatsTotal < 0.5 && len > 0)
-        beatsTotal = std::round((double) len / srcRate_ * tempo / kSecondsPerMinute);
+        beatsTotal = std::round(kept / srcRate_ * tempo / kSecondsPerMinute);
     beatsTotal = std::clamp(beatsTotal, 1.0, 64.0);
     const double spb = sampleRate_ * kSecondsPerMinute / tempo;
 
@@ -304,12 +318,10 @@ void Leafcutter::process(const float* const*, int, float* const* out, int numOut
             const double lb = std::fmod(beat, beatsTotal);
             int w = activeCount() - 1;
             for (int k = 1; k < activeCount(); ++k)
-                if ((double) active_[(size_t) k].pos / len * beatsTotal > lb) { w = k - 1; break; }
-            const double endB = w + 1 < activeCount()
-                                    ? (double) active_[(size_t) w + 1].pos / len * beatsTotal
-                                    : beatsTotal;
+                if (grid_[(size_t) k] / kept * beatsTotal > lb) { w = k - 1; break; }
+            const double endB = grid_[(size_t) w + 1] / kept * beatsTotal;
             if (w != lastWindow_ || lb < lastLoopBeat_) {
-                const double startB = (double) active_[(size_t) w].pos / len * beatsTotal;
+                const double startB = grid_[(size_t) w] / kept * beatsTotal;
                 triggerVoice(loopVoice_, perm_[(size_t) w], (endB - startB) * spb, 1.0f);
                 loopVoice_.note = -1;
                 lastWindow_ = w;

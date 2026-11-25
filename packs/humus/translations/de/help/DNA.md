@@ -4,6 +4,8 @@ Ein generativer Sequencer, der ein Genom aus sechzehn Basen als MIDI-Noten spiel
 
 Sechzehn Basen, A, C, G und T, laufen mit Rate im Loop zum Transport, und jede Base spielt ihr Intervall über Root: das aus dem Voicing von Chord oder ein eigenes, das du auf den Basentasten unten im Editor einstellst. In jedem Takt gibt es mit Mutate eine Chance, dass eine Base umschlägt, sodass sich die Linie beim Spielen langsam entwickelt, während derselbe Seed immer denselben Start-Strang wachsen lässt. Der Streifen über den Basenzeilen zeigt den spielenden Schritt und die Pausen des aktuellen Durchlaufs; klick eine Zelle an, um diesen Schritt ganz stummzuschalten, zieh darüber, um mehrere zu erfassen, und klick mit rechts für den ganzen Strang. Verbinde den MIDI-Ausgang mit einem Acid, einem Mineral oder einem Substrate.
 
+**Schritt-Wahrscheinlichkeit** Cmd-ziehe eine Zelle des Streifens nach oben oder unten (Strg-Ziehen unter Windows und Linux), um festzulegen, wie oft dieser Schritt spielt, von nie bis immer in 5-%-Schritten, zusätzlich zu Rest. Ein Schritt unter 100 % erscheint blasser und zeigt seine Wahrscheinlichkeit. Rechtsklicke eine Zelle für schnelle Wahrscheinlichkeiten, die Aktionen des Streifens und MIDI-Lernen für die Wahrscheinlichkeit dieses Schritts. Die Würfel gehören der Box: Ein Patch spielt bei jedem Abspielen und jedem Export dieselben Schritte.
+
 ## Parameter
 
 **Root** Die Tonart, als MIDI-Note.
@@ -37,6 +39,10 @@ Sechzehn Basen, A, C, G und T, laufen mit Rate im Loop zum Transport, und jede B
 **SwingFollow** Mit Follow übernimmt das Pattern den Groove des Patches vom Transport statt vom Swing-Regler.
 
 **Swing** Verzögert jeden zweiten Schritt in Richtung Triolengefühl. Wirkt nur, solange SwingFollow aus ist.
+
+**Chance_1 bis Chance_16** Wie oft jeder Schritt spielt, von 0 bis 100 %.
+
+**Bank** Welcher der acht Stränge spielt, A bis H. Jede Bank behält ihre eigenen Seed, Mute, Basisintervalle und Schritt-Wahrscheinlichkeiten; Root, Chord, Rate und die Regler teilen sich alle Banken. Eine Bank, die du noch nicht benutzt hast, beginnt als Kopie der angezeigten.
 
 ## Rezept
 

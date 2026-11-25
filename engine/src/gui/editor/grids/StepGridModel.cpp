@@ -8,10 +8,19 @@
 #include <utility>
 #include <vector>
 
+#include "core/params/ParamSchema.h"
+#include "hum/ParamBanks.h"
+
 namespace hum::grids {
 
-StepGridModel::StepGridModel(BrickHost& host, PatternEdits& patterns, std::string organism, Mode mode, std::string nudgeParam, std::string transposeParam)
-    : host_(host), patterns_(patterns), organism_(std::move(organism)), mode_(mode), nudgeParam_(std::move(nudgeParam)), transposeParam_(std::move(transposeParam)) {}
+StepGridModel::StepGridModel(BrickHost& host, PatternEdits& patterns, std::string organism, Mode mode, std::string nudgeParam,
+                             std::string transposeParam, std::string chancePrefix)
+    : host_(host), patterns_(patterns), organism_(std::move(organism)), mode_(mode), nudgeParam_(std::move(nudgeParam)),
+      transposeParam_(std::move(transposeParam)), chancePrefix_(std::move(chancePrefix)) {
+    if (const auto* cm = host_.model().byName(organism_); cm != nullptr && !chancePrefix_.empty())
+        for (const auto& d : schemaFor(cm->classRaw))
+            if (numberedSlot(d.name, chancePrefix_) >= 0) ++chanceSlots_;
+}
 
 int StepGridModel::stepCount() const {
     return mode_ == Mode::Bassline ? (int) patterns_.basslineSteps(organism_).size()
@@ -103,6 +112,42 @@ void StepGridModel::bankAction(BankAction action, int targetBank, Dice& dice) {
     if (action == BankAction::Random) steps = randomBassline((int) steps.size(), basslineRoot(steps), dice);
     else if (action == BankAction::Clear) steps.assign(steps.size(), BasslineStep{});
     patterns_.setBasslineSteps(organism_, action == BankAction::CopyTo ? targetBank : cur, steps);
+    if (action == BankAction::Clear) resetChances();
+    if (action == BankAction::CopyTo) patterns_.copyParamBankTo(organism_, targetBank);
+}
+
+int StepGridModel::chanceFromHeight(int y, int height) {
+    const double t = std::clamp(1.0 - y / (double) std::max(1, height), 0.0, 1.0);
+    return std::clamp((int) std::lround(t * kFullChance / kChanceStep) * kChanceStep, 0, kFullChance);
+}
+
+int StepGridModel::chanceAtColumn(int col) const {
+    const int i = mode_ == Mode::Bassline ? storedStep(col) : col;
+    if (i < 0 || i >= chanceSlots_) return kFullChance;
+    return (int) std::lround(host_.liveParamValue(organism_, chanceParam(i)));
+}
+
+bool StepGridModel::setChanceAt(int x, int y, int width, int height) {
+    if (stepCount() <= 0) return false;
+    const int col = columnAt(x, width);
+    const int i = mode_ == Mode::Bassline ? storedStep(col) : col;
+    dragCol_ = col;
+    if (i < 0 || i >= chanceSlots_) return false;
+    const int value = chanceFromHeight(y, height);
+    if (chanceAtColumn(col) == value) return false;
+    host_.editParam(organism_, chanceParam(i), (double) value);
+    return true;
+}
+
+std::string StepGridModel::chanceParamAtColumn(int col) const {
+    const int i = mode_ == Mode::Bassline ? storedStep(col) : col;
+    return i >= 0 && i < chanceSlots_ ? chanceParam(i) : std::string();
+}
+
+void StepGridModel::resetChances() {
+    for (int i = 0; i < chanceSlots_; ++i)
+        if ((int) std::lround(host_.liveParamValue(organism_, chanceParam(i))) != kFullChance)
+            host_.setParam(organism_, chanceParam(i), (double) kFullChance);
 }
 
 bool StepGridModel::arp(int x, int y, int width, int height, bool down) {
@@ -140,6 +185,7 @@ void StepGridModel::stamp(Stamp kind, Dice& dice) {
         const bool wantUp = kind == Stamp::Random && s.trigger && dice.nextDouble() < 0.18;
         if (wantUp != haveUp) patterns_.setArpUp(organism_, i, wantUp);
     }
+    if (kind == Stamp::Clear) resetChances();
 }
 
 int StepGridModel::playheadStep() const {

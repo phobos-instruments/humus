@@ -253,6 +253,10 @@ void ParameterControlView::rebuildSources() {
                       ? tr("parameter-control.hint-hidden",
                            "This parameter also has sources in the other Range Mode. "
                            "Switch back to see them.")
+                  : rows_.empty() && host_.pluginNodeFor(c) != nullptr
+                      ? tr("parameter-control.hint-plugin",
+                           "Nothing controls this yet. Move a control in the plug-in's own window "
+                           "to pick it here, then Learn a controller or type a CC number.")
                   : rows_.empty()
                       ? tr("parameter-control.hint-empty",
                            "Nothing controls this yet. Learn a controller, type a CC number, "
@@ -308,6 +312,7 @@ juce::String ParameterControlView::signature() const {
 void ParameterControlView::timerCallback() {
     if (!isShowing()) return;
     updateLive();
+    followPluginTouch();
     if (signature() != mapSignature_) {
         rebuildOrganisms();
         params_.repaint();

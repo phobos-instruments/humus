@@ -34,6 +34,7 @@ public:
     virtual std::string recordSwitch() const = 0;
     virtual std::string loopSwitch() const = 0;
     virtual std::string quantizeSwitch() const = 0;
+    virtual std::string bankSwitch() const { return {}; }
 };
 
 class LiveMidiIn {

@@ -9,6 +9,7 @@
 #include "core/packs/CatalogueKinds.h"
 
 #include <cstdint>
+#include <filesystem>
 #include <system_error>
 
 #include "hum/FileBytes.h"
@@ -116,6 +117,9 @@ std::vector<SidebarItem> sidebarFor(const FileIndex& index, const PlaceRoots& ro
     add(S::Yours, placeOf(Place::Type::Recordings, roots.recordings), "Recordings");
     add(S::Yours, placeOf(Place::Type::Presets, roots.presets), "Presets");
     for (const auto& f : roots.computer) add(S::Computer, placeOf(Place::Type::Folder, f.path, f.label), f.label);
+    for (const auto& dir : index.pinned())
+        if (std::error_code ec; std::filesystem::is_directory(utf8Path(dir), ec))
+            add(S::Computer, folderPlace(dir), fileName(dir));
     for (const auto& w : index.watched()) add(S::Watched, placeOf(Place::Type::Watched, w), fileName(w));
     for (const auto& c : index.collections()) add(S::Collections, placeOf(Place::Type::Collection, {}, c.name), c.name);
     return out;

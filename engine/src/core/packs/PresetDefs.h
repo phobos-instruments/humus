@@ -14,6 +14,7 @@ struct PresetDef {
     std::string group;
     std::vector<std::pair<std::string, double>> values;
     std::vector<std::pair<std::string, std::string>> texts;
+    std::string pattern;
 };
 
 std::vector<PresetDef> parsePresetDefs(const json::Value& v, const std::string& group = {});

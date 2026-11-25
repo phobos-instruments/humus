@@ -616,6 +616,7 @@
     {
       "type": "minitoggle",
       "param": "Mute1",
+      "group": "mute",
       "label": "M",
       "x": 120,
       "y": 334,
@@ -630,6 +631,7 @@
     {
       "type": "minitoggle",
       "param": "Solo1",
+      "group": "solo",
       "label": "S",
       "x": 152,
       "y": 334,
@@ -892,6 +894,7 @@
     {
       "type": "minitoggle",
       "param": "Mute2",
+      "group": "mute",
       "label": "M",
       "x": 257,
       "y": 334,
@@ -906,6 +909,7 @@
     {
       "type": "minitoggle",
       "param": "Solo2",
+      "group": "solo",
       "label": "S",
       "x": 289,
       "y": 334,
@@ -1168,6 +1172,7 @@
     {
       "type": "minitoggle",
       "param": "Mute3",
+      "group": "mute",
       "label": "M",
       "x": 394,
       "y": 334,
@@ -1182,6 +1187,7 @@
     {
       "type": "minitoggle",
       "param": "Solo3",
+      "group": "solo",
       "label": "S",
       "x": 426,
       "y": 334,
@@ -1444,6 +1450,7 @@
     {
       "type": "minitoggle",
       "param": "Mute4",
+      "group": "mute",
       "label": "M",
       "x": 531,
       "y": 334,
@@ -1458,6 +1465,7 @@
     {
       "type": "minitoggle",
       "param": "Solo4",
+      "group": "solo",
       "label": "S",
       "x": 563,
       "y": 334,

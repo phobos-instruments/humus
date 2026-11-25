@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/settings/MidiSettingsView.h"
+#include <algorithm>
+#include <cmath>
+
 #include "gui/host/EngineHostMidiControl.h"
 #include "gui/host/GamepadHost.h"
 #include "gui/properties/ControlModeText.h"
@@ -80,34 +83,8 @@ MidiSettingsView::MidiSettingsView(SettingsHost* host)
                                                       : id == 3 ? "chase" : "off");
     };
 
-    oscEnable_.setButtonText(tr("midi-settings.osc-input-udp", "OSC input (UDP)"));
-    oscEnable_.setToggleState(AppSettings::instance().getInt("osc.enabled", 0) != 0,
-                              juce::dontSendNotification);
-    addAndMakeVisible(oscEnable_);
-    oscEnable_.onClick = [this] {
-        AppSettings::instance().set("osc.enabled", oscEnable_.getToggleState() ? 1 : 0);
-        if (host_ != nullptr) {
-            const bool ok = host_->osc().setEnabled(oscEnable_.getToggleState());
-            if (oscEnable_.getToggleState() && !ok) {
-                oscEnable_.setToggleState(false, juce::dontSendNotification);
-                AppSettings::instance().set("osc.enabled", 0);
-                oscPortLabel_.setText(tr("midi-settings.port-in-use", "port in use?"), juce::dontSendNotification);
-            }
-        }
-    };
-    oscPortLabel_.setText(tr("midi-settings.port", "Port"), juce::dontSendNotification);
-    addAndMakeVisible(oscPortLabel_);
-    oscPort_.setText(juce::String(AppSettings::instance().getInt("osc.port", 9000)),
-                     juce::dontSendNotification);
-    oscPort_.setInputRestrictions(5, "0123456789");
-    addAndMakeVisible(oscPort_);
-    auto commitPort = [this] {
-        AppSettings::instance().set("osc.port", oscPort_.getText().getIntValue());
-        if (host_ != nullptr && host_->osc().enabled()) host_->osc().setEnabled(true);
-    };
-    oscPort_.onFocusLost = commitPort;
-    oscPort_.onReturnKey = commitPort;
-
+    addAndMakeVisible(oscInput_);
+    addAndMakeVisible(oscOutput_);
     addAndMakeVisible(oscSerial_);
 
     padEnable_.setButtonText(tr("midi-settings.game-controllers", "Game controllers"));
@@ -179,15 +156,15 @@ void MidiSettingsView::resized() {
     }
     r.removeFromTop(12);
     auto syncRow = r.removeFromTop(26);
-    syncLabel_.setBounds(syncRow.removeFromLeft(80));
+    const float syncTextW = juce::GlyphArrangement::getStringWidth(syncLabel_.getFont(), syncLabel_.getText());
+    syncLabel_.setBounds(syncRow.removeFromLeft(std::max(80, (int) std::ceil(syncTextW) + 12)));
     syncCombo_.setBounds(syncRow.removeFromLeft(260));
     r.removeFromTop(12);
     hint_.setBounds(r.removeFromTop(34));
     r.removeFromTop(8);
-    auto oscRow = r.removeFromTop(24);
-    oscEnable_.setBounds(oscRow.removeFromLeft(150));
-    oscPortLabel_.setBounds(oscRow.removeFromLeft(80));
-    oscPort_.setBounds(oscRow.removeFromLeft(70));
+    oscInput_.setBounds(r.removeFromTop(24));
+    r.removeFromTop(4);
+    oscOutput_.setBounds(r.removeFromTop(24));
     r.removeFromTop(4);
     oscSerial_.setBounds(r.removeFromTop(24));
     r.removeFromTop(4);
@@ -253,6 +230,7 @@ void MidiSettingsView::rebuildDeviceLists() {
 
 void MidiSettingsView::timerCallback() {
     if (!isShowing() || host_ == nullptr) return;
+    oscInput_.refresh();
     const size_t count = host_->midi().map().entries().size()
                        + host_->osc().map().entries().size();
     if (count != lastMapCount_) rebuildMappings();

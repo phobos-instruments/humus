@@ -60,6 +60,7 @@ juce::File RecordHost::recordingsDir() const {
         unsaved_ = juce::String(project::stampedFolderName(now.getYear(), now.getMonth() + 1,
                                                            now.getDayOfMonth(), now.getHours(),
                                                            now.getMinutes(), now.getSeconds()));
+        if (host_.environment().sharesProcessWithOtherHosts) unsaved_ << " " << juce::Uuid().toString().substring(0, 6);
     }
     return root.getChildFile(unsaved_);
 }
@@ -231,7 +232,7 @@ std::shared_ptr<VideoTakeRecorder> RecordHost::openVideoTake(const std::string& 
         videoLog("video take on " + juce::String(node) + " could not open its writer");
         return nullptr;
     }
-    VideoTakeStore::instance().open(node, recorder, width, height);
+    VideoTakeStore::instance().open(host_.videoKey(node), recorder, width, height);
     return recorder;
 }
 
@@ -307,7 +308,7 @@ void RecordHost::noteTransport(const std::string& node, const std::string& param
 void RecordHost::finishLooseTake(const std::string& node) {
     for (auto it = loose_.begin(); it != loose_.end(); ++it) {
         if (it->node != node) continue;
-        VideoTakeStore::instance().close(node);
+        VideoTakeStore::instance().close(host_.videoKey(node));
         std::string picture;
         if (it->recorder != nullptr) {
             it->recorder->stop();

@@ -98,4 +98,16 @@ public:
     virtual int controlValues(ControlVal* out, int capacity) const = 0;
 };
 
+class MotionTrace {
+public:
+    static constexpr int kPoints = 192;
+    enum class Kind { Params, Cycle, Trace };
+    struct Point {
+        float low = 0.0f, high = 0.0f;
+    };
+    virtual ~MotionTrace() = default;
+    virtual Kind motionKind() const = 0;
+    virtual int motionRead(Point* out, int capacity) const = 0;
+};
+
 }

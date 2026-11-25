@@ -6,7 +6,7 @@ Carica un loop e viene tagliato sui suoi transienti; poi le slice seguono il tem
 
 ## La mappa
 
-La mappa mostra il loop con un marcatore a ogni taglio e illumina la slice che sta suonando. Trascina in su o in giù su una slice per riaccordare solo quella, e fai clic destro per invertirla, silenziarla o ripristinarla, o per cancellare tutte le modifiche alle slice. Quelle modifiche stanno in SliceEdits e restano con la patch.
+La mappa mostra il loop con un marcatore a ogni taglio e illumina la slice che sta suonando. Trascina in su o in giù su una slice per riaccordare solo quella, e fai clic destro per invertirla, silenziarla o ripristinarla, o per cancellare tutte le modifiche alle slice. Trascina a sinistra il bordo destro di una slice per accorciarla: suona solo la parte che tieni, e nel loop le slice successive si avvicinano, così una coda alla fine del file non lascia più una pausa prima che il loop ricominci. La parte tagliata è ombreggiata e la slice mostra quanta ne resta. Quelle modifiche stanno in SliceEdits e restano con la patch.
 
 ## Parametri
 

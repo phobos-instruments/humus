@@ -20,7 +20,11 @@ inline bool isBlackKey(int note) {
     }
 }
 
-inline std::string noteName(int note) { return std::string(pitchClassName(note)) + std::to_string(note / 12 - 1); }
+inline constexpr int kMiddleC = 60;
+
+inline int octaveOf(int note) { return note / 12 - 1; }
+
+inline std::string noteName(int note) { return std::string(pitchClassName(note)) + std::to_string(octaveOf(note)); }
 
 inline std::string midiNoteName(int note) {
     if (note < 0 || note > kMidiMax) return "?";

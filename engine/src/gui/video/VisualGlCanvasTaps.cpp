@@ -80,7 +80,7 @@ void GlCanvas::publishTaps(const visual::Plan& p) {
     previewTick_ ^= 1;
     std::set<std::string> live;
     for (const auto& t : taps) {
-        if (t.w <= 0 || t.h <= 0 || (t.sink == nullptr && !store.wanted(t.node))) continue;
+        if (t.w <= 0 || t.h <= 0 || (t.sink == nullptr && !store.wanted(storeScope_ + t.node))) continue;
         const auto key = t.sink != nullptr ? t.node + "/take" : t.node;
         live.insert(key);
         if (t.everyOther && previewTick_ == 0) continue;
@@ -121,7 +121,7 @@ void GlCanvas::publishTaps(const visual::Plan& p) {
                     t.sink->pushFrame(mapped, ready.w, ready.h, ready.beat, ready.tempo,
                                       ready.rolling);
                 else
-                    store.publishFlipped(t.node, ready.w, ready.h, mapped);
+                    store.publishFlipped(storeScope_ + t.node, ready.w, ready.h, mapped);
                 glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
             }
         }

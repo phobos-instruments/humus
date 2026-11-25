@@ -2,302 +2,191 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "plugin/HumusProcessor.h"
 
-#include <cmath>
+#include <algorithm>
+#include <utility>
 
-#include "core/params/ParamSchema.h"
-#include "io/PatchLoader.h"
-#include "io/PatchWriter.h"
-#include "gui/common/Localisation.h"
-#include "plugin/HumusEditor.h"
+#include "core/app/AppPaths.h"
+#include "gui/host/HostScheduler.h"
+#include "gui/host/UserExtensions.h"
+#include "gui/plugins/PluginHostingSetup.h"
+#include "plugin/StarterPatch.h"
 
 namespace hum {
 
 namespace {
-constexpr int kStateMagic = 0x484D5833;
-constexpr int kStateMagicV2 = 0x484D5832;
+
+constexpr juce::uint32 kSavedThrottleMs = 500, kSavedRefreshMs = 5000;
+static_assert(PluginSession::kMacros == DawBridge::kControls, "the session keeps one mapping per DAW control");
+
 }
 
-HumusProcessor::HumusProcessor()
-    : juce::AudioProcessor(
-          BusesProperties()
-              .withInput("Input", juce::AudioChannelSet::stereo(), true)
-              .withOutput("Output", juce::AudioChannelSet::stereo(), true)) {
-    for (int i = 0; i < kNumMacros; ++i)
-        addParameter(macroParam_[i] = new juce::AudioParameterFloat(
-            juce::ParameterID("macro" + juce::String(i + 1), 1),
-            "Macro " + juce::String(i + 1), juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
-}
-
-bool HumusProcessor::loadPatchFile(const juce::File& file, std::string& error) {
-    if (!loadPatchText(file.loadFileAsString().toStdString(), error)) return false;
-    patchName_ = file.getFileNameWithoutExtension();
-    return true;
-}
-
-bool HumusProcessor::loadPatchText(const std::string& amhXml, std::string& error) {
-    PatchDocumentModel model;
-    if (!parsePatchText(amhXml, model, error)) return false;
-
-    auto g = std::make_unique<AudioGraph>();
-    if (!buildGraph(model, *g, error)) return false;
-    g->prepare(sampleRate_, blockSize_, model.clock.tempo);
-    g->transport().setPlaying(true);
-
-    docText_ = amhXml;
-    docXml_ = hum::xml::parse(amhXml);
-    model_ = std::move(model);
-    {
-        const juce::ScopedLock sl(stageLock_);
-        retired_.reset();
-        pending_ = std::move(g);
-        collectPorts(*pending_, pendingMasters_, pendingAuxes_, pendingPorts_);
+HumusProcessor::HumusProcessor(Setup setup)
+    : juce::AudioProcessor(BusesProperties()
+                               .withInput("Input", juce::AudioChannelSet::stereo(), true)
+                               .withOutput("Output", juce::AudioChannelSet::stereo(), true)) {
+    if (setup.loadUserExtensions) {
+        static const bool extensionsLoaded = [] {
+            loadUserExtensions();
+            setUpPluginHosting(installedHumusApp());
+            return true;
+        }();
+        juce::ignoreUnused(extensionsLoaded);
     }
-    hasPending_.store(true);
-    {
-        const juce::ScopedLock sl(editLock_);
-        pendingEdits_.clear();
-        appliedEdits_.clear();
-    }
-    if (patchName_.isEmpty()) patchName_ = tr("humus-processor.embedded-patch", "(embedded patch)");
-    return true;
+    for (int i = 0; i < DawBridge::kControls; ++i)
+        addParameter(macros_[(size_t) i] = new juce::AudioParameterFloat(
+                         juce::ParameterID("macro" + juce::String(i + 1), 1), "Macro " + juce::String(i + 1),
+                         juce::NormalisableRange<float>(0.0f, 1.0f), 0.0f));
+    auto io = std::make_unique<PluginAudioIo>();
+    audio_ = io.get();
+    host_ = std::make_unique<EngineHost>(setup.scheduler != nullptr ? *setup.scheduler : messageThreadScheduler(),
+                                         std::move(io), pluginEnvironment(installedHumusApp()));
+    videoWindows_ = std::make_unique<VideoWindows>(*host_);
+    host_->openVisuals = [this](const std::string& name, int width, int height) {
+        videoWindows_->open(name, width, height);
+    };
+    host_->daw()->onControlMapped = [this](int slot, float value) {
+        if (auto* m = macros_[(size_t) slot]) m->setValueNotifyingHost(value);
+    };
+    std::string error;
+    loadPatchText(starterPatchText(), {}, error);
+    refreshSaved(true);
+    startTimerHz(30);
 }
 
-void HumusProcessor::setLiveParam(const std::string& organism, const std::string& param,
-                                    double v) {
-    for (auto& cm : model_.organisms) {
-        if (cm.name != organism) continue;
-        bool found = false;
-        for (auto& p : cm.properties)
-            if (p.name == param) {
-                p.value = v;
-                if (p.isRange) p.rangeMin = p.rangeMax = v;
-                p.userEdited = true;
-                found = true;
-                break;
-            }
-        if (!found) {
-            Parameter np;
-            np.name = param;
-            np.value = v;
-            np.userEdited = true;
-            for (const auto& d : schemaFor(cm.displayClass))
-                if (d.name == param) {
-                    np.type = d.isBool ? "bool" : d.isEnum ? "enum" : d.isInt ? "int" : "double";
-                    break;
-                }
-            cm.properties.push_back(np);
-        }
-        break;
-    }
-    const juce::ScopedLock sl(editLock_);
-    appliedEdits_.clear();
-    pendingEdits_.push_back({organism, param, v});
+HumusProcessor::~HumusProcessor() {
+    *alive_ = false;
+    stopTimer();
+    host_->openVisuals = nullptr;
+    videoWindows_.reset();
+    host_->stopAudio();
+    host_.reset();
 }
 
-double HumusProcessor::liveParam(const std::string& organism, const std::string& param,
-                                   double fallback) const {
-    if (const auto* cm = model_.byName(organism))
-        for (const auto& p : cm->properties)
-            if (p.name == param) return p.isRange ? p.rangeMin : p.value;
-    return fallback;
+void HumusProcessor::timerCallback() {
+    host_->serviceTick();
+    refreshSaved(false);
 }
 
-void HumusProcessor::applyParamEdits() {
-    const juce::ScopedTryLock sl(editLock_);
-    if (!sl.isLocked() || pendingEdits_.empty()) return;
-    pendingEdits_.swap(appliedEdits_);
-    for (const auto& e : appliedEdits_)
-        if (auto* c = graph_->find(e.organism)) {
-            if (auto* p = c->params.byName(e.param)) {
-                p->value = e.value;
-                p->rangeMin = p->rangeMax = e.value;
-            } else {
-                Parameter np;
-                np.name = e.param;
-                np.value = np.rangeMin = np.rangeMax = e.value;
-                c->params.add(np);
-            }
-        }
+bool HumusProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
+    const auto out = layouts.getMainOutputChannelSet();
+    const auto in = layouts.getMainInputChannelSet();
+    const auto mono = juce::AudioChannelSet::mono(), stereo = juce::AudioChannelSet::stereo();
+    if (out != mono && out != stereo) return false;
+    return in.isDisabled() || in == mono || in == stereo;
 }
 
-void HumusProcessor::applyMacros() {
-    const juce::ScopedTryLock sl(macroLock_);
-    if (!sl.isLocked()) return;
-    for (int i = 0; i < kNumMacros; ++i) {
-        const auto& m = macros_[i];
-        if (m.organism.empty() || m.param.empty()) continue;
-        auto& t = macroTargets_[i];
-        if (!t.resolved) {
-            t.resolved = true;
-            t.organism = graph_->find(m.organism);
-            t.slot = t.organism != nullptr ? t.organism->params.slotOf(m.param) : -1;
-        }
-        if (t.organism == nullptr) continue;
-        auto* p = t.organism->params.slot(t.slot);
-        if (p == nullptr) continue;
-        const double v = m.lo + (double) macroParam_[i]->get() * (m.hi - m.lo);
-        p->value = v;
-        p->rangeMin = p->rangeMax = v;
-    }
-}
-
-void HumusProcessor::setMacroMapping(int i, const std::string& organism, const std::string& param) {
-    if (i < 0 || i >= kNumMacros) return;
-    float lo = 0.0f, hi = 1.0f;
-    if (!organism.empty() && !param.empty())
-        if (auto* cm = model_.byName(organism))
-            for (auto& d : schemaFor(cm->displayClass))
-                if (d.name == param) { lo = (float) d.min; hi = (float) d.max; break; }
-    const juce::ScopedLock sl(macroLock_);
-    macros_[i] = { organism, param, lo, hi };
-    macroTargets_[i] = {};
-}
-
-std::pair<std::string, std::string> HumusProcessor::macroMapping(int i) const {
-    if (i < 0 || i >= kNumMacros) return {};
-    return { macros_[i].organism, macros_[i].param };
-}
-
-float HumusProcessor::macroValue(int i) const {
-    return (i >= 0 && i < kNumMacros && macroParam_[i]) ? macroParam_[i]->get() : 0.0f;
-}
-
-void HumusProcessor::setMacroValue(int i, float v) {
-    if (i >= 0 && i < kNumMacros && macroParam_[i])
-        macroParam_[i]->setValueNotifyingHost(juce::jlimit(0.0f, 1.0f, v));
-}
-
-void HumusProcessor::collectPorts(AudioGraph& g, std::vector<MasterTap*>& masters,
-                                  std::vector<HardwareOut*>& auxes,
-                                  graphmidi::Ports& ports) const {
-    masters = findMasterTaps(g);
-    auxes = findHardwareOuts(g);
-    ports = graphmidi::findPorts(g);
-    for (const auto& cm : model_.organisms)
-        if (auto* hp = dynamic_cast<PluginNode*>(g.find(cm.name)))
-            ports.hosted.push_back({hp, cm.name, cm.midiReceiveMode, cm.midiReceiveChannel});
-}
-
-void HumusProcessor::applyPending() {
-    const juce::ScopedTryLock sl(stageLock_);
-    if (!sl.isLocked() || retired_ != nullptr) return;
-    retired_ = std::move(graph_);
-    graph_ = std::move(pending_);
-    masters_.swap(pendingMasters_);
-    auxes_.swap(pendingAuxes_);
-    std::swap(midiPorts_, pendingPorts_);
-    for (auto& t : macroTargets_) t = {};
-    hasPending_.store(false);
-    lastPpq_ = -1.0;
-    triggerAsyncUpdate();
-}
-
-void HumusProcessor::handleAsyncUpdate() {
-    const juce::ScopedLock sl(stageLock_);
-    retired_.reset();
+void HumusProcessor::startPlaying() {
+    host_->ensureAudio();
+    if (!playChoicePending_) return;
+    playChoicePending_ = false;
+    if (playWhenStopped_ && !host_->isPlaying()) host_->play();
+    if (!playWhenStopped_ && host_->isPlaying()) host_->stop();
 }
 
 void HumusProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
-    sampleRate_ = sampleRate;
-    blockSize_ = samplesPerBlock;
-    inScratch_.setSize(2, std::max(1, samplesPerBlock));
-    if (graph_) graph_->prepare(sampleRate, samplesPerBlock, graph_->transport().tempo());
-    if (pending_) pending_->prepare(sampleRate, samplesPerBlock, pending_->transport().tempo());
-}
-
-void HumusProcessor::driveTransportFromHost() {
-    auto& t = graph_->transport();
-    bool hostPlaying = false;
-    if (auto* ph = getPlayHead()) {
-        if (auto pos = ph->getPosition()) {
-            if (pos->getBpm()) t.setTempo(*pos->getBpm());
-            hostPlaying = pos->getIsPlaying();
-            if (auto ppq = pos->getPpqPosition(); ppq && hostPlaying) {
-                const bool resync =
-                    !hostWasPlaying_ || lastPpq_ < 0.0
-                    || std::abs(*ppq - (lastPpq_ + (double) blockSize_ / t.samplesPerBeat()))
-                           > 0.1;
-                if (resync) t.setBeatPosition(*ppq);
-                lastPpq_ = *ppq;
-            }
-            if (!hostPlaying) lastPpq_ = -1.0;
-            hostWasPlaying_ = hostPlaying;
-        }
-    }
-    t.setPlaying(hostPlaying || freeRun_.load(std::memory_order_relaxed));
+    inScratch_.setSize(2, samplesPerBlock);
+    dawIn_.ensureSize(4096);
+    audio_->prepare(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+    startPlaying();
 }
 
 void HumusProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi) {
     juce::ScopedNoDenormals noDenormals;
-    if (hasPending_.load()) applyPending();
     const int n = buffer.getNumSamples();
-
-    if (!graph_) { midi.clear(); return; }
-
-    graphmidi::deliver(midi, midiPorts_);
+    DawBridge::Clock clock;
+    if (auto* playHead = getPlayHead())
+        if (const auto pos = playHead->getPosition()) {
+            clock.known = true;
+            clock.playing = pos->getIsPlaying();
+            if (const auto bpm = pos->getBpm()) clock.bpm = *bpm;
+            if (const auto ppq = pos->getPpqPosition()) clock.ppq = *ppq;
+        }
+    auto& daw = *host_->daw();
+    daw.setClock(clock);
+    for (int i = 0; i < DawBridge::kControls; ++i) daw.setControlValue(i, macros_[(size_t) i]->get());
+    dawIn_.clear();
+    dawIn_.addEvents(midi, 0, n, 0);
     midi.clear();
+    daw.setMidi(&dawIn_, &midi);
+    host_->setRenderOffline(isNonRealtime());
 
-    if (rewindReq_.exchange(false)) graph_->transport().setBeatPosition(0.0);
-    driveTransportFromHost();
-    applyMacros();
-    applyParamEdits();
-
-    const int nCopy = std::min(n, inScratch_.getNumSamples());
-    for (int c = 0; c < 2; ++c)
-        inScratch_.copyFrom(c, 0, buffer,
-                            std::min(c, buffer.getNumChannels() - 1), 0, nCopy);
-    const float* ins[2] = { inScratch_.getReadPointer(0), inScratch_.getReadPointer(1) };
-    buffer.clear();
-    float* outs[2] = { buffer.getWritePointer(0),
-                       buffer.getNumChannels() > 1 ? buffer.getWritePointer(1)
-                                                   : buffer.getWritePointer(0) };
-    renderGraphBlock(*graph_, ins, 2, outs, std::min(2, buffer.getNumChannels()), nCopy,
-                     masters_, auxes_);
-
-    graphmidi::collect(midiPorts_, midi);
-
-    for (int c = 0; c < 2 && c < buffer.getNumChannels(); ++c)
-        peak_[c].store(buffer.getMagnitude(c, 0, n));
+    const int ins = std::min(getTotalNumInputChannels(), buffer.getNumChannels());
+    if (n > inScratch_.getNumSamples()) inScratch_.setSize(2, n, false, false, true);
+    for (int c = 0; c < 2; ++c) {
+        if (ins > 0) inScratch_.copyFrom(c, 0, buffer, std::min(c, ins - 1), 0, n);
+        else inScratch_.clear(c, 0, n);
+    }
+    const float* in[2] = {inScratch_.getReadPointer(0), inScratch_.getReadPointer(1)};
+    const int outs = std::min(2, buffer.getNumChannels());
+    float* out[2] = {buffer.getWritePointer(0), buffer.getWritePointer(outs > 1 ? 1 : 0)};
+    audio_->render(in, 2, out, outs, n);
+    daw.setMidi(nullptr, nullptr);
+    for (int c = outs; c < buffer.getNumChannels(); ++c) buffer.clear(c, 0, n);
 }
 
-juce::AudioProcessorEditor* HumusProcessor::createEditor() {
-    return new HumusEditor(*this);
+bool HumusProcessor::loadPatch(const juce::File& file, std::string& error) {
+    if (!host_->loadFile(pathOf(file), error)) return false;
+    startPlaying();
+    videoWindows_->reopenOutputs();
+    return true;
+}
+
+bool HumusProcessor::loadPatchText(const std::string& text, const std::string& documentPath, std::string& error) {
+    if (!host_->loadDocumentText(text, documentPath, error)) return false;
+    startPlaying();
+    return true;
+}
+
+std::string HumusProcessor::patchText() { return host_->documentText(); }
+
+PluginSession HumusProcessor::currentSession() {
+    PluginSession s;
+    s.documentPath = host_->documentPath();
+    for (int i = 0; i < PluginSession::kMacros; ++i) s.macros[(size_t) i] = host_->dawControlTargets(i);
+    s.playWhenStopped = host_->isPlaying();
+    s.text = host_->documentText();
+    return s;
+}
+
+void HumusProcessor::refreshSaved(bool force) {
+    const auto stamp = host_->changeStamp();
+    const auto now = juce::Time::getMillisecondCounter();
+    const auto age = now - savedAt_;
+    if (!force && !(stamp != savedStamp_ && age >= kSavedThrottleMs) && age < kSavedRefreshMs) return;
+    auto block = encodeSession(currentSession());
+    const std::lock_guard<std::mutex> hold(savedLock_);
+    saved_ = std::move(block);
+    savedStamp_ = stamp;
+    savedAt_ = now;
 }
 
 void HumusProcessor::getStateInformation(juce::MemoryBlock& dest) {
-    juce::MemoryOutputStream os(dest, false);
-    os.writeInt(kStateMagic);
-    const juce::ScopedLock sl(macroLock_);
-    for (int i = 0; i < kNumMacros; ++i) {
-        os.writeString(macros_[i].organism);
-        os.writeString(macros_[i].param);
-    }
-    os.writeBool(freeRun_.load());
-    os.writeString(docText_.empty() ? juce::String()
-                                    : juce::String(writePatchString(model_, docXml_.get())));
+    if (juce::MessageManager::existsAndIsCurrentThread()) refreshSaved(true);
+    const std::lock_guard<std::mutex> hold(savedLock_);
+    dest.append(saved_.getData(), saved_.getSize());
 }
 
 void HumusProcessor::setStateInformation(const void* data, int size) {
-    if (data == nullptr || size <= 0) return;
-    juce::MemoryInputStream is(data, (size_t) size, false);
-    if (const int magic = size >= 4 ? is.readInt() : 0;
-        magic == kStateMagic || magic == kStateMagicV2) {
-        std::pair<std::string, std::string> maps[kNumMacros];
-        for (int i = 0; i < kNumMacros; ++i) {
-            maps[i].first = is.readString().toStdString();
-            maps[i].second = is.readString().toStdString();
-        }
-        if (magic == kStateMagic) freeRun_.store(is.readBool());
-        std::string error;
-        loadPatchText(is.readString().toStdString(), error);
-        for (int i = 0; i < kNumMacros; ++i)
-            setMacroMapping(i, maps[i].first, maps[i].second);
+    auto session = decodeSession(data, size);
+    if (!session) return;
+    if (juce::MessageManager::existsAndIsCurrentThread()) {
+        applySession(std::move(*session));
         return;
     }
+    juce::MessageManager::callAsync([this, alive = alive_, s = std::move(*session)]() mutable {
+        if (*alive) applySession(std::move(s));
+    });
+}
+
+void HumusProcessor::applySession(PluginSession session) {
+    playWhenStopped_ = session.playWhenStopped;
+    playChoicePending_ = true;
     std::string error;
-    loadPatchText(std::string(static_cast<const char*>(data), (size_t) size), error);
+    if (!session.text.empty() && loadPatchText(session.text, session.documentPath, error))
+        videoWindows_->reopenOutputs();
+    for (int i = 0; i < PluginSession::kMacros; ++i)
+        host_->setDawControlTargets(i, session.macros[(size_t) i]);
+    refreshSaved(true);
 }
 
 }
-
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new hum::HumusProcessor(); }

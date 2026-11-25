@@ -29,7 +29,7 @@ class ModernPicker : public juce::Component, private juce::Timer {
 public:
     std::function<void(const std::string& cls)> onPick;
 
-    ModernPicker();
+    explicit ModernPicker(const ClassFilter& keep = {});
 
     ~ModernPicker() override { stopTimer(); }
 
@@ -53,7 +53,8 @@ public:
     juce::Rectangle<int> crumbBoundsForTest(int i) const { return crumbRects_[(size_t) i]; }
     int crumbCountForTest() const { return (int) crumbRects_.size(); }
 
-    static void show(juce::Rectangle<int> screenAnchor, std::function<void(const std::string&)> onPick);
+    static void show(juce::Rectangle<int> screenAnchor, std::function<void(const std::string&)> onPick,
+                     const PickerScope& scope = {});
 
     void resized() override;
 

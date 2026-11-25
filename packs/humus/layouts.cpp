@@ -60,6 +60,7 @@ inline LayoutSpec consoleLayout(const std::string& cls) {
     spec.width = kRackFullW;
     spec.controls.push_back({CT::Combo, "", "", "Inputs", 8, 4, 92, 20, 2, false,
                              {"2", "3", "4", "5", "6", "7", "8"}, {{"reclass", "inputs"}}});
+    spec.controls.push_back({CT::MiniToggle, "Faders", "", "Faders", 108, 4, 54, 20, 2, false});
 
     const int topY = 30, topH = 110, knobY = topY + 18;
     spec.controls.push_back({CT::Label, "", "", "Character", 8, topY, 392, topH, 0, false, {}, section});
@@ -84,13 +85,17 @@ inline LayoutSpec consoleLayout(const std::string& cls) {
         spec.controls.push_back({CT::TapeLabel, "Name_" + sfx, "", "", x, tapeY, w, 20, 0, false, {},
                                  {{"inlet", std::to_string(2 * k)}, {"width", "2"}}});
         spec.controls.push_back({CT::Knob, "Gain_" + sfx, "", sfx, knobX, gainY, kKnobW, kKnobH, 2, false, {},
-                                 {{"meter", std::to_string(k)}}});
+                                 {{"meter", std::to_string(k)}, {"show-when", "Faders=0"}}});
+        spec.controls.push_back({CT::VSlider, "Gain_" + sfx, "", sfx, knobX, gainY, kKnobW, kKnobH, 2, false, {},
+                                 {{"meter", std::to_string(k)}, {"show-when", "Faders=1"}, {"show-value", "1"}}});
         spec.controls.push_back({CT::HSlider, "Pan_" + sfx, "", "", x + 2, panY, w - 4, 20, 2, false, {},
                                  {{"tooltip", "Pan"}, {"centre-fill", "1"}}});
         const int half = (w - 4) / 2;
-        spec.controls.push_back({CT::LitButton, "Mute_" + sfx, "", "M", x, msY, half, 22, 2, false, {}, pad});
+        auto muteExtra = pad;
+        muteExtra["group"] = "mute";
+        spec.controls.push_back({CT::LitButton, "Mute_" + sfx, "", "M", x, msY, half, 22, 2, false, {}, muteExtra});
         spec.controls.push_back({CT::LitButton, "Solo_" + sfx, "", "S", x + half + 4, msY, half, 22, 2, false, {},
-                                 {{"icon", "none"}, {"colour", "#e0a030"}}});
+                                 {{"icon", "none"}, {"colour", "#e0a030"}, {"group", "solo"}}});
     }
     spec.height = chTop + chH + 8;
     return spec;
@@ -120,7 +125,7 @@ inline LayoutSpec dynamicsLayout(const std::string& cls) {
         knobs = {{"Threshold", "Thresh"}, {"CompressionRatio", "Ratio"}, {"KneeWidth", "Knee"},
                  {"AttackTime", "Atk"}, {"HoldTime", "Hold"},
                  {"ReleaseTime", "Rel", "Sync"},
-                 {"MakeupGain", "Makeup", "AutoMakeupGain"}, {"InputGain", "In"}};
+                 {"MakeupGain", "Makeup", "AutoMakeupGain"}, {"InputGain", "In"}, {"Mix", "Mix"}};
     } else if (ends("Limiter")) {
         togs = {};
         knobs = {{"Threshold", "Thresh"}, {"Ceiling", "Ceil"}, {"HoldTime", "Hold"},
@@ -134,7 +139,9 @@ inline LayoutSpec dynamicsLayout(const std::string& cls) {
         return spec;
     }
 
-    const int colW = kKnobPitch, knobH = kKnobH, top = 4, knobY = 24, pad = 8;
+    const int gaugeW = 36, pad = 8, columns = (int) knobs.size() + (rangeThresh ? 1 : 0);
+    const int colW = std::min(kKnobPitch, (kRackFullW - 2 * pad - gaugeW) / std::max(1, columns));
+    const int knobH = kKnobH, top = 4, knobY = 24;
     int x = pad;
     modeHeader(spec, x, top, 76);
     x += 80;
@@ -159,7 +166,7 @@ inline LayoutSpec dynamicsLayout(const std::string& cls) {
     }
     spec.controls.push_back({CT::Label, "", "", "GR", x + 2, knobY - 16, 28, 14, 0, false});
     spec.controls.push_back({CT::GainReduction, "", "", "", x + 2, knobY, 28, knobH, 0, false});
-    x += 36;
+    x += gaugeW;
     spec.width = (x + pad <= kRackHalfW) ? kRackHalfW : kRackFullW;
     spec.height = knobY + knobH + 20;
     return spec;

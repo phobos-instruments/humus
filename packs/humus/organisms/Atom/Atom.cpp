@@ -4,9 +4,12 @@
 
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 
-#include "hum/Euclid.h"
+#include "hum/ParamBanks.h"
+#include "hum/RingMutes.h"
 #include "hum/Pattern.h"
+#include "hum/PatternMatrix.h"
 #include "hum/Scale.h"
 #include "hum/Swing.h"
 #include "hum/dsp/DspMath.h"
@@ -26,6 +29,7 @@ double beatsPerStep(int rate, int steps, const Transport& transport) {
 
 void Atom::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
+    seed_ = stepSeedFor(name());
     reset();
 }
 
@@ -38,23 +42,67 @@ void Atom::reset() {
     offCount_ = 0;
 }
 
-Atom::Ring Atom::ringAt(int ring) const {
+Atom::Ring Atom::paramRing(int ring) const {
     const auto r = (size_t) ring;
     Ring shape;
-    shape.steps = std::clamp((int) std::lround(stepsRef_[r].get(params, 16.0)), 1, kMaxSteps);
-    shape.hits = std::clamp((int) std::lround(hitsRef_[r].get(params, 0.0)), 0, shape.steps);
+    shape.steps = (int) std::lround(stepsRef_[r].get(params, 16.0));
+    shape.hits = (int) std::lround(hitsRef_[r].get(params, 0.0));
     shape.rotate = (int) std::lround(rotateRef_[r].get(params, 0.0));
-    shape.rate = std::clamp((int) std::lround(rateRef_[r].get(params, 2.0)), 0, (int) kFitBar);
+    shape.rate = (int) std::lround(rateRef_[r].get(params, 2.0));
     shape.fixed = fixedRef_[r].on(params);
-    shape.note = std::clamp((int) std::lround(noteRef_[r].get(params, 60.0)), 0, kMidiMax);
+    shape.note = (int) std::lround(noteRef_[r].get(params, 60.0));
+    shape.chance = (int) std::lround(chanceRef_[r].get(params, (double) kFullChance));
+    shape.muted = ringmute::maskFrom(muteRef_[r].get(params, 0.0));
     return shape;
+}
+
+Atom::Ring Atom::clamped(Ring shape) {
+    shape.steps = std::clamp(shape.steps, 1, kMaxSteps);
+    shape.hits = std::clamp(shape.hits, 0, shape.steps);
+    shape.rate = std::clamp(shape.rate, 0, (int) kFitBar);
+    shape.note = std::clamp(shape.note, 0, kMidiMax);
+    shape.chance = std::clamp(shape.chance, 0, kFullChance);
+    return shape;
+}
+
+Atom::Ring Atom::ringAt(int ring) const {
+    const auto bank = (size_t) std::clamp((int) std::lround(bankRef_.get(params, 0.0)), 0, kBanks - 1);
+    return clamped(stored_[bank] ? banks_[bank][(size_t) ring] : paramRing(ring));
+}
+
+void Atom::storeValue(Bank& bank, const std::string& name, long long value) {
+    const size_t cut = name.rfind('_');
+    if (cut == std::string::npos) return;
+    const int ring = std::atoi(name.c_str() + cut + 1) - 1;
+    if (ring < 0 || ring >= kRings) return;
+    auto& shape = bank[(size_t) ring];
+    const std::string field = name.substr(0, cut);
+    if (field == "Steps") shape.steps = (int) value;
+    else if (field == "Hits") shape.hits = (int) value;
+    else if (field == "Rotate") shape.rotate = (int) value;
+    else if (field == "Rate") shape.rate = (int) value;
+    else if (field == "Fixed") shape.fixed = value != 0;
+    else if (field == "Note") shape.note = (int) value;
+    else if (field == "Chance") shape.chance = (int) value;
+    else if (field == "Mute") shape.muted = ringmute::maskFrom((double) value);
+}
+
+void Atom::setPattern(const Pattern& p) {
+    for (int b = 0; b < kBanks; ++b) {
+        const auto* ch = matrixChannel(p, kParamBankChannel, b);
+        const auto at = (size_t) b;
+        stored_[at] = ch != nullptr && !ch->matrix.empty();
+        if (!stored_[at]) continue;
+        for (int r = 0; r < kRings; ++r) banks_[at][(size_t) r] = paramRing(r);
+        for (const auto& [name, value] : decodeBankValues(ch->matrix)) storeValue(banks_[at], name, value);
+    }
 }
 
 int Atom::ringSteps(int ring) const { return ringAt(ring).steps; }
 
 bool Atom::ringHits(int ring, int step) const {
     const auto shape = ringAt(ring);
-    return euclid::hit(step, shape.steps, shape.hits, shape.rotate);
+    return ringmute::plays(step, shape.steps, shape.hits, shape.rotate, shape.muted);
 }
 
 void Atom::emit(int offset, bool on, int note, int velocity) {
@@ -138,7 +186,8 @@ void Atom::turn(int ring, const Ring& shape, const rings::Pool& pool, int numSam
     for (long long k = (long long) std::floor(step0 - lag) - 1; k < (long long) std::ceil(stepEnd) + 1; ++k) {
         const double pos = (double) k + (fit ? 0.0 : swing::delaySteps((double) k, ticksPerStep, groove));
         if (pos < step0 || pos >= stepEnd || k < 0) continue;
-        if (!euclid::hit(k, shape.steps, shape.hits, shape.rotate)) continue;
+        if (!ringmute::plays(k, shape.steps, shape.hits, shape.rotate, shape.muted)) continue;
+        if (!stepPlays(seed_, ring, (long) k, shape.chance)) continue;
         strike(ring, shape, pool, std::min(numSamples - 1, (int) std::lround((pos - step0) / stepsPerSec * sr)), length);
     }
 }

@@ -15,6 +15,7 @@
 #include "gui/host/PresetRecall.h"
 #include "gui/app/CardDesk.h"
 #include "gui/app/GenieCard.h"
+#include "gui/host/NodeEvolve.h"
 #include "gui/host/NodeRandomize.h"
 #include "gui/common/Localisation.h"
 
@@ -26,25 +27,6 @@ inline const std::vector<ParamDesc>& schemaOf(PropertiesHost& host, const std::s
     static const std::vector<ParamDesc> none;
     const auto* cm = host.model().byName(node);
     return cm ? schemaFor(cm->classRaw) : none;
-}
-
-inline void evolve(PropertiesHost& host, const std::string& node) {
-    const auto& schema = schemaOf(host, node);
-    const bool curated = hasRandomParams(schema);
-    auto& r = juce::Random::getSystemRandom();
-    std::vector<std::pair<std::string, double>> vals;
-    for (const auto& d : schema) {
-        if (d.isText || d.isRange) continue;
-        if (curated && !d.randomize) continue;
-        double v = host.liveParamValue(node, d.name)
-                   + (r.nextDouble() * 2.0 - 1.0) * 0.08 * (d.max - d.min);
-        v = juce::jlimit(d.min, d.max, v);
-        if (d.isBool || d.isEnum || d.isInt) v = std::round(v);
-        vals.emplace_back(d.name, v);
-    }
-    if (vals.empty()) return;
-    host.pushUndo();
-    for (const auto& [param, value] : vals) host.setParam(node, param, value);
 }
 
 inline void showGenie(PropertiesHost& host, const std::string& node,

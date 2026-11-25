@@ -9,12 +9,14 @@
 
 #include "core/packs/Categories.h"
 #include "gui/style/Colours.h"
-#include "gui/host/BrickHost.h"
+#include "gui/host/ModelHost.h"
 #include "hum/Organism.h"
 #include "io/PatchDocument.h"
 #include "gui/help/HelpDocs.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/SigilView.h"
+#include "gui/common/SizedImageCache.h"
+#include "gui/common/UiTicker.h"
 
 namespace hum {
 
@@ -27,15 +29,31 @@ inline std::string speciesNameFor(const std::string& displayClass) {
     return names.empty() ? displayClass : names.back();
 }
 
-inline constexpr size_t kSoilCacheCap = 192;
+inline constexpr size_t kSoilCacheBytes = 32u * 1024u * 1024u;
+inline constexpr juce::uint32 kSoilIdleMs = 10000;
 
-inline const juce::Image& substrateFor(Family f, int w, int h) {
-    static std::map<juce::int64, juce::Image> cache;
+enum class Texture { Substrate, Soil };
+
+inline SizedImageCache& textureCache(Texture which) {
+    static SizedImageCache substrate(kSoilCacheBytes, kSoilIdleMs);
+    static SizedImageCache soil(kSoilCacheBytes, kSoilIdleMs);
+    static UiTicker* sweptBy = nullptr;
+    if (auto& ticker = UiTicker::instance(); &ticker != sweptBy) {
+        sweptBy = &ticker;
+        ticker.add([] {
+            substrate.sweep();
+            soil.sweep();
+        });
+    }
+    return which == Texture::Soil ? soil : substrate;
+}
+
+inline juce::Image substrateFor(Family f, int w, int h) {
+    auto& cache = textureCache(Texture::Substrate);
     const auto fam = Palette::familyAccent(f);
     const juce::int64 key = ((juce::int64) (int) f << 56) ^ ((juce::int64) w << 36)
                           ^ ((juce::int64) h << 16) ^ (juce::int64) (juce::uint32) fam.getARGB();
-    if (auto it = cache.find(key); it != cache.end()) return it->second;
-    if (cache.size() >= kSoilCacheCap) cache.clear();
+    if (auto known = cache.find(key); known.isValid()) return known;
 
     juce::Image img(juce::Image::ARGB, juce::jmax(1, w), juce::jmax(1, h), true);
     juce::Graphics ig(img);
@@ -104,11 +122,11 @@ inline const juce::Image& substrateFor(Family f, int w, int h) {
         }
         case Family::Utility: break;
     }
-    return cache.emplace(key, std::move(img)).first->second;
+    return cache.put(key, std::move(img));
 }
 
-inline const juce::Image& soilFor(Family f, int w, int h, float scale) {
-    static std::map<juce::int64, juce::Image> cache;
+inline juce::Image soilFor(Family f, int w, int h, float scale) {
+    auto& cache = textureCache(Texture::Soil);
     const auto fam = f == Family::Utility ? Palette::border.brighter(0.25f)
                                           : Palette::familyAccent(f);
     const juce::int64 key = ((juce::int64) (int) f << 56) ^ ((juce::int64) w << 36)
@@ -116,8 +134,7 @@ inline const juce::Image& soilFor(Family f, int w, int h, float scale) {
                           ^ ((juce::int64) juce::roundToInt(scale * 100.0f) << 48)
                           ^ (juce::int64) (juce::uint32) fam.getARGB()
                           ^ ((juce::int64) (juce::uint32) Palette::panel.getARGB() << 8);
-    if (auto it = cache.find(key); it != cache.end()) return it->second;
-    if (cache.size() >= kSoilCacheCap) cache.clear();
+    if (auto known = cache.find(key); known.isValid()) return known;
 
     juce::Image img(juce::Image::RGB, juce::jmax(1, juce::roundToInt(w * scale)),
                     juce::jmax(1, juce::roundToInt(h * scale)), false);
@@ -136,11 +153,11 @@ inline const juce::Image& soilFor(Family f, int w, int h, float scale) {
                                   fam.withAlpha(alpha::none), r.getRight(), 0.0f, false);
     ig.setGradientFill(hairline);
     ig.fillRect(0.0f, 0.0f, r.getWidth(), 1.0f);
-    return cache.emplace(key, std::move(img)).first->second;
+    return cache.put(key, std::move(img));
 }
 
 inline void paintSoil(juce::Graphics& g, juce::Rectangle<float> r, Family f) {
-    const float scale = juce::jmax(1.0f, g.getInternalContext().getPhysicalPixelScaleFactor());
+    const float scale = juce::jmax(0.25f, g.getInternalContext().getPhysicalPixelScaleFactor());
     g.drawImageTransformed(soilFor(f, (int) r.getWidth(), (int) r.getHeight(), scale),
                            juce::AffineTransform::scale(1.0f / scale)
                                .translated((float) (int) r.getX(), (float) (int) r.getY()));
@@ -196,7 +213,7 @@ inline const juce::Image& grownMark(const std::string& species, Family f) {
     return cache.emplace(key, std::move(img)).first->second;
 }
 
-inline void paintFace(juce::Graphics& g, BrickHost& host, const std::string& organism,
+inline void paintFace(juce::Graphics& g, ModelHost& host, const std::string& organism,
                       const std::string& species, Family f, juce::Rectangle<int> face) {
     const auto fam = Palette::familyAccent(f);
     if (auto* src = dynamic_cast<SigilSource*>(host.liveOrganism(organism))) {
@@ -238,7 +255,7 @@ inline juce::Rectangle<int> drawSpeciesCaps(juce::Graphics& g, const std::string
     return area;
 }
 
-inline void paint(juce::Graphics& g, BrickHost& host, const std::string& organism,
+inline void paint(juce::Graphics& g, ModelHost& host, const std::string& organism,
                   juce::Rectangle<int> r) {
     const auto* cm = host.model().byName(organism);
     if (!cm) return;
@@ -253,7 +270,7 @@ inline void paint(juce::Graphics& g, BrickHost& host, const std::string& organis
     drawSpeciesCaps(g, species, area);
 }
 
-inline void paintBand(juce::Graphics& g, BrickHost& host, const std::string& organism,
+inline void paintBand(juce::Graphics& g, ModelHost& host, const std::string& organism,
                       juce::Rectangle<int> r, int leftInset, int rightInset) {
     const auto* cm = host.model().byName(organism);
     if (!cm) {

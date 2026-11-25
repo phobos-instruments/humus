@@ -12,9 +12,11 @@ Relie tes sources aux entrées numérotées et la sortie à un SoundOut ou à un
 
 **Gain_1-2** Niveau de la paire d'entrées 1-2, et ainsi de suite pour 3-4 jusqu'à 7-8. Gain unitaire tout en haut ; le vumètre de la tranche montre ce qui arrive avant lui.
 
-**Mute_1-2** Coupe l'entrée 1-2 sans clic, et ainsi de suite pour les autres paires. Une entrée coupée reste silencieuse même en solo.
+**Mute_1-2** Coupe l'entrée 1-2 sans clic, et ainsi de suite pour les autres paires. Une entrée coupée reste silencieuse même en solo. Alt-clic sur n'importe quel M coupe ou rétablit toutes les entrées d'un coup.
 
-**Solo_1-2** Fait entendre l'entrée 1-2 seule, et ainsi de suite pour les autres paires. Tant qu'une entrée est en solo, on n'entend que les entrées en solo.
+**Solo_1-2** Fait entendre l'entrée 1-2 seule, et ainsi de suite pour les autres paires. Tant qu'une entrée est en solo, on n'entend que les entrées en solo. Alt-clic sur n'importe quel S met tous les solos dans le même état, donc un Alt-clic sur un solo allumé les éteint tous ; Cmd-clic (Ctrl-clic) sur l'un d'eux ne fait entendre que cette entrée.
+
+**Faders** Montre chaque niveau sous forme de fader plutôt que de bouton. Le choix reste avec la boîte.
 
 ## Recette
 

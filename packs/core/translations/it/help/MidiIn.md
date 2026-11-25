@@ -8,9 +8,13 @@ Collega la sua uscita a uno strumento come Rhizome, a un MidiBus, o a un MidiMon
 
 **Port** Le porte d'ingresso MIDI che questo organism ascolta. All inputs, il valore predefinito per un nuovo MidiIn, sente tutte le tastiere e i controller collegati insieme; una porta singola sente solo il dispositivo assegnato a quella porta, e il menu a tendina mostra ogni porta con il suo dispositivo.
 
+**Channel** Il canale MIDI, dei sedici, da cui un dispositivo può entrare. All, il valore predefinito, lascia entrare ogni canale; un canale singolo tiene fuori quello che un dispositivo manda sugli altri. I tasti a schermo suonano sempre, qualunque sia il canale.
+
 ## Ricetta
 
 **Dalla tastiera al synth** Metti un MidiIn nella patch, scegli la porta a cui è assegnata la tua tastiera, collegalo a un Rhizome e il Rhizome al Mixer. Clicca prima i tasti a schermo per sentire la voce, poi suona l'hardware.
+
+**Tasti e pad separati** Molti controller mandano i tasti sul canale 1 e i pad sul canale 10. Imposta il Channel del MidiIn su 1 e il synth collegato sente solo i tasti, mentre i pad restano liberi per il MIDI Learn; un pad mappato con il learn su un parametro resta sul suo canale, così i tasti non lo attivano mai.
 
 ## Organism correlati
 

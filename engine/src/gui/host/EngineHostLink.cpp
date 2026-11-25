@@ -8,7 +8,7 @@
 namespace hum {
 
 void EngineHost::setLinkEnabled(bool on) {
-    if (on && !linkAllowed_) return;
+    if (on && (!linkAllowed_ || !env_.claimsMachineResources)) return;
     if (on && link_ == nullptr) {
         const AudioLock::Scope sl(lock_);
         link_.reset(new LinkSync());
@@ -34,6 +34,7 @@ void EngineHost::setLinkEnabled(bool on) {
 }
 
 void EngineHost::setLinkStartStopSync(bool on) {
+    if (!env_.claimsMachineResources) return;
     AppSettings::instance().set("link.startstop", on ? "on" : "off");
     linkStartStop_.store(on, std::memory_order_relaxed);
     if (link_) {

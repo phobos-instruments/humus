@@ -14,35 +14,40 @@
      "def": 0.0,
      "isText": true,
      "plainText": true,
-     "text": "a + sin(tau*beat)*x"
+     "text": "a + sin(tau*beat)*x",
+     "hands-over": "formula"
     },
     {
      "name": "X",
      "min": 0.0,
      "max": 1.0,
      "def": 0.5,
-     "random": true
+     "random": true,
+     "shared-var": true
     },
     {
      "name": "Y",
      "min": 0.0,
      "max": 1.0,
      "def": 0.5,
-     "random": true
+     "random": true,
+     "shared-var": true
     },
     {
      "name": "Z",
      "min": 0.0,
      "max": 1.0,
      "def": 0.5,
-     "random": true
+     "random": true,
+     "shared-var": true
     },
     {
      "name": "W",
      "min": 0.0,
      "max": 1.0,
      "def": 0.5,
-     "random": true
+     "random": true,
+     "shared-var": true
     },
     {
      "name": "Auto",

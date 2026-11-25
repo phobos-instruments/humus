@@ -30,6 +30,7 @@ bool SongView::mouseDownAutoLane(const juce::MouseEvent& e, juce::Point<int> p) 
             repaintAll();
             return true;
         }
+        if (p.x >= kStripW && isBlockLane(lnode, sl.param)) return mouseDownBlockLane(e, s, p);
         if (p.x >= kStripW && !e.mods.isPopupMenu()) {
             const int hit = autoPointAt(sl, lnode, sl.param, p);
             if (tryBeginPointSelection(e, s, hit)) return true;
@@ -165,7 +166,7 @@ void SongView::addPointAtClick(const juce::MouseEvent& e, int slot) {
     if (sl.kind != trackslayout::Kind::AutoLane || e.x < kStripW) return;
     const auto& node = rows_[(size_t) sl.track];
     const auto* lane = laneOfSlot(sl);
-    if (lane == nullptr) return;
+    if (lane == nullptr || isBlockLane(node, sl.param)) return;
     const double beat = snapBeats(std::max(0.0, xToBeat((float) e.x)), e.mods.isAltDown());
     const auto [lo, hi] = laneRange(node, sl.param);
     const double v = laneValueAtY(sl, e.y, lo, hi);

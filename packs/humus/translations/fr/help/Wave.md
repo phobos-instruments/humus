@@ -2,7 +2,7 @@
 
 Un oscillateur à table d'ondes dont les cycles se dessinent, poussent à partir d'un fichier de base ou se tirent au hasard.
 
-L'affichage, c'est le son : dessine dessus, pars de la vignette sinus, triangle, dent de scie ou carré, ou fais pousser la table à partir de n'importe quel fichier. Une table contient jusqu'à seize frames et Position fait un morphing entre les deux plus proches ; Warp remodèle le cycle, Unison empile des copies désaccordées, et un sinus sub, une saturation et un passe-bas complètent la voix. La lecture est à bande limitée pour chaque frame, donc les notes aiguës ne perdent que les harmoniques qui ne tiennent pas. C'est un instrument MIDI à huit voix qui suit le Tuning du patch ; câble en entrée un PianoRoll, un DNA ou un Steps et envoie la sortie vers un Filter ou un Fern.
+L'affichage, c'est le son : dessine dessus, pars de la vignette sinus, triangle, dent de scie ou carré, ou fais pousser la table à partir de n'importe quel fichier. Une table contient jusqu'à seize frames et Position fait un morphing entre les deux plus proches ; Warp remodèle le cycle, Unison empile des copies désaccordées, et un sinus sub, une saturation et un passe-bas complètent la voix. La lecture est à bande limitée pour chaque frame, donc les notes aiguës ne perdent que les harmoniques qui ne tiennent pas. C'est un instrument MIDI à huit voix qui suit le Tuning du patch ; câble en entrée un PianoRoll, un DNA ou un Steps et envoie la sortie vers un Filter ou un Fern. Sa sortie env porte le niveau de sa voix la plus forte, pour qu'un filtre ou un Gain suive les notes sans Follower. Relié à la prise Function d'un LFO, il transmet sa table, et le LFO la joue comme son onde à la Position du Wave.
 
 ## L'affichage
 

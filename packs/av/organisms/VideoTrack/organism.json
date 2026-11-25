@@ -32,6 +32,12 @@
           "max": 3.0,
           "def": 0.0,
           "enum": true
+        },
+        {
+          "name": "Gain",
+          "min": 0.0,
+          "max": 2.0,
+          "def": 1.0
         }
       ]
     }

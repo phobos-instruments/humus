@@ -68,6 +68,7 @@ std::vector<PresetDef> parsePresetDefs(const json::Value& v, const std::string& 
                 pd.values.emplace_back(name, value.number());
         }
         for (const auto& [name, value] : e["texts"].members()) pd.texts.emplace_back(name, value.text());
+        pd.pattern = e["pattern"].text();
         out.push_back(std::move(pd));
     }
     return out;

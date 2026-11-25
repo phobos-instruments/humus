@@ -56,6 +56,17 @@ public:
     void clearAll() { edits_.clear(); pushEdits(); }
     bool reversed(int s) { return edits_[s].reverse; }
     bool muted(int s) { return edits_[s].gainPct == 0; }
+    int lengthPct(int s) const {
+        const auto it = edits_.find(s);
+        return it == edits_.end() ? kFullSlicePct : it->second.lengthPct;
+    }
+    bool setLength(int s, int pct) {
+        pct = std::clamp(pct, kShortestSlicePct, kFullSlicePct);
+        if (s < 0 || lengthPct(s) == pct) return false;
+        edits_[s].lengthPct = pct;
+        pushEdits();
+        return true;
+    }
 
     bool togglePin(int s, bool one);
     bool rollOne(int s);

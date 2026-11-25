@@ -23,6 +23,12 @@ public:
     virtual float paramValue(int index) const = 0;
 
     virtual bool responding() const { return true; }
+    virtual bool layoutChanged() const { return false; }
+    virtual void adoptLayout() {}
+    virtual int touchedParam(unsigned& stamp) const {
+        stamp = 0;
+        return -1;
+    }
 };
 
 }

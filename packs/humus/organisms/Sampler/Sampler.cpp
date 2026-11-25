@@ -28,6 +28,9 @@ constexpr float kEnvFloor = 1.0e-4f;
 constexpr double kDeclickMs = 3.0;
 constexpr int kSf2LoopInRelease = 3;
 constexpr int kLoopOff = 1;
+constexpr int kLoopForward = 2;
+constexpr int kLoopBounce = 3;
+constexpr int kShortestLoop = 64;
 
 float segCoef(double ms, double sr) {
     const double samples = std::max(1.0, ms * 0.001 * sr / 3.0);
@@ -448,6 +451,9 @@ void Sampler::updateVoice(Voice& v) {
 
         const auto& sample = kit_.samples[(size_t) z.sample];
         const int len = sample.buf.getNumSamples();
+        if (loopRegion(v, len, sample.srcRate)) return;
+        v.bounce = false;
+        v.direction = 1;
         const bool released = v.stage == 3;
         const bool loopsWhileHeld = z.loopMode == kSf2LoopInRelease && released;
         const bool hasPoints = z.loopEnd > z.loopStart;
@@ -462,6 +468,40 @@ void Sampler::updateVoice(Voice& v) {
         v.fadeLen = v.loopLen > 0
                         ? 0.0f
                         : (float) std::min(kDeclickMs * 0.001 * sample.srcRate, len * 0.25);
+    }
+}
+
+bool Sampler::loopRegion(Voice& v, int len, double srcRate) const {
+    const int choice = (int) std::lround(params.get("Loop", 0.0));
+    if ((choice != kLoopForward && choice != kLoopBounce) || len < 2 * kShortestLoop) return false;
+    int lo = (int) std::lround(std::clamp(params.get("LoopStart", 0.0), 0.0, 1.0) * (len - 1));
+    int hi = (int) std::lround(std::clamp(params.get("LoopEnd", 1.0), 0.0, 1.0) * (len - 1));
+    if (hi < lo) std::swap(lo, hi);
+    if (hi - lo < kShortestLoop) {
+        hi = std::min(len - 1, lo + kShortestLoop);
+        lo = hi - kShortestLoop;
+    }
+    v.bounce = choice == kLoopBounce;
+    if (!v.bounce) v.direction = 1;
+    v.loopLen = hi - lo;
+    v.endIdx = hi;
+    v.loopFade = v.bounce ? 0.0f : (float) loopfade::fadeLength(lo, hi, srcRate);
+    v.fadeLen = 0.0f;
+    return true;
+}
+
+void Sampler::wrap(Voice& v) {
+    if (!v.bounce) {
+        while (v.pos >= (double) v.endIdx) v.pos -= (double) v.loopLen;
+        return;
+    }
+    const double lo = (double) (v.endIdx - v.loopLen), hi = (double) v.endIdx;
+    if (v.direction > 0 && v.pos >= hi) {
+        v.pos = std::max(lo, 2.0 * hi - v.pos);
+        v.direction = -1;
+    } else if (v.direction < 0 && v.pos <= lo) {
+        v.pos = std::min(hi, 2.0 * lo - v.pos);
+        v.direction = 1;
     }
 }
 
@@ -516,7 +556,7 @@ void Sampler::renderAdd(float* left, float* right, int numSamples) {
                 if (v.env < kEnvFloor) { v = Voice{}; break; }
             }
             if (v.loopLen > 0) {
-                while (v.pos >= (double) v.endIdx) v.pos -= (double) v.loopLen;
+                wrap(v);
             } else if (v.pos >= (double) v.endIdx) {
                 v = Voice{};
                 break;
@@ -538,7 +578,7 @@ void Sampler::renderAdd(float* left, float* right, int numSamples) {
             }
             left[n]  += g * v.panL * atL;
             right[n] += g * v.panR * atR;
-            v.pos += v.rate * bendRatio_;
+            v.pos += v.rate * bendRatio_ * v.direction;
         }
     }
 }

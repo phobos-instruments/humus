@@ -3,6 +3,8 @@
 #include "core/packs/Roles.h"
 
 #include <algorithm>
+#include <optional>
+#include <tuple>
 
 #include "core/packs/ClassString.h"
 #include "core/packs/PackRegistry.h"
@@ -47,11 +49,18 @@ bool classHasRole(const std::string& classString, std::string_view role) {
 std::string classWithRole(std::string_view role) {
     auto& registry = PackRegistry::instance();
     registry.loadBuiltinPacks();
-    for (const auto& pack : registry.packs())
+    std::optional<std::tuple<bool, int, std::string>> best;
+    int packIndex = 0;
+    for (const auto& pack : registry.packs()) {
         for (const auto& folder : pack.organisms)
-            for (const auto& cls : folder.classes)
-                if (declares(cls, role) && registry.isClassEnabled(cls.className)) return cls.className;
-    return {};
+            for (const auto& cls : folder.classes) {
+                if (!declares(cls, role) || !registry.isClassEnabled(cls.className)) continue;
+                auto key = std::make_tuple(cls.hidden, packIndex, cls.className);
+                if (!best || key < *best) best = std::move(key);
+            }
+        ++packIndex;
+    }
+    return best ? std::get<2>(*best) : std::string();
 }
 
 }

@@ -2,7 +2,7 @@
 
 Ein monophoner Tonhöhenkorrektor, der eine Gesangsstimme oder Lead-Linie auf die Noten einer Tonart und Tonleiter zieht.
 
-Es verfolgt die eingehende Grundfrequenz, rastet sie auf die nächste erlaubte Note von Key und Scale ein und verschiebt das Audio dorthin, mit einem überblendenden Pitchshifter auf Delay-Leitungen, eine Stimme nach der anderen. Speed bestimmt, wie schnell das Gleiten zum Ziel ist: Langsam bewahrt die natürliche Drift, schnell ist der Hard-Tune-Effekt. Das Notenraster kommt aus der Stimmung des Patches, sodass ein Tuning-Organism auf 19-EDO die Tonleitermasken über 19 Stufen statt 12 legt. Der Effektweg hat eine kurze Verzögerung. Schließ eine Mono-Gesangsstimme von einem SoundIn oder einem Decomposer an.
+Es verfolgt die eingehende Grundfrequenz, rastet sie auf die nächste erlaubte Note von Key und Scale ein und verschiebt das Audio dorthin, mit einem überblendenden Pitchshifter auf Delay-Leitungen, eine Stimme nach der anderen. Glocken und andere Klänge, deren Obertöne keine ganzzahligen Vielfachen der Note sind, wie Mineral, werden über ihren tiefsten Teilton verfolgt, also die Note, auf der sie gespielt werden. Speed bestimmt, wie schnell das Gleiten zum Ziel ist: Langsam bewahrt die natürliche Drift, schnell ist der Hard-Tune-Effekt. Das Notenraster kommt aus der Stimmung des Patches, sodass ein Tuning-Organism auf 19-EDO die Tonleitermasken über 19 Stufen statt 12 legt. Der Effektweg hat eine kurze Verzögerung. Schließ eine Mono-Gesangsstimme von einem SoundIn oder einem Decomposer an.
 
 ## Parameter
 

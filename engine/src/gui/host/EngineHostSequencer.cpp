@@ -129,7 +129,7 @@ void AutomationHost::copyTimeRange(double from, double to) {
             cl.kind = l.kind;
             for (auto& b : l.points)
                 if (b.beat >= from && b.beat < to)
-                    cl.points.push_back({b.beat - from, b.value, b.valueMax});
+                    cl.points.push_back({b.beat - from, b.value, b.valueMax, 0.0, b.release});
             if (!cl.points.empty()) autoClip_.push_back(std::move(cl));
         }
     hasAutoClip_ = !autoClip_.empty();
@@ -149,7 +149,7 @@ bool AutomationHost::pasteTimeRange(double at) {
         if (!c) continue;
         auto* lane = findLane(*c, cl.param);
         if (!lane) continue;
-        for (auto& b : cl.points) lane->points.push_back({at + b.beat, b.value, b.valueMax});
+        for (auto& b : cl.points) lane->points.push_back({at + b.beat, b.value, b.valueMax, 0.0, b.release});
         sortLane(*lane);
     }
     capture_.syncAutomation();

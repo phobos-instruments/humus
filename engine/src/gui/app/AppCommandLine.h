@@ -9,6 +9,7 @@ namespace hum::appcli {
 struct Outcome {
     bool handled = false;
     int returnValue = 0;
+    bool pending = false;
 };
 
 Outcome run(const juce::StringArray& args);

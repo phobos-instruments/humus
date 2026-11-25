@@ -13,6 +13,10 @@
 
 namespace hum {
 
+namespace {
+constexpr int kBlockLaneItem = 1000;
+}
+
 void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<int> p) {
     const auto& node = rows_[(size_t) row];
         if (e.mods.isPopupMenu()) {
@@ -24,6 +28,13 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
             juce::PopupMenu m;
             m.addItem(1, tr("tracks-pane-input.clear-automation-points", "Clear Automation Points"), has);
             m.addItem(2, tr("tracks-pane-input.delete-automation-lanes", "Delete Automation Lanes"), has);
+            const auto blockParams = blockLaneCandidates(node);
+            if (!blockParams.empty()) {
+                juce::PopupMenu blocks;
+                for (int i = 0; i < (int) blockParams.size(); ++i)
+                    blocks.addItem(kBlockLaneItem + i, juce::String(blockParams[(size_t) i]));
+                m.addSubMenu(tr("tracks-blocks.add-lane", "Add Blocks Lane"), blocks);
+            }
             double from = 0.0, to = 0.0;
             const int bpb = juce::jmax(1, host().automation().timeSigNumerator());
             const bool canBounce = consolidateRange(row, from, to)
@@ -65,7 +76,12 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
                                            : tr("tracks-pane-input.remove-track", "Remove Track")));
             const auto sp = e.getScreenPosition();
             m.showMenuAsync(juce::PopupMenu::Options().withTargetScreenArea({sp.x, sp.y, 1, 1}),
-                            [this, node, row, targets, group](int r) {
+                            [this, node, row, targets, group, blockParams](int r) {
+                if (r >= kBlockLaneItem && r - kBlockLaneItem < (int) blockParams.size()) {
+                    host().automation().add(node, blockParams[(size_t) (r - kBlockLaneItem)]);
+                    rebuild();
+                    return;
+                }
                 if (r >= 100 && r - 100 < (int) targets.size()) {
                     host().pushUndo();
                     std::vector<ConnectionModel> old;
@@ -175,13 +191,11 @@ void SongView::mouseDownHeader(const juce::MouseEvent& e, int row, juce::Point<i
             }
         }
         if (soloBox(row).contains(p) && arrangeable_.count(node) != 0) {
-            host().setSoloed(node, !host().soloed(node));
-            repaintRow(row);
+            soloClick(node, !host().soloed(node), e.mods.isAltDown(), e.mods.isCommandDown());
             return;
         }
         if (muteBox(row).contains(p)) {
-            setNodeMuted(node, !nodeMuted(node));
-            repaintRow(row);
+            muteClick(node, !nodeMuted(node), e.mods.isAltDown());
         } else if (recBox(row).contains(p) && recordable(node)) {
             if (host().nodeRecordsMedia(node)) {
                 bool armed = false;

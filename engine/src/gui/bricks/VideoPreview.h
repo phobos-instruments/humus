@@ -23,10 +23,10 @@ class VideoPreview : public PolledBrick {
 public:
     VideoPreview(BrickHost& host, std::string organism, const Bindings& bound)
         : PolledBrick(host, organism, 2), preview_(host, organism, bound(bind::kPreview)) {
-        VideoPreviewStore::instance().want(name_, true);
+        VideoPreviewStore::instance().want(host_.videoKey(name_), true);
         meter_.watches(name_);
     }
-    ~VideoPreview() override { VideoPreviewStore::instance().want(name_, false); }
+    ~VideoPreview() override { VideoPreviewStore::instance().want(host_.videoKey(name_), false); }
 
     void reloadValues() override { repaint(); }
     void refreshAutomatedValues() override {}
@@ -74,7 +74,7 @@ private:
         if (!takes.anyOpen()) return false;
         std::string at = name_;
         for (int hop = 0; hop < kUpstreamHops; ++hop) {
-            if (takes.isOpen(at)) return true;
+            if (takes.isOpen(host_.videoKey(at))) return true;
             std::string next;
             for (const auto& c : host_.model().videoConnections)
                 if (c.dst == at && c.dstInlet == 0) { next = c.src; break; }
@@ -93,7 +93,7 @@ private:
             }
             return;
         }
-        if (VideoPreviewStore::instance().take(name_, gen_, frame_)) repaint();
+        if (VideoPreviewStore::instance().take(host_.videoKey(name_), gen_, frame_)) repaint();
         if (frame_.isValid()) meter_.note(gen_);
         else meter_.reset();
     }

@@ -3,12 +3,14 @@
 #pragma once
 #include <algorithm>
 #include <array>
+#include <cstdint>
 #include <vector>
 
 #include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/ParamRef.h"
 #include "hum/Pattern.h"
+#include "hum/StepChance.h"
 
 namespace hum {
 
@@ -27,6 +29,7 @@ public:
 
     void prepare(double sampleRate, int) override {
         sampleRate_ = sampleRate;
+        seed_ = stepSeedFor(name());
         reset();
     }
     void reset() override {
@@ -34,7 +37,12 @@ public:
         offCount_ = 0;
     }
 
-    void setPattern(const Pattern& p) override { pattern_ = p; }
+    void setPattern(const Pattern& p) override {
+        pattern_ = p;
+        chances_.clear();
+        for (const auto& ch : pattern_.channels)
+            if (ch.type == kChanceRowChannel) chances_.push_back(decodeChanceRow(ch.matrix));
+    }
     void loadFrom(const OrganismState& state) override {
         Organism::loadFrom(state);
         setPattern(state.pattern);
@@ -55,13 +63,14 @@ public:
 private:
     void emit(int port, int offset, bool on, int note, int vel);
 
-    struct RowParams { ParamRef enable, note, vel; };
+    struct RowParams { ParamRef enable, note, vel, chance; };
     static std::array<RowParams, kRows> makeRowParams() {
         std::array<RowParams, kRows> out;
         for (int r = 0; r < kRows; ++r)
             out[(size_t) r] = {ParamRef::numbered("Enable_", r + 1),
                                ParamRef::numbered("Note_", r + 1),
-                               ParamRef::numbered("Vel_", r + 1)};
+                               ParamRef::numbered("Vel_", r + 1),
+                               ParamRef::numbered("Chance_", r + 1)};
         return out;
     }
 
@@ -69,6 +78,8 @@ private:
 
     const int rows_;
     Pattern pattern_;
+    std::vector<std::vector<int>> chances_;
+    std::uint32_t seed_ = 0;
     std::array<RowParams, kRows> rowParams_ = makeRowParams();
     std::array<std::array<MidiEvent, 64>, kPorts> outEvents_;
     std::array<int, kPorts> outCount_ = {};

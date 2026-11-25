@@ -2,7 +2,7 @@
 
 A monophonic pitch corrector that pulls a voice or lead onto the notes of a key and scale.
 
-It tracks the incoming fundamental, snaps it to the nearest allowed note of the chosen Key and Scale, and shifts the audio there with a crossfading delay-line shifter, one voice at a time. Speed sets how fast the glide to the target is: slow keeps the natural drift, fast is the hard-tune effect. The note grid comes from the patch tuning, so a Tuning organism set to 19-EDO puts the scale masks over 19 degrees rather than 12. The wet path carries a short delay. Cord a mono vocal from a SoundIn, or a Decomposer, in.
+It tracks the incoming fundamental, snaps it to the nearest allowed note of the chosen Key and Scale, and shifts the audio there with a crossfading delay-line shifter, one voice at a time. Bells and other sounds whose overtones are not whole multiples of the note, such as Mineral, are tracked by their lowest partial, the note they are played on. Speed sets how fast the glide to the target is: slow keeps the natural drift, fast is the hard-tune effect. The note grid comes from the patch tuning, so a Tuning organism set to 19-EDO puts the scale masks over 19 degrees rather than 12. The wet path carries a short delay. Cord a mono vocal from a SoundIn, or a Decomposer, in.
 
 ## Parameters
 

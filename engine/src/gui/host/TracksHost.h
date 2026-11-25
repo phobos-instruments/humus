@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
 
+#include "gui/host/SampleEdits.h"
 #include <string>
 #include <utility>
 #include <vector>
@@ -18,6 +19,7 @@ class TracksHost : public virtual BrickHost {
 public:
     ~TracksHost() override = default;
 
+    virtual SampleEdits& samples() = 0;
     virtual unsigned locateStamp() const = 0;
     virtual double locateBeat() const = 0;
     virtual void markDirty() = 0;

@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/app/MainComponent.h"
+#include "gui/patcher/OrganismTreePanel.h"
 #include "gui/patcher/PatcherCanvas.h"
 #include "gui/properties/PropertiesPane.h"
 #include "gui/tracks/TracksPane.h"
@@ -26,11 +27,26 @@ void MainComponent::buildDock() {
     addAndMakeVisible(paneBottom_);
     addAndMakeVisible(splitV_);
     addAndMakeVisible(splitH_);
+    organismTree_ = std::make_unique<OrganismTreePanel>();
+    organismTree_->onAdd = [this](const std::string& cls) {
+        addAt(cls, patcherView_.getViewArea().getCentre());
+    };
+    paneLeft_.setContent(organismTree_.get());
+    addChildComponent(paneLeft_);
+    addChildComponent(splitL_);
 
     center_ = {&paneCenter_, &patcherView_, &viewPatcher_, "Patcher"};
     right_  = {&paneRight_, propsPane_.get(), &viewProperties_, "Properties"};
     bottom_ = {&paneBottom_, tracksPane_.get(), &viewAutomation_, "Timeline"};
     bottom_.wantsTransport = true;
+    left_   = {&paneLeft_, organismTree_.get(), &viewOrganisms_, "Organisms"};
+    paneLeft_.onClose = [this] { viewOrganisms_.setToggleState(false, juce::sendNotification); };
+    paneLeft_.onDetach = [this] { detach(left_); };
+    splitL_.onDrag = [this](int d) {
+        leftW_ = juce::jlimit(160, juce::jmax(180, getWidth() - 400), leftW_ + d);
+        queueDockRelayout();
+    };
+    splitL_.onDragEnd = [this] { resized(); persistDock(); };
 
     paneCenter_.onClose = [this] { viewPatcher_.setToggleState(false, juce::sendNotification); };
     paneRight_.onClose  = [this] { viewProperties_.setToggleState(false, juce::sendNotification); };
@@ -58,6 +74,7 @@ void MainComponent::updateDock() {
     paneCenter_.setVisible(vis(center_));
     paneRight_.setVisible(vis(right_));
     paneBottom_.setVisible(vis(bottom_));
+    paneLeft_.setVisible(vis(left_));
     resized();
 }
 
@@ -106,13 +123,14 @@ void MainComponent::persistDock() {
     s.beginBatch();
     s.set("dock.rightW", rightW_);
     s.set("dock.bottomH", bottomH_);
+    s.set("dock.leftW", leftW_);
     auto save = [&](Dockable& d) {
         s.set("dock." + d.key + ".visible", d.toggle->getToggleState() ? 1 : 0);
         s.set("dock." + d.key + ".floated", d.floated ? 1 : 0);
         auto b = (d.floated && d.win) ? d.win->getBounds() : d.floatBounds;
         s.set("dock." + d.key + ".bounds", b.toString());
     };
-    save(center_); save(right_); save(bottom_);
+    save(center_); save(right_); save(bottom_); save(left_);
     s.endBatch();
 }
 
@@ -120,13 +138,14 @@ void MainComponent::restoreDock() {
     auto& s = AppSettings::instance();
     rightW_ = s.getInt("dock.rightW", rightW_);
     bottomH_ = s.getInt("dock.bottomH", bottomH_);
-    auto load = [&](Dockable& d) {
-        d.toggle->setToggleState(s.getInt("dock." + d.key + ".visible", 1) != 0, juce::dontSendNotification);
+    leftW_ = s.getInt("dock.leftW", leftW_);
+    auto load = [&](Dockable& d, int shownByDefault = 1) {
+        d.toggle->setToggleState(s.getInt("dock." + d.key + ".visible", shownByDefault) != 0, juce::dontSendNotification);
         auto bs = s.getString("dock." + d.key + ".bounds", "");
         if (bs.isNotEmpty()) d.floatBounds = juce::Rectangle<int>::fromString(bs);
         if (s.getInt("dock." + d.key + ".floated", 0) != 0) detach(d);
     };
-    load(center_); load(right_); load(bottom_);
+    load(center_); load(right_); load(bottom_); load(left_, 0);
     updateDock();
 }
 

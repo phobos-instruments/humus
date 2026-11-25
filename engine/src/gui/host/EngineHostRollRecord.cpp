@@ -2,7 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/EngineHostMidiControl.h"
 
+#include <algorithm>
+#include <cmath>
+
 #include "core/graph/AudioGraph.h"
+#include "hum/PatternMatrix.h"
 #include "gui/pianoroll/RollModel.h"
 #include "gui/tracks/LooperFlow.h"
 
@@ -19,12 +23,28 @@ int MidiHost::rollClip(const std::string& name) {
     return host_.clips().list(name).empty() ? -1 : kRollClip;
 }
 
+int MidiHost::rollBank(const std::string& name) {
+    auto* rec = recorderOf(name);
+    if (rec == nullptr || rec->bankSwitch().empty()) return 0;
+    return std::clamp((int) std::lround(host_.liveParamValue(name, rec->bankSwitch())), 0, kPatternBanks - 1);
+}
+
+void MidiHost::armRoll(const std::string& name) {
+    setRecordTarget(name, true, recordQuantize(name), rollClip(name), true);
+    const int bank = rollBank(name);
+    const juce::ScopedLock ml(state_.targetsLock);
+    for (auto& t : state_.recordTargets)
+        if (t.node == name) t.bank = bank;
+}
+
 std::vector<NoteEvent> MidiHost::rollNotes(const std::string& name) {
+    if (const int bank = rollBank(name); bank > 0) return host_.patterns().bankNotes(name, bank);
     return rollClip(name) < 0 ? host_.patterns().noteEvents(name) : host_.clips().notes(name, kRollClip);
 }
 
 void MidiHost::writeRoll(const std::string& name, const std::vector<NoteEvent>& notes, int durationTicks) {
-    if (rollClip(name) < 0) host_.patterns().setNoteEvents(name, notes, durationTicks);
+    if (const int bank = rollBank(name); bank > 0) host_.patterns().setBankNotes(name, bank, notes, durationTicks);
+    else if (rollClip(name) < 0) host_.patterns().setNoteEvents(name, notes, durationTicks);
     else host_.clips().setNotes(name, kRollClip, notes, durationTicks);
 }
 
@@ -74,7 +94,7 @@ void MidiHost::recordRoll(const std::string& name, bool on) {
     host_.ensureAudio();
     host_.patterns().ensureNote(name);
     if (!host_.isPlaying()) host_.play();
-    setRecordTarget(name, true, recordQuantize(name), rollClip(name), true);
+    armRoll(name);
 }
 
 void MidiHost::tapLoop(const std::string& name) {
@@ -99,13 +119,13 @@ void MidiHost::tapLoop(const std::string& name) {
             writeRoll(name, {}, kOpenTakeBars * bar);
             host_.setPositionBeats(0.0);
             if (!host_.isPlaying()) host_.play();
-            setRecordTarget(name, true, recordQuantize(name), rollClip(name), true);
+            armRoll(name);
             take.open = true;
             break;
         case roll::LoopTap::Overdub:
             host_.ensureAudio();
             if (!host_.isPlaying()) host_.play();
-            setRecordTarget(name, true, recordQuantize(name), rollClip(name), true);
+            armRoll(name);
             break;
     }
 }

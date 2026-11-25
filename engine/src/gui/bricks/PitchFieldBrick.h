@@ -27,6 +27,8 @@ public:
     int preferredContentHeight(int) const override { return 22; }
     std::function<void(juce::Point<int>)> onPopup;
 
+    void pickNote(int note) { setHz(midiToHz((double) note)); }
+
     void paint(juce::Graphics& g) override {
         auto r = getLocalBounds().toFloat();
         g.setColour(hover_ ? Palette::panelLight.brighter(0.18f) : Palette::panelLight);
@@ -49,10 +51,7 @@ public:
         const auto range = paramRange(host_, name_, param_);
         auto picker = std::make_unique<PianoNotePicker>(
             pitchfield::nearestNote(hz()), pitchfield::lowestNote(range.first), pitchfield::highestNote(range.second),
-            [this](int note) {
-                host_.editParam(name_, param_, midiToHz((double) note));
-                repaint();
-            },
+            [this](int note) { pickNote(note); },
             &host_.midi());
         juce::CallOutBox::launchAsynchronously(std::move(picker), localAreaToGlobal(getLocalBounds()), nullptr);
     }
@@ -60,12 +59,17 @@ public:
     void mouseWheelMove(const juce::MouseEvent& e, const juce::MouseWheelDetails& w) override {
         if (PanelScroller::takesWheel(*this, e, w)) return;
         const auto range = paramRange(host_, name_, param_);
-        host_.editParam(name_, param_, pitchfield::stepped(hz(), w.deltaY > 0 ? 1 : -1, range.first, range.second));
-        repaint();
+        setHz(pitchfield::stepped(hz(), w.deltaY > 0 ? 1 : -1, range.first, range.second));
     }
 
 private:
     double hz() const { return host_.liveParamValue(name_, param_); }
+
+    void setHz(double value) {
+        host_.editParam(name_, param_, value);
+        host_.notePanelEdit(name_);
+        repaint();
+    }
 
     void poll() override {
         const double now = hz();

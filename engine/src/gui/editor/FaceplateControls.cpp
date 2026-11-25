@@ -92,9 +92,17 @@ void Faceplate::buildToggle(const LayoutSpec::Control& s, Control& c, int family
     setup.family = family;
     auto view = views_.toggle(setup);
     view->showOn(toggle::onOf(host_, setup));
-    view->onToggle = [this, setup](bool on) {
-        toggle::apply(host_, setup, on);
-        applyDims();
+    view->onToggle = [this, setup](bool on, ToggleClick click) {
+        const auto edits = toggle::groupEdits(spec_, setup.param, on, click.alt, click.command);
+        if (edits.size() == 1 && (edits.front().value >= 0.5) == on) {
+            host_.editParam(name_, edits.front().param, edits.front().value);
+            applyDims();
+            return;
+        }
+        host_.beginParamDrag(name_, setup.param);
+        for (const auto& e : edits) host_.editParam(name_, e.param, e.value);
+        host_.endParamDrag();
+        reloadValues();
     };
     view->onMenu = [this, param = setup.param](Point at) { openMenu(param, at); };
     c.toggle = std::move(view);

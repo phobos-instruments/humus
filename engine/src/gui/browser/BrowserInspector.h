@@ -14,20 +14,23 @@ namespace hum::browser {
 
 class BrowserInspector : public juce::Component {
 public:
-    static constexpr int kWidth = 270, kPad = 14, kStarPitch = 20, kChipH = 20;
+    static constexpr int kWidth = 300, kPad = 14, kStarPitch = 20, kChipH = 20;
 
     std::function<void(int stars)> onRate;
     std::function<void(bool on)> onFavourite;
     std::function<void(const std::string& tag)> onAddTag, onRemoveTag;
     std::function<void(const std::string& collection, bool in)> onCollection;
-    std::function<void()> onReveal;
+    std::function<void()> onReveal, onTrash;
 
     BrowserInspector();
 
     void show(const Entry* entry, const std::vector<std::string>& collections,
               const std::vector<std::string>& holding, const juce::String& where);
     bool showing() const { return has_; }
+    int contentHeight() const;
     const Entry& entry() const { return entry_; }
+    void setTrashable(bool can) { trash_.setEnabled(can); }
+    juce::TextButton& trashButton() { return trash_; }
 
     void paint(juce::Graphics& g) override;
     void resized() override;
@@ -58,7 +61,7 @@ private:
     std::vector<std::string> collections_;
     juce::TextEditor tagEdit_;
     std::vector<std::unique_ptr<juce::ToggleButton>> toggles_;
-    juce::TextButton reveal_;
+    juce::TextButton reveal_, trash_;
 };
 
 }

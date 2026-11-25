@@ -12,6 +12,8 @@ namespace {
 enum Mode { kModeMidi = 0, kModeScale = 1 };
 constexpr double kPan[Harmonizer::kVoices] = {-1.0, 1.0, -0.5, 0.5};
 constexpr double kHumRate[Harmonizer::kVoices] = {0.31, 0.47, 0.23, 0.59};
+constexpr double kWindowSeconds = 0.04;
+constexpr double kLongestWindowMs = 100.0;
 const char* const kVoiceName[Harmonizer::kVoices] = {"Voice1", "Voice2", "Voice3", "Voice4"};
 const char* const kLevelName[Harmonizer::kVoices] = {"Level1", "Level2", "Level3", "Level4"};
 }
@@ -19,12 +21,19 @@ const char* const kLevelName[Harmonizer::kVoices] = {"Level1", "Level2", "Level3
 void Harmonizer::prepare(double sampleRate, int) {
     sampleRate_ = sampleRate;
     tracker_.prepare(sampleRate);
-    for (auto& s : shift_) s.prepare(sampleRate, 50.0);
+    tracker_.setBellCheck(true);
+    for (auto& s : shift_) {
+        s.prepare(sampleRate, kLongestWindowMs);
+        s.setBlend(PitchShifter::Blend::Level);
+    }
     reset();
 }
 
 void Harmonizer::reset() {
-    for (auto& s : shift_) s.reset();
+    for (auto& s : shift_) {
+        s.reset();
+        s.setWindow((int) (kWindowSeconds * sampleRate_));
+    }
     ratio_.fill(1.0);
     targetRatio_.fill(1.0);
     gain_.fill(0.0f);
@@ -35,7 +44,6 @@ void Harmonizer::reset() {
     stagedCount_ = 0;
     refNote_ = -1;
     voicedHold_ = 0;
-    window_ = 0;
     hz_.store(0.0f, std::memory_order_relaxed);
     clarity_.store(0.0f, std::memory_order_relaxed);
     level_.store(0.0f, std::memory_order_relaxed);
@@ -69,6 +77,12 @@ int Harmonizer::scaleStep(int baseNote, int key, int scaleId, int degrees) {
     const int ko = (int) std::floor((double) k / n);
     const int ki = k - ko * n;
     return key + ko * 12 + semis[ki];
+}
+
+void Harmonizer::fitWindow(double hz) {
+    const int wanted = PitchShifter::wholeCycleWindow(sampleRate_ / hz, sampleRate_, kWindowSeconds);
+    if (wanted != shift_[0].window())
+        for (auto& s : shift_) s.glideToWindow(wanted);
 }
 
 int Harmonizer::stableNote(double exactMidi, int current) {
@@ -129,11 +143,7 @@ void Harmonizer::process(const float* const* in, int numIn, float* const* out, i
     if (rawVoiced) {
         refNote_ = stableNote(hzToMidi(hz), refNote_);
         voicedHold_ = (int) (0.18 * sampleRate_);
-        const int period = (int) (sampleRate_ / hz);
-        if (std::abs(2 * period - window_) > window_ / 8) {
-            window_ = 2 * period;
-            for (auto& s : shift_) s.setWindow(window_);
-        }
+        fitWindow(hz);
     } else {
         voicedHold_ = std::max(0, voicedHold_ - numSamples);
     }

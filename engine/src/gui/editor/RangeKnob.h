@@ -28,10 +28,10 @@ public:
     static constexpr float kEndAngle = juce::MathConstants<float>::pi * 2.8f;
 
     RangeKnob(BrickHost& host, std::string organism, std::string param, double min, double max,
-              int decimals = 1, bool logarithmic = false, int family = -1, Unit unit = Unit::None)
+              bool logarithmic = false, int family = -1, Unit unit = Unit::None)
         : host_(host), name_(std::move(organism)),
           range_(host, name_, std::move(param), min, max, logarithmic),
-          decimals_(decimals), family_(family), unit_(unit) {
+          family_(family), unit_(unit) {
         setOpaque(false);
     }
 
@@ -188,7 +188,6 @@ private:
     BrickHost& host_;
     std::string name_;
     input::RangeInput range_;
-    int decimals_ = 1;
     int family_ = -1;
     Unit unit_ = Unit::None;
     bool controlled_ = false;

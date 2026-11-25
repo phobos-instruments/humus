@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #include "gui/host/EngineHost.h"
+#include "core/app/AppPaths.h"
 
 #include "core/plugins/BridgedPlugin.h"
 #include "core/plugins/PluginHost.h"
@@ -22,6 +23,15 @@ PluginNode* EngineHost::pluginNodeFor(const std::string& name) {
 }
 
 void EngineHost::pumpPluginTunings() {
+    if (graph_ && graph_->pluginLayoutsChanged()) {
+        {
+            const AudioLock::Scope sl(lock_);
+            graph_->adoptPluginLayouts();
+        }
+        rebuild();
+        if (onTopologyChanged) onTopologyChanged();
+        return;
+    }
     if (graph_ && graph_->takeLatencyChanges()) rebuild();
     if (graph_ == nullptr || !graph_->pluginsMayNeedRetuning()) return;
     const AudioLock::Scope sl(lock_);
@@ -71,13 +81,15 @@ void EngineHost::pollTuningProbes() {
             if (graph_) graph_->setBendVerdict(cls, v != TuningProbeVerdict::SpeaksMts);
             continue;
         }
+        if (env_.helperProgram.empty()) return;
+        const auto helper = fileAt(env_.helperProgram);
+        if (!helper.existsAsFile()) return;
         probeClass_ = cls;
         probeOut_ = juce::File::getSpecialLocation(juce::File::tempDirectory)
                         .getChildFile("hum-probe-" + juce::Uuid().toString() + ".txt");
         auto child = std::make_unique<juce::ChildProcess>();
         juce::StringArray args;
-        args.add(juce::File::getSpecialLocation(juce::File::currentExecutableFile)
-                     .getFullPathName());
+        args.add(helper.getFullPathName());
         args.add("--tuning-probe");
         args.add(probeOut_.getFullPathName());
         args.add(juce::String(cls));

@@ -256,7 +256,7 @@ std::shared_ptr<VideoLayer> VisualPlanBuilder::openDeck(DeckState& d, const std:
         const auto file = resolvePath(path);
         d.layer = path.isEmpty() || file == juce::File()
                       ? nullptr
-                      : VideoDeckPool::instance().open(poolPrefix_ + key,
+                      : VideoDeckPool::instance().open(host_.videoKey(poolPrefix_ + key),
                                                        file.getFullPathName(), exact_);
     }
     return d.layer;

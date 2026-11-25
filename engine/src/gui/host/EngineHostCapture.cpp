@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/params/LaneKind.h"
 #include "gui/host/EngineHost.h"
 #include "io/ModRouteBuild.h"
 #include <algorithm>
@@ -146,17 +147,17 @@ void EngineHost::capturePointAt(const std::string& organism, const std::string& 
                                 double lo, double hi, bool isRange, double beat) {
     auto* c = model_.byName(organism);
     if (!c) return;
-    bool trig = false;
-    for (const auto& d : schemaFor(c->classRaw))
-        if (d.name == param) { trig = d.isTrigger; break; }
+    const ParamDesc* desc = paramDescOf(schemaFor(c->classRaw), param);
+    const bool trig = desc != nullptr && desc->isTrigger;
     if (trig && lo < 0.5) return;
     auto* lane = findLane(*c, param);
     if (!lane) {
         AutomationLane nl;
         nl.propertyName = param;
         nl.propertyIndex = paramIndex(*c, param);
-        nl.kind = trig ? "trigger" : isRange ? "range"
-                : isClockPseudo(c->displayClass) && isHeldClockParam(param) ? "step" : "double";
+        nl.kind = laneKindFor(desc, isRange, isClockPseudo(c->displayClass) && isHeldClockParam(param));
+        if (nl.kind == "step" && !isClockPseudo(c->displayClass) && beat > kBeatEps)
+            if (const Parameter* now = paramByName(*c, param)) nl.points.push_back({0.0, now->value, now->value, 0.0, true});
         c->automation.push_back(std::move(nl));
         lane = &c->automation.back();
         AutomationView view;

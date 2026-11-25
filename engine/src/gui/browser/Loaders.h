@@ -34,6 +34,7 @@ private:
 };
 
 LoaderTable buildLoaderTable();
+bool canLoadInto(hum::PatcherHost& host, const std::string& node, const std::string& path);
 std::string loadInto(hum::PatcherHost& host, const std::string& node, const std::string& path);
 std::vector<std::string> loadIntoNew(hum::PatcherHost& host, const std::string& className, const std::vector<std::string>& paths,
                                      int x, int y, const std::string& scope);

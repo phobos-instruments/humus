@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: GPL-3.0-only
 #pragma once
+#include <algorithm>
 #include <array>
+#include <atomic>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -9,6 +11,7 @@
 
 #include <juce_dsp/juce_dsp.h>
 
+#include "hum/caps/Graph.h"
 #include "hum/caps/Midi.h"
 #include "hum/Organism.h"
 #include "hum/PitchBend.h"
@@ -19,7 +22,7 @@
 
 namespace hum {
 
-class Wave : public Organism, public MidiNode, public LiveMidiIn {
+class Wave : public Organism, public MidiNode, public LiveMidiIn, public ControlSource, public PinKinds {
 public:
     static constexpr int kVoices = 8;
     static constexpr int kMaxUnison = 16;
@@ -30,6 +33,13 @@ public:
     int numAudioOutputs() const override { return 2; }
     int numMidiInputs() const override { return 1; }
     int numMidiOutputs() const override { return 0; }
+
+    bool controlOutlet(int) const override { return true; }
+    int controlValues(ControlVal* out, int capacity) const override {
+        if (capacity < 1) return 0;
+        out[0] = {"env", env_.load(std::memory_order_relaxed)};
+        return 1;
+    }
 
     void prepare(double sampleRate, int) override;
     void reset() override;
@@ -93,6 +103,7 @@ private:
     float lvl_[2 * kWaveTableLen] = {};
 
     std::array<Voice, kVoices> voices_;
+    std::atomic<float> env_{0.0f};
     int next_ = 0;
     PitchBend bend_;
     double bendRatio_ = 1.0;

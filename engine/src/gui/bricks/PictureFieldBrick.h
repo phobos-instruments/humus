@@ -10,6 +10,7 @@
 #include "gui/editor/juce/JuceGeometry.h"
 #include "gui/editor/BrickBindings.h"
 #include "gui/style/Colours.h"
+#include "gui/style/DropBadge.h"
 #include "gui/host/BrickHost.h"
 #include "gui/style/LookAndFeel.h"
 #include "gui/bricks/PolledBrick.h"
@@ -105,6 +106,11 @@ public:
     bool isInterestedInFileDrag(const juce::StringArray&) override { return true; }
     void fileDragEnter(const juce::StringArray&, int, int) override { dropHot_ = true; repaint(); }
     void fileDragExit(const juce::StringArray&) override { dropHot_ = false; repaint(); }
+    void paintOverChildren(juce::Graphics& g) override {
+        if (!dropHot_) return;
+        if (image_.isValid()) drop::paintTarget(g, getLocalBounds().toFloat(), 5.0f);
+        else drop::paintBadge(g, getLocalBounds().toFloat());
+    }
     void filesDropped(const juce::StringArray& files, int, int) override {
         dropHot_ = false;
         if (!files.isEmpty()) setPicture(files[0]);

@@ -14,8 +14,6 @@ namespace hum {
 
 namespace {
 
-constexpr const char* kBaseParam[4] = {"Base A", "Base C", "Base G", "Base T"};
-
 constexpr double kStepsPerBeat[] = {
     4.0,
     2.0,
@@ -53,8 +51,15 @@ void DNA::emit(int offset, bool on, int note, int vel) {
 void DNA::process(const float* const*, int, float* const*, int,
                   int numSamples, const Transport& transport) {
     const double sr = sampleRate_ > 0.0 ? sampleRate_ : kDefaultSampleRate;
-    const int seed = (int) params.get("Seed", 1.0);
+    const int bank = std::clamp((int) std::lround(bankRef_.get(params, 0.0)), 0, kPatternBanks - 1);
+    const int seed = (int) banked_.get(params, bank, kSeedSlot, 1.0);
     if (seed != lastSeed_) grow(seed);
+    std::array<int, kBases> chances{};
+    for (int s = 0; s < kBases; ++s) {
+        chances[(size_t) s] = std::clamp((int) std::lround(banked_.get(params, bank, kChanceSlot + (size_t) s, kFullChance)),
+                                         0, kFullChance);
+        stripMiss_[(size_t) s].store(kFullChance - chances[(size_t) s], std::memory_order_relaxed);
+    }
     const int rate = std::clamp((int) params.get("Rate", 0.0), 0, kNumRates - 1);
     const double stepsPerBeat = kStepsPerBeat[rate];
     const double rest = params.get("Rest", 0.25);
@@ -78,13 +83,13 @@ void DNA::process(const float* const*, int, float* const*, int,
     const Chord chord = Chord::byId((int) params.get("Chord", 0.0));
     double baseCents[4];
     for (int b = 0; b < 4; ++b) {
-        const double ov = params.get(kBaseParam[b], -1.0);
+        const double ov = banked_.get(params, bank, kBaseSlot + (size_t) b, -1.0);
         baseCents[b] = ov >= 0.0 ? std::min(ov, 12.0) * 100.0 : chord.cents(b);
     }
     const auto& tuning = transport.tuning();
     const double gate = params.get("Gate", 0.6);
     const double mutate = params.get("Mutate", 0.15);
-    const int mute = (int) params.get("Mute", 0.0);
+    const int mute = (int) banked_.get(params, bank, kMuteSlot, 0.0);
     const int octaves = std::clamp((int) params.get("Octaves", 2.0), 1, 3);
     const int vel = (int) params.get("Velocity", 100.0);
 
@@ -111,7 +116,8 @@ void DNA::process(const float* const*, int, float* const*, int,
         if (((mute >> slot) & 1) != 0) { next += 1.0; continue; }
         const int base = genome_[(size_t) slot];
         const std::uint32_t h = stepHash(idx, seed);
-        if ((h & 0xFFFF) / 65536.0 >= rest) {
+        const bool plays = stepPlays(chanceSeed_.load(std::memory_order_relaxed), 0, idx, chances[(size_t) slot]);
+        if ((h & 0xFFFF) / 65536.0 >= rest && plays) {
             const int lift = octaves > 1 && ((h >> 20) % (std::uint32_t) octaves) == 1
                                  ? tuning.notesPerPeriod() : 0;
             const int note = root + Scale::nearestNote(tuning, baseCents[base]) + lift;

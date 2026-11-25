@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
 #pragma once
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -10,13 +12,13 @@
 #include "gui/host/HostCore.h"
 #include "gui/host/BrickHost.h"
 #include "gui/host/HostScheduler.h"
+#include "gui/host/OscUdpListener.h"
 #include "core/net/OscControl.h"
 #include "gui/settings/OscSerial.h"
 
 namespace hum {
 
-
-class OscHost : public OscEdits, private juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback> {
+class OscHost : public OscEdits {
 public:
     OscHost(BrickHost& host, HostCore& core, HostScheduler& scheduler);
     ~OscHost() override;
@@ -49,16 +51,16 @@ public:
     void applySerialSettings() override;
     bool serialEnabled() const override { return serial_.enabled(); }
     bool serialOpen() const override { return serial_.isOpen(); }
-    void takeSerialMessage(const osc::Message& m);
+    void takeMessage(const osc::Message& m);
+    void takePacket(const std::uint8_t* data, size_t size, const std::string& from);
 
 private:
-    void oscMessageReceived(const juce::OSCMessage&) override;
     void logToMonitors(bool out, const juce::String& address, const juce::String& args);
 
     BrickHost& host_;
     HostDocument& doc_;
     HostScheduler& scheduler_;
-    juce::OSCReceiver receiver_;
+    OscUdpListener udp_;
     OscControlMap map_;
     juce::String lastAddress_;
     bool enabled_ = false;

@@ -81,6 +81,12 @@
           "max": 64.0,
           "def": 1.0,
           "int": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
         }
       ],
       "editor": "gen:dynamics",
@@ -262,6 +268,12 @@
           "max": 64.0,
           "def": 1.0,
           "int": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
         }
       ],
       "editor": "gen:dynamics",
@@ -348,6 +360,12 @@
           "max": 64.0,
           "def": 1.0,
           "int": true
+        },
+        {
+          "name": "Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "def": 1.0
         }
       ],
       "editor": "gen:dynamics",

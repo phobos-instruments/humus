@@ -1,7 +1,9 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "gui/host/AutomationLanes.h"
 #include "gui/host/EngineHost.h"
 
+#include <cmath>
 #include <limits>
 
 #include <algorithm>
@@ -110,6 +112,7 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
         return;
     }
     if (param == kRandomAction) { fireRandom(organism, value >= 0.5); return; }
+    if (param == kEvolveAction) { fireEvolve(organism, value >= 0.5); return; }
     if (rollscope::isPodAction(param)) { firePodRandom(rollscope::podOfAction(param), value >= 0.5); return; }
     if (const int slot = markerOfAction(param); slot > 0) {
         if (const auto* cm = model_.byName(organism);
@@ -182,6 +185,7 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
     }
 
     const double was = prePassValue(organism, param);
+    const int bankShown = paramBankShown(organism, param);
 
     const bool live = liveControl_;
     if (!live) recordParamRevert(organism, param);
@@ -226,6 +230,8 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
                 c->params.add(np);
             }
         }
+    if (bankShown >= 0) switchParamBank(organism, bankShown, (int) std::lround(value));
+    if (const auto* cm = model_.byName(organism); cm != nullptr && lanes::lanePlaysFaceplate(*cm, param)) syncAutomation();
     if (reload)
         scheduler_.post([this, alive = hostAlive_, organism] {
             if (*alive) onFileNodeChanged(organism, {}, false);
@@ -241,6 +247,7 @@ void EngineHost::setParam(const std::string& organism, const std::string& param,
     if (files().fireTrigger(organism, param, value)) return;
     if (param == "Channel") scheduleAuxChannelCheck();
     sendMidiOut(organism, param, value);
+    handOver(organism, param);
     noteTouch(organism, param);
     capturePoint(organism, param, value, value, false, was);
     if (playing_ && !capturing_ && !derivedControl_)
@@ -383,7 +390,7 @@ bool EngineHost::isExternallyControlled(const std::string& organism,
         if (e.organism == organism && e.param == param) return true;
     for (const auto& e : osc().map().entries())
         if (e.organism == organism && e.param == param) return true;
-    return false;
+    return daw_ != nullptr && daw_->drives(organism, param);
 }
 
 std::string EngineHost::translated(const std::string& key, const std::string& written) const {
@@ -457,6 +464,7 @@ void EngineHost::setParamText(const std::string& organism, const std::string& pa
             }
         }
     if (param.rfind("File", 0) == 0) onFileNodeChanged(organism, text, true, param);
+    handOver(organism, param);
     if (!audioRunning_) primeOffline(1);
 }
 
@@ -518,6 +526,7 @@ void EngineHost::applyNodeState(const std::string& name, const NodeState& s) {
     const auto* cm = model_.byName(name);
     if (cm == nullptr) return;
     pushParamStep();
+    const RestoringStateHold restoring(*this);
     for (const auto& p : s.props) {
         const Parameter* cur = nullptr;
         for (const auto& q : cm->properties)

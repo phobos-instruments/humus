@@ -32,6 +32,11 @@ public:
         return half == 0 || half == 1 ? held_[(size_t) half].load(std::memory_order_relaxed) : 0;
     }
 
+    void pushLiveMidi(const MidiEvent& e, int fromPort) override {
+        if (fromPort >= 0 && !listensTo(e)) return;
+        pushLiveMidi(e);
+    }
+
     void pushLiveMidi(const MidiEvent& e) override {
         trackHeld(e);
         std::lock_guard<std::mutex> g(m_);
@@ -50,6 +55,13 @@ public:
 private:
     static constexpr int kAllSoundOff = 120;
     static constexpr int kAllNotesOff = 123;
+
+    bool listensTo(const MidiEvent& e) const {
+        const int channel = (int) std::lround(params.get("Channel", 0.0));
+        const int status = e.data[0];
+        const bool channelMessage = status >= 0x80 && status < 0xF0;
+        return channel <= 0 || !channelMessage || (status & 0x0F) + 1 == channel;
+    }
 
     void trackHeld(const MidiEvent& e) {
         if (e.size < 3) return;

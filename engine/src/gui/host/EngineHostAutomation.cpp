@@ -1,5 +1,6 @@
 // SPDX-FileCopyrightText: 2026 Gabriele Arcangelo Scalici (Phobos Instruments)
 // SPDX-License-Identifier: AGPL-3.0-only
+#include "core/params/LaneKind.h"
 #include "gui/host/EngineHost.h"
 #include "io/ModRouteBuild.h"
 
@@ -139,14 +140,13 @@ void AutomationHost::add(const std::string& organism, const std::string& param) 
     const Parameter* pr = paramByName(*c, param);
     const bool isRange = pr && pr->isRange;
     const bool clock = isClockPseudo(c->displayClass);
-    bool trig = false;
-    for (const auto& d : schemaFor(c->classRaw))
-        if (d.name == param) { trig = d.isTrigger; break; }
-    lane.kind = trig ? "trigger" : isRange ? "range"
-              : clock && isHeldClockParam(param) ? "step" : "double";
+    const ParamDesc* desc = paramDescOf(schemaFor(c->classRaw), param);
+    const bool trig = desc != nullptr && desc->isTrigger;
+    lane.kind = laneKindFor(desc, isRange, clock && isHeldClockParam(param));
     const double now = pr ? pr->value : clock ? host_.liveParamValue(organism, param) : 0.0;
     if (!trig)
-        lane.points.push_back({0.0, isRange ? pr->rangeMin : now, isRange ? pr->rangeMax : now});
+        lane.points.push_back({0.0, isRange ? pr->rangeMin : now, isRange ? pr->rangeMax : now, 0.0,
+                               lane.kind == "step" && !clock});
     c->automation.push_back(std::move(lane));
 
     AutomationView view;

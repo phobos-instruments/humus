@@ -175,7 +175,7 @@ void TrackRollView::paintRoll(juce::Graphics& g) {
             if (((pitch % 12) + 12) % 12 == 0 && rp.rowH >= 8.0f) {
                 g.setColour(juce::Colour(noteedit::kEbony));
                 g.setFont(juce::FontOptions(9.0f));
-                g.drawText("C" + juce::String(pitch / 12 - 1), tracksgeo::kStripW - kKeyW + 2,
+                g.drawText("C" + juce::String(octaveOf(pitch)), tracksgeo::kStripW - kKeyW + 2,
                            (int) y - 1, kKeyW - 5, (int) kh + 2,
                            juce::Justification::centredRight, false);
             }

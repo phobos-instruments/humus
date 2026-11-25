@@ -84,25 +84,16 @@ void ClipEditorView::paintClip(juce::Graphics& g) {
 void ClipEditorView::paintClipWave(juce::Graphics& g, juce::Rectangle<int> f,
                                const ClipEditor::ClipInfo& ci, juce::Colour accent) {
     const auto* peaks = WaveformCache::instance().get(ci.audioFile, [this] { repaint(); });
-    if (!peaks || !peaks->ready || peaks->sourceSamples <= 0) return;
-    const double spb = sourceSamplesPerBeat(ci);
-    const double fileRate = peaks->fileSampleRate > 0.0 ? peaks->fileSampleRate : host().sampleRate();
-    const double toFile = fileRate / host().sampleRate();
-    const double startBeat = ci.startTick / (double) Pattern::kTicksPerBeat;
+    WaveGeometry wg;
+    if (!peaks || !peaks->ready || peaks->sourceSamples <= 0 || !waveGeometry(ci, f, wg)) return;
+    const double startBeat = wg.startBeat;
     const double endBeat = (ci.startTick + ci.lengthTicks) / (double) Pattern::kTicksPerBeat;
-    const double regionLen = ci.lengthTicks / (double) Pattern::kTicksPerBeat * spb;
-    auto fileSampleAtX = [&](int x) {
-        const double rel = (xToBeat((float) x) - startBeat) * spb;
-        return ((double) ci.audioOffset + (ci.audioReverse ? regionLen - rel : rel)) * toFile;
-    };
-    auto xOfFileSample = [&](double s) {
-        const double rel = s / toFile - (double) ci.audioOffset;
-        return beatToX(startBeat + (ci.audioReverse ? regionLen - rel : rel) / spb);
-    };
+    auto fileSampleAtX = [&](int x) { return this->fileSampleAtX(wg, (float) x); };
+    auto xOfFileSample = [&](double s) { return this->xOfFileSample(wg, s); };
     const double perPx = std::abs(fileSampleAtX(f.getX() + 1) - fileSampleAtX(f.getX()));
-    const float midY = (float) f.getCentreY();
-    const float halfH = f.getHeight() * 0.5f - 3.0f;
-    const float gain = (float) ci.audioGain;
+    const float midY = wg.midY;
+    const float halfH = wg.halfH;
+    const float gain = wg.gain;
 
     auto colourAt = [&](int x, bool body) {
         const double b = xToBeat((float) x);
@@ -138,10 +129,13 @@ void ClipEditorView::paintClipWave(juce::Graphics& g, juce::Rectangle<int> f,
 
     const auto from = (std::int64_t) std::floor(std::min(fileSampleAtX(f.getX()), fileSampleAtX(f.getRight())));
     const auto to = (std::int64_t) std::ceil(std::max(fileSampleAtX(f.getX()), fileSampleAtX(f.getRight()))) + 1;
-    const auto& mono = window_.read(ci.audioFile, from, to);
+    const auto& mono = window_.read(ci.audioFile, from, to, host().samples().contentStamp(ci.audioFile));
     if (mono.empty()) return;
     const auto base = window_.from();
+    const auto strokeEnd = stroke_.start + (std::int64_t) stroke_.values.size();
     auto sampleAt = [&](std::int64_t s) -> float {
+        if (drag_ == Drag::Pencil && s >= stroke_.start && s < strokeEnd)
+            return stroke_.values[(size_t) (s - stroke_.start)] * gain;
         const auto i = s - base;
         return i >= 0 && i < (std::int64_t) mono.size() ? mono[(size_t) i] * gain : 0.0f;
     };

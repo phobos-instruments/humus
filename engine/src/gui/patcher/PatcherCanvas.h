@@ -12,23 +12,26 @@
 #include "core/graph/PodModel.h"
 #include "gui/host/PatcherHost.h"
 #include "gui/host/PodClip.h"
-#include "gui/common/UiTicker.h"
-
-#include "gui/patcher/PortGroups.h"
-#include "gui/patcher/PortSpot.h"
+#include "gui/patcher/PatchView.h"
+#include "gui/patcher/PatcherHostSource.h"
 
 namespace hum {
 
-class PatcherCanvas : public juce::Component,
+struct PatcherSourceHolder {
+    explicit PatcherSourceHolder(PatcherHost& host) : patchSource(host) {}
+    PatcherHostSource patchSource;
+};
+
+class PatcherCanvas : private PatcherSourceHolder,
+                      public PatchView,
                       public juce::TooltipClient,
                       public juce::FileDragAndDropTarget,
-                      private juce::Timer {
+                      public juce::DragAndDropTarget {
 public:
-    explicit PatcherCanvas(PatcherHost& host) : host_(host) {
+    explicit PatcherCanvas(PatcherHost& host)
+        : PatcherSourceHolder(host), PatchView(patchSource), host_(host) {
         setWantsKeyboardFocus(true);
-        tickerId_ = UiTicker::instance().add([this] { timerCallback(); });
     }
-    ~PatcherCanvas() override { UiTicker::instance().remove(tickerId_); stopTimer(); }
 
     std::function<void(const std::string&)> onSelect;
     std::function<void(const std::string&)> onActivate;
@@ -40,38 +43,6 @@ public:
     std::function<void(const std::string&, juce::Point<int>)> onAddRequest;
     std::function<void()> onUndoRedo;
 
-    juce::Point<int> visibleCentreForNode() const {
-        auto centre = getLocalBounds().getCentre();
-        if (auto* vp = dynamic_cast<const juce::Viewport*>(getParentComponent()))
-            centre = vp->getViewArea().getCentre();
-        return {std::max(0, (int) (centre.x / zoom_) - kW / 2),
-                std::max(0, (int) (centre.y / zoom_) - kH / 2)};
-    }
-
-    juce::Point<int> modelPos(const juce::MouseEvent& e) const {
-        return modelPos(e.getPosition());
-    }
-    juce::Point<int> modelPos(juce::Point<int> viewPoint) const {
-        return (viewPoint.toFloat() / zoom_).roundToInt();
-    }
-    juce::Point<int> viewPos(juce::Point<int> modelPoint) const {
-        return (modelPoint.toFloat() * zoom_).roundToInt();
-    }
-
-    static constexpr float kZoomMin = 0.4f, kZoomMax = 2.0f;
-    float zoom() const { return zoom_; }
-    juce::Rectangle<int> nodeBoundsForTest(const std::string& n) { return nodeBounds(n); }
-    bool hitsCordForTest(juce::Point<int> p) const {
-        Edge e;
-        return hitCord(p, e);
-    }
-    juce::Point<int> videoInletPosForTest(const std::string& n, int port) { return videoInletPos(n, port); }
-    juce::Point<int> videoOutletPosForTest(const std::string& n, int port) { return videoOutletPos(n, port); }
-    juce::Point<int> midiOutletPosForTest(const std::string& n, int port) { return midiOutletPos(n, port); }
-    juce::Point<int> portPosForTest(const std::string& n, int port, bool outlet, bool midi = false) {
-        return portPos({n, port, outlet, midi});
-    }
-    void controlPortCountsForTest(const std::string& n, int& ins, int& outs) const { controlPortCounts(n, ins, outs); }
     void enterScopeForTest(const std::string& scope) { scope_ = scope; refresh(); }
     int dragHintsForTest(const std::string& node, bool control) {
         selection_ = {node};
@@ -82,26 +53,23 @@ public:
         return n;
     }
     void commitDragHintsForTest() { commitDragHints(); }
-    juce::Rectangle<int> lastNodeRepaintForTest() const { return lastNodeRepaint_; }
-    void timerCallbackForTest() { timerCallback(); }
-    std::string hitNodeAtView(juce::Point<int> viewPoint) { return hitNode(modelPos(viewPoint)); }
     bool isInterestedInFileDrag(const juce::StringArray& files) override;
+    void fileDragEnter(const juce::StringArray& files, int x, int y) override { fileDragMove(files, x, y); }
+    void fileDragMove(const juce::StringArray& files, int x, int y) override;
+    void fileDragExit(const juce::StringArray&) override;
     void filesDropped(const juce::StringArray& files, int x, int y) override;
+    bool isInterestedInDragSource(const SourceDetails& details) override;
+    void itemDropped(const SourceDetails& details) override;
+    const std::string& dropIntoForTest() const { return dropInto_; }
     void dropNewOrganisms(const std::string& className, const std::vector<std::string>& paths, juce::Point<int> at);
-    void setZoom(float z, juce::Point<int> anchor);
-    void resetView();
 
     void refresh();
     void select(const std::string& n);
-    const std::string& selected() const { return primary_; }
-    bool hasSelection() const { return !selection_.empty(); }
-
-    const std::string& scope() const { return scope_; }
     void enterPod(const std::string& pod);
-    void videoPortCounts(const std::string& name, int& ins, int& outs) const;
     void exitToScope(const std::string& scope);
 
     void autoArrange();
+    bool arrangesSelection() const;
     void renameSelection();
     void copySelection();
     void cutSelection();
@@ -114,50 +82,17 @@ public:
 
     juce::String getTooltip() override;
 
-    void paint(juce::Graphics&) override;
-    void parentSizeChanged() override { updateContentSize(); }
     void mouseDown(const juce::MouseEvent&) override;
-    void mouseWheelMove(const juce::MouseEvent&, const juce::MouseWheelDetails&) override;
-    void mouseMagnify(const juce::MouseEvent&, float) override;
     void mouseDrag(const juce::MouseEvent&) override;
     void mouseUp(const juce::MouseEvent&) override;
     void mouseMove(const juce::MouseEvent&) override;
     void modifierKeysChanged(const juce::ModifierKeys&) override;
     bool keyPressed(const juce::KeyPress&) override;
 
-    juce::Rectangle<int> nodeBounds(const std::string& name);
-    std::string portName(const std::string& node, int port, bool outlet) const;
-    std::vector<PortSpot> portSpots(const std::string& name);
-    void repaintNode(const std::string& name);
-    juce::Rectangle<int> lastNodeRepaint_;
+    void parentHierarchyChanged() override;
 
 private:
-    static constexpr int kW = 116, kH = 38;
-    static constexpr int kPort = 7;
-    static constexpr int kPortPad = 9;
-    static constexpr int kPortGap = 5;
-    static constexpr int kMidiGap = 10;
-    static constexpr int kVideoGap = 26;
-    static constexpr int kGroupGap = 6;
-    static constexpr int kGrid = 8;
 
-    struct Edge {
-        std::string src; int srcOutlet; std::string dst; int dstInlet;
-        bool midi = false;
-        bool video = false;
-        bool control = false;
-        bool operator==(const Edge& o) const {
-            return src == o.src && srcOutlet == o.srcOutlet && dst == o.dst
-                && dstInlet == o.dstInlet && midi == o.midi && video == o.video
-                && control == o.control;
-        }
-    };
-
-    struct PortRef {
-        std::string node;
-        int port = 0;
-        bool outlet = false, midi = false, video = false, control = false;
-    };
     struct ShownCord {
         Edge real;
         std::string srcNode;
@@ -167,7 +102,6 @@ private:
         int channel = 0;
     };
     struct Carried { ShownCord cord; int shift = 0; };
-    struct CarriedLine { juce::Point<float> a, b; Edge cord; };
 
     std::vector<ShownCord> shownCords(bool midi, bool video, bool control) const;
     std::vector<ShownCord> cordsAt(const PortRef& at) const;
@@ -177,10 +111,9 @@ private:
     void dropGrab(juce::Point<int> p, const juce::ModifierKeys& mods);
     void cancelGrab();
     bool landingAt(juce::Point<int> p, PortRef& out);
-    bool fitsDrag(const PortRef& t) const;
-    bool isDragAnchor(const PortRef& t) const;
-    bool cordInHand() const { return drag_ == Drag::Cord || (drag_ == Drag::Grab && grabLifted_); }
-    bool refusesDuringDrag(const PortRef& t) const { return cordInHand() && !fitsDrag(t) && !isDragAnchor(t); }
+    bool fitsDrag(const PortRef& t) const override;
+    bool isDragAnchor(const PortRef& t) const override;
+    bool cordInHand() const override { return drag_ == Drag::Cord || (drag_ == Drag::Grab && grabLifted_); }
     void noteRefusal(juce::Point<int> p);
     bool pairFits(const PortRef& at) const;
     std::vector<std::pair<int, int>> cordsForDrop(const std::string& node, int port,
@@ -189,69 +122,22 @@ private:
     void moveCarried(const PortRef& to, const juce::ModifierKeys& mods);
     void reconnect(const ShownCord& c, const PortRef& to, int port);
     void removeCord(const Edge& e);
-    bool isCarried(const Edge& e) const;
-    std::vector<CarriedLine> carriedLines();
-    juce::Point<int> portPos(const PortRef& at);
+    bool isCarried(const Edge& e) const override;
+    std::vector<CordLine> carriedLines() override;
+    void toggleCord(const Edge& e);
+    void forgetCords(const std::vector<Edge>& cords);
+    std::vector<Edge> liveSelectedCords();
+    void removeCords(const std::vector<Edge>& cords);
+    void beginBand(juce::Point<int> p, bool cords, bool additive);
+    void dragBand(juce::Point<int> p);
 
-    struct DisplayNode { std::string name; bool pod = false; };
-    std::vector<DisplayNode> displayNodes() const;
-    bool isPodBox(const std::string& name) const;
-    void portCounts(const std::string& name, int& ins, int& outs) const;
-    struct PortSides {
-        int ins = -1, outs = -1;
-        std::string cls;
-        bool resolved = false;
-        portgroups::Side in, out;
-    };
-    const portgroups::Side& portSide(const std::string& name, bool outlets) const;
-    int audioBreaks(const std::string& name) const;
-    mutable std::map<std::string, PortSides> portSides_;
-    bool mapEndpoint(const std::string& node, int port, bool isDstSide, pods::Domain dom,
-                     std::string& dispNode, int& dispPort) const;
-    bool mapEndpoint(const std::string& node, int port, bool isDstSide, bool midi,
-                     std::string& dispNode, int& dispPort) const {
-        return mapEndpoint(node, port, isDstSide,
-                           midi ? pods::Domain::Midi : pods::Domain::Audio, dispNode, dispPort);
-    }
-    void realPort(const std::string& dispNode, int port, bool isOutlet, pods::Domain dom,
-                  std::string& realNode, int& realPort) const;
-    void realPort(const std::string& dispNode, int port, bool isOutlet, bool midi,
-                  std::string& realNode, int& realPortOut) const {
-        realPort(dispNode, port, isOutlet, midi ? pods::Domain::Midi : pods::Domain::Audio,
-                 realNode, realPortOut);
-    }
+    std::vector<DisplayNode> arrangeTargets() const;
     void showNewPodDialog(juce::Point<int> at);
     void podFromPatchDialog(juce::Point<int> at);
     void openQuickAdd(juce::Point<int> at, juce::Point<int> screenPos);
     void showPodMenu(const std::string& pod, juce::Point<int> screenPos);
     void renamePodDialog(const std::string& pod);
 
-    void updateContentSize();
-    juce::Point<int> viewOffset() const;
-    void autoScrollWhileDragging(const juce::MouseEvent& e);
-
-    int nodeWidth(const std::string& name);
-    juce::Point<int> inletPos(const std::string& name, int inlet, int count);
-    juce::Point<int> outletPos(const std::string& name, int outlet, int count);
-    juce::Point<int> midiInletPos(const std::string& name, int port);
-    juce::Point<int> midiOutletPos(const std::string& name, int port);
-    void midiPortCounts(const std::string& name, int& ins, int& outs) const;
-    int afterAudioX(const std::string& name, bool outlets);
-    int videoBlockWidth(const std::string& name, bool outlets);
-    juce::Point<int> videoInletPos(const std::string& name, int port);
-    juce::Point<int> videoOutletPos(const std::string& name, int port);
-    juce::Point<int> controlInletPos(const std::string& name, int port);
-    juce::Point<int> controlOutletPos(const std::string& name, int port);
-    void controlPortCounts(const std::string& name, int& ins, int& outs) const;
-    bool hitPort(juce::Point<int> p, std::string& node, int& port, bool& isOutlet, bool& isMidi,
-                 bool& isVideo, bool& isControl);
-    bool hitPort(juce::Point<int> p, std::string& node, int& port, bool& isOutlet, bool& isMidi,
-                 bool& isVideo) {
-        bool isControl = false;
-        return hitPort(p, node, port, isOutlet, isMidi, isVideo, isControl) && !isControl;
-    }
-    std::string hitNode(juce::Point<int> p);
-    bool hitCord(juce::Point<int> p, Edge& out) const;
     void showAddMenu(juce::Point<int> at, juce::Point<int> screenPos);
     void showNodeMenu(const std::string& node, juce::Point<int> screenPos);
     void showCordMenu(const Edge& cord, juce::Point<int> at, juce::Point<int> screenPos);
@@ -270,27 +156,15 @@ private:
     void commitDragHints();
 
     PatcherHost& host_;
-    int tickerId_ = 0;
-    juce::uint64 paintedStamp_ = 0;
     std::unique_ptr<juce::FileChooser> chooser_;
-    std::set<std::string> selection_;
-    std::string primary_;
 
-    enum class Drag { None, Move, Cord, Select, Pan, Grab } drag_ = Drag::None;
     bool beginPan(const juce::MouseEvent& e);
     juce::Point<int> panMouseAnchor_, panViewAnchor_;
-    std::string dragNode_;
     std::string dragLead_;
-    int alignGuideX_ = -1;
-    int alignGuideY_ = -1;
-    int cordOutlet_ = 0;
-    bool cordMidi_ = false;
-    bool cordControl_ = false;
-    bool cordVideo_ = false;
-    juce::Point<int> cordEnd_;
     juce::Point<int> dragStart_;
     std::map<std::string, juce::Point<int>> origPos_;
-    juce::Rectangle<int> selectRect_;
+    std::set<std::string> bandNodes_;
+    std::vector<Edge> bandCords_;
 
     std::vector<OrganismModel> clipboard_;
     std::map<std::string, juce::Point<int>> clipboardPos_;
@@ -300,7 +174,6 @@ private:
     std::vector<PodClip> podClipboard_;
     int pasteCount_ = 0;
 
-    std::string scope_;
     static constexpr int kCrumbH = 24;
 
     class CrumbBar : public juce::Component {
@@ -317,60 +190,11 @@ private:
     CrumbBar crumbBar_{*this};
     void updateCrumbBar();
 
-    class ZoomBar : public juce::Component {
-    public:
-        explicit ZoomBar(PatcherCanvas& c) : canvas_(c) {}
-        void paint(juce::Graphics&) override;
-        void mouseDown(const juce::MouseEvent&) override;
-        void parentSizeChanged() override { layoutInViewport(); }
-        void layoutInViewport();
-        juce::Rectangle<int> cell(int i) const {
-            return {i * kZoomCell, 0, kZoomCell, kZoomBarH};
-        }
-    private:
-        PatcherCanvas& canvas_;
-    };
-    ZoomBar zoomBar_{*this};
-    static constexpr int kZoomBarH = 24, kZoomCell = 30;
-    void parentHierarchyChanged() override;
-
-    std::vector<Edge> spliceBundle_;
-    std::vector<Edge> proxConnections_;
-
-    bool cordSelected_ = false;
-    Edge selectedCord_;
-    bool cordHovered_ = false;
-    Edge hoverCord_;
-
-    bool portHover_ = false;
-    std::string hoverPortNode_; int hoverPort_ = 0; bool hoverPortOut_ = false;
-    bool hoverPortMidi_ = false;
-    bool hoverPortControl_ = false;
-    bool hoverPortVideo_ = false;
-    bool cordTarget_ = false;
-    std::string cordTargetNode_; int cordTargetPort_ = 0;
-
     std::vector<Carried> carried_;
-    PortRef grabFrom_, grabTarget_;
+    PortRef grabFrom_;
     juce::Point<int> grabStart_;
     bool grabLifted_ = false;
-    bool refused_ = false;
-    PortRef refusedAt_;
 
-    struct Flow {
-        int level = 0;
-        float midiCount = -1.0f;
-        juce::uint32 flashUntil = 0;
-        bool bypassed = false;
-        bool bypassSeen = false;
-    };
-    std::map<std::string, Flow> flow_;
-    void timerCallback() override;
-
-    const juce::Image& nodeBody(int w, int h, bool sel, float scale);
-    float zoom_ = 1.0f;
-    std::map<juce::int64, juce::Image> bodyCache_;
-    juce::uint32 bodySig_ = 0;
 };
 
 }

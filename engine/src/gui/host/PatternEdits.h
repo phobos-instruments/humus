@@ -40,10 +40,19 @@ public:
     virtual void setArpStep(const std::string& name, int index, const ArpStep& s) = 0;
     virtual std::vector<bool> arpUps(const std::string& name) const = 0;
     virtual void setArpUp(const std::string& name, int index, bool up) = 0;
+    virtual std::vector<int> stepChances(const std::string& name, int ordinal) const = 0;
+    virtual void setStepChances(const std::string& name, int ordinal, const std::vector<int>& chances) = 0;
+    virtual void copyParamBankTo(const std::string& name, int bank) = 0;
 
     virtual void ensureNote(const std::string& name) = 0;
     virtual void ensureAudio(const std::string& name) = 0;
     virtual std::vector<NoteEvent> noteEvents(const std::string& name) const = 0;
+    virtual std::vector<NoteEvent> bankNotes(const std::string& name, int bank) const = 0;
+    virtual std::vector<CCEvent> bankCCs(const std::string& name, int bank) const = 0;
+    virtual int bankLength(const std::string& name, int bank) const = 0;
+    virtual void setBankNotes(const std::string& name, int bank, const std::vector<NoteEvent>& notes,
+                              int lengthTicks) = 0;
+    virtual void setBankCCs(const std::string& name, int bank, const std::vector<CCEvent>& ccs) = 0;
     virtual void setNoteEvents(const std::string& name, const std::vector<NoteEvent>& notes,
                        int durationTicks) = 0;
 };
